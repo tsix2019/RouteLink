@@ -1,0 +1,68 @@
+name: Integration
+
+# Real OpenWrt in QEMU (KVM) with simulated radios, three releases. Slow, so not on every push:
+# changes to the router-facing code, the tests themselves, or on demand.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/api/**'
+      - 'test/integration/**'
+      - 'scripts/ci/qemu-openwrt.sh'
+      - '.github/workflows/integration.yml'
+      - 'jest.integration.config.js'
+  workflow_dispatch:
+
+concurrency:
+  group: integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  openwrt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['23.05.6', '24.10.8', '25.12.5']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666"' | sudo tee /etc/udev/rules.d/99-kvm.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Install QEMU
+        run: sudo apt-get update -q && sudo apt-get install -yq qemu-system-x86 sshpass
+      - uses: actions/cache@v5
+        with:
+          path: .qemu/openwrt-${{ matrix.version }}.img
+          key: openwrt-x86-64-${{ matrix.version }}
+      - name: Boot OpenWrt ${{ matrix.version }}
+        run: scripts/ci/qemu-openwrt.sh ${{ matrix.version }} .qemu
+      - name: Integration tests
+        env:
+          ROUTER_URL: http://127.0.0.1:18080
+          ROUTER_PASSWORD: routelink-test
+          EXPECT_RADIOS: '1'
+        run: npm run test:int
+      - name: Record fixtures
+        if: success()
+        env:
+          ROUTER_URL: http://127.0.0.1:18080
+          ROUTER_PASSWORD: routelink-test
+        run: npx tsx scripts/record-fixtures.ts openwrt-${{ matrix.version }}
+      - uses: actions/upload-artifact@v7
+        if: success()
+        with:
+          name: fixtures-${{ matrix.version }}
+          path: test/fixtures/openwrt-${{ matrix.version }}
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: serial-${{ matrix.version }}
+          path: .qemu/serial.log

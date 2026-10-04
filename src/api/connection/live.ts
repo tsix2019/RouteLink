@@ -63,4 +63,13 @@ export class LiveConnection implements RouterConnection {
   ping(): Promise<boolean> {
     return pingRouter(this.cfg.http, this.baseUrl, this.tls);
   }
+
+  /** A second session to the same router; it logs in on first use with the mode that worked here. */
+  fork(): LiveConnection {
+    return new LiveConnection({
+      ...this.cfg,
+      authMode: this.session.current?.mode ?? this.cfg.authMode,
+      onLogin: undefined,
+    });
+  }
 }

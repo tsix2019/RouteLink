@@ -12,6 +12,8 @@ module.exports = defineConfig([
       'build/*',
       'modules/**/android/build/*',
       'test/integration/.cache/*',
+      // Worktrees of parallel sessions live inside the repo.
+      '.claude/**',
       // LuCI modules (top-level return, LuCI globals), not app code
       'openwrt/luci-app-routelink/htdocs/**',
     ],

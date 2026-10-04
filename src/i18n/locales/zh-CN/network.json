@@ -1,1 +1,34 @@
-{ "title": "网络" }
+{
+  "title": "网络",
+  "interfaces": "接口",
+  "empty": "没有找到网络接口",
+  "down": "未连接",
+  "noAddress": "没有地址",
+  "traffic": "↓ {{rx}}  ↑ {{tx}}",
+  "detail": {
+    "status": "状态",
+    "connected": "已连接",
+    "disconnected": "未连接",
+    "protocol": "协议",
+    "device": "设备",
+    "uptime": "在线时长",
+    "ipv4": "IPv4 地址",
+    "ipv6": "IPv6 地址",
+    "gateway": "网关",
+    "dns": "DNS",
+    "received": "已接收",
+    "sent": "已发送",
+    "speed": "链路速率",
+    "errors": "错误",
+    "addresses": "地址",
+    "trafficTitle": "流量"
+  },
+  "reconnect": {
+    "button": "重新连接",
+    "title": "重新连接 {{name}}？",
+    "consequence": "接口会先断开再连上，期间这个接口上的连接会中断",
+    "appConsequence": "App 正通过这个接口连接路由器，会暂时断开，几秒后自动恢复",
+    "pppoe": "拨号上网会重新拨号，公网 IP 可能会变",
+    "done": "已发出重连命令"
+  }
+}

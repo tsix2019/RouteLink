@@ -1,1 +1,8 @@
-{ "title": "设置", "language": { "title": "语言", "system": "跟随系统", "zh-CN": "中文", "en": "English" } }
+{
+  "title": "设置",
+  "language": { "title": "语言", "system": "跟随系统", "zh-CN": "中文", "en": "English" },
+  "theme": { "title": "外观", "system": "跟随系统", "light": "浅色", "dark": "深色" },
+  "refresh": { "title": "刷新间隔", "value": "{{count}} 秒" },
+  "reduceTransparency": { "title": "降低透明度", "hint": "关闭模糊效果，玻璃改为不透明，适合性能较弱的手机。" },
+  "demo": { "title": "演示模式", "hint": "使用内置的演示路由器，不连接真实设备。演示里的改动在重启 App 后还原。" }
+}

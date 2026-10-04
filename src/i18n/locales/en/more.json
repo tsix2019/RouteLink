@@ -1,1 +1,76 @@
-{ "title": "More" }
+{
+  "title": "More",
+  "router": "Router",
+  "app": "App",
+  "services": "Services",
+  "logs": "Logs",
+  "wol": "Wake on LAN",
+  "reboot": "Reboot Router",
+  "manageRouters": "Routers",
+  "about": "About",
+  "servicesScreen": {
+    "search": "Search services",
+    "running": "Running",
+    "stopped": "Stopped",
+    "enabled": "Starts at boot",
+    "disabled": "Manual",
+    "empty": "No services found",
+    "start": "Start",
+    "stop": "Stop",
+    "restart": "Restart",
+    "enable": "Start at Boot",
+    "disable": "Don't Start at Boot",
+    "confirmTitle": "{{action}} {{name}}?",
+    "consequence": "Features that depend on this service are affected",
+    "critical": "This is a core service: the app may lose its connection to the router",
+    "done": "Done: {{action}} {{name}}",
+    "core": "Core"
+  },
+  "logsScreen": {
+    "system": "System",
+    "kernel": "Kernel",
+    "filter": "Filter",
+    "empty": "No log entries",
+    "noMatch": "No matching lines",
+    "share": "Share",
+    "count": "{{shown}} / {{total}} lines"
+  },
+  "wolScreen": {
+    "empty": "No saved devices",
+    "emptyHint": "Add a computer's name and MAC address to wake it with one tap. Wake-on-LAN must be enabled in its BIOS and network card.",
+    "add": "Add Device",
+    "wake": "Wake",
+    "name": "Name",
+    "mac": "MAC Address",
+    "macInvalid": "Not a valid MAC address",
+    "delete": "Delete",
+    "deleteTitle": "Delete {{name}}?",
+    "fromDevices": "Add from Devices"
+  },
+  "routersScreen": {
+    "edit": "Edit",
+    "done": "Done",
+    "current": "Current",
+    "add": "Add Router",
+    "empty": "No routers yet",
+    "moveUp": "Move up",
+    "moveDown": "Move down"
+  },
+  "routerEdit": {
+    "title": "Edit Router",
+    "passwordHint": "Leave empty to keep the current password",
+    "delete": "Delete Router",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteConsequence": "The app forgets this router's address and saved password; the router itself is untouched",
+    "saved": "Saved",
+    "certificate": "Trusted Certificate",
+    "forgetCertificate": "Forget Certificate"
+  },
+  "aboutScreen": {
+    "version": "Version {{version}}",
+    "source": "Source Code",
+    "privacy": "Privacy",
+    "privacyText": "RouteLink collects nothing: no analytics, no ads. The app talks only to the routers you add; passwords stay in the system keychain.",
+    "license": "Open source under the MIT License"
+  }
+}

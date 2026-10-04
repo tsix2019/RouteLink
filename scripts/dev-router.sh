@@ -4,6 +4,8 @@
 #
 # netifd and firewall4 need NET_ADMIN. The container gets two Docker networks so netifd has a
 # realistic LAN (eth0) and WAN (eth1); test/docker/network is copied in before the first boot.
+# Don't `docker stop/start` it: Docker may attach the networks in the other order on restart, and
+# the LAN then sits on eth1. Run `up` again instead; to simulate an outage use `docker pause`.
 set -euo pipefail
 V="${2:-24.10.8}"
 NAME="routelink-owrt"

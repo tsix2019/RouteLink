@@ -1,4 +1,4 @@
-import { formatBitRate, formatBytes, formatDuration, formatPercent, protoLabel } from './format';
+import { formatBitRate, formatBytes, formatDuration, formatLinkSpeed, formatPercent, protoLabel } from './format';
 
 describe('formatBytes', () => {
   it.each([
@@ -64,5 +64,16 @@ describe('protoLabel', () => {
     expect(protoLabel('static', 'en')).toBe('Static');
     expect(protoLabel('dhcp', 'zh-CN')).toBe('DHCP');
     expect(protoLabel('batadv', 'en')).toBe('batadv');
+  });
+});
+
+describe('formatLinkSpeed', () => {
+  it.each([
+    [100, '100 Mbps'],
+    [1000, '1 Gbps'],
+    [2500, '2.5 Gbps'],
+    [10000, '10 Gbps'],
+  ])('%d → %s', (mbps, text) => {
+    expect(formatLinkSpeed(mbps)).toBe(text);
   });
 });

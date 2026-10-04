@@ -45,11 +45,16 @@ private val SHA256_HEX = Regex("^[0-9a-fA-F]{64}$")
 
 internal class HttpEngine {
   // No redirects (LuCI login needs the 302 + Set-Cookie) and no cookie jar (routers must not share cookies).
+  // No silent retries either (a repeated ubus call could repeat an action), so a pooled connection the
+  // router already closed would surface as "unexpected end of stream". Idle connections are therefore
+  // dropped after 4 s: below the idle timeouts of uhttpd (30 s), lighttpd (5 s) and nginx (65 s),
+  // while 1–2 s polling still reuses its connection.
   private val base: OkHttpClient = OkHttpClient.Builder()
     .followRedirects(false)
     .followSslRedirects(false)
     .cookieJar(CookieJar.NO_COOKIES)
     .retryOnConnectionFailure(false)
+    .connectionPool(ConnectionPool(4, 4, TimeUnit.SECONDS))
     .build()
 
   // One client per TLS policy so pooled connections are reused between calls to the same router.

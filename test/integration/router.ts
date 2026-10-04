@@ -1,0 +1,46 @@
+// Shared setup for integration tests against a real, disposable OpenWrt (Docker locally, QEMU in CI).
+// ROUTER_URL=http://127.0.0.1:18080 ROUTER_PASSWORD=routelink-test npm run test:int
+import { LiveConnection } from '../../src/api/connection/live';
+import { nodeHttpClient } from '../../src/api/http/node';
+import type { AuthMode, Session } from '../../src/api/ubus/login';
+
+export const ROUTER_URL = process.env.ROUTER_URL ?? 'http://127.0.0.1:18080';
+export const ROUTER_PASSWORD = process.env.ROUTER_PASSWORD ?? 'routelink-test';
+
+export interface TestConnection {
+  conn: LiveConnection;
+  sessions: Session[];
+}
+
+let counter = 0;
+
+/** A fresh connection (own login, own session) to the test router. */
+export function connect(o: { password?: string; authMode?: AuthMode } = {}): TestConnection {
+  const sessions: Session[] = [];
+  const conn = new LiveConnection({
+    routerId: `int-${++counter}`,
+    baseUrl: ROUTER_URL,
+    username: 'root',
+    password: o.password ?? ROUTER_PASSWORD,
+    authMode: o.authMode,
+    http: nodeHttpClient,
+    onLogin: (s) => sessions.push(s),
+  });
+  return { conn, sessions };
+}
+
+export const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/** Polls `check` until it returns true or `timeoutMs` passes. */
+export async function waitFor(check: () => Promise<boolean>, timeoutMs: number, stepMs = 1_000): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      if (await check()) return true;
+    } catch {
+      // the router may be restarting a service
+    }
+    await sleep(stepMs);
+  }
+  return false;
+}

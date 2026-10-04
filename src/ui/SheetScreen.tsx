@@ -5,7 +5,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useTheme } from './theme/ThemeProvider';
+import { ElevatedTheme, useTheme } from './theme/ThemeProvider';
 
 const SPRING = { damping: 22, stiffness: 220, mass: 0.9 } as const;
 
@@ -15,7 +15,7 @@ const SPRING = { damping: 22, stiffness: 220, mass: 0.9 } as const;
  * large corner radius, grabber, dimmed backdrop, drag down or tap outside to dismiss.
  */
 export function SheetScreen({ children, detent = 0.68 }: { children: ReactNode; detent?: number }) {
-  if (Platform.OS === 'ios') return <>{children}</>;
+  if (Platform.OS === 'ios') return <ElevatedTheme>{children}</ElevatedTheme>;
   return <AndroidSheet detent={detent}>{children}</AndroidSheet>;
 }
 
@@ -68,7 +68,7 @@ function AndroidSheet({ children, detent }: { children: ReactNode; detent: numbe
           {
             height: sheetHeight,
             bottom: Math.max(insets.bottom, 8),
-            backgroundColor: colors.background,
+            backgroundColor: colors.sheet,
             borderColor: colors.glassBorder,
           },
           panelStyle,
@@ -78,7 +78,9 @@ function AndroidSheet({ children, detent }: { children: ReactNode; detent: numbe
             <View style={[styles.grabber, { backgroundColor: colors.textTertiary }]} />
           </View>
         </GestureDetector>
-        <View style={styles.content}>{children}</View>
+        <View style={styles.content}>
+          <ElevatedTheme>{children}</ElevatedTheme>
+        </View>
       </Animated.View>
     </View>
   );

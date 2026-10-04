@@ -101,7 +101,7 @@ export class UbusSession {
       headers,
       tls: this.target.tls,
       body: JSON.stringify(payload),
-      timeoutMs: timeoutMs ?? this.opts.timeoutMs ?? 10_000,
+      timeoutMs: timeoutMs ?? this.opts.timeoutMs ?? 8_000,
     });
     if (res.status === 401 || res.status === 403) {
       return calls.map((c) => ({ ok: false, error: new UbusError('ACCESS_DENIED', callKey(c), `HTTP ${res.status}`) }));

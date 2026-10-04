@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useIsFocused, useNavigation, useRoute, useRouter } from 'expo-router';
-import { useState, type ReactNode } from 'react';
+import { useState, type ReactNode, type RefObject } from 'react';
 import {
   Platform,
   Pressable,
@@ -36,14 +36,34 @@ export interface ScreenProps {
   headerRight?: ReactNode;
   /** Inside a tab: leave room for the Android floating tab bar (iOS insets automatically). */
   inTabs?: boolean;
-  refreshing?: boolean;
-  onRefresh?: () => void;
+  /** Pull to refresh; the spinner shows until the returned promise settles. */
+  onRefresh?: () => unknown;
   /** Rendered above the content, e.g. a connection banner. */
   top?: ReactNode;
   contentStyle?: StyleProp<ViewStyle>;
+  /** For screens that scroll themselves, e.g. a log jumping to its end. */
+  scrollRef?: RefObject<ScrollView | null>;
 }
 
 const BAR_HEIGHT = 52;
+
+/**
+ * The spinner follows the user's pull only: background refetches and retries (e.g. while the
+ * router is offline) must not keep it spinning.
+ */
+function usePullToRefresh(onRefresh?: () => unknown) {
+  const [refreshing, setRefreshing] = useState(false);
+  if (!onRefresh) return { refreshing: false, onRefresh: undefined };
+  return {
+    refreshing,
+    onRefresh: () => {
+      setRefreshing(true);
+      void Promise.resolve(onRefresh())
+        .catch(() => {})
+        .finally(() => setRefreshing(false));
+    },
+  };
+}
 /** iOS 26 has no hairline under the bar: content fades out under a soft edge instead. */
 const EDGE = 28;
 
@@ -71,13 +91,14 @@ function NativeHeaderScreen({
   headerLeft,
   headerRight,
   inTabs = true,
-  refreshing,
   onRefresh,
   top,
   contentStyle,
+  scrollRef,
 }: ScreenProps) {
   const { colors } = useTheme();
   const tabSpace = useTabBarSpace();
+  const pull = usePullToRefresh(onRefresh);
   const bottom = spacing.xl + (inTabs && Platform.OS === 'android' ? tabSpace : 0);
   return (
     <>
@@ -91,14 +112,15 @@ function NativeHeaderScreen({
         />
       ) : null}
       <ScrollView
+        ref={scrollRef}
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.content, { paddingBottom: bottom }, contentStyle]}
         refreshControl={
-          onRefresh ? (
+          pull.onRefresh ? (
             <RefreshControl
-              refreshing={!!refreshing}
-              onRefresh={onRefresh}
+              refreshing={pull.refreshing}
+              onRefresh={pull.onRefresh}
               tintColor={colors.accent}
               colors={[colors.accent]}
             />
@@ -117,14 +139,15 @@ function GlassBarScreen({
   headerLeft,
   headerRight,
   inTabs = true,
-  refreshing,
   onRefresh,
   top,
   contentStyle,
+  scrollRef,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const tabSpace = useTabBarSpace();
+  const pull = usePullToRefresh(onRefresh);
   const navigation = useNavigation();
   const router = useRouter();
   // Back button when this screen is not the first in its stack. Use our own position, not the stack's
@@ -166,6 +189,7 @@ function GlassBarScreen({
   return (
     <View style={styles.flex}>
       <Animated.ScrollView
+        ref={scrollRef}
         onScroll={onScroll}
         scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"
@@ -175,10 +199,10 @@ function GlassBarScreen({
           contentStyle,
         ]}
         refreshControl={
-          onRefresh ? (
+          pull.onRefresh ? (
             <RefreshControl
-              refreshing={!!refreshing}
-              onRefresh={onRefresh}
+              refreshing={pull.refreshing}
+              onRefresh={pull.onRefresh}
               progressViewOffset={barHeight}
               tintColor={colors.accent}
               colors={[colors.accent]}

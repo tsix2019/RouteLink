@@ -24,5 +24,17 @@
     "wol-failed": "Wake-on-LAN failed: {{message}}",
     "wol-unavailable": "etherwake isn't installed on the router, and iOS can't send wake packets itself",
     "log-unavailable": "Couldn't read the log: {{message}}"
+  },
+  "offlineNamed": "Can't reach {{name}}",
+  "relogin": {
+    "title": "Sign in to {{name}} again",
+    "action": "Enter Password",
+    "prompt": "Password for {{name}}",
+    "submit": "Sign In"
+  },
+  "boundary": {
+    "title": "This screen ran into a problem",
+    "message": "Try again; if it keeps happening, please report it on GitHub.",
+    "retry": "Try Again"
   }
 }

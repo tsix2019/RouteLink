@@ -42,6 +42,8 @@ export const useTemperature = (enabled: boolean) =>
   useRouterQuery(['temperature'], getTemperature, { refetchInterval: 30_000, enabled });
 export const useInterfaces = () => useRouterQuery(['interfaces'], getInterfaces, { refetchInterval: 10_000 });
 export const useClients = () => useRouterQuery(['clients'], getClients, { refetchInterval: 10_000 });
+export const useDeviceCounters = () =>
+  useRouterQuery(['device-counters'], getDeviceCounters, { refetchInterval: 10_000 });
 export const useRadios = () => useRouterQuery(['radios'], getRadios);
 export const useServices = () => useRouterQuery(['services'], listServices);
 export const useSystemLog = () => useRouterQuery(['logs', 'system'], systemLog);

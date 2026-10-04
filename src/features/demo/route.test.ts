@@ -8,6 +8,7 @@ describe('safeDemoRoute', () => {
     ['/(tabs)/network', '/network'],
     ['/more/routers', '/more/routers'],
     ['/device/AA:BB', '/overview'],
+    ['/device', '/device'],
     ['/reboot', '/overview'],
     ['https://evil.example', '/overview'],
     ['/overview/../reboot', '/overview'],

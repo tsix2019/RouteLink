@@ -19,10 +19,13 @@ private final class Once<T>: @unchecked Sendable {
 }
 
 enum NetInfo {
-  /// Keys with no value are omitted; the JS wrapper turns them into null.
+  /// Every key is present, as on Android; unknown values are null (NSNull).
   static func read() async -> [String: Any] {
     let path = await currentPath()
-    var out: [String: Any] = ["isWifi": path?.usesInterfaceType(.wifi) ?? false]
+    var out: [String: Any] = [
+      "isWifi": path?.usesInterfaceType(.wifi) ?? false,
+      "ip": NSNull(), "netmask": NSNull(), "gateway": NSNull(), "ifname": NSNull(),
+    ]
     for endpoint in path?.gateways ?? [] {
       if case let .hostPort(host, _) = endpoint, case let .ipv4(address) = host {
         out["gateway"] = address.rawValue.map { String($0) }.joined(separator: ".")
