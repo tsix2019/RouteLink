@@ -47,6 +47,7 @@ const config: ExpoConfig = {
     'expo-sqlite',
     'expo-secure-store',
     ['expo-build-properties', { android: { usesCleartextTraffic: true } }],
+    './plugins/with-release-signing',
   ],
   experiments: {
     typedRoutes: false,
