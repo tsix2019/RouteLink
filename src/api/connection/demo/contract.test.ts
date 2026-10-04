@@ -1,0 +1,137 @@
+/**
+ * Contract: every service function must work against the demo router, so demo mode can show every
+ * screen (design §26). Add each new service function here.
+ */
+import { detectCapabilities } from '../../capabilities';
+import { NativeError } from '../../http/errors';
+import {
+  blockClient,
+  kickClient,
+  removeStaticIp,
+  renameClient,
+  setStaticIp,
+  unblockClient,
+  wakeOnLan,
+} from '../../services/client-actions';
+import { getClients } from '../../services/clients';
+import { kernelLog, systemLog } from '../../services/logs';
+import { getDeviceCounters, getInterfaces, pickWan, reconnectInterface } from '../../services/network';
+import { listServices, serviceAction } from '../../services/services';
+import { getSystem, getTemperature, loadRatio, reboot } from '../../services/system';
+import { getRadios, networkChanges, radioChanges, scan } from '../../services/wireless';
+import { stageAndApply } from '../../uci';
+import { DemoConnection } from './connection';
+
+const fast = { sleep: async () => {} };
+
+function demo() {
+  let now = 1_800_000_000_000;
+  const clock = { now: () => now, advance: (ms: number) => (now += ms) };
+  return { conn: new DemoConnection(2026, clock.now), clock };
+}
+
+describe('demo router: read services', () => {
+  it('system, temperature and load', async () => {
+    const { conn } = demo();
+    const s = await getSystem(conn);
+    expect(s.model).toBe('OpenWrt One');
+    expect(s.cpuCores).toBe(4);
+    expect(loadRatio(s)).toBeGreaterThan(0);
+    expect(await getTemperature(conn)).toBeGreaterThan(40);
+  });
+
+  it('every capability is available', async () => {
+    const caps = await detectCapabilities(demo().conn);
+    expect(Object.values(caps).every((c) => c.status === 'ok')).toBe(true);
+  });
+
+  it('interfaces with a PPPoE WAN and live counters', async () => {
+    const { conn, clock } = demo();
+    const ifs = await getInterfaces(conn);
+    expect(pickWan(ifs)).toMatchObject({ name: 'wan', proto: 'pppoe', gateway: '203.0.113.1' });
+    const before = (await getDeviceCounters(conn))['pppoe-wan'];
+    clock.advance(2_000);
+    const after = (await getDeviceCounters(conn))['pppoe-wan'];
+    expect(after.rx).toBeGreaterThan(before.rx);
+  });
+
+  it('clients: wifi, wired, offline, static and blocked', async () => {
+    const clients = await getClients(demo().conn);
+    expect(clients).toHaveLength(15);
+    expect(clients.filter((c) => c.connection === 'wifi' && c.online).length).toBeGreaterThanOrEqual(8);
+    expect(clients.filter((c) => !c.online)).toHaveLength(2);
+    expect(clients.find((c) => c.name === 'NAS')).toMatchObject({ isStatic: true, connection: 'wired' });
+    expect(clients.find((c) => c.name === 'Smart-Plug')).toMatchObject({ isBlocked: true });
+    expect(clients.find((c) => c.name === 'iPhone-16-Pro')?.vendor).toBe('Apple');
+  });
+
+  it('radios, scan, services and logs', async () => {
+    const { conn } = demo();
+    const radios = await getRadios(conn);
+    expect(radios.map((r) => r.band)).toEqual(['2.4G', '5G']);
+    expect(radios[1].networks[0]).toMatchObject({ ssid: 'RouteLink-5G', ifname: 'phy1-ap0', up: true });
+    expect((await scan(conn, 'phy0-ap0')).length).toBeGreaterThan(3);
+    expect((await listServices(conn)).length).toBeGreaterThan(10);
+    expect((await systemLog(conn)).length).toBe(120);
+    expect((await kernelLog(conn)).length).toBeGreaterThan(5);
+  });
+});
+
+describe('demo router: writes change what reads return', () => {
+  it('rename, static IP, block and unblock', async () => {
+    const { conn } = demo();
+    const find = async (mac: string) => (await getClients(conn)).find((c) => c.mac === mac)!;
+    const tv = (await getClients(conn)).find((c) => c.name === 'Living-Room-TV')!;
+
+    expect(await renameClient(conn, tv, '客厅电视', fast)).toEqual({ status: 'confirmed' });
+    expect((await find(tv.mac)).name).toBe('客厅电视');
+
+    await setStaticIp(conn, await find(tv.mac), '192.168.8.200', await getClients(conn), fast);
+    expect(await find(tv.mac)).toMatchObject({ isStatic: true, staticIp: '192.168.8.200' });
+
+    await blockClient(conn, await find(tv.mac), fast);
+    expect((await find(tv.mac)).isBlocked).toBe(true);
+    await unblockClient(conn, await find(tv.mac), fast);
+    expect((await find(tv.mac)).isBlocked).toBe(false);
+
+    await removeStaticIp(conn, await find(tv.mac), fast);
+    expect((await find(tv.mac)).isStatic).toBe(false);
+  });
+
+  it('kick removes the station; wake brings an offline device back', async () => {
+    const { conn } = demo();
+    const phone = (await getClients(conn)).find((c) => c.name === 'Pixel-9')!;
+    await kickClient(conn, phone, 1);
+    expect((await getClients(conn)).find((c) => c.mac === phone.mac)?.online).toBe(false);
+
+    const laptop = (await getClients(conn)).find((c) => c.name === 'ThinkPad')!;
+    expect(laptop.online).toBe(false);
+    await wakeOnLan(conn, laptop.mac, { routerSide: true });
+    expect((await getClients(conn)).find((c) => c.mac === laptop.mac)?.online).toBe(true);
+  });
+
+  it('wireless and service edits', async () => {
+    const { conn } = demo();
+    const [radio24] = await getRadios(conn);
+    await stageAndApply(conn, radioChanges(radio24, { channel: '11' }), { mode: 'rollback', ...fast });
+    await stageAndApply(conn, networkChanges(radio24.networks[0], { ssid: 'Home' }), { mode: 'direct', ...fast });
+    const [after] = await getRadios(conn);
+    expect(after.channel).toBe('11');
+    expect(after.networks[0].ssid).toBe('Home');
+
+    await serviceAction(conn, 'cron', 'stop');
+    expect((await listServices(conn)).find((s) => s.name === 'cron')?.running).toBe(false);
+    await reconnectInterface(conn, 'wan');
+  });
+
+  it('reboot makes the router unreachable for a while', async () => {
+    const { conn, clock } = demo();
+    const before = (await getSystem(conn)).uptimeSec;
+    await reboot(conn);
+    await expect(getSystem(conn)).rejects.toBeInstanceOf(NativeError);
+    expect(await conn.ping()).toBe(false);
+    clock.advance(10_000);
+    expect(await conn.ping()).toBe(true);
+    expect((await getSystem(conn)).uptimeSec).toBeLessThan(before);
+  });
+});
