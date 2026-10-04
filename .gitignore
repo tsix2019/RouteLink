@@ -49,3 +49,7 @@ test/integration/.cache/
 modules/**/android/build/
 modules/**/android/.gradle/
 modules/**/android/.cxx/
+
+# OpenWrt plugin
+/openwrt/out/
+!/openwrt/feed/keys/*.pem
