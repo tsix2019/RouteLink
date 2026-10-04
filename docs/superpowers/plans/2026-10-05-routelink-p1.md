@@ -66,7 +66,7 @@ M1 计划 §0.1 的约定全部沿用，另外加三条：
 | `scripts/agent-build.sh 24.10 x86_64` | 用 SDK 编译三个包，输出到 `openwrt/out/24.10/x86_64/` |
 | `scripts/agent-dev-install.sh` | 把 `openwrt/out/24.10/x86_64/` 里的包装进 Docker 测试路由器 |
 | `scripts/traffic-lab.sh up\|down` | 在测试路由器旁边启动或删除"终端"和"外网服务器"两个容器（T19 创建） |
-| `npm run test:int -- agent` | 插件集成测试（需要测试路由器、实验环境都已启动，插件已安装） |
+| `npx jest -c jest.agent.config.js` | 插件集成测试（需要测试路由器、实验环境都已启动，插件已安装） |
 
 ---
 
@@ -129,7 +129,7 @@ src/
   i18n/locales/{zh-CN,en}/traffic.json agent.json
 test/
   fixtures/agent-24.10/         插件接口的样本
-  integration/agent.int.test.ts
+  agent/accuracy.agent.ts
 ```
 
 ---
@@ -968,7 +968,7 @@ append sysupgrade_init_conffiles "routelink_commit"
 - 客户端的默认路由改成经过测试路由器：`ip route replace default via 172.30.0.2`，IPv6 走 `fd30::2`。
 - IPv6 的转发路径：wan 侧加一条到 `fd30::/64` 的回程路由，具体做法在实施时确定。
 
-**集成测试** `test/integration/agent.int.test.ts`：
+**集成测试** `test/agent/accuracy.agent.ts`：
 - 通过 `docker exec` 驱动客户端产生流量，再用 `UbusSession` 调用 `routelink`。
 - **基准值**：客户端 `eth0` 的 `rx_bytes`、`tx_bytes` 差值，减去"包数 × 14"（以太网帧头），得到 IP 层的字节数。
 
@@ -984,7 +984,7 @@ append sysupgrade_init_conffiles "routelink_commit"
 | 重启守护进程 | 已经写盘的数据还在，中间缺失的那段标为 `null` |
 | 启动 nlbwmon | `info.nlbwmon_running=true` |
 
-**CI**：在 `openwrt.yml` 里加一个 `integration` job，依赖 `build` 中 24.10/x86_64 的产物，在 ubuntu 机器上依次执行 `dev-router.sh up` → `agent-dev-install.sh`（改为从下载的产物里安装）→ `traffic-lab.sh up` → `npm run test:int -- agent`。
+**CI**：在 `openwrt.yml` 里加一个 `integration` job，依赖 `build` 中 24.10/x86_64 的产物，在 ubuntu 机器上依次执行 `dev-router.sh up` → `agent-dev-install.sh`（改为从下载的产物里安装）→ `traffic-lab.sh up` → `npx jest -c jest.agent.config.js`。
 
 **需要记进"执行记录"**：
 - Docker Desktop 的内核是否支持 flowtable（不支持时，本机跳过加速相关的用例，以 CI 的结果为准）
@@ -1585,7 +1585,7 @@ export function installAgent(deps: InstallDeps, mirror?: string): Promise<Instal
 
 1. `scripts/verify.sh`：类型检查、lint、Jest 全部通过；翻译条目一致性测试通过。
 2. `scripts/agent-test.sh`：守护进程的单元测试全部通过，ASan 和 UBSan 没有报错。
-3. 在 Docker 上依次用 23.05、24.10、25.12 三个版本跑 `npm run test:int -- agent`。25.12 用 apk 包。
+3. 在 Docker 上依次用 23.05、24.10、25.12 三个版本跑 `npx jest -c jest.agent.config.js`。25.12 用 apk 包。
 4. LuCI 三个页面在三个版本上都能打开。
 5. 演示模式下截图：流量总览（排行和实时）、设备流量详情、WAN 口历史、插件页，中英文、深浅色各一套，存进 `docs/screenshots/{zh,en}/`。
 6. 推送代码，确认 `ci.yml`、`openwrt.yml`、`ios.yml` 都通过；iOS 的截图里能看到新页面。

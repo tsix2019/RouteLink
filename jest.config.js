@@ -1,7 +1,7 @@
 /** Unit and component tests (React Native environment). */
 module.exports = {
   preset: 'jest-expo',
-  testPathIgnorePatterns: ['/node_modules/', '/test/integration/', '/modules/routelink-native/', '/.claude/'],
+  testPathIgnorePatterns: ['/node_modules/', '/test/integration/', '/modules/routelink-native/', '<rootDir>/.claude/'],
   modulePathIgnorePatterns: ['<rootDir>/.claude/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',

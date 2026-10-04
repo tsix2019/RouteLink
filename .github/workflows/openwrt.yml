@@ -7,7 +7,8 @@ on:
       - 'openwrt/**'
       - 'scripts/agent-*'
       - 'scripts/traffic-lab.sh'
-      - 'test/integration/agent*'
+      - 'test/agent/**'
+      - 'jest.agent.config.js'
       - '.github/workflows/openwrt*.yml'
   pull_request:
     paths:

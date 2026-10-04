@@ -7,7 +7,8 @@ const babelPresetExpo = require.resolve('babel-preset-expo', { paths: [require.r
 
 module.exports = {
   preset: 'jest-expo/node',
-  testMatch: ['**/test/integration/agent*.int.test.ts'],
+  // own folder and suffix: the general integration config (test/integration) must not pick these up
+  testMatch: ['**/test/agent/*.agent.ts'],
   transform: { '^.+\\.[jt]sx?$': ['babel-jest', { presets: [babelPresetExpo] }] },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
