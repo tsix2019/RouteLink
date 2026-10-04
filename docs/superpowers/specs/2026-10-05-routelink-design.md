@@ -3,6 +3,7 @@
 - 日期：2026-10-05
 - 状态：设计已逐段确认，等待评审书面文档
 - 仓库：`github.com/tsix2019/RouteLink`（公开，MIT 协议）
+- 配套设计：路由器插件、流量统计、无线工具、网络诊断、Android 实时监控，见 `2026-10-05-routelink-agent-design.md`（下文简称"插件设计"）
 
 ## 1. 目标
 
@@ -54,6 +55,7 @@
 | 小组件 | iOS 用 `expo-widgets`，Android 用 `react-native-android-widget` |
 | 后台任务和通知 | expo-background-task、expo-notifications |
 | 原生模块 | 本地 Expo 模块 `modules/routelink-native`（Kotlin + Swift）。SSH 部分 Android 用 sshj，iOS 用 Citadel |
+| 路由器插件 | C 守护进程 `routelinkd` + `luci-app-routelink`（LuCI JS），代码在 `openwrt/`，见插件设计 |
 | 测试 | Jest（jest-expo）、React Native Testing Library、QEMU OpenWrt 集成测试 |
 
 ## 4. 架构
@@ -291,7 +293,7 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 | DV-4 | 踢下线 | `hostapd.<接口> del_client` | — | 中 | M1 |
 | DV-5 | 拉黑（禁止上网） | 防火墙规则：`src_mac` 加 REJECT，规则名带 `RouteLink:` 前缀 | — | 中 | M1 |
 | DV-6 | 网络唤醒（WOL） | 优先让路由器发（etherwake）。路由器上没装时，Android 手机直接发 UDP 广播；iOS 发广播需要苹果审批的组播权限，所以 iOS 上只能由路由器发 | luci-app-wol（可选） | 低 | M1 |
-| DV-7 | 单台设备的流量统计 | nlbwmon 的 JSON 输出 | nlbwmon | 低 | M2 |
+| DV-7 | 单台设备的流量统计（改由插件实现，见插件设计 TR-4） | 插件的 `routelink` ubus 对象 | RouteLink 插件 | 低 | P1 |
 | DV-8 | 家长控制：按时段禁止某台设备上网 | 防火墙规则：`start_time`、`stop_time`、`weekdays` | — | 中 | M3 |
 
 ### 9.3 无线（WL）
@@ -321,8 +323,8 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 | NW-9 | DDNS：服务增删改、状态 | uci ddns、`luci.ddns` | ddns-scripts | 中 | M3 |
 | NW-10 | SQM：按接口设置上下行限速、队列算法 | uci sqm、`rc init sqm` | sqm-scripts | 中 | M3 |
 | NW-11 | 广告过滤：开关、状态、规则源（支持 adblock 和 adblock-fast，装了哪个用哪个） | 对应包的 uci 配置和 rpcd 接口 | adblock 或 adblock-fast | 中 | M3 |
-| NW-12 | 流量历史：按日、按月 | `vnstat --json` | vnstat2 | 低 | M2 |
-| NW-13 | 诊断：ping、traceroute、nslookup | 通过 `file exec` 执行，用 LuCI 诊断页的权限 | — | 低 | M2 |
+| NW-12 | 流量历史：按日、按月（改由插件实现，见插件设计 TR-5） | 插件的 `routelink` ubus 对象 | RouteLink 插件 | 低 | P1 |
+| NW-13 | 诊断：ping、traceroute、nslookup（并入插件设计 DG-2） | 通过 `file exec` 执行，用 LuCI 诊断页的权限 | — | 低 | P3 |
 
 ### 9.5 更多（MO）
 
@@ -340,7 +342,7 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 | MO-10 | 恢复出厂设置 | `firstboot -r -y`，然后重启 | — | 高 | M3 |
 | MO-11 | 固件升级，两种来源：本地文件；官方在线（仅限官方 OpenWrt/ImmortalWrt 构建：从官方下载站的 `profiles.json` 里按 board 名称匹配 sysupgrade 镜像，下载后用 SHA-256 校验；匹配不到时只提供本地文件方式） | cgi-upload、`system validate_firmware_image`、sysupgrade | — | 高 | M3 |
 | MO-12 | SSH 终端：密码或密钥登录、主机指纹固定、一键把 App 的公钥装到路由器 | 原生 SSH 模块；写入 `/etc/dropbear/authorized_keys` | — | 中 | M4 |
-| MO-13 | 测速：手机端测（用 Cloudflare 测速节点）；路由器端测（通过 SSH 调用路由器上已装的测速工具） | 原生 HTTP、SSH | 路由器端测速需要测速工具 | 低 | M4 |
+| MO-13 | 测速：手机端测；路由器端测改由插件执行，不再依赖 SSH（并入插件设计 DG-4） | 原生 HTTP、插件 | 路由器端测速需要 RouteLink 插件 | 低 | P3 |
 | MO-14 | 网络唤醒常用设备列表 | 与 DV-6 相同 | — | 低 | M1 |
 | MO-15 | AI 助手（第 18 节） | — | 用户自己的 API Key | 隐私 | M4 |
 | MO-16 | App 设置：管理路由器、语言、外观、刷新间隔、通知（M4）、降低透明度、演示模式、关于 | — | — | 低 | M1 |
@@ -353,7 +355,20 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 | AP-2 | 多路由器切换（第 7 节） | M1 |
 | AP-3 | 演示模式（第 16 节）。M1 搭好框架，之后每个里程碑把新功能的演示数据补进去 | M1–M4 |
 | AP-4 | 桌面小组件（第 19 节） | M4 |
-| AP-5 | 后台通知：路由器掉线或恢复、有新设备接入（第 19 节） | M4 |
+| AP-5 | 后台通知：路由器掉线或恢复、有新设备接入（第 19 节）。装了插件的路由器，新设备提醒改由插件推送（插件设计 AG-14） | M4 |
+
+### 9.7 插件与配套功能
+
+以下功能的详细设计见插件设计，编号沿用那份文档：
+
+| 前缀 | 内容 | 期 |
+|---|---|---|
+| AG | 路由器插件：流量采集、存储、接口、LuCI 页面、打包、App 一键安装、无线采样、延迟探测、测速、限速和配额、DNS 和访问去向、推送 | P1–P4 |
+| TR | 流量统计：时间段筛选、总览和排行、实时速率、设备流量详情、WAN 口历史、导出、限速和配额设置、访问去向 | P1、P4 |
+| NG | 网络组：主路由加 AP 编组，数据合并 | P2 |
+| WF | 无线工具：实时信号监测、信道扫描与优化、查蹭网、Wi-Fi 安全检查 | P2 |
+| DG | 诊断：一键诊断、诊断工具、断网和延迟记录、测速 | P3 |
+| LU | Android 实时监控（状态栏胶囊和各家的岛） | P4 |
 
 ## 10. 风险分级与提示
 
@@ -513,7 +528,8 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 - HTTPS 自签名证书和 SSH 主机密钥都在第一次使用时确认，之后固定。
 - 自动发现的探测请求不带账号信息。
 - HTTP 明文连接标注"未加密"，并建议在路由器上开启 HTTPS。
-- 不收集任何统计数据，App 不联系任何自有服务器。只有以下情况会访问外部网络：测速、在线固件检查、AI 服务商，而且都是用户主动触发的。
+- 不收集任何统计数据，App 不联系任何自有服务器。只有以下情况会访问外部网络：测速、在线固件检查、AI 服务商、下载或检查路由器插件（GitHub），而且都是用户主动触发的。
+- 路由器插件的 DNS 记录默认关闭，开启时说明会记录哪些内容（插件设计 §10）。
 - 公开仓库里的测试数据，只能来自 QEMU 或演示数据。用户真实路由器的数据不提交。
 
 ## 21. 测试
@@ -564,11 +580,13 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 | 里程碑 | 内容 | 完成标准 |
 |---|---|---|
 | **M1 地基和第一档** | 项目骨架；玻璃组件和渐变背景；主题；中英文；原生模块（HTTP 和证书固定、网络信息、WOL）；连接层（ubus 登录和 LuCI 回退、会话续期、批量调用、功能检测）；演示模式；自动发现；多路由器切换和管理；OV-1～5，以及 OV-6 里的重启；DV-1～6；WL-1～3；NW-1；MO-1～3、MO-14、MO-16；安全应用和 `RiskConfirm`；四个 CI 工作流；创建 GitHub 仓库；README 和截图 | Android 模拟器连用户的路由器，M1 功能全部可用；iOS 在 CI 编译通过并产出截图；首次推送完成 |
-| **M2 第二档和零碎功能** | OV-6（二维码）；DV-7；WL-4～6；NW-2、NW-4～7、NW-12、NW-13；MO-4～8 | 功能可用，QEMU 集成测试通过，推送并更新 README |
+| **M2 第二档和零碎功能** | OV-6（二维码）；WL-4～6；NW-2、NW-4～7；MO-4～8 | 功能可用，QEMU 集成测试通过，推送并更新 README |
 | **M3 第三档的路由器功能** | DV-8；WL-7；NW-3、NW-8～11；MO-9～11 | 高风险功能在 QEMU 上完整执行通过，在用户路由器上只走到最后确认之前；推送 |
-| **M4 第三档的原生能力** | SSH 原生模块和 MO-12；MO-13；MO-15 和 OV-6（问 AI）；AP-4、AP-5 | 功能可用，iOS 自检通过；打标签发布 v1.0.0（APK 和未签名 IPA） |
+| **M4 第三档的原生能力** | SSH 原生模块和 MO-12；MO-15 和 OV-6（问 AI）；AP-4、AP-5 | 功能可用，iOS 自检通过；打标签发布 v1.0.0（APK 和未签名 IPA） |
 
 每个里程碑单独写实施计划，按"计划 → 实现 → 测试 → 推送"推进。
+
+M1 之后插入插件设计的 P1～P4 四期（插件设计 §22）。DV-7、NW-12 移到 P1，NW-13、MO-13 移到 P3，所以从 M2、M4 里去掉了。
 
 ## 25. 风险与应对
 
