@@ -1,5 +1,7 @@
 // Global jest setup: in-memory replacements for native modules.
 
+jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
+
 // The real module calls requireNativeModule() at import time. Tests override individual functions.
 jest.mock('routelink-native', () => {
   const notMocked = (name: string) =>

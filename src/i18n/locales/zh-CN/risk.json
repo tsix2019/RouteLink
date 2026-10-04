@@ -1,1 +1,5 @@
-{ "understand": "我已了解风险" }
+{
+  "understand": "我已了解风险",
+  "highTitle": "高风险操作",
+  "typeToConfirm": "输入「{{phrase}}」以确认"
+}
