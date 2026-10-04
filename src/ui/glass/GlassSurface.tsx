@@ -38,7 +38,13 @@ export function GlassSurface({ variant = 'card', tint, radius, style, children, 
         {
           borderRadius,
           borderColor: colors.glassBorder,
-          backgroundColor: reduceTransparency ? colors.card : blur ? 'transparent' : colors.glassFillStrong,
+          // Without a blur to soften what is behind, a sheet must be opaque to stay legible.
+          backgroundColor:
+            reduceTransparency || (variant === 'floating' && !blur)
+              ? colors.card
+              : blur
+                ? 'transparent'
+                : colors.glassFillStrong,
           shadowColor: colors.shadow,
         },
         style,

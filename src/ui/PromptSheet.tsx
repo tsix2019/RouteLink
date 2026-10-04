@@ -9,6 +9,7 @@ import { GlassButton } from './GlassButton';
 import { GlassSurface } from './glass/GlassSurface';
 import { TextField, type TextFieldProps } from './TextField';
 import { spacing } from './theme/tokens';
+import { NoBlurTarget } from './glass/BlurTarget';
 
 export interface PromptSheetProps {
   visible: boolean;
@@ -52,30 +53,32 @@ function PromptContent({
   };
   return (
     <Modal transparent animationType="slide" onRequestClose={onCancel} statusBarTranslucent>
-      <Pressable style={styles.scrim} onPress={onCancel} accessibilityLabel={t('cancel')} />
-      {/* KeyboardAvoidingView owns paddingBottom, so the safe-area inset goes on an inner view. */}
-      <KeyboardAvoidingView behavior="padding" style={styles.wrap}>
-        <GlassSurface variant="floating" style={[styles.sheet, { marginBottom: insets.bottom + spacing.m }]}>
-          <AppText variant="title">{title}</AppText>
-          <TextField
-            value={value}
-            onChangeText={(v) => {
-              setValue(v);
-              setError(undefined);
-            }}
-            placeholder={placeholder}
-            error={error}
-            hint={hint}
-            autoFocus
-            returnKeyType="done"
-            onSubmitEditing={submit}
-            testID="prompt-input"
-            {...inputProps}
-          />
-          <GlassButton label={confirmLabel} variant="primary" onPress={submit} />
-          <GlassButton label={t('cancel')} onPress={onCancel} />
-        </GlassSurface>
-      </KeyboardAvoidingView>
+      <NoBlurTarget>
+        <Pressable style={styles.scrim} onPress={onCancel} accessibilityLabel={t('cancel')} />
+        {/* KeyboardAvoidingView owns paddingBottom, so the safe-area inset goes on an inner view. */}
+        <KeyboardAvoidingView behavior="padding" style={styles.wrap}>
+          <GlassSurface variant="floating" style={[styles.sheet, { marginBottom: insets.bottom + spacing.m }]}>
+            <AppText variant="title">{title}</AppText>
+            <TextField
+              value={value}
+              onChangeText={(v) => {
+                setValue(v);
+                setError(undefined);
+              }}
+              placeholder={placeholder}
+              error={error}
+              hint={hint}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={submit}
+              testID="prompt-input"
+              {...inputProps}
+            />
+            <GlassButton label={confirmLabel} variant="primary" onPress={submit} />
+            <GlassButton label={t('cancel')} onPress={onCancel} />
+          </GlassSurface>
+        </KeyboardAvoidingView>
+      </NoBlurTarget>
     </Modal>
   );
 }

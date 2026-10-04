@@ -70,6 +70,20 @@ function nextSectionName(config: Record<string, UciSection>): string {
   return `cfg${n.toString(16).padStart(6, '0')}`;
 }
 
+const CHANNELS_2G = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+const CHANNELS_5G = [
+  36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 149, 153, 157, 161, 165,
+];
+
+/** iwinfo accepts a radio name or one of its interfaces. */
+function demoRadio(device: unknown): 'radio0' | 'radio1' {
+  const name = String(device);
+  if (name === 'radio0' || name === 'radio1') return name;
+  const radio = Object.keys(IFNAMES).find((r) => IFNAMES[r] === name);
+  if (radio === 'radio0' || radio === 'radio1') return radio;
+  throw new UbusError('NOT_FOUND', 'iwinfo');
+}
+
 const SCAN_NETWORKS = [
   ['ChinaNet-5G-8A2F', 149, -58, 'WPA2 PSK (CCMP)'],
   ['TP-LINK_3C9E', 1, -63, 'WPA2 PSK (CCMP)'],
@@ -236,6 +250,30 @@ export const handlers: Record<string, Handler> = {
         })),
     };
   },
+  'iwinfo.info': (_s, p) => {
+    const radio = demoRadio(p.device);
+    return {
+      phy: radio === 'radio0' ? 'phy0' : 'phy1',
+      htmodes:
+        radio === 'radio0'
+          ? ['HT20', 'HT40', 'HE20', 'HE40']
+          : ['HT20', 'HT40', 'VHT20', 'VHT40', 'VHT80', 'VHT160', 'HE20', 'HE40', 'HE80', 'HE160'],
+      hwmodes: radio === 'radio0' ? ['b', 'g', 'n', 'ax'] : ['a', 'n', 'ac', 'ax'],
+    };
+  },
+  'iwinfo.freqlist': (_s, p) => ({
+    results: (demoRadio(p.device) === 'radio0' ? CHANNELS_2G : CHANNELS_5G).map((channel) => ({
+      channel,
+      mhz: channel <= 14 ? 2407 + channel * 5 : 5000 + channel * 5,
+      restricted: channel >= 52 && channel <= 144,
+    })),
+  }),
+  'iwinfo.txpowerlist': (_s, p) => ({
+    results: Array.from({ length: demoRadio(p.device) === 'radio0' ? 21 : 24 }, (_, dbm) => ({
+      dbm,
+      mw: Math.round(10 ** (dbm / 10)),
+    })),
+  }),
   'iwinfo.scan': () => ({
     results: SCAN_NETWORKS.map(([ssid, channel, signal, enc], i) => ({
       ssid: ssid || undefined,

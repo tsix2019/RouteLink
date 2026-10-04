@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Stack, useNavigation, useRouter } from 'expo-router';
+import { Stack, useIsFocused, useNavigation, useRoute, useRouter } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import {
   Platform,
@@ -127,7 +127,12 @@ function GlassBarScreen({
   const tabSpace = useTabBarSpace();
   const navigation = useNavigation();
   const router = useRouter();
-  const canGoBack = (navigation.getState()?.index ?? 0) > 0;
+  // Back button when this screen is not the first in its stack. Use our own position, not the stack's
+  // index: the root screen also renders while a pushed screen is on top. useIsFocused re-renders us
+  // when we come back into focus.
+  const route = useRoute();
+  useIsFocused();
+  const canGoBack = (navigation.getState()?.routes.findIndex((r) => r.key === route.key) ?? 0) > 0;
   const barHeight = insets.top + BAR_HEIGHT;
   const bg = colors.background;
 

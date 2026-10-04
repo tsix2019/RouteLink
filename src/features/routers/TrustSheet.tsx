@@ -11,6 +11,7 @@ import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
 
 import { formatFingerprint, type TrustRequest } from './trust';
+import { NoBlurTarget } from '@/ui/glass/BlurTarget';
 
 const date = (iso: string) => (iso ? new Date(iso).toLocaleDateString() : '—');
 
@@ -74,21 +75,23 @@ export function TrustSheet({ request, onDecide }: { request: TrustRequest; onDec
   const insets = useSafeAreaInsets();
   return (
     <Modal transparent animationType="slide" onRequestClose={() => onDecide(false)} statusBarTranslucent>
-      <Pressable style={styles.scrim} onPress={() => onDecide(false)} accessibilityLabel={t('cancel')} />
-      <View style={[styles.wrap, { paddingBottom: insets.bottom + spacing.m, maxHeight: '88%' }]}>
-        <GlassSurface variant="floating" style={styles.sheet}>
-          <ScrollView contentContainerStyle={styles.scroll}>
-            <CertificateDetails request={request} />
-          </ScrollView>
-          <GlassButton
-            label={t(request.kind === 'changed' ? 'routers:trust.trustNew' : 'routers:trust.trust')}
-            variant={request.kind === 'changed' ? 'warning' : 'primary'}
-            onPress={() => onDecide(true)}
-            testID="trust-accept"
-          />
-          <GlassButton label={t('cancel')} onPress={() => onDecide(false)} testID="trust-cancel" />
-        </GlassSurface>
-      </View>
+      <NoBlurTarget>
+        <Pressable style={styles.scrim} onPress={() => onDecide(false)} accessibilityLabel={t('cancel')} />
+        <View style={[styles.wrap, { paddingBottom: insets.bottom + spacing.m, maxHeight: '88%' }]}>
+          <GlassSurface variant="floating" style={[styles.sheet, styles.shrink]}>
+            <ScrollView style={styles.shrink} contentContainerStyle={styles.scroll}>
+              <CertificateDetails request={request} />
+            </ScrollView>
+            <GlassButton
+              label={t(request.kind === 'changed' ? 'routers:trust.trustNew' : 'routers:trust.trust')}
+              variant={request.kind === 'changed' ? 'warning' : 'primary'}
+              onPress={() => onDecide(true)}
+              testID="trust-accept"
+            />
+            <GlassButton label={t('cancel')} onPress={() => onDecide(false)} testID="trust-cancel" />
+          </GlassSurface>
+        </View>
+      </NoBlurTarget>
     </Modal>
   );
 }
@@ -118,6 +121,7 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: spacing.m, right: spacing.m, bottom: 0 },
   sheet: { padding: spacing.xl, gap: spacing.m },
   scroll: { paddingBottom: spacing.s },
+  shrink: { flexShrink: 1 },
   details: { gap: spacing.m },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.s },
   fact: { gap: 2 },

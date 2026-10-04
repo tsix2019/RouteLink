@@ -1,1 +1,80 @@
-{ "title": "无线" }
+{
+  "title": "无线",
+  "noRadios": "这台路由器没有无线设备",
+  "noRadiosHint": "没有找到无线网卡，或者无线驱动没有加载。",
+  "band": { "2g": "2.4 GHz", "5g": "5 GHz", "6g": "6 GHz", "60g": "60 GHz", "unknown": "无线" },
+  "radioSettings": "射频设置",
+  "channelValue": "信道 {{channel}}",
+  "auto": "自动",
+  "default": "默认",
+  "off": "已关闭",
+  "down": "未启动",
+  "hidden": "隐藏",
+  "clients": "{{count}} 台设备",
+  "noNetworks": "这个射频上没有 Wi-Fi 网络",
+  "scan": "扫描周边",
+  "radio": {
+    "channel": "信道",
+    "width": "频宽",
+    "txpower": "发射功率",
+    "country": "国家/地区代码",
+    "countryHint": "两位字母，例如 CN、US。会影响可用的信道和最大功率。",
+    "countryInvalid": "请输入两位字母的国家/地区代码",
+    "enabled": "启用射频",
+    "dfs": "需要雷达检测（DFS），启动较慢",
+    "save": "保存",
+    "confirmTitle": "应用射频设置？",
+    "consequenceRestart": "无线会重启，所有无线设备会断开 10～30 秒",
+    "consequenceRollback": "如果 90 秒内 App 联系不上路由器，改动会自动撤销",
+    "noChanges": "没有改动"
+  },
+  "network": {
+    "ssid": "名称（SSID）",
+    "encryption": "加密方式",
+    "password": "密码",
+    "hidden": "隐藏网络",
+    "hiddenHint": "隐藏后，设备需要手动输入名称才能连接。",
+    "enabled": "启用",
+    "issues": {
+      "ssid-empty": "名称不能为空",
+      "ssid-too-long": "名称最长 32 字节（一个汉字算 3 字节）",
+      "key-required": "这种加密方式需要密码",
+      "key-length": "密码长度需要 8～63 个字符"
+    },
+    "enc": {
+      "none": "不加密",
+      "psk2": "WPA2 个人",
+      "psk-mixed": "WPA/WPA2 个人",
+      "sae": "WPA3 个人",
+      "sae-mixed": "WPA2/WPA3 个人",
+      "owe": "增强开放（OWE）",
+      "other": "其他（{{value}}）"
+    },
+    "confirmTitle": "应用 Wi-Fi 设置？",
+    "consequenceRestart": "这个 Wi-Fi 会重启，连着它的设备会断开 10～30 秒",
+    "consequenceRollback": "如果 90 秒内 App 联系不上路由器，改动会自动撤销",
+    "consequencePhone": "你的手机正连着这个 Wi-Fi，应用后会断开，需要用新的名称和密码重新连接",
+    "consequenceNoRollback": "这种情况下无法自动撤销：如果新设置有误，需要用网线连接路由器修复"
+  },
+  "result": {
+    "applied": "已应用",
+    "rolledBack": "路由器在 90 秒内没有收到确认，改动已自动撤销"
+  },
+  "reconnect": {
+    "title": "重新连接 Wi-Fi",
+    "body": "新的 Wi-Fi 设置已经发给路由器。请在手机的 Wi-Fi 设置里连接下面这个网络，然后回到 App。",
+    "ssid": "名称",
+    "password": "密码",
+    "step1": "打开手机的「设置」→「Wi-Fi」",
+    "step2": "选择上面的网络，输入密码",
+    "step3": "连上后回到 RouteLink",
+    "done": "完成"
+  },
+  "scanTitle": "周边 Wi-Fi",
+  "scanStart": "开始扫描",
+  "scanning": "正在扫描，大约需要 10 秒…",
+  "scanHint": "扫描期间，这个射频上的设备可能会短暂卡顿。",
+  "hiddenNetwork": "隐藏网络",
+  "scanEmpty": "没有扫描到网络",
+  "scanCount": "共 {{count}} 个网络"
+}

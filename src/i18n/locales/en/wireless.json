@@ -1,1 +1,80 @@
-{ "title": "Wi-Fi" }
+{
+  "title": "Wi-Fi",
+  "noRadios": "This router has no wireless hardware",
+  "noRadiosHint": "No wireless card was found, or its driver isn't loaded.",
+  "band": { "2g": "2.4 GHz", "5g": "5 GHz", "6g": "6 GHz", "60g": "60 GHz", "unknown": "Wireless" },
+  "radioSettings": "Radio Settings",
+  "channelValue": "Channel {{channel}}",
+  "auto": "Auto",
+  "default": "Default",
+  "off": "Off",
+  "down": "Not running",
+  "hidden": "Hidden",
+  "clients": "{{count}} devices",
+  "noNetworks": "No Wi-Fi networks on this radio",
+  "scan": "Scan Nearby",
+  "radio": {
+    "channel": "Channel",
+    "width": "Channel Width",
+    "txpower": "Transmit Power",
+    "country": "Country Code",
+    "countryHint": "Two letters, e.g. US or DE. It decides the allowed channels and maximum power.",
+    "countryInvalid": "Enter a two-letter country code",
+    "enabled": "Radio On",
+    "dfs": "Needs radar detection (DFS); slower to start",
+    "save": "Save",
+    "confirmTitle": "Apply Radio Settings?",
+    "consequenceRestart": "Wi-Fi restarts and every wireless device drops for 10–30 seconds",
+    "consequenceRollback": "If the app can't reach the router within 90 seconds, the change is undone automatically",
+    "noChanges": "Nothing changed"
+  },
+  "network": {
+    "ssid": "Name (SSID)",
+    "encryption": "Security",
+    "password": "Password",
+    "hidden": "Hidden Network",
+    "hiddenHint": "Devices will have to type the name to join.",
+    "enabled": "Enabled",
+    "issues": {
+      "ssid-empty": "The name can't be empty",
+      "ssid-too-long": "The name can be at most 32 bytes",
+      "key-required": "This security type needs a password",
+      "key-length": "The password must be 8–63 characters"
+    },
+    "enc": {
+      "none": "None",
+      "psk2": "WPA2 Personal",
+      "psk-mixed": "WPA/WPA2 Personal",
+      "sae": "WPA3 Personal",
+      "sae-mixed": "WPA2/WPA3 Personal",
+      "owe": "Enhanced Open (OWE)",
+      "other": "Other ({{value}})"
+    },
+    "confirmTitle": "Apply Wi-Fi Settings?",
+    "consequenceRestart": "This network restarts and its devices drop for 10–30 seconds",
+    "consequenceRollback": "If the app can't reach the router within 90 seconds, the change is undone automatically",
+    "consequencePhone": "Your phone is on this network: it will disconnect, and you'll rejoin with the new name and password",
+    "consequenceNoRollback": "This can't be undone automatically: if the new settings are wrong, fix them over a cable"
+  },
+  "result": {
+    "applied": "Applied",
+    "rolledBack": "The router got no confirmation within 90 seconds and undid the change"
+  },
+  "reconnect": {
+    "title": "Rejoin Wi-Fi",
+    "body": "The router has the new Wi-Fi settings. Join the network below in your phone's Wi-Fi settings, then come back.",
+    "ssid": "Name",
+    "password": "Password",
+    "step1": "Open Settings → Wi-Fi on your phone",
+    "step2": "Choose the network above and enter the password",
+    "step3": "Come back to RouteLink once connected",
+    "done": "Done"
+  },
+  "scanTitle": "Nearby Wi-Fi",
+  "scanStart": "Start Scan",
+  "scanning": "Scanning, about 10 seconds…",
+  "scanHint": "Devices on this radio may stutter briefly while it scans.",
+  "hiddenNetwork": "Hidden network",
+  "scanEmpty": "No networks found",
+  "scanCount": "{{count}} networks"
+}

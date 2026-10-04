@@ -104,7 +104,8 @@ export async function getRadios(conn: RouterConnection): Promise<Radio[]> {
   return parseRadios(status.ok ? (status.data as Record<string, RawRadio>) : {}, values(config));
 }
 
-type RadioPatch = Partial<Pick<Radio, 'channel' | 'htmode' | 'txpower' | 'country' | 'disabled'>>;
+/** `txpower: null` removes the option: the driver then uses the regulatory maximum. */
+type RadioPatch = Partial<Pick<Radio, 'channel' | 'htmode' | 'country' | 'disabled'>> & { txpower?: number | null };
 type NetworkPatch = Partial<Pick<WifiNetwork, 'ssid' | 'encryption' | 'key' | 'hidden' | 'disabled'>>;
 
 const flag = (b: boolean) => (b ? '1' : '0');
@@ -114,10 +115,13 @@ export function radioChanges(radio: Radio, patch: RadioPatch): UbusCall[] {
   const values: Record<string, string> = {};
   if (patch.channel !== undefined && patch.channel !== radio.channel) values.channel = patch.channel;
   if (patch.htmode !== undefined && patch.htmode !== radio.htmode) values.htmode = patch.htmode;
-  if (patch.txpower !== undefined && patch.txpower !== radio.txpower) values.txpower = String(patch.txpower);
+  if (typeof patch.txpower === 'number' && patch.txpower !== radio.txpower) values.txpower = String(patch.txpower);
   if (patch.country !== undefined && patch.country !== radio.country) values.country = patch.country;
   if (patch.disabled !== undefined && patch.disabled !== radio.disabled) values.disabled = flag(patch.disabled);
-  return Object.keys(values).length ? [uci.set('wireless', radio.name, values)] : [];
+  const calls = Object.keys(values).length ? [uci.set('wireless', radio.name, values)] : [];
+  if (patch.txpower === null && radio.txpower !== undefined)
+    calls.push(uci.delOption('wireless', radio.name, 'txpower'));
+  return calls;
 }
 
 export function networkChanges(net: WifiNetwork, patch: NetworkPatch): UbusCall[] {
@@ -138,8 +142,7 @@ export function validateNetwork(p: { ssid: string; encryption: string; key?: str
   const issues: NetworkIssue[] = [];
   if (!p.ssid.trim()) issues.push('ssid-empty');
   else if (utf8Length(p.ssid) > 32) issues.push('ssid-too-long');
-  const needsKey = !['none', 'owe'].includes(p.encryption);
-  if (needsKey) {
+  if (needsKey(p.encryption)) {
     if (!p.key) issues.push('key-required');
     else if (p.key.length < 8 || p.key.length > 63) issues.push('key-length');
   }
@@ -187,3 +190,55 @@ export function isPhoneOnNetwork(phoneIp: string | null | undefined, clients: Cl
   const me = clients.find((c) => c.ipv4 === phoneIp);
   return !!me?.wifi && me.wifi.ifname === ifname;
 }
+
+export interface RadioCapabilities {
+  channels: { channel: number; mhz: number; restricted: boolean }[];
+  /** Channel widths the radio supports, e.g. HT20, VHT80, HE160. */
+  htmodes: string[];
+  /** Selectable transmit powers in dBm, ascending. */
+  txpowers: number[];
+}
+
+interface RawFreq {
+  channel?: number;
+  mhz?: number;
+  restricted?: boolean;
+}
+
+/** What the radio edit screen may offer (iwinfo info / freqlist / txpowerlist, keyed by radio name). */
+export function parseRadioCapabilities(
+  info: { htmodes?: string[] } | null,
+  freqlist: { results?: RawFreq[] } | null,
+  txpowerlist: { results?: { dbm?: number }[] } | null,
+): RadioCapabilities {
+  const channels = (freqlist?.results ?? [])
+    .filter((f): f is RawFreq & { channel: number } => typeof f.channel === 'number' && f.channel > 0)
+    .map((f) => ({ channel: f.channel, mhz: Number(f.mhz ?? 0), restricted: !!f.restricted }));
+  const txpowers = [
+    ...new Set((txpowerlist?.results ?? []).map((t) => t.dbm).filter((d): d is number => typeof d === 'number')),
+  ].sort((a, b) => a - b);
+  return { channels, htmodes: info?.htmodes ?? [], txpowers };
+}
+
+export async function getRadioCapabilities(conn: RouterConnection, radio: string): Promise<RadioCapabilities> {
+  const [info, freqlist, txpowerlist] = await conn.batch([
+    { object: 'iwinfo', method: 'info', params: { device: radio } },
+    { object: 'iwinfo', method: 'freqlist', params: { device: radio } },
+    { object: 'iwinfo', method: 'txpowerlist', params: { device: radio } },
+  ]);
+  const data = <T>(r: UbusResult) => (r.ok ? (r.data as T) : null);
+  return parseRadioCapabilities(data(info), data(freqlist), data(txpowerlist));
+}
+
+/** Width in MHz of an htmode ("VHT80" → 80), for labels. */
+export const htmodeWidth = (htmode: string): number | null => {
+  const m = /(\d+)$/.exec(htmode);
+  return m ? Number(m[1]) : null;
+};
+
+/** Wi-Fi generation of an htmode, for labels: HT → 4, VHT → 5, HE → 6, EHT → 7. */
+export const htmodeGeneration = (htmode: string): number | null =>
+  ({ HT: 4, VHT: 5, HE: 6, EHT: 7 })[htmode.replace(/\d+$/, '')] ?? null;
+
+/** Encryption needs a password. */
+export const needsKey = (encryption: string) => !['none', 'owe'].includes(encryption);

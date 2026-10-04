@@ -118,7 +118,7 @@ export function ListRow({
 
 const styles = StyleSheet.create({
   section: { gap: spacing.s },
-  sectionTitle: { marginLeft: spacing.l, textTransform: 'uppercase' },
+  sectionTitle: { marginLeft: spacing.l },
   card: { paddingVertical: spacing.xs },
   divider: { height: StyleSheet.hairlineWidth, marginLeft: 52 },
   footer: { marginHorizontal: spacing.l },

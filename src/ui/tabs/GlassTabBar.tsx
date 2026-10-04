@@ -31,6 +31,7 @@ export const GlassTabBar = forwardRef<RNView, ViewProps & { children: ReactNode 
   ref,
 ) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const count = Children.count(children);
   const focused = useSharedValue(0);
   const segment = useSharedValue(0);
@@ -49,7 +50,8 @@ export const GlassTabBar = forwardRef<RNView, ViewProps & { children: ReactNode 
           style={styles.bar}
           onLayout={(e) => segment.set((e.nativeEvent.layout.width - BAR_PADDING * 2) / Math.max(1, count))}>
           <Animated.View style={[styles.droplet, droplet]} pointerEvents="none">
-            <GlassSurface variant="pill" style={styles.dropletFill} />
+            {/* iOS 26 marks the selected tab with a soft grey capsule. */}
+            <View style={[styles.dropletFill, { backgroundColor: colors.fill }]} />
           </Animated.View>
           <View ref={ref} style={[styles.row, style]} {...rest}>
             {children}
@@ -94,6 +96,6 @@ const styles = StyleSheet.create({
   bar: { height: TAB_BAR_HEIGHT, padding: BAR_PADDING, justifyContent: 'center' },
   row: { flexDirection: 'row', flex: 1 },
   droplet: { position: 'absolute', top: BAR_PADDING, bottom: BAR_PADDING, left: BAR_PADDING },
-  dropletFill: { flex: 1 },
+  dropletFill: { flex: 1, borderRadius: 999 },
   button: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 },
 });

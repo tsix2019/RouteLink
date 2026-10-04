@@ -1,10 +1,15 @@
 import { FixtureConnection, loadFixture, ok } from '../../../test/fixture-connection';
+import { DemoConnection } from '../connection/demo/connection';
 import type { UciSection } from '../uci';
 import type { Client } from './clients';
 import {
+  getRadioCapabilities,
   getRadios,
+  htmodeGeneration,
+  htmodeWidth,
   isPhoneOnNetwork,
   networkChanges,
+  parseRadioCapabilities,
   parseRadios,
   radioChanges,
   scan,
@@ -111,6 +116,14 @@ describe('change sets', () => {
     expect(radioChanges(radio, { channel: '6' })).toEqual([]);
   });
 
+  it('removes the transmit power option to return to the default', () => {
+    const withPower = { ...radio, txpower: 17 };
+    expect(radioChanges(withPower, { txpower: null })).toEqual([
+      { object: 'uci', method: 'delete', params: { config: 'wireless', section: 'radio0', option: 'txpower' } },
+    ]);
+    expect(radioChanges({ ...radio, txpower: undefined }, { txpower: null })).toEqual([]);
+  });
+
   it('stages only changed network options', () => {
     expect(networkChanges(net, { ssid: 'Home', key: 'correct horse', hidden: true })).toEqual([
       {
@@ -163,5 +176,42 @@ describe('isPhoneOnNetwork', () => {
     expect(isPhoneOnNetwork('192.168.1.20', [phone], 'phy1-ap0')).toBe(false);
     expect(isPhoneOnNetwork('192.168.1.99', [phone], 'phy0-ap0')).toBe(false);
     expect(isPhoneOnNetwork(null, [phone], 'phy0-ap0')).toBe(false);
+  });
+});
+
+describe('radio capabilities', () => {
+  it('keeps real channels, de-duplicates and sorts powers', () => {
+    const caps = parseRadioCapabilities(
+      { htmodes: ['HT20', 'VHT80'] },
+      { results: [{ channel: 36, mhz: 5180 }, { channel: 52, mhz: 5260, restricted: true }, { mhz: 0 }] },
+      { results: [{ dbm: 20 }, { dbm: 3 }, { dbm: 20 }, {}] },
+    );
+    expect(caps).toEqual({
+      channels: [
+        { channel: 36, mhz: 5180, restricted: false },
+        { channel: 52, mhz: 5260, restricted: true },
+      ],
+      htmodes: ['HT20', 'VHT80'],
+      txpowers: [3, 20],
+    });
+  });
+
+  it('tolerates calls the router refused', () => {
+    expect(parseRadioCapabilities(null, null, null)).toEqual({ channels: [], htmodes: [], txpowers: [] });
+  });
+
+  it('labels htmodes', () => {
+    expect(htmodeWidth('VHT80')).toBe(80);
+    expect(htmodeGeneration('HE160')).toBe(6);
+    expect(htmodeGeneration('EHT320')).toBe(7);
+    expect(htmodeGeneration('NOHT')).toBeNull();
+  });
+
+  it('reads the demo radios', async () => {
+    const conn = new DemoConnection();
+    const caps = await getRadioCapabilities(conn, 'radio1');
+    expect(caps.htmodes).toContain('HE80');
+    expect(caps.channels.map((c) => c.channel)).toContain(149);
+    expect(caps.txpowers[caps.txpowers.length - 1]).toBe(23);
   });
 });
