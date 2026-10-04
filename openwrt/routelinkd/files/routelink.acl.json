@@ -1,0 +1,17 @@
+{
+	"routelink": {
+		"description": "Grant access to RouteLink traffic statistics",
+		"read": {
+			"ubus": {
+				"routelink": [ "info", "devices", "live", "history", "summary", "events" ]
+			},
+			"uci": [ "routelink" ]
+		},
+		"write": {
+			"ubus": {
+				"routelink": [ "reset", "commit" ]
+			},
+			"uci": [ "routelink" ]
+		}
+	}
+}

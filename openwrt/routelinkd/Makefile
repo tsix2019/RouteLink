@@ -35,13 +35,22 @@ endef
 CMAKE_OPTIONS += -DRL_VERSION=$(PKG_VERSION) -DRL_BUILD_EPOCH=$(SOURCE_DATE_EPOCH)
 
 define Package/routelinkd/install
-	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/init.d $(1)/etc/config $(1)/lib/upgrade/keep.d $(1)/etc/hotplug.d/ntp
+	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/init.d $(1)/etc/config $(1)/lib/upgrade/keep.d \
+		$(1)/etc/hotplug.d/ntp $(1)/usr/share/rpcd/acl.d
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/routelinkd $(1)/usr/sbin/
 	$(INSTALL_BIN) ./files/routelink.init $(1)/etc/init.d/routelink
 	$(INSTALL_CONF) ./files/routelink.config $(1)/etc/config/routelink
 	$(INSTALL_DATA) ./files/routelink.keep $(1)/lib/upgrade/keep.d/routelink
 	$(INSTALL_DATA) ./files/routelink.upgrade.sh $(1)/lib/upgrade/routelink.sh
 	$(INSTALL_DATA) ./files/routelink.ntp $(1)/etc/hotplug.d/ntp/90-routelink
+	$(INSTALL_DATA) ./files/routelink.acl.json $(1)/usr/share/rpcd/acl.d/routelink.json
+endef
+
+# rpcd only reads ACL files at start: without a reload even root cannot call the new object
+define Package/routelinkd/postinst
+#!/bin/sh
+[ -n "$${IPKG_INSTROOT}" ] || /etc/init.d/rpcd reload
+exit 0
 endef
 
 $(eval $(call BuildPackage,routelinkd))
