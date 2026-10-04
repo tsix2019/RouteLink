@@ -1,4 +1,21 @@
-// Global jest setup: in-memory replacements for native storage modules.
+// Global jest setup: in-memory replacements for native modules.
+
+// The real module calls requireNativeModule() at import time. Tests override individual functions.
+jest.mock('routelink-native', () => {
+  const notMocked = (name: string) =>
+    jest.fn(async () => {
+      throw new Error(`routelink-native.${name} is not mocked in this test`);
+    });
+  return {
+    __esModule: true,
+    default: {
+      httpRequest: notMocked('httpRequest'),
+      fetchServerCertificate: notMocked('fetchServerCertificate'),
+      getNetworkInfo: notMocked('getNetworkInfo'),
+      sendWakeOnLan: notMocked('sendWakeOnLan'),
+    },
+  };
+});
 
 jest.mock('expo-secure-store', () => {
   const store = new Map<string, string>();

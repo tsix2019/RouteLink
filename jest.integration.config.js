@@ -2,7 +2,10 @@
 module.exports = {
   preset: 'jest-expo/node',
   testMatch: ['<rootDir>/test/integration/**/*.int.test.ts'],
-  moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^routelink-native$': '<rootDir>/modules/routelink-native',
+  },
   testTimeout: 180000,
   maxWorkers: 1,
 };

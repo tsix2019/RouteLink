@@ -2,6 +2,9 @@
 module.exports = {
   preset: 'jest-expo',
   testPathIgnorePatterns: ['/node_modules/', '/test/integration/', '/modules/routelink-native/'],
-  moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^routelink-native$': '<rootDir>/modules/routelink-native',
+  },
   setupFiles: ['<rootDir>/test/setup.ts'],
 };
