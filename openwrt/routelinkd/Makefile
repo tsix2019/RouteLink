@@ -32,7 +32,7 @@ define Build/Prepare
 	$(CP) ./src/* $(PKG_BUILD_DIR)/
 endef
 
-CMAKE_OPTIONS += -DRL_VERSION=$(PKG_VERSION)
+CMAKE_OPTIONS += -DRL_VERSION=$(PKG_VERSION) -DRL_BUILD_EPOCH=$(SOURCE_DATE_EPOCH)
 
 define Package/routelinkd/install
 	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/init.d $(1)/etc/config $(1)/lib/upgrade/keep.d $(1)/etc/hotplug.d/ntp

@@ -6,7 +6,8 @@ set(CMAKE_C_EXTENSIONS ON)
 add_compile_options(-Wall -Wextra -Werror -Wno-unused-parameter)
 
 set(RL_VERSION "0.0.0-dev" CACHE STRING "Version reported over ubus")
-add_compile_definitions(RL_VERSION="${RL_VERSION}")
+set(RL_BUILD_EPOCH "0" CACHE STRING "Build time (SOURCE_DATE_EPOCH): the clock is not trusted before it")
+add_compile_definitions(RL_VERSION="${RL_VERSION}" RL_BUILD_EPOCH=${RL_BUILD_EPOCH})
 
 option(RL_TESTS "Build host unit tests (core only)" OFF)
 option(RL_SANITIZE "AddressSanitizer + UndefinedBehaviorSanitizer" OFF)
