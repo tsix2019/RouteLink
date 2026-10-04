@@ -1,0 +1,66 @@
+name: OpenWrt
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'openwrt/**'
+      - 'scripts/agent-*'
+      - '.github/workflows/openwrt.yml'
+  pull_request:
+    paths:
+      - 'openwrt/**'
+      - '.github/workflows/openwrt.yml'
+
+concurrency:
+  group: openwrt-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: routelinkd unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get install -y -qq cmake libjson-c-dev
+      - run: |
+          cmake -S openwrt/routelinkd/src -B build -DRL_TESTS=ON -DRL_SANITIZE=ON
+          cmake --build build -j
+          ctest --test-dir build --output-on-failure
+
+  build:
+    name: ${{ matrix.release }} ${{ matrix.arch }}
+    needs: unit
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        release: ['23.05.6', '24.10.8', '25.12.5']
+        arch:
+          - x86_64
+          - aarch64_cortex-a53
+          - aarch64_cortex-a72
+          - aarch64_generic
+          - arm_cortex-a7_neon-vfpv4
+          - arm_cortex-a9_vfpv3-d16
+          - arm_cortex-a15_neon-vfpv4
+          - mipsel_24kc
+          - mips_24kc
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        uses: openwrt/gh-action-sdk@v11
+        env:
+          ARCH: ${{ matrix.arch }}-${{ matrix.release }}
+          FEEDNAME: routelink
+          FEED_DIR: ${{ github.workspace }}/openwrt
+          PACKAGES: routelinkd luci-app-routelink
+          NO_REFRESH_CHECK: true
+      - name: Store packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: pkg-${{ matrix.release }}-${{ matrix.arch }}
+          path: |
+            bin/packages/${{ matrix.arch }}/routelink/*.ipk
+            bin/packages/${{ matrix.arch }}/routelink/*.apk
+          if-no-files-found: error
