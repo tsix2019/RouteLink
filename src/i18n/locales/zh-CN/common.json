@@ -1,0 +1,31 @@
+{
+  "appName": "RouteLink",
+  "ok": "好",
+  "cancel": "取消",
+  "confirm": "确认",
+  "save": "保存",
+  "retry": "重试",
+  "refresh": "刷新",
+  "close": "关闭",
+  "done": "完成",
+  "edit": "编辑",
+  "delete": "删除",
+  "add": "添加",
+  "copy": "复制",
+  "copied": "已复制",
+  "loading": "加载中…",
+  "unknown": "未知",
+  "on": "开",
+  "off": "关",
+  "online": "在线",
+  "offline": "离线",
+  "lastUpdated": "上次更新于 {{time}}",
+  "demoRouter": "演示路由器",
+  "tabs": {
+    "overview": "概览",
+    "devices": "设备",
+    "wireless": "无线",
+    "network": "网络",
+    "more": "更多"
+  }
+}

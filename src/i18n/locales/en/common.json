@@ -1,0 +1,31 @@
+{
+  "appName": "RouteLink",
+  "ok": "OK",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "save": "Save",
+  "retry": "Retry",
+  "refresh": "Refresh",
+  "close": "Close",
+  "done": "Done",
+  "edit": "Edit",
+  "delete": "Delete",
+  "add": "Add",
+  "copy": "Copy",
+  "copied": "Copied",
+  "loading": "Loading…",
+  "unknown": "Unknown",
+  "on": "On",
+  "off": "Off",
+  "online": "Online",
+  "offline": "Offline",
+  "lastUpdated": "Updated {{time}}",
+  "demoRouter": "Demo router",
+  "tabs": {
+    "overview": "Overview",
+    "devices": "Devices",
+    "wireless": "Wi-Fi",
+    "network": "Network",
+    "more": "More"
+  }
+}
