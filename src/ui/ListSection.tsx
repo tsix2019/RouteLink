@@ -75,7 +75,10 @@ export function ListRow({
   const { colors } = useTheme();
   const body = (
     <View style={[styles.row, disabled && styles.disabled]}>
-      {left ?? (icon ? <Icon name={icon} size={20} color={iconColor ?? (destructive ? colors.danger : colors.accent)} /> : null)}
+      {left ??
+        (icon ? (
+          <Icon name={icon} size={20} color={iconColor ?? (destructive ? colors.danger : colors.accent)} />
+        ) : null)}
       <View style={styles.texts}>
         <AppText variant="body" tone={destructive ? 'danger' : 'primary'} numberOfLines={1}>
           {title}
@@ -118,7 +121,14 @@ const styles = StyleSheet.create({
   card: { paddingVertical: spacing.xs },
   divider: { height: StyleSheet.hairlineWidth, marginLeft: 52 },
   footer: { marginHorizontal: spacing.l },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.m, paddingHorizontal: spacing.l, paddingVertical: spacing.m, minHeight: 52 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.m,
+    paddingHorizontal: spacing.l,
+    paddingVertical: spacing.m,
+    minHeight: 52,
+  },
   texts: { flex: 1, gap: 2 },
   value: { maxWidth: '45%' },
   disabled: { opacity: 0.5 },

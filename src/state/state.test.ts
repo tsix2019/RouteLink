@@ -13,26 +13,34 @@ beforeEach(() => {
 
 describe('routers', () => {
   it('normalises the address and stores the password in the secure store', async () => {
-    const r = await useRouters.getState().add({ name: 'Home', baseUrl: '192.168.1.1/', username: 'root', savePassword: true }, 'pw');
+    const r = await useRouters
+      .getState()
+      .add({ name: 'Home', baseUrl: '192.168.1.1/', username: 'root', savePassword: true }, 'pw');
     expect(r.baseUrl).toBe('http://192.168.1.1');
     expect(secure.__store.get(passwordKey(r.id))).toBe('pw');
     await expect(useRouters.getState().getPassword(r.id)).resolves.toBe('pw');
   });
 
   it('keeps unsaved passwords in memory only', async () => {
-    const r = await useRouters.getState().add({ name: 'AP', baseUrl: 'http://10.0.0.2', username: 'root', savePassword: false }, 'temp');
+    const r = await useRouters
+      .getState()
+      .add({ name: 'AP', baseUrl: 'http://10.0.0.2', username: 'root', savePassword: false }, 'temp');
     expect(secure.__store.has(passwordKey(r.id))).toBe(false);
     await expect(useRouters.getState().getPassword(r.id)).resolves.toBe('temp');
   });
 
   it('moves the password when savePassword changes', async () => {
-    const r = await useRouters.getState().add({ name: 'AP', baseUrl: 'http://10.0.0.2', username: 'root', savePassword: false }, 'temp');
+    const r = await useRouters
+      .getState()
+      .add({ name: 'AP', baseUrl: 'http://10.0.0.2', username: 'root', savePassword: false }, 'temp');
     await useRouters.getState().update(r.id, { savePassword: true });
     expect(secure.__store.get(passwordKey(r.id))).toBe('temp');
   });
 
   it('forgets or replaces passwords on update', async () => {
-    const r = await useRouters.getState().add({ name: 'A', baseUrl: 'http://a', username: 'root', savePassword: true }, 'one');
+    const r = await useRouters
+      .getState()
+      .add({ name: 'A', baseUrl: 'http://a', username: 'root', savePassword: true }, 'one');
     await useRouters.getState().update(r.id, { name: 'B' }, 'two');
     await expect(useRouters.getState().getPassword(r.id)).resolves.toBe('two');
     await useRouters.getState().update(r.id, {}, null);
@@ -41,8 +49,12 @@ describe('routers', () => {
   });
 
   it('removes the password with the router and picks another active router', async () => {
-    const a = await useRouters.getState().add({ name: 'A', baseUrl: 'http://a', username: 'root', savePassword: true }, 'x');
-    const b = await useRouters.getState().add({ name: 'B', baseUrl: 'http://b', username: 'root', savePassword: true }, 'y');
+    const a = await useRouters
+      .getState()
+      .add({ name: 'A', baseUrl: 'http://a', username: 'root', savePassword: true }, 'x');
+    const b = await useRouters
+      .getState()
+      .add({ name: 'B', baseUrl: 'http://b', username: 'root', savePassword: true }, 'y');
     useRouters.getState().setActive(a.id);
     await useRouters.getState().remove(a.id);
     expect(secure.__store.has(passwordKey(a.id))).toBe(false);
@@ -52,7 +64,11 @@ describe('routers', () => {
 
   it('reorders contiguously and records last use', async () => {
     const ids: string[] = [];
-    for (const n of ['A', 'B', 'C']) ids.push((await useRouters.getState().add({ name: n, baseUrl: `http://${n}`, username: 'root', savePassword: false })).id);
+    for (const n of ['A', 'B', 'C'])
+      ids.push(
+        (await useRouters.getState().add({ name: n, baseUrl: `http://${n}`, username: 'root', savePassword: false }))
+          .id,
+      );
     useRouters.getState().reorder([ids[2], ids[0]]);
     expect(sortedRouters(useRouters.getState().routers).map((r) => r.name)).toEqual(['C', 'A', 'B']);
     useRouters.getState().setActive(ids[1]);

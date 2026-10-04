@@ -39,7 +39,11 @@ export function TextField({ label, error, hint, secret, monospace, style, ...res
           {...rest}
         />
         {secret ? (
-          <Pressable accessibilityRole="button" accessibilityLabel={visible ? 'hide' : 'show'} onPress={() => setVisible((v) => !v)} hitSlop={10}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={visible ? 'hide' : 'show'}
+            onPress={() => setVisible((v) => !v)}
+            hitSlop={10}>
             <Icon name={visible ? 'eyeOff' : 'eye'} size={20} color={colors.textSecondary} />
           </Pressable>
         ) : null}

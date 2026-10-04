@@ -29,7 +29,10 @@ describe('scan', () => {
       targets,
       hostnames: [],
       gateway: '192.168.1.1',
-      prober: fakeProber({ '192.168.1.2': { scheme: 'http', hostname: 'SideRouter' }, '192.168.1.1': { scheme: 'https' } }),
+      prober: fakeProber({
+        '192.168.1.2': { scheme: 'http', hostname: 'SideRouter' },
+        '192.168.1.1': { scheme: 'https' },
+      }),
       signal: new AbortController().signal,
       onFound,
       onProgress,
@@ -52,10 +55,15 @@ describe('scan', () => {
     const result = await scan({
       targets: ['192.168.1.1'],
       hostnames: ['openwrt.lan'],
-      prober: fakeProber({ 'openwrt.lan': { scheme: 'http', hostname: 'OpenWrt' }, '192.168.1.1': { scheme: 'http', hostname: 'OpenWrt' } }),
+      prober: fakeProber({
+        'openwrt.lan': { scheme: 'http', hostname: 'OpenWrt' },
+        '192.168.1.1': { scheme: 'http', hostname: 'OpenWrt' },
+      }),
       signal: new AbortController().signal,
     });
-    expect(result).toEqual([{ address: '192.168.1.1', scheme: 'http', hostname: 'OpenWrt', isGateway: false, aliases: ['openwrt.lan'] }]);
+    expect(result).toEqual([
+      { address: '192.168.1.1', scheme: 'http', hostname: 'OpenWrt', isGateway: false, aliases: ['openwrt.lan'] },
+    ]);
   });
 
   it('stops reporting after cancellation', async () => {
@@ -77,12 +85,11 @@ describe('scan', () => {
 
   it('sorts gateway, then IPs numerically, then names', () => {
     const r = (address: string, isGateway = false) => ({ address, scheme: 'http' as const, isGateway, aliases: [] });
-    expect(sortRouters([r('openwrt.lan'), r('192.168.1.10'), r('192.168.1.9'), r('192.168.1.200', true)]).map((x) => x.address)).toEqual([
-      '192.168.1.200',
-      '192.168.1.9',
-      '192.168.1.10',
-      'openwrt.lan',
-    ]);
+    expect(
+      sortRouters([r('openwrt.lan'), r('192.168.1.10'), r('192.168.1.9'), r('192.168.1.200', true)]).map(
+        (x) => x.address,
+      ),
+    ).toEqual(['192.168.1.200', '192.168.1.9', '192.168.1.10', 'openwrt.lan']);
   });
 });
 
@@ -95,14 +102,24 @@ describe('createProber', () => {
       headers: {},
       body: '<html><head><title>Living-Room - LuCI</title></head></html>',
     });
-    await expect(createProber(http).probe('10.0.0.1', signal)).resolves.toEqual({ scheme: 'http', hostname: 'Living-Room' });
+    await expect(createProber(http).probe('10.0.0.1', signal)).resolves.toEqual({
+      scheme: 'http',
+      hostname: 'Living-Room',
+    });
   });
 
   it('follows a redirect to HTTPS with the insecure probe mode', async () => {
     const http = new FakeHttpClient()
-      .on('GET http://10.0.0.1/cgi-bin/luci/', { status: 302, headers: { location: ['https://10.0.0.1/cgi-bin/luci/'] }, body: '' })
+      .on('GET http://10.0.0.1/cgi-bin/luci/', {
+        status: 302,
+        headers: { location: ['https://10.0.0.1/cgi-bin/luci/'] },
+        body: '',
+      })
       .on('GET https://10.0.0.1/cgi-bin/luci/', { status: 200, headers: {}, body: '<title>OpenWrt - LuCI</title>' });
-    await expect(createProber(http).probe('10.0.0.1', signal)).resolves.toEqual({ scheme: 'https', hostname: 'OpenWrt' });
+    await expect(createProber(http).probe('10.0.0.1', signal)).resolves.toEqual({
+      scheme: 'https',
+      hostname: 'OpenWrt',
+    });
     expect(http.requests[1].tls).toEqual({ mode: 'insecure-probe' });
     expect(http.requests.every((r) => !r.body?.includes('password'))).toBe(true);
   });
@@ -110,7 +127,10 @@ describe('createProber', () => {
   it('accepts a bare ubus endpoint without LuCI', async () => {
     const http = new FakeHttpClient()
       .on('GET http://10.0.0.2/cgi-bin/luci/', { status: 404, headers: {}, body: '' })
-      .on('POST http://10.0.0.2/ubus', json({ jsonrpc: '2.0', id: 1, error: { code: -32002, message: 'Access denied' } }));
+      .on(
+        'POST http://10.0.0.2/ubus',
+        json({ jsonrpc: '2.0', id: 1, error: { code: -32002, message: 'Access denied' } }),
+      );
     await expect(createProber(http).probe('10.0.0.2', signal)).resolves.toEqual({ scheme: 'http' });
   });
 
@@ -118,7 +138,10 @@ describe('createProber', () => {
     const refused = new FakeHttpClient()
       .on('GET http://10.0.0.3/cgi-bin/luci/', new NativeError('ERR_UNREACHABLE', 'refused'))
       .on('GET https://10.0.0.3/cgi-bin/luci/', { status: 200, headers: {}, body: 'luci' });
-    await expect(createProber(refused).probe('10.0.0.3', signal)).resolves.toEqual({ scheme: 'https', hostname: undefined });
+    await expect(createProber(refused).probe('10.0.0.3', signal)).resolves.toEqual({
+      scheme: 'https',
+      hostname: undefined,
+    });
 
     const silent = new FakeHttpClient().on(() => true, new NativeError('ERR_TIMEOUT', 'timeout'));
     await expect(createProber(silent).probe('10.0.0.4', signal)).resolves.toBeNull();

@@ -19,11 +19,23 @@ export interface GlassButtonProps {
   testID?: string;
 }
 
-export function GlassButton({ label, onPress, variant = 'glass', icon, loading, disabled, compact, style, testID }: GlassButtonProps) {
+export function GlassButton({
+  label,
+  onPress,
+  variant = 'glass',
+  icon,
+  loading,
+  disabled,
+  compact,
+  style,
+  testID,
+}: GlassButtonProps) {
   const { colors } = useTheme();
   const inactive = disabled || loading;
   const filled = variant !== 'glass';
-  const background = { primary: colors.accent, destructive: colors.danger, warning: colors.warning, glass: undefined }[variant];
+  const background = { primary: colors.accent, destructive: colors.danger, warning: colors.warning, glass: undefined }[
+    variant
+  ];
   const foreground = filled ? colors.accentText : colors.accent;
 
   const content = (

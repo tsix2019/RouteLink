@@ -21,7 +21,11 @@ export interface RouterQueryOptions {
 }
 
 /** Query scoped to the active router: the key starts with its id, so routers never share data. */
-export function useRouterQuery<T>(key: readonly unknown[], fn: (conn: RouterConnection) => Promise<T>, o: RouterQueryOptions = {}) {
+export function useRouterQuery<T>(
+  key: readonly unknown[],
+  fn: (conn: RouterConnection) => Promise<T>,
+  o: RouterQueryOptions = {},
+) {
   const { connection, router } = useActiveRouter();
   const focused = useIsFocused();
   return useQuery({
@@ -77,7 +81,10 @@ export function useTraffic() {
 }
 
 /** Mutation against the active router that refreshes the listed query keys afterwards. */
-export function useRouterMutation<A, R>(fn: (conn: RouterConnection, args: A) => Promise<R>, invalidate: readonly (readonly unknown[])[]) {
+export function useRouterMutation<A, R>(
+  fn: (conn: RouterConnection, args: A) => Promise<R>,
+  invalidate: readonly (readonly unknown[])[],
+) {
   const { connection, router } = useActiveRouter();
   const client = useQueryClient();
   return useMutation({

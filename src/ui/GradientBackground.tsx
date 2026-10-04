@@ -14,7 +14,12 @@ export function GradientBackground() {
   ];
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <LinearGradient colors={colors.background} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient
+        colors={colors.background}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
         <Defs>
           {blobs.map((b) => (

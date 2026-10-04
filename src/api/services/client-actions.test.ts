@@ -41,7 +41,11 @@ describe('isDnsSafeName', () => {
 describe('renameChanges', () => {
   it('adds a host with a DNS name for new devices', () => {
     expect(renameChanges(client(), 'living-room-tv')).toEqual([
-      { object: 'uci', method: 'add', params: { config: 'dhcp', type: 'host', values: { mac: 'AA:BB:CC:00:11:22', name: 'living-room-tv' } } },
+      {
+        object: 'uci',
+        method: 'add',
+        params: { config: 'dhcp', type: 'host', values: { mac: 'AA:BB:CC:00:11:22', name: 'living-room-tv' } },
+      },
     ]);
   });
 
@@ -65,12 +69,20 @@ describe('renameChanges', () => {
 describe('staticIpChanges', () => {
   it('creates a host with IP and the DNS-safe hostname', () => {
     const [call] = staticIpChanges(client({ hostname: 'nas' }), '192.168.1.50', []);
-    expect(call.params).toEqual({ config: 'dhcp', type: 'host', values: { mac: 'AA:BB:CC:00:11:22', ip: '192.168.1.50', name: 'nas' } });
+    expect(call.params).toEqual({
+      config: 'dhcp',
+      type: 'host',
+      values: { mac: 'AA:BB:CC:00:11:22', ip: '192.168.1.50', name: 'nas' },
+    });
   });
 
   it('updates an existing host section', () => {
     const [call] = staticIpChanges(client({ hostSection: 'cfg9' }), '192.168.1.51', []);
-    expect(call).toEqual({ object: 'uci', method: 'set', params: { config: 'dhcp', section: 'cfg9', values: { ip: '192.168.1.51' } } });
+    expect(call).toEqual({
+      object: 'uci',
+      method: 'set',
+      params: { config: 'dhcp', section: 'cfg9', values: { ip: '192.168.1.51' } },
+    });
   });
 
   it('rejects invalid and duplicate addresses', () => {
@@ -98,12 +110,22 @@ describe('block / unblock', () => {
     expect(call.params).toEqual({
       config: 'firewall',
       type: 'rule',
-      values: { name: `${BLOCK_RULE_PREFIX}AA:BB:CC:00:11:22`, src: '*', dest: '*', src_mac: ['AA:BB:CC:00:11:22'], proto: 'all', target: 'REJECT' },
+      values: {
+        name: `${BLOCK_RULE_PREFIX}AA:BB:CC:00:11:22`,
+        src: '*',
+        dest: '*',
+        src_mac: ['AA:BB:CC:00:11:22'],
+        proto: 'all',
+        target: 'REJECT',
+      },
     });
   });
 
   it('deletes the rule section to unblock', () => {
-    expect(unblockChanges(client({ isBlocked: true, blockSection: 'cfgX' }))[0].params).toEqual({ config: 'firewall', section: 'cfgX' });
+    expect(unblockChanges(client({ isBlocked: true, blockSection: 'cfgX' }))[0].params).toEqual({
+      config: 'firewall',
+      section: 'cfgX',
+    });
     expect(() => unblockChanges(client())).toThrow('not-blocked');
   });
 });
@@ -127,19 +149,29 @@ describe('kickClient', () => {
 
 describe('wakeOnLan', () => {
   it('uses etherwake on the router when available', async () => {
-    const conn = new FixtureConnection().override('file.exec.usr-bin-etherwake-d-i-br-lan-aa-bb-cc-00-11-22', ok({ code: 0 }));
+    const conn = new FixtureConnection().override(
+      'file.exec.usr-bin-etherwake-d-i-br-lan-aa-bb-cc-00-11-22',
+      ok({ code: 0 }),
+    );
     await expect(wakeOnLan(conn, 'AA:BB:CC:00:11:22', { routerSide: true })).resolves.toBe('router');
   });
 
   it('reports etherwake failures', async () => {
-    const conn = new FixtureConnection().override('file.exec.usr-bin-etherwake-d-i-br-lan-aa-bb-cc-00-11-22', ok({ code: 1, stderr: 'no such device' }));
+    const conn = new FixtureConnection().override(
+      'file.exec.usr-bin-etherwake-d-i-br-lan-aa-bb-cc-00-11-22',
+      ok({ code: 1, stderr: 'no such device' }),
+    );
     await expect(wakeOnLan(conn, 'AA:BB:CC:00:11:22', { routerSide: true })).rejects.toThrow('no such device');
   });
 
   it('falls back to the phone, else reports unavailable', async () => {
     const send = jest.fn(async () => undefined);
-    await expect(wakeOnLan(new FixtureConnection(), 'AA:BB:CC:00:11:22', { routerSide: false, sendFromPhone: send })).resolves.toBe('phone');
+    await expect(
+      wakeOnLan(new FixtureConnection(), 'AA:BB:CC:00:11:22', { routerSide: false, sendFromPhone: send }),
+    ).resolves.toBe('phone');
     expect(send).toHaveBeenCalledWith('AA:BB:CC:00:11:22');
-    await expect(wakeOnLan(new FixtureConnection(), 'AA:BB:CC:00:11:22', { routerSide: false })).rejects.toThrow('wol-unavailable');
+    await expect(wakeOnLan(new FixtureConnection(), 'AA:BB:CC:00:11:22', { routerSide: false })).rejects.toThrow(
+      'wol-unavailable',
+    );
   });
 });

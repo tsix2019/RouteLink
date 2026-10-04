@@ -22,7 +22,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [systemReduce, setSystemReduce] = useState(false);
 
   useEffect(() => {
-    AccessibilityInfo.isReduceTransparencyEnabled().then(setSystemReduce).catch(() => {});
+    AccessibilityInfo.isReduceTransparencyEnabled()
+      .then(setSystemReduce)
+      .catch(() => {});
     const sub = AccessibilityInfo.addEventListener('reduceTransparencyChanged', setSystemReduce);
     return () => sub.remove();
   }, []);
@@ -41,7 +43,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
     return {
       ...base,
-      colors: { ...base.colors, primary: theme.colors.accent, background: 'transparent', card: 'transparent', text: theme.colors.text },
+      colors: {
+        ...base.colors,
+        primary: theme.colors.accent,
+        background: 'transparent',
+        card: 'transparent',
+        text: theme.colors.text,
+      },
     };
   }, [scheme, theme.colors]);
 

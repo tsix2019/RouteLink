@@ -21,7 +21,11 @@ export interface LiveConnectionConfig {
 }
 
 /** Any HTTP answer (even 404) or TLS handshake means the router is up. No credentials are sent. */
-export async function pingRouter(http: HttpClient, baseUrl: string, tls: TlsOptions = { mode: 'system' }): Promise<boolean> {
+export async function pingRouter(
+  http: HttpClient,
+  baseUrl: string,
+  tls: TlsOptions = { mode: 'system' },
+): Promise<boolean> {
   try {
     await http.request({ url: `${baseUrl}/`, method: 'GET', timeoutMs: 1_500, tls });
     return true;

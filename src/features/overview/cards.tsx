@@ -21,7 +21,14 @@ import { formatBitRate, formatBytes, formatDuration, formatPercent, protoLabel }
 
 const routerClock = (epochSec: number, lang: 'zh-CN' | 'en') =>
   // localtime is already shifted to the router's zone; format it as UTC to keep that wall time.
-  new Date(epochSec * 1000).toLocaleString(lang, { timeZone: 'UTC', hour12: false, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  new Date(epochSec * 1000).toLocaleString(lang, {
+    timeZone: 'UTC',
+    hour12: false,
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
 function CardSkeleton({ lines = 3 }: { lines?: number }) {
   return (
@@ -46,7 +53,10 @@ export function SystemCard({ system }: { system?: SystemSnapshot }) {
             { label: t('overview:system.hostname'), value: system.hostname },
             { label: t('overview:system.kernel'), value: system.kernel },
             { label: t('overview:system.uptime'), value: formatDuration(system.uptimeSec, lang) },
-            { label: t('overview:system.time'), value: system.localTime ? routerClock(system.localTime, lang) : undefined },
+            {
+              label: t('overview:system.time'),
+              value: system.localTime ? routerClock(system.localTime, lang) : undefined,
+            },
           ]}
         />
       ) : (
@@ -78,16 +88,24 @@ export function ResourcesCard({ system, temperature }: { system?: SystemSnapshot
       <View style={styles.rings}>
         <RingGauge value={ratio} centerText={system.load[0].toFixed(2)} label={t('overview:resources.load')} />
         <RingGauge value={mem} centerText={formatPercent(mem)} label={t('overview:resources.memory')} />
-        {disk !== null ? <RingGauge value={disk} centerText={formatPercent(disk)} label={t('overview:resources.storage')} /> : null}
+        {disk !== null ? (
+          <RingGauge value={disk} centerText={formatPercent(disk)} label={t('overview:resources.storage')} />
+        ) : null}
       </View>
       <AppText variant="footnote" tone="secondary">
-        {t('overview:resources.loadDetail', { l1: system.load[0].toFixed(2), l5: system.load[1].toFixed(2), l15: system.load[2].toFixed(2) })}
+        {t('overview:resources.loadDetail', {
+          l1: system.load[0].toFixed(2),
+          l5: system.load[1].toFixed(2),
+          l15: system.load[2].toFixed(2),
+        })}
       </AppText>
       <AppText variant="footnote" tone="secondary">
         {`${t('overview:resources.memory')} · ${t('overview:resources.used', { used: formatBytes(system.memory.used), total: formatBytes(system.memory.total) })}`}
       </AppText>
       {typeof temperature === 'number' ? (
-        <AppText variant="footnote" tone="secondary">{`${t('overview:resources.temperature')} · ${temperature.toFixed(1)} °C`}</AppText>
+        <AppText
+          variant="footnote"
+          tone="secondary">{`${t('overview:resources.temperature')} · ${temperature.toFixed(1)} °C`}</AppText>
       ) : null}
     </GlassCard>
   );
@@ -116,7 +134,12 @@ export function WanCard({ wan, loading }: { wan?: NetInterface; loading: boolean
           items={[
             { label: t('overview:wan.ipv4'), value: wan.ipv4[0]?.address, selectable: true },
             { label: t('overview:wan.gateway'), value: wan.gateway, selectable: true },
-            { label: t('overview:wan.ipv6'), value: wan.ipv6[0] ? `${wan.ipv6[0].address}/${wan.ipv6[0].mask}` : undefined, wide: true, selectable: true },
+            {
+              label: t('overview:wan.ipv6'),
+              value: wan.ipv6[0] ? `${wan.ipv6[0].address}/${wan.ipv6[0].mask}` : undefined,
+              wide: true,
+              selectable: true,
+            },
             { label: t('overview:wan.dns'), value: wan.dns.join(', ') || undefined, wide: true },
             { label: t('overview:wan.uptime'), value: wan.up ? formatDuration(wan.uptimeSec, lang) : undefined },
           ]}
@@ -132,14 +155,36 @@ export function WanCard({ wan, loading }: { wan?: NetInterface; loading: boolean
   );
 }
 
-export function TrafficCard({ series, latest, intervalSec }: { series: readonly RatePoint[]; latest?: RatePoint; intervalSec: number }) {
+export function TrafficCard({
+  series,
+  latest,
+  intervalSec,
+}: {
+  series: readonly RatePoint[];
+  latest?: RatePoint;
+  intervalSec: number;
+}) {
   const t = useT();
   const { colors } = useTheme();
   return (
-    <GlassCard title={t('overview:traffic.title')} icon="down" subtitle={t('overview:traffic.interval', { seconds: intervalSec })} testID="card-traffic">
+    <GlassCard
+      title={t('overview:traffic.title')}
+      icon="down"
+      subtitle={t('overview:traffic.interval', { seconds: intervalSec })}
+      testID="card-traffic">
       <View style={styles.legend}>
-        <Legend color={colors.chartDown} label={t('overview:traffic.down')} value={latest ? formatBitRate(latest.rxBps) : '—'} icon="down" />
-        <Legend color={colors.chartUp} label={t('overview:traffic.up')} value={latest ? formatBitRate(latest.txBps) : '—'} icon="up" />
+        <Legend
+          color={colors.chartDown}
+          label={t('overview:traffic.down')}
+          value={latest ? formatBitRate(latest.rxBps) : '—'}
+          icon="down"
+        />
+        <Legend
+          color={colors.chartUp}
+          label={t('overview:traffic.up')}
+          value={latest ? formatBitRate(latest.txBps) : '—'}
+          icon="up"
+        />
       </View>
       <TrafficChart series={series} />
       {series.length < 2 ? (
@@ -174,7 +219,10 @@ export function DevicesCard({ clients }: { clients?: Client[] }) {
   const online = clients?.filter((c) => c.online) ?? [];
   return (
     <Pressable accessibilityRole="button" onPress={() => router.navigate('/devices')} testID="card-devices">
-      <GlassCard title={t('overview:devices.title')} icon="devices" accessory={<Icon name="chevronRight" size={16} color={colors.textTertiary} />}>
+      <GlassCard
+        title={t('overview:devices.title')}
+        icon="devices"
+        accessory={<Icon name="chevronRight" size={16} color={colors.textTertiary} />}>
         {clients ? (
           <View style={styles.devices}>
             <AppText variant="largeTitle">{online.length}</AppText>

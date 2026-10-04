@@ -34,9 +34,7 @@ describe('nativeHttpClient', () => {
 
 describe('FakeHttpClient', () => {
   it('routes requests, records them and expires limited handlers', async () => {
-    const fake = new FakeHttpClient()
-      .on('GET http://r/a', json({ n: 1 }), 1)
-      .on('GET http://r/a', json({ n: 2 }));
+    const fake = new FakeHttpClient().on('GET http://r/a', json({ n: 1 }), 1).on('GET http://r/a', json({ n: 2 }));
     expect(JSON.parse((await fake.request({ url: 'http://r/a', method: 'GET' })).body)).toEqual({ n: 1 });
     expect(JSON.parse((await fake.request({ url: 'http://r/a', method: 'GET' })).body)).toEqual({ n: 2 });
     expect(fake.requests).toHaveLength(2);

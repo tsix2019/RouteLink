@@ -39,15 +39,18 @@ describe('getSystem (OpenWrt 24.10 fixture)', () => {
   });
 
   it('computes the load ratio against the core count', async () => {
-    const conn = new FixtureConnection()
-      .override('system.info', ok({ load: [2 * 65536, 0, 0], memory: {} }))
-      .override('file.list.sys-devices-system-cpu', ok({ entries: [
-        { name: 'cpu0', type: 'directory' },
-        { name: 'cpu1', type: 'directory' },
-        { name: 'cpu2', type: 'directory' },
-        { name: 'cpu3', type: 'directory' },
-        { name: 'cpuidle', type: 'directory' },
-      ] }));
+    const conn = new FixtureConnection().override('system.info', ok({ load: [2 * 65536, 0, 0], memory: {} })).override(
+      'file.list.sys-devices-system-cpu',
+      ok({
+        entries: [
+          { name: 'cpu0', type: 'directory' },
+          { name: 'cpu1', type: 'directory' },
+          { name: 'cpu2', type: 'directory' },
+          { name: 'cpu3', type: 'directory' },
+          { name: 'cpuidle', type: 'directory' },
+        ],
+      }),
+    );
     const s = await getSystem(conn);
     expect(s.cpuCores).toBe(4);
     expect(loadRatio(s)).toBe(0.5);

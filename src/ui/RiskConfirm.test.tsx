@@ -37,7 +37,16 @@ it('high level requires the checkbox and the exact phrase', async () => {
 
 it('high level stays disabled with the phrase but without the checkbox', async () => {
   await render(
-    <RiskConfirm visible level="high" title="t" consequences={[]} confirmLabel="Go" confirmPhrase="R1" onConfirm={jest.fn()} onCancel={jest.fn()} />,
+    <RiskConfirm
+      visible
+      level="high"
+      title="t"
+      consequences={[]}
+      confirmLabel="Go"
+      confirmPhrase="R1"
+      onConfirm={jest.fn()}
+      onCancel={jest.fn()}
+    />,
   );
   await fireEvent.changeText(screen.getByTestId('risk-confirm-phrase'), 'R1');
   expect(screen.getByRole('button', { name: 'Go' })).toBeDisabled();
@@ -66,7 +75,15 @@ it('medium level lists consequences and confirms directly', async () => {
 
 it('renders nothing when hidden', async () => {
   await render(
-    <RiskConfirm visible={false} level="medium" title="Hidden" consequences={[]} confirmLabel="Go" onConfirm={jest.fn()} onCancel={jest.fn()} />,
+    <RiskConfirm
+      visible={false}
+      level="medium"
+      title="Hidden"
+      consequences={[]}
+      confirmLabel="Go"
+      onConfirm={jest.fn()}
+      onCancel={jest.fn()}
+    />,
   );
   expect(screen.queryByText('Hidden')).toBeNull();
 });

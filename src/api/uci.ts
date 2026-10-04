@@ -75,7 +75,11 @@ async function revert(conn: RouterConnection, configs: string[]): Promise<void> 
  * router restores /etc/config and puts the changes back into the applying session's staging area,
  * so staging is reverted both before staging and after a rollback.
  */
-export async function stageAndApply(conn: RouterConnection, changes: UbusCall[], o: ApplyOptions): Promise<ApplyOutcome> {
+export async function stageAndApply(
+  conn: RouterConnection,
+  changes: UbusCall[],
+  o: ApplyOptions,
+): Promise<ApplyOutcome> {
   const sleep = o.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
   const now = o.now ?? Date.now;
   const configs = touchedConfigs(changes);

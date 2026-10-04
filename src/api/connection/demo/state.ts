@@ -147,20 +147,62 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
 
   const uci: DemoState['uci'] = {
     system: {
-      cfg01e48a: section('cfg01e48a', 'system', { hostname: 'RouteLink-Demo', timezone: 'CST-8', zonename: 'Asia/Shanghai' }, true),
+      cfg01e48a: section(
+        'cfg01e48a',
+        'system',
+        { hostname: 'RouteLink-Demo', timezone: 'CST-8', zonename: 'Asia/Shanghai' },
+        true,
+      ),
     },
     network: {
-      loopback: section('loopback', 'interface', { device: 'lo', proto: 'static', ipaddr: '127.0.0.1', netmask: '255.0.0.0' }),
-      lan: section('lan', 'interface', { device: 'br-lan', proto: 'static', ipaddr: '192.168.8.1', netmask: '255.255.255.0' }),
+      loopback: section('loopback', 'interface', {
+        device: 'lo',
+        proto: 'static',
+        ipaddr: '127.0.0.1',
+        netmask: '255.0.0.0',
+      }),
+      lan: section('lan', 'interface', {
+        device: 'br-lan',
+        proto: 'static',
+        ipaddr: '192.168.8.1',
+        netmask: '255.255.255.0',
+      }),
       wan: section('wan', 'interface', { device: 'eth0', proto: 'pppoe', username: 'demo@isp' }),
       wan6: section('wan6', 'interface', { device: '@wan', proto: 'dhcpv6' }),
       wg0: section('wg0', 'interface', { proto: 'wireguard', addresses: ['10.8.0.1/24'] }),
     },
     wireless: {
-      radio0: section('radio0', 'wifi-device', { type: 'mac80211', band: '2g', channel: '6', htmode: 'HE20', country: 'CN', txpower: '20' }),
-      radio1: section('radio1', 'wifi-device', { type: 'mac80211', band: '5g', channel: '36', htmode: 'HE80', country: 'CN' }),
-      default_radio0: section('default_radio0', 'wifi-iface', { device: 'radio0', network: 'lan', mode: 'ap', ssid: 'RouteLink', encryption: 'sae-mixed', key: 'routelink-demo' }),
-      default_radio1: section('default_radio1', 'wifi-iface', { device: 'radio1', network: 'lan', mode: 'ap', ssid: 'RouteLink-5G', encryption: 'sae-mixed', key: 'routelink-demo' }),
+      radio0: section('radio0', 'wifi-device', {
+        type: 'mac80211',
+        band: '2g',
+        channel: '6',
+        htmode: 'HE20',
+        country: 'CN',
+        txpower: '20',
+      }),
+      radio1: section('radio1', 'wifi-device', {
+        type: 'mac80211',
+        band: '5g',
+        channel: '36',
+        htmode: 'HE80',
+        country: 'CN',
+      }),
+      default_radio0: section('default_radio0', 'wifi-iface', {
+        device: 'radio0',
+        network: 'lan',
+        mode: 'ap',
+        ssid: 'RouteLink',
+        encryption: 'sae-mixed',
+        key: 'routelink-demo',
+      }),
+      default_radio1: section('default_radio1', 'wifi-iface', {
+        device: 'radio1',
+        network: 'lan',
+        mode: 'ap',
+        ssid: 'RouteLink-5G',
+        encryption: 'sae-mixed',
+        key: 'routelink-demo',
+      }),
     },
     dhcp: {
       lan: section('lan', 'dhcp', { interface: 'lan', start: '100', limit: '150', leasetime: '12h' }),
@@ -170,10 +212,30 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
       cfg_block: section(
         'cfg_block',
         'rule',
-        { name: `RouteLink: block ${blockedDev.mac}`, src: '*', dest: '*', src_mac: [blockedDev.mac], proto: 'all', target: 'REJECT' },
+        {
+          name: `RouteLink: block ${blockedDev.mac}`,
+          src: '*',
+          dest: '*',
+          src_mac: [blockedDev.mac],
+          proto: 'all',
+          target: 'REJECT',
+        },
         true,
       ),
-      cfg_fwd: section('cfg_fwd', 'redirect', { name: 'NAS-HTTPS', src: 'wan', src_dport: '8443', dest: 'lan', dest_ip: staticDev.ip, dest_port: '443', target: 'DNAT' }, true),
+      cfg_fwd: section(
+        'cfg_fwd',
+        'redirect',
+        {
+          name: 'NAS-HTTPS',
+          src: 'wan',
+          src_dport: '8443',
+          dest: 'lan',
+          dest_ip: staticDev.ip,
+          dest_port: '443',
+          target: 'DNAT',
+        },
+        true,
+      ),
     },
   };
 
@@ -227,5 +289,7 @@ export function tick(state: DemoState, now: number): void {
   add('phy1-ap0', tx * 0.6, rx * 0.7);
   add('phy0-ap0', tx * 0.1, rx * 0.1);
   add('wg0', rx * 0.01, tx * 0.02);
-  state.load = state.load.map((l, i) => Math.max(0.02, Math.min(3, l + (rng.next() - 0.5) * (0.12 / (i + 1))))) as DemoState['load'];
+  state.load = state.load.map((l, i) =>
+    Math.max(0.02, Math.min(3, l + (rng.next() - 0.5) * (0.12 / (i + 1)))),
+  ) as DemoState['load'];
 }

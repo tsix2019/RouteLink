@@ -1,7 +1,15 @@
 import { FixtureConnection, loadFixture, ok } from '../../../test/fixture-connection';
 import type { UciSection } from '../uci';
 import type { Client } from './clients';
-import { getRadios, isPhoneOnNetwork, networkChanges, parseRadios, radioChanges, scan, validateNetwork } from './wireless';
+import {
+  getRadios,
+  isPhoneOnNetwork,
+  networkChanges,
+  parseRadios,
+  radioChanges,
+  scan,
+  validateNetwork,
+} from './wireless';
 
 const status = (() => {
   const r = loadFixture('handmade', 'luci-rpc.getWirelessDevices');
@@ -9,10 +17,45 @@ const status = (() => {
 })();
 
 const config = {
-  radio0: { '.name': 'radio0', '.type': 'wifi-device', type: 'mac80211', band: '2g', channel: '6', htmode: 'HE20', country: 'CN' },
-  radio1: { '.name': 'radio1', '.type': 'wifi-device', type: 'mac80211', band: '5g', channel: 'auto', htmode: 'HE80', disabled: '0' },
-  default_radio0: { '.name': 'default_radio0', '.type': 'wifi-iface', device: 'radio0', network: 'lan', mode: 'ap', ssid: 'RouteLink', encryption: 'sae-mixed', key: 'correct horse' },
-  default_radio1: { '.name': 'default_radio1', '.type': 'wifi-iface', device: 'radio1', network: ['lan'], mode: 'ap', ssid: 'RouteLink-5G', encryption: 'psk2', key: 'correct horse', hidden: '1' },
+  radio0: {
+    '.name': 'radio0',
+    '.type': 'wifi-device',
+    type: 'mac80211',
+    band: '2g',
+    channel: '6',
+    htmode: 'HE20',
+    country: 'CN',
+  },
+  radio1: {
+    '.name': 'radio1',
+    '.type': 'wifi-device',
+    type: 'mac80211',
+    band: '5g',
+    channel: 'auto',
+    htmode: 'HE80',
+    disabled: '0',
+  },
+  default_radio0: {
+    '.name': 'default_radio0',
+    '.type': 'wifi-iface',
+    device: 'radio0',
+    network: 'lan',
+    mode: 'ap',
+    ssid: 'RouteLink',
+    encryption: 'sae-mixed',
+    key: 'correct horse',
+  },
+  default_radio1: {
+    '.name': 'default_radio1',
+    '.type': 'wifi-iface',
+    device: 'radio1',
+    network: ['lan'],
+    mode: 'ap',
+    ssid: 'RouteLink-5G',
+    encryption: 'psk2',
+    key: 'correct horse',
+    hidden: '1',
+  },
 } as unknown as Record<string, UciSection>;
 
 describe('parseRadios', () => {
@@ -22,7 +65,15 @@ describe('parseRadios', () => {
       ['radio0', '2.4G', '6', true],
       ['radio1', '5G', 'auto', true],
     ]);
-    expect(radios[0].networks[0]).toMatchObject({ section: 'default_radio0', ifname: 'phy0-ap0', ssid: 'RouteLink', encryption: 'sae-mixed', hidden: false, network: ['lan'], up: true });
+    expect(radios[0].networks[0]).toMatchObject({
+      section: 'default_radio0',
+      ifname: 'phy0-ap0',
+      ssid: 'RouteLink',
+      encryption: 'sae-mixed',
+      hidden: false,
+      network: ['lan'],
+      up: true,
+    });
     expect(radios[1].networks[0]).toMatchObject({ ssid: 'RouteLink-5G', hidden: true, ifname: 'phy1-ap0' });
   });
 
@@ -51,14 +102,22 @@ describe('change sets', () => {
 
   it('stages only changed radio options', () => {
     expect(radioChanges(radio, { channel: '6', txpower: 17, disabled: true })).toEqual([
-      { object: 'uci', method: 'set', params: { config: 'wireless', section: 'radio0', values: { txpower: '17', disabled: '1' } } },
+      {
+        object: 'uci',
+        method: 'set',
+        params: { config: 'wireless', section: 'radio0', values: { txpower: '17', disabled: '1' } },
+      },
     ]);
     expect(radioChanges(radio, { channel: '6' })).toEqual([]);
   });
 
   it('stages only changed network options', () => {
     expect(networkChanges(net, { ssid: 'Home', key: 'correct horse', hidden: true })).toEqual([
-      { object: 'uci', method: 'set', params: { config: 'wireless', section: 'default_radio0', values: { ssid: 'Home', hidden: '1' } } },
+      {
+        object: 'uci',
+        method: 'set',
+        params: { config: 'wireless', section: 'default_radio0', values: { ssid: 'Home', hidden: '1' } },
+      },
     ]);
   });
 });
@@ -82,7 +141,12 @@ it('parses and sorts scan results', async () => {
     ok({
       results: [
         { ssid: 'Weak', bssid: 'AA:00:00:00:00:01', channel: 1, signal: -80, encryption: { enabled: false } },
-        { bssid: 'AA:00:00:00:00:02', channel: 11, signal: -40, encryption: { enabled: true, description: 'WPA2 PSK (CCMP)' } },
+        {
+          bssid: 'AA:00:00:00:00:02',
+          channel: 11,
+          signal: -40,
+          encryption: { enabled: true, description: 'WPA2 PSK (CCMP)' },
+        },
       ],
     }),
   );

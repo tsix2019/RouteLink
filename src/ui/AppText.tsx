@@ -27,7 +27,13 @@ export function AppText({ variant = 'body', tone = 'primary', weight, align, sty
   }[tone];
   return (
     <Text
-      style={[type[variant], { color }, weight ? { fontWeight: weight } : null, align ? { textAlign: align } : null, style]}
+      style={[
+        type[variant],
+        { color },
+        weight ? { fontWeight: weight } : null,
+        align ? { textAlign: align } : null,
+        style,
+      ]}
       {...rest}
     />
   );

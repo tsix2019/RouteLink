@@ -19,7 +19,10 @@ export function loadFixture(set: string, name: string): UbusResult {
   };
   return stored.ok ? { ok: true, data: stored.data } : { ok: false, error: new UbusError(stored.error!, name) };
 }
-export const fail = (code: UbusErrorCode, call = 'x.y'): UbusResult => ({ ok: false, error: new UbusError(code, call) });
+export const fail = (code: UbusErrorCode, call = 'x.y'): UbusResult => ({
+  ok: false,
+  error: new UbusError(code, call),
+});
 
 /**
  * RouterConnection that answers from recorded fixtures (test/fixtures/<set>/<fixtureName>.json).
@@ -60,8 +63,11 @@ export class FixtureConnection implements RouterConnection {
     if (override) return typeof override === 'function' ? override(call) : override;
 
     const file = join(__dirname, 'fixtures', this.set, `${name}.json`);
-    if (!existsSync(file)) return { ok: false, error: new UbusError('METHOD_NOT_FOUND', callKey(call), `no fixture ${name}`) };
+    if (!existsSync(file))
+      return { ok: false, error: new UbusError('METHOD_NOT_FOUND', callKey(call), `no fixture ${name}`) };
     const stored = JSON.parse(readFileSync(file, 'utf8')) as { ok: boolean; data?: unknown; error?: UbusErrorCode };
-    return stored.ok ? { ok: true, data: stored.data } : { ok: false, error: new UbusError(stored.error!, callKey(call)) };
+    return stored.ok
+      ? { ok: true, data: stored.data }
+      : { ok: false, error: new UbusError(stored.error!, callKey(call)) };
   }
 }

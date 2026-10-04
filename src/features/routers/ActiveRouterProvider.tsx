@@ -65,7 +65,13 @@ export function ActiveRouterProvider({ children }: { children: ReactNode }) {
       };
     }
     if (!profile) return { router: null, connection: null, status: 'none' };
-    const router: ActiveRouter = { id: profile.id, name: profile.name, baseUrl: profile.baseUrl, isDemo: false, profile };
+    const router: ActiveRouter = {
+      id: profile.id,
+      name: profile.name,
+      baseUrl: profile.baseUrl,
+      isDemo: false,
+      profile,
+    };
     if (!password || password.id !== profile.id) return { router, connection: null, status: 'loading' };
     if (password.value === null) return { router, connection: null, status: 'needs-password' };
     const connection = getLiveConnection(profile, password.value, (session) => {

@@ -7,15 +7,31 @@ export type Status = 'online' | 'offline' | 'warning' | 'unknown';
 
 export function StatusDot({ status, size = 9 }: { status: Status; size?: number }) {
   const { colors } = useTheme();
-  const color = { online: colors.success, offline: colors.textTertiary, warning: colors.warning, unknown: colors.textTertiary }[status];
-  return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color }} accessibilityLabel={status} />;
+  const color = {
+    online: colors.success,
+    offline: colors.textTertiary,
+    warning: colors.warning,
+    unknown: colors.textTertiary,
+  }[status];
+  return (
+    <View
+      style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color }}
+      accessibilityLabel={status}
+    />
+  );
 }
 
 export type BadgeTone = 'neutral' | 'accent' | 'success' | 'warning' | 'danger';
 
 export function Badge({ label, tone = 'neutral' }: { label: string; tone?: BadgeTone }) {
   const { colors } = useTheme();
-  const color = { neutral: colors.textSecondary, accent: colors.accent, success: colors.success, warning: colors.warning, danger: colors.danger }[tone];
+  const color = {
+    neutral: colors.textSecondary,
+    accent: colors.accent,
+    success: colors.success,
+    warning: colors.warning,
+    danger: colors.danger,
+  }[tone];
   return (
     <View style={[styles.badge, { borderColor: color }]}>
       <AppText variant="caption" weight="600" style={{ color }}>

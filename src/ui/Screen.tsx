@@ -26,7 +26,14 @@ export function Screen({ children, inTabs = true, refreshing, onRefresh, top, co
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={[styles.content, { paddingBottom: bottom }, contentStyle]}
       refreshControl={
-        onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} /> : undefined
+        onRefresh ? (
+          <RefreshControl
+            refreshing={!!refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent}
+            colors={[colors.accent]}
+          />
+        ) : undefined
       }>
       {top ? <View>{top}</View> : null}
       {children}

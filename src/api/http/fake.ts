@@ -16,8 +16,7 @@ export class FakeHttpClient implements HttpClient {
 
   /** `match` is "METHOD url" (exact) or a predicate. Handlers registered with `times` expire after that many uses. */
   on(match: string | Matcher, handler: Handler | HttpResponse | Error, times = Infinity): this {
-    const predicate: Matcher =
-      typeof match === 'string' ? (req) => `${req.method} ${req.url}` === match : match;
+    const predicate: Matcher = typeof match === 'string' ? (req) => `${req.method} ${req.url}` === match : match;
     const fn: Handler =
       handler instanceof Error
         ? () => {
@@ -49,8 +48,9 @@ export type UbusHandler = (
 export function ubusEndpoint(handlers: Record<string, UbusHandler>): Handler {
   return (req) => {
     const payload = JSON.parse(req.body ?? 'null');
-    const calls: { id: number; params: [string, string, string, Record<string, unknown>] }[] =
-      Array.isArray(payload) ? payload : [payload];
+    const calls: { id: number; params: [string, string, string, Record<string, unknown>] }[] = Array.isArray(payload)
+      ? payload
+      : [payload];
     const replies = calls.map((call) => {
       const [sid, object, method, params] = call.params;
       const handler = handlers[`${object}.${method}`];

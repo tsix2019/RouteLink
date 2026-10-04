@@ -107,7 +107,9 @@ export default function Reboot() {
         <AppText variant="footnote" tone="tertiary" align="center">
           {t('overview:reboot.elapsed', { time: formatDuration(elapsed, lang) })}
         </AppText>
-        {finished && phase !== 'done' ? <GlassButton label={t('overview:reboot.close')} onPress={() => nav.back()} /> : null}
+        {finished && phase !== 'done' ? (
+          <GlassButton label={t('overview:reboot.close')} onPress={() => nav.back()} />
+        ) : null}
       </GlassSurface>
     </View>
   );

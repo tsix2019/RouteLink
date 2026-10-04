@@ -13,6 +13,7 @@ import { GlassButton } from '@/ui/GlassButton';
 import { Icon } from '@/ui/Icon';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { Screen } from '@/ui/Screen';
+import { SheetScreen } from '@/ui/SheetScreen';
 import { StatusDot } from '@/ui/Status';
 import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
@@ -34,7 +35,11 @@ export default function RouterSwitcher() {
     queries: routers.map((r) => ({
       queryKey: ['ping', r.id, r.baseUrl, r.tlsSha256],
       queryFn: () =>
-        pingRouter(nativeHttpClient, r.baseUrl, r.tlsSha256 ? { mode: 'pinned' as const, sha256: r.tlsSha256 } : undefined),
+        pingRouter(
+          nativeHttpClient,
+          r.baseUrl,
+          r.tlsSha256 ? { mode: 'pinned' as const, sha256: r.tlsSha256 } : undefined,
+        ),
       staleTime: 5_000,
     })),
   });
@@ -46,47 +51,51 @@ export default function RouterSwitcher() {
   };
 
   return (
-    <Screen inTabs={false}>
-      <AppText variant="title">{t('routers:switcherTitle')}</AppText>
-      <ListSection>
-        {routers.map((r, i) => {
-          const online = pings[i]?.data;
-          const current = !demoMode && r.id === activeId;
-          return (
+    <SheetScreen>
+      <Screen inTabs={false}>
+        <AppText variant="title">{t('routers:switcherTitle')}</AppText>
+        <ListSection>
+          {routers.map((r, i) => {
+            const online = pings[i]?.data;
+            const current = !demoMode && r.id === activeId;
+            return (
+              <ListRow
+                key={r.id}
+                title={r.name}
+                subtitle={[r.baseUrl.replace(/^https?:\/\//, ''), snapshots[r.id]?.model ?? r.model]
+                  .filter(Boolean)
+                  .join(' · ')}
+                left={<StatusDot status={online === undefined ? 'unknown' : online ? 'online' : 'offline'} />}
+                right={
+                  <View style={styles.right}>
+                    {!isHttps(r.baseUrl) ? <Icon name="lockOpen" size={14} color={colors.textTertiary} /> : null}
+                    {current ? <Icon name="check" size={18} color={colors.accent} /> : null}
+                  </View>
+                }
+                onPress={() => select(r.id)}
+              />
+            );
+          })}
+          {demoMode || routers.length === 0 ? (
             <ListRow
-              key={r.id}
-              title={r.name}
-              subtitle={[r.baseUrl.replace(/^https?:\/\//, ''), snapshots[r.id]?.model ?? r.model].filter(Boolean).join(' · ')}
-              left={<StatusDot status={online === undefined ? 'unknown' : online ? 'online' : 'offline'} />}
-              right={
-                <View style={styles.right}>
-                  {!isHttps(r.baseUrl) ? <Icon name="lockOpen" size={14} color={colors.textTertiary} /> : null}
-                  {current ? <Icon name="check" size={18} color={colors.accent} /> : null}
-                </View>
-              }
-              onPress={() => select(r.id)}
+              key="demo"
+              title={t('demoRouter')}
+              subtitle="OpenWrt One · 24.10.8"
+              left={<StatusDot status="online" />}
+              right={demoMode ? <Icon name="check" size={18} color={colors.accent} /> : undefined}
+              onPress={() => {
+                setSettings({ demoMode: true });
+                nav.back();
+              }}
             />
-          );
-        })}
-        {demoMode || routers.length === 0 ? (
-          <ListRow
-            key="demo"
-            title={t('demoRouter')}
-            subtitle="OpenWrt One · 24.10.8"
-            left={<StatusDot status="online" />}
-            right={demoMode ? <Icon name="check" size={18} color={colors.accent} /> : undefined}
-            onPress={() => {
-              setSettings({ demoMode: true });
-              nav.back();
-            }}
-          />
-        ) : null}
-      </ListSection>
-      <View style={styles.actions}>
-        <GlassButton label={t('routers:add')} icon="plus" variant="primary" onPress={() => nav.push('/add-router')} />
-        <GlassButton label={t('routers:manage')} icon="settings" onPress={() => nav.push('/more/routers')} />
-      </View>
-    </Screen>
+          ) : null}
+        </ListSection>
+        <View style={styles.actions}>
+          <GlassButton label={t('routers:add')} icon="plus" variant="primary" onPress={() => nav.push('/add-router')} />
+          <GlassButton label={t('routers:manage')} icon="settings" onPress={() => nav.push('/more/routers')} />
+        </View>
+      </Screen>
+    </SheetScreen>
   );
 }
 

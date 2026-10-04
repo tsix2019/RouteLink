@@ -85,26 +85,62 @@ async function main() {
   });
 
   console.log('RouteLink router check (redacted)');
-  const sys = await step('login + system', () => getSystem(conn), (s) =>
-    `${s.distribution} ${s.version} · ${s.target} · model "${s.model}" · cores ${s.cpuCores ?? '?'} · login via ${mode}`);
+  const sys = await step(
+    'login + system',
+    () => getSystem(conn),
+    (s) =>
+      `${s.distribution} ${s.version} · ${s.target} · model "${s.model}" · cores ${s.cpuCores ?? '?'} · login via ${mode}`,
+  );
   if (!sys) return;
 
-  await step('temperature', () => getTemperature(conn), (t) => (t === null ? 'not available' : `${t} °C`));
-  await step('capabilities', () => detectCapabilities(conn), (caps) =>
-    Object.entries(caps)
-      .map(([f, c]) => `${f}=${c.status === 'missing-package' ? `missing(${c.packages.join('+')})` : c.status}`)
-      .join(', '));
-  await step('interfaces', () => getInterfaces(conn), (ifs) =>
-    `${ifs.length} [${ifs.map((i) => `${i.name}:${i.proto}:${i.up ? 'up' : 'down'}`).join(' ')}] wan=${pickWan(ifs)?.name ?? 'none'}`);
-  await step('clients', () => getClients(conn), (cs) =>
-    `${cs.length} total, ${cs.filter((c) => c.online).length} online, ${cs.filter((c) => c.connection === 'wifi').length} wifi, ` +
-    `${cs.filter((c) => c.connection === 'wired').length} wired, ${cs.filter((c) => c.isStatic).length} static, ` +
-    `online via ${[...new Set(cs.map((c) => c.onlineSource))].join('/')}`);
-  await step('radios', () => getRadios(conn), (rs) =>
-    `${rs.length} [${rs.map((r) => `${r.band} ch${r.channel} ${r.up ? 'up' : 'down'} nets=${r.networks.length}`).join(', ')}]`);
-  await step('services', () => listServices(conn), (s) => `${s.length} (${s.filter((x) => x.running).length} running)`);
-  await step('system log', () => systemLog(conn), (l) => `${l.length} lines`);
-  await step('kernel log', () => kernelLog(conn), (l) => `${l.length} lines`);
+  await step(
+    'temperature',
+    () => getTemperature(conn),
+    (t) => (t === null ? 'not available' : `${t} °C`),
+  );
+  await step(
+    'capabilities',
+    () => detectCapabilities(conn),
+    (caps) =>
+      Object.entries(caps)
+        .map(([f, c]) => `${f}=${c.status === 'missing-package' ? `missing(${c.packages.join('+')})` : c.status}`)
+        .join(', '),
+  );
+  await step(
+    'interfaces',
+    () => getInterfaces(conn),
+    (ifs) =>
+      `${ifs.length} [${ifs.map((i) => `${i.name}:${i.proto}:${i.up ? 'up' : 'down'}`).join(' ')}] wan=${pickWan(ifs)?.name ?? 'none'}`,
+  );
+  await step(
+    'clients',
+    () => getClients(conn),
+    (cs) =>
+      `${cs.length} total, ${cs.filter((c) => c.online).length} online, ${cs.filter((c) => c.connection === 'wifi').length} wifi, ` +
+      `${cs.filter((c) => c.connection === 'wired').length} wired, ${cs.filter((c) => c.isStatic).length} static, ` +
+      `online via ${[...new Set(cs.map((c) => c.onlineSource))].join('/')}`,
+  );
+  await step(
+    'radios',
+    () => getRadios(conn),
+    (rs) =>
+      `${rs.length} [${rs.map((r) => `${r.band} ch${r.channel} ${r.up ? 'up' : 'down'} nets=${r.networks.length}`).join(', ')}]`,
+  );
+  await step(
+    'services',
+    () => listServices(conn),
+    (s) => `${s.length} (${s.filter((x) => x.running).length} running)`,
+  );
+  await step(
+    'system log',
+    () => systemLog(conn),
+    (l) => `${l.length} lines`,
+  );
+  await step(
+    'kernel log',
+    () => kernelLog(conn),
+    (l) => `${l.length} lines`,
+  );
 }
 
 main()

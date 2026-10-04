@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useT } from '@/i18n';
@@ -23,6 +23,8 @@ export interface RiskConfirmProps {
   disruptive?: boolean;
   /** high only: the user must type this exactly (the router name). */
   confirmPhrase?: string;
+  /** medium only: one extra switch, e.g. "block reconnecting for 5 minutes". */
+  option?: { label: string; value: boolean; onChange(value: boolean): void };
   onConfirm(): void;
   onCancel(): void;
 }
@@ -32,7 +34,7 @@ export function RiskConfirm(props: RiskConfirmProps) {
   return props.level === 'high' ? <HighRisk {...props} /> : <MediumRisk {...props} />;
 }
 
-function MediumRisk({ title, consequences, confirmLabel, disruptive, onConfirm, onCancel }: RiskConfirmProps) {
+function MediumRisk({ title, consequences, confirmLabel, disruptive, option, onConfirm, onCancel }: RiskConfirmProps) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -57,6 +59,19 @@ function MediumRisk({ title, consequences, confirmLabel, disruptive, onConfirm, 
               </AppText>
             </View>
           ))}
+          {option ? (
+            <View style={styles.optionRow}>
+              <AppText variant="body" style={styles.flex}>
+                {option.label}
+              </AppText>
+              <Switch
+                value={option.value}
+                onValueChange={option.onChange}
+                trackColor={{ true: colors.accent }}
+                accessibilityLabel={option.label}
+              />
+            </View>
+          ) : null}
           <GlassButton label={confirmLabel} variant={disruptive ? 'warning' : 'primary'} onPress={onConfirm} />
           <GlassButton label={t('cancel')} onPress={onCancel} />
         </GlassSurface>
@@ -75,7 +90,15 @@ function HighRisk({ title, consequences, confirmLabel, confirmPhrase = '', onCon
 
   return (
     <Modal animationType="slide" onRequestClose={onCancel} presentationStyle="fullScreen">
-      <View style={[styles.full, { backgroundColor: colors.background[0], paddingTop: insets.top + spacing.l, paddingBottom: insets.bottom + spacing.l }]}>
+      <View
+        style={[
+          styles.full,
+          {
+            backgroundColor: colors.background[0],
+            paddingTop: insets.top + spacing.l,
+            paddingBottom: insets.bottom + spacing.l,
+          },
+        ]}>
         <ScrollView contentContainerStyle={styles.fullContent} keyboardShouldPersistTaps="handled">
           <View style={[styles.hazard, { backgroundColor: colors.danger }]}>
             <Icon name="error" size={36} color={colors.accentText} />
@@ -101,7 +124,14 @@ function HighRisk({ title, consequences, confirmLabel, confirmPhrase = '', onCon
             accessibilityState={{ checked }}
             onPress={() => setChecked((v) => !v)}
             style={styles.checkRow}>
-            <View style={[styles.checkbox, { borderColor: checked ? colors.danger : colors.textTertiary, backgroundColor: checked ? colors.danger : 'transparent' }]}>
+            <View
+              style={[
+                styles.checkbox,
+                {
+                  borderColor: checked ? colors.danger : colors.textTertiary,
+                  backgroundColor: checked ? colors.danger : 'transparent',
+                },
+              ]}>
               {checked ? <Icon name="check" size={16} color={colors.accentText} /> : null}
             </View>
             <AppText variant="body" style={styles.flex}>
@@ -131,10 +161,18 @@ const styles = StyleSheet.create({
   sheetWrap: { position: 'absolute', left: spacing.m, right: spacing.m, bottom: 0 },
   sheet: { padding: spacing.xl, gap: spacing.m },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.s },
+  optionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.m },
   bullet: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.s },
   full: { flex: 1, paddingHorizontal: spacing.l },
   fullContent: { gap: spacing.l, alignItems: 'stretch' },
-  hazard: { alignSelf: 'center', width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center' },
+  hazard: {
+    alignSelf: 'center',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   risks: { padding: spacing.l, gap: spacing.m },
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.m, paddingVertical: spacing.s },
   checkbox: { width: 24, height: 24, borderRadius: 6, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },

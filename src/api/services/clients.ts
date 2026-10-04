@@ -50,7 +50,15 @@ export interface Client {
   online: boolean;
   onlineSource: 'wifi' | 'neighbor' | 'lease' | 'none';
   connection: 'wifi' | 'wired' | 'unknown';
-  wifi?: { ifname: string; ssid: string; band: Band; signal: number; rxRate?: number; txRate?: number; connectedSec?: number };
+  wifi?: {
+    ifname: string;
+    ssid: string;
+    band: Band;
+    signal: number;
+    rxRate?: number;
+    txRate?: number;
+    connectedSec?: number;
+  };
   isStatic: boolean;
   staticIp?: string;
   /** dhcp host section holding this MAC (alias and/or static IP). */
@@ -100,7 +108,13 @@ export function parseWifiIfaces(radios: Record<string, RawRadio>): WifiIface[] {
   return Object.entries(radios).flatMap(([radio, r]) =>
     (r.interfaces ?? [])
       .filter((i) => i.ifname && (i.config?.mode ?? 'ap') === 'ap')
-      .map((i) => ({ radio, section: i.section, ifname: i.ifname!, ssid: i.config?.ssid ?? '', band: bandOf(r.config ?? {}) })),
+      .map((i) => ({
+        radio,
+        section: i.section,
+        ifname: i.ifname!,
+        ssid: i.config?.ssid ?? '',
+        band: bandOf(r.config ?? {}),
+      })),
   );
 }
 
@@ -169,7 +183,7 @@ export function mergeClients(input: ClientInputs): Client[] {
     const n = ipToInt(ip);
     return input.lanSubnets.some(({ network, prefix }) => {
       const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
-      return ((n & mask) >>> 0) === network;
+      return (n & mask) >>> 0 === network;
     });
   };
 
@@ -234,10 +248,7 @@ export function mergeClients(input: ClientInputs): Client[] {
 
   const neighborsKnown = input.neighbors !== undefined;
   const clients = [...drafts.values()]
-    .filter(
-      (d) =>
-        d.leaseIp || d.wifi || d.hostSection || d.blockSection || d.hintIps.some(inLan) || inLan(d.neighIp),
-    )
+    .filter((d) => d.leaseIp || d.wifi || d.hostSection || d.blockSection || d.hintIps.some(inLan) || inLan(d.neighIp))
     .map((d): Client => {
       const vendor = lookupVendor(d.mac);
       const hostname = shortName(d.leaseName ?? d.hintName);

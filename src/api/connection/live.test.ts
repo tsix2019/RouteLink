@@ -20,7 +20,14 @@ describe('LiveConnection', () => {
   it('pins the certificate when a fingerprint is stored', async () => {
     const http = new FakeHttpClient().on('POST https://r/ubus', endpoint);
     const sha = 'ab'.repeat(32);
-    const conn = new LiveConnection({ routerId: 'r1', baseUrl: 'https://r', username: 'root', password: 'p', tlsSha256: sha, http });
+    const conn = new LiveConnection({
+      routerId: 'r1',
+      baseUrl: 'https://r',
+      username: 'root',
+      password: 'p',
+      tlsSha256: sha,
+      http,
+    });
     await conn.call('system', 'board');
     expect(http.requests.every((r) => r.tls?.mode === 'pinned')).toBe(true);
   });
@@ -28,7 +35,14 @@ describe('LiveConnection', () => {
   it('reports the login mode it detected', async () => {
     const http = new FakeHttpClient().on('POST http://r/ubus', endpoint);
     const onLogin = jest.fn();
-    const conn = new LiveConnection({ routerId: 'r1', baseUrl: 'http://r', username: 'root', password: 'p', http, onLogin });
+    const conn = new LiveConnection({
+      routerId: 'r1',
+      baseUrl: 'http://r',
+      username: 'root',
+      password: 'p',
+      http,
+      onLogin,
+    });
     await conn.call('system', 'board');
     expect(onLogin).toHaveBeenCalledWith(expect.objectContaining({ mode: 'ubus' }));
   });
@@ -71,7 +85,10 @@ describe('classifyError', () => {
   });
 
   it('keeps the denied call for permission errors', () => {
-    expect(classifyError(new UbusError('PERMISSION_DENIED', 'file.exec'))).toEqual({ kind: 'permission', call: 'file.exec' });
+    expect(classifyError(new UbusError('PERMISSION_DENIED', 'file.exec'))).toEqual({
+      kind: 'permission',
+      call: 'file.exec',
+    });
   });
 
   it('marks failures that retrying cannot fix', () => {

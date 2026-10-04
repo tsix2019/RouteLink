@@ -37,12 +37,20 @@ export interface Radio {
 interface RawRadio {
   up?: boolean;
   disabled?: boolean;
-  config?: { band?: string; hwmode?: string; channel?: string | number; htmode?: string; txpower?: number | string; country?: string };
+  config?: {
+    band?: string;
+    hwmode?: string;
+    channel?: string | number;
+    htmode?: string;
+    txpower?: number | string;
+    country?: string;
+  };
   interfaces?: { section: string; ifname?: string; config?: Record<string, unknown> }[];
 }
 
 const bool = (v: unknown) => v === true || v === '1' || v === 1 || v === 'true';
-const strings = (v: unknown): string[] => (Array.isArray(v) ? v.map(String) : typeof v === 'string' && v ? v.split(/\s+/) : []);
+const strings = (v: unknown): string[] =>
+  Array.isArray(v) ? v.map(String) : typeof v === 'string' && v ? v.split(/\s+/) : [];
 
 /** Runtime status (luci-rpc getWirelessDevices) merged with the stored uci config. */
 export function parseRadios(status: Record<string, RawRadio>, config: Record<string, UciSection>): Radio[] {
@@ -147,10 +155,16 @@ export interface ScanResult {
 }
 
 export async function scan(conn: RouterConnection, ifname: string): Promise<ScanResult[]> {
-  const r = await conn.call<{ results?: Record<string, unknown>[] }>('iwinfo', 'scan', { device: ifname }, { timeoutMs: 20_000 });
+  const r = await conn.call<{ results?: Record<string, unknown>[] }>(
+    'iwinfo',
+    'scan',
+    { device: ifname },
+    { timeoutMs: 20_000 },
+  );
   return (r.results ?? [])
     .map((s) => {
-      const enc = s.encryption as { enabled?: boolean; description?: string; wpa?: number[]; authentication?: string[] } | undefined;
+      const enc = s.encryption as
+        { enabled?: boolean; description?: string; wpa?: number[]; authentication?: string[] } | undefined;
       return {
         ssid: typeof s.ssid === 'string' ? s.ssid : '',
         bssid: String(s.bssid ?? ''),

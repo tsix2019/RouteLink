@@ -4,7 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -15,6 +15,7 @@ import { useRouters } from '@/state/routers';
 import { useSettings } from '@/state/settings';
 import { GradientBackground } from '@/ui/GradientBackground';
 import { ThemeProvider, useTheme } from '@/ui/theme/ThemeProvider';
+import { ToastProvider } from '@/ui/Toast';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initI18n('system');
@@ -44,7 +45,9 @@ export default function RootLayout() {
           <ThemeProvider>
             <QueryClientProvider client={queryClient}>
               <ActiveRouterProvider>
-                <RootStack />
+                <ToastProvider>
+                  <RootStack />
+                </ToastProvider>
               </ActiveRouterProvider>
             </QueryClientProvider>
           </ThemeProvider>
@@ -53,6 +56,20 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+/**
+ * Sheets: iOS gets the system form sheet (Liquid Glass on iOS 26). Android gets a transparent modal
+ * in which SheetScreen draws an iOS 26–style floating sheet.
+ */
+const sheetOptions = (detents: number[]) =>
+  Platform.OS === 'ios'
+    ? {
+        presentation: 'formSheet' as const,
+        sheetAllowedDetents: detents,
+        sheetGrabberVisible: true,
+        contentStyle: styles.transparent,
+      }
+    : { presentation: 'transparentModal' as const, animation: 'none' as const, contentStyle: styles.transparent };
 
 function RootStack() {
   const { scheme } = useTheme();
@@ -64,15 +81,9 @@ function RootStack() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="welcome" />
         <Stack.Screen name="add-router" options={{ presentation: 'modal' }} />
-        <Stack.Screen
-          name="router-switcher"
-          options={{ presentation: 'formSheet', sheetAllowedDetents: [0.55, 1], sheetGrabberVisible: true, contentStyle: styles.transparent }}
-        />
+        <Stack.Screen name="router-switcher" options={sheetOptions([0.55, 1])} />
         <Stack.Screen name="trust-certificate" options={{ presentation: 'modal' }} />
-        <Stack.Screen
-          name="device/[mac]"
-          options={{ presentation: 'formSheet', sheetAllowedDetents: [0.65, 1], sheetGrabberVisible: true, contentStyle: styles.transparent }}
-        />
+        <Stack.Screen name="device/[mac]" options={sheetOptions([0.68, 1])} />
         <Stack.Screen name="reboot" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
       </Stack>
     </View>

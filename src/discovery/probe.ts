@@ -22,7 +22,12 @@ function looksLikeUbus(res: HttpResponse): boolean {
   }
 }
 
-const UBUS_PROBE = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'list', params: ['00000000000000000000000000000000', 'session'] });
+const UBUS_PROBE = JSON.stringify({
+  jsonrpc: '2.0',
+  id: 1,
+  method: 'list',
+  params: ['00000000000000000000000000000000', 'session'],
+});
 
 /**
  * Identifies OpenWrt by its LuCI page or ubus endpoint. Requests carry no credentials; HTTPS uses

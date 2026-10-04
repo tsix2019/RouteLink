@@ -36,7 +36,9 @@ describe('mergeClients', () => {
     const [c] = mergeClients(
       inputs({
         leases: [{ macaddr: '3c:2e:f9:10:20:30', ipaddr: '192.168.1.20', hostname: 'iPhone', expires: 3000 }],
-        stations: [{ iface: wifi24, list: [{ mac: '3C:2E:F9:10:20:30', signal: -48, inactiveMs: 40, rxRate: 144400 }] }],
+        stations: [
+          { iface: wifi24, list: [{ mac: '3C:2E:F9:10:20:30', signal: -48, inactiveMs: 40, rxRate: 144400 }] },
+        ],
       }),
     );
     expect(c).toMatchObject({
@@ -64,7 +66,12 @@ describe('mergeClients', () => {
 
   it('treats FAILED neighbours as offline and falls back to leases when the table is unavailable', () => {
     const lease = { macaddr: '00:1a:11:00:00:02', ipaddr: '192.168.1.31', expires: 50 };
-    const [failed] = mergeClients(inputs({ leases: [lease], neighbors: [{ ip: lease.ipaddr, mac: lease.macaddr, dev: 'br-lan', state: 'FAILED' }] }));
+    const [failed] = mergeClients(
+      inputs({
+        leases: [lease],
+        neighbors: [{ ip: lease.ipaddr, mac: lease.macaddr, dev: 'br-lan', state: 'FAILED' }],
+      }),
+    );
     expect(failed.online).toBe(false);
     const [byLease] = mergeClients(inputs({ leases: [lease], neighbors: undefined }));
     expect(byLease).toMatchObject({ online: true, onlineSource: 'lease' });
@@ -72,7 +79,15 @@ describe('mergeClients', () => {
 
   it('lists static leases of offline devices with their alias', () => {
     const [c] = mergeClients(inputs({ dhcpHosts: [host('Printer', 'aa:bb:cc:00:11:22', { ip: '192.168.1.50' })] }));
-    expect(c).toMatchObject({ name: 'Printer', alias: 'Printer', isStatic: true, staticIp: '192.168.1.50', online: false, ipv4: '192.168.1.50', hostSection: 'cfg_Printer' });
+    expect(c).toMatchObject({
+      name: 'Printer',
+      alias: 'Printer',
+      isStatic: true,
+      staticIp: '192.168.1.50',
+      online: false,
+      ipv4: '192.168.1.50',
+      hostSection: 'cfg_Printer',
+    });
   });
 
   it('keeps alias-only hosts non-static', () => {
@@ -82,7 +97,13 @@ describe('mergeClients', () => {
 
   it('detects RouteLink block rules, ignoring disabled ones', () => {
     const rule = (name: string, mac: string, enabled?: string) =>
-      ({ '.name': `r_${mac}`, '.type': 'rule', name, src_mac: [mac], ...(enabled ? { enabled } : {}) }) as unknown as UciSection;
+      ({
+        '.name': `r_${mac}`,
+        '.type': 'rule',
+        name,
+        src_mac: [mac],
+        ...(enabled ? { enabled } : {}),
+      }) as unknown as UciSection;
     const out = mergeClients(
       inputs({
         firewallRules: [
@@ -97,7 +118,9 @@ describe('mergeClients', () => {
   });
 
   it('flags randomized MACs without a vendor', () => {
-    const [c] = mergeClients(inputs({ leases: [{ macaddr: 'DA:A1:19:00:00:01', ipaddr: '192.168.1.40', expires: 10 }] }));
+    const [c] = mergeClients(
+      inputs({ leases: [{ macaddr: 'DA:A1:19:00:00:01', ipaddr: '192.168.1.40', expires: 10 }] }),
+    );
     expect(c).toMatchObject({ vendor: null, randomizedMac: true, name: 'DA:A1:19:00:00:01' });
   });
 

@@ -57,7 +57,8 @@ export async function loginUbus(t: LoginTarget, cred: Credentials): Promise<Sess
   }
   const r = decodeCallResponse<{ ubus_rpc_session: string; expires?: number }>(body, 'session.login');
   if (!r.ok) {
-    if (r.error.code === 'PERMISSION_DENIED' || r.error.code === 'ACCESS_DENIED') throw new AuthError('BAD_CREDENTIALS');
+    if (r.error.code === 'PERMISSION_DENIED' || r.error.code === 'ACCESS_DENIED')
+      throw new AuthError('BAD_CREDENTIALS');
     throw r.error;
   }
   return { mode: 'ubus', endpoint, sid: r.data.ubus_rpc_session, expiresInSec: r.data.expires ?? 300 };

@@ -82,7 +82,10 @@ export interface DeviceCounters {
 
 export async function getDeviceCounters(conn: RouterConnection): Promise<Record<string, DeviceCounters>> {
   const raw = await conn.call<
-    Record<string, { up?: boolean; mac?: string; stats?: { rx_bytes?: number; tx_bytes?: number }; link?: { speed?: number } }>
+    Record<
+      string,
+      { up?: boolean; mac?: string; stats?: { rx_bytes?: number; tx_bytes?: number }; link?: { speed?: number } }
+    >
   >('luci-rpc', 'getNetworkDevices');
   const out: Record<string, DeviceCounters> = {};
   for (const [name, d] of Object.entries(raw)) {

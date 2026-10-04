@@ -72,7 +72,11 @@ describe('login strategy', () => {
   it('falls back to LuCI when /ubus does not exist', async () => {
     const http = new FakeHttpClient()
       .on(`POST ${BASE}/ubus`, { status: 404, headers: {}, body: '' })
-      .on(`POST ${BASE}/cgi-bin/luci/`, { status: 302, headers: { 'set-cookie': ['sysauth_https=zz; path=/'] }, body: '' });
+      .on(`POST ${BASE}/cgi-bin/luci/`, {
+        status: 302,
+        headers: { 'set-cookie': ['sysauth_https=zz; path=/'] },
+        body: '',
+      });
     const s = await login({ http, baseUrl: BASE }, cred);
     expect(s.mode).toBe('luci');
     expect(s.cookie).toBe('sysauth_https=zz');
@@ -110,7 +114,10 @@ describe('login strategy', () => {
 
 describe('findSysauth', () => {
   it('recognises all cookie names and skips deleted values', () => {
-    expect(findSysauth(['sysauth=deleted; path=/', 'sysauth_http=good'])).toEqual({ name: 'sysauth_http', value: 'good' });
+    expect(findSysauth(['sysauth=deleted; path=/', 'sysauth_http=good'])).toEqual({
+      name: 'sysauth_http',
+      value: 'good',
+    });
     expect(findSysauth(['sysauth_https=x'])).toEqual({ name: 'sysauth_https', value: 'x' });
     expect(findSysauth(['other=1'])).toBeNull();
     expect(findSysauth([])).toBeNull();

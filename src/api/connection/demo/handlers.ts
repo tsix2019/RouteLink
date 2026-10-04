@@ -46,7 +46,14 @@ function radioStatus(state: DemoState, radio: 'radio0' | 'radio1') {
     autostart: true,
     disabled,
     retry_setup_failed: false,
-    config: { type: 'mac80211', band: dev.band, channel: dev.channel, htmode: dev.htmode, country: dev.country, txpower: dev.txpower },
+    config: {
+      type: 'mac80211',
+      band: dev.band,
+      channel: dev.channel,
+      htmode: dev.htmode,
+      country: dev.country,
+      txpower: dev.txpower,
+    },
     interfaces: ifaces.map((i) => ({
       section: i['.name'],
       ifname: disabled || i.disabled === '1' ? undefined : IFNAMES[radio],
@@ -73,7 +80,10 @@ const SCAN_NETWORKS = [
   ['HUAWEI-B3', 157, -82, 'WPA2/WPA3 PSK/SAE (CCMP)'],
 ] as const;
 
-const files: Record<string, (s: DemoState, args: string[], now: number) => { code: number; stdout?: string; stderr?: string }> = {
+const files: Record<
+  string,
+  (s: DemoState, args: string[], now: number) => { code: number; stdout?: string; stderr?: string }
+> = {
   '/sbin/ip': (s, args, now) => {
     if (args.join(' ') !== '-4 neigh show') return { code: 1, stderr: 'unsupported' };
     const lines = s.devices.map((d) => {
@@ -100,7 +110,8 @@ const files: Record<string, (s: DemoState, args: string[], now: number) => { cod
 
 export const handlers: Record<string, Handler> = {
   'session.access': () => ({ access: true }),
-  'file.stat': (_s, p) => (p.path === '/usr/bin/etherwake' ? { path: p.path, type: 'file', size: 10512 } : notFound('file.stat')),
+  'file.stat': (_s, p) =>
+    p.path === '/usr/bin/etherwake' ? { path: p.path, type: 'file', size: 10512 } : notFound('file.stat'),
   'file.list': (_s, p) =>
     p.path === '/sys/devices/system/cpu'
       ? { entries: ['cpu0', 'cpu1', 'cpu2', 'cpu3', 'cpufreq'].map((name) => ({ name, type: 'directory' })) }
@@ -130,7 +141,14 @@ export const handlers: Record<string, Handler> = {
     localtime: Math.floor(now / 1000) + 8 * 3600,
     uptime: uptime(s, now),
     load: s.load.map((l) => Math.round(l * 65536)),
-    memory: { total: 1_048_576_000, free: 512_000_000, shared: 2_000_000, buffered: 0, available: 640_000_000, cached: 140_000_000 },
+    memory: {
+      total: 1_048_576_000,
+      free: 512_000_000,
+      shared: 2_000_000,
+      buffered: 0,
+      available: 640_000_000,
+      cached: 140_000_000,
+    },
     root: { total: 223_744, free: 181_248, used: 42_496, avail: 176_128 },
     tmp: { total: 512_000, free: 509_440, used: 2_560, avail: 509_440 },
     swap: { total: 0, free: 0 },
@@ -141,16 +159,36 @@ export const handlers: Record<string, Handler> = {
     const up = uptime(s, now) - 12;
     return {
       interface: [
-        iface('lan', 'static', 'br-lan', {
-          'ipv4-address': [{ address: '192.168.8.1', mask: 24 }],
-          'ipv6-prefix-assignment': [{ address: 'fd00:8::', mask: 64, 'local-address': { address: 'fd00:8::1', mask: 64 } }],
-        }, up),
-        iface('wan', 'pppoe', 'pppoe-wan', {
-          'ipv4-address': [{ address: '203.0.113.45', mask: 32 }],
-          route: [{ target: '0.0.0.0', mask: 0, nexthop: '203.0.113.1', source: '203.0.113.45/32' }],
-          'dns-server': ['223.5.5.5', '119.29.29.29'],
-        }, up),
-        iface('wan6', 'dhcpv6', 'pppoe-wan', { 'ipv6-address': [{ address: '2001:db8:45::1', mask: 64 }], 'dns-server': ['2400:3200::1'] }, up),
+        iface(
+          'lan',
+          'static',
+          'br-lan',
+          {
+            'ipv4-address': [{ address: '192.168.8.1', mask: 24 }],
+            'ipv6-prefix-assignment': [
+              { address: 'fd00:8::', mask: 64, 'local-address': { address: 'fd00:8::1', mask: 64 } },
+            ],
+          },
+          up,
+        ),
+        iface(
+          'wan',
+          'pppoe',
+          'pppoe-wan',
+          {
+            'ipv4-address': [{ address: '203.0.113.45', mask: 32 }],
+            route: [{ target: '0.0.0.0', mask: 0, nexthop: '203.0.113.1', source: '203.0.113.45/32' }],
+            'dns-server': ['223.5.5.5', '119.29.29.29'],
+          },
+          up,
+        ),
+        iface(
+          'wan6',
+          'dhcpv6',
+          'pppoe-wan',
+          { 'ipv6-address': [{ address: '2001:db8:45::1', mask: 64 }], 'dns-server': ['2400:3200::1'] },
+          up,
+        ),
         iface('wg0', 'wireguard', 'wg0', { 'ipv4-address': [{ address: '10.8.0.1', mask: 24 }] }, up - 30),
       ],
     };
@@ -223,7 +261,12 @@ export const handlers: Record<string, Handler> = {
   'uci.add': (s, p) => {
     const config = (s.uci[String(p.config)] ??= {});
     const name = typeof p.name === 'string' ? p.name : nextSectionName(config);
-    config[name] = { '.name': name, '.type': String(p.type), '.anonymous': !p.name, ...(p.values as object) } as UciSection;
+    config[name] = {
+      '.name': name,
+      '.type': String(p.type),
+      '.anonymous': !p.name,
+      ...(p.values as object),
+    } as UciSection;
     return { section: name };
   },
   'uci.delete': (s, p) => {

@@ -25,7 +25,13 @@ export function parseSyslog(stdout: string): LogLine[] {
     .map((line) => {
       const m = re.exec(line);
       if (!m) return { text: line };
-      return { time: m[1].replace(/ +/g, ' '), facility: m[2], level: normalizeLevel(m[3]), source: m[4] || undefined, text: m[5] };
+      return {
+        time: m[1].replace(/ +/g, ' '),
+        facility: m[2],
+        level: normalizeLevel(m[3]),
+        source: m[4] || undefined,
+        text: m[5],
+      };
     });
 }
 
@@ -48,7 +54,9 @@ interface ExecResult {
 }
 
 async function run(conn: RouterConnection, command: string, params?: string[]): Promise<string> {
-  const r = await conn.call<ExecResult>('file', 'exec', params ? { command, params } : { command }, { timeoutMs: 15_000 });
+  const r = await conn.call<ExecResult>('file', 'exec', params ? { command, params } : { command }, {
+    timeoutMs: 15_000,
+  });
   if (r.code !== 0) throw new ActionError('log-unavailable', (r.stderr ?? '').trim() || `exit code ${r.code}`);
   return r.stdout ?? '';
 }

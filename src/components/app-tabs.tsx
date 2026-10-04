@@ -14,7 +14,9 @@ export default function AppTabs() {
     <NativeTabs minimizeBehavior="onScrollDown" tintColor={colors.accent}>
       <NativeTabs.Trigger name="overview">
         <NativeTabs.Trigger.Label>{t('tabs.overview')}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf={{ default: 'gauge.with.dots.needle.33percent', selected: 'gauge.with.dots.needle.67percent' }} />
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'gauge.with.dots.needle.33percent', selected: 'gauge.with.dots.needle.67percent' }}
+        />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="devices">
         <NativeTabs.Trigger.Label>{t('tabs.devices')}</NativeTabs.Trigger.Label>

@@ -6,7 +6,12 @@ import { BlurTarget, BlurTargetProvider } from '@/ui/glass/BlurTarget';
 import { GlassTabBar, GlassTabButton } from '@/ui/tabs/GlassTabBar';
 import type { IconName } from '@/ui/Icon';
 
-const TABS: { name: string; href: '/overview' | '/devices' | '/wireless' | '/network' | '/more'; icon: IconName; label: 'tabs.overview' | 'tabs.devices' | 'tabs.wireless' | 'tabs.network' | 'tabs.more' }[] = [
+const TABS: {
+  name: string;
+  href: '/overview' | '/devices' | '/wireless' | '/network' | '/more';
+  icon: IconName;
+  label: 'tabs.overview' | 'tabs.devices' | 'tabs.wireless' | 'tabs.network' | 'tabs.more';
+}[] = [
   { name: 'overview', href: '/overview', icon: 'overview', label: 'tabs.overview' },
   { name: 'devices', href: '/devices', icon: 'devices', label: 'tabs.devices' },
   { name: 'wireless', href: '/wireless', icon: 'wifi', label: 'tabs.wireless' },

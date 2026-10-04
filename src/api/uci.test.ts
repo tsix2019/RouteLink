@@ -49,7 +49,13 @@ it('direct mode reverts stale changes, stages, and applies without rollback', as
   const conn = new ScriptedConnection(() => ({}));
   const outcome = await stageAndApply(conn, changes, { mode: 'direct', ...clock() });
   expect(outcome).toEqual({ status: 'applied' });
-  expect(conn.log).toEqual(['uci.revert(dhcp)', 'uci.revert(firewall)', 'uci.add(dhcp)', 'uci.set(firewall)', 'uci.apply']);
+  expect(conn.log).toEqual([
+    'uci.revert(dhcp)',
+    'uci.revert(firewall)',
+    'uci.add(dhcp)',
+    'uci.set(firewall)',
+    'uci.apply',
+  ]);
 });
 
 it('confirms after a rollback-protected apply', async () => {
@@ -112,7 +118,9 @@ it('passes the rollback timeout to apply', async () => {
 });
 
 it('surfaces unexpected confirm errors', async () => {
-  const conn = new ScriptedConnection((c) => (c.method === 'confirm' ? new UbusError('INVALID_ARGUMENT', 'uci.confirm') : {}));
+  const conn = new ScriptedConnection((c) =>
+    c.method === 'confirm' ? new UbusError('INVALID_ARGUMENT', 'uci.confirm') : {},
+  );
   await expect(stageAndApply(conn, changes, { mode: 'rollback', ...clock() })).rejects.toMatchObject({
     code: 'INVALID_ARGUMENT',
   });
@@ -130,7 +138,11 @@ describe('uci helpers', () => {
       method: 'add',
       params: { config: 'dhcp', type: 'host', values: { mac: 'm' }, name: 'named' },
     });
-    expect(uci.del('firewall', 'cfg9')).toEqual({ object: 'uci', method: 'delete', params: { config: 'firewall', section: 'cfg9' } });
+    expect(uci.del('firewall', 'cfg9')).toEqual({
+      object: 'uci',
+      method: 'delete',
+      params: { config: 'firewall', section: 'cfg9' },
+    });
     expect(uci.delOption('dhcp', 'cfg1', 'ip')).toEqual({
       object: 'uci',
       method: 'delete',

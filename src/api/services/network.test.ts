@@ -19,7 +19,9 @@ describe('getInterfaces (OpenWrt 24.10 fixture)', () => {
   it('reports down interfaces with zero uptime', async () => {
     const conn = new FixtureConnection().override(
       'network.interface.dump',
-      ok({ interface: [{ interface: 'wan', up: false, uptime: 99, proto: 'pppoe', errors: [{ code: 'AUTH_FAILED' }] }] }),
+      ok({
+        interface: [{ interface: 'wan', up: false, uptime: 99, proto: 'pppoe', errors: [{ code: 'AUTH_FAILED' }] }],
+      }),
     );
     const [wan] = await getInterfaces(conn);
     expect(wan.uptimeSec).toBe(0);
@@ -30,10 +32,20 @@ describe('getInterfaces (OpenWrt 24.10 fixture)', () => {
 describe('pickWan', () => {
   const base = { proto: 'static', up: true, available: true, uptimeSec: 1, ipv4: [], ipv6: [], dns: [], errors: [] };
   it('prefers the interface named wan', () => {
-    expect(pickWan([{ ...base, name: 'lan', hasDefaultRoute: true }, { ...base, name: 'wan', hasDefaultRoute: false }])?.name).toBe('wan');
+    expect(
+      pickWan([
+        { ...base, name: 'lan', hasDefaultRoute: true },
+        { ...base, name: 'wan', hasDefaultRoute: false },
+      ])?.name,
+    ).toBe('wan');
   });
   it('falls back to the default route holder', () => {
-    expect(pickWan([{ ...base, name: 'lan', hasDefaultRoute: false }, { ...base, name: 'pppoe', hasDefaultRoute: true }])?.name).toBe('pppoe');
+    expect(
+      pickWan([
+        { ...base, name: 'lan', hasDefaultRoute: false },
+        { ...base, name: 'pppoe', hasDefaultRoute: true },
+      ])?.name,
+    ).toBe('pppoe');
   });
 });
 

@@ -22,7 +22,7 @@ export function isIPv4(value: unknown): value is string {
 export function netmaskToPrefix(mask: string): number {
   const n = ipToInt(mask);
   if (n === 0) return 0;
-  const prefix = 32 - Math.log2(((~n >>> 0) + 1));
+  const prefix = 32 - Math.log2((~n >>> 0) + 1);
   if (!Number.isInteger(prefix)) throw new Error(`non-contiguous netmask: ${mask}`);
   return prefix;
 }

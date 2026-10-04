@@ -12,7 +12,17 @@ import { Icon, type IconName } from './Icon';
 import { useTheme } from './theme/ThemeProvider';
 import { spacing } from './theme/tokens';
 
-export function EmptyState({ icon, title, message, action }: { icon: IconName; title: string; message?: string; action?: { label: string; onPress: () => void } }) {
+export function EmptyState({
+  icon,
+  title,
+  message,
+  action,
+}: {
+  icon: IconName;
+  title: string;
+  message?: string;
+  action?: { label: string; onPress: () => void };
+}) {
   const { colors } = useTheme();
   return (
     <View style={styles.empty}>
@@ -43,19 +53,37 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
   );
 }
 
-export function Skeleton({ width = '100%', height = 16, radius = 8 }: { width?: DimensionValue; height?: number; radius?: number }) {
+export function Skeleton({
+  width = '100%',
+  height = 16,
+  radius = 8,
+}: {
+  width?: DimensionValue;
+  height?: number;
+  radius?: number;
+}) {
   const { colors } = useTheme();
   const opacity = useSharedValue(0.5);
   useEffect(() => {
     opacity.value = withRepeat(withTiming(1, { duration: 700 }), -1, true);
   }, [opacity]);
   const animated = useAnimatedStyle(() => ({ opacity: opacity.value }));
-  return <Animated.View style={[{ width, height, borderRadius: radius, backgroundColor: colors.separator }, animated]} />;
+  return (
+    <Animated.View style={[{ width, height, borderRadius: radius, backgroundColor: colors.separator }, animated]} />
+  );
 }
 
 export type BannerTone = 'info' | 'warning' | 'error';
 
-export function Banner({ tone = 'info', text, action }: { tone?: BannerTone; text: string; action?: { label: string; onPress: () => void } }) {
+export function Banner({
+  tone = 'info',
+  text,
+  action,
+}: {
+  tone?: BannerTone;
+  text: string;
+  action?: { label: string; onPress: () => void };
+}) {
   const { colors } = useTheme();
   const color = { info: colors.accent, warning: colors.warning, error: colors.danger }[tone];
   return (
@@ -77,6 +105,12 @@ export function Banner({ tone = 'info', text, action }: { tone?: BannerTone; tex
 
 const styles = StyleSheet.create({
   empty: { alignItems: 'center', justifyContent: 'center', gap: spacing.m, padding: spacing.xxl },
-  banner: { flexDirection: 'row', alignItems: 'center', gap: spacing.s, paddingHorizontal: spacing.l, paddingVertical: spacing.m },
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.s,
+    paddingHorizontal: spacing.l,
+    paddingVertical: spacing.m,
+  },
   bannerText: { flex: 1 },
 });

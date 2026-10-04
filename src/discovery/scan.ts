@@ -58,12 +58,24 @@ export async function scan(o: ScanOptions): Promise<DiscoveredRouter[]> {
     if (twin && !isName) {
       // an IP for a name we already know: the IP entry replaces the name entry
       found.delete(twin.address);
-      const router = { address, scheme: hit.scheme, hostname: hit.hostname, isGateway: address === o.gateway, aliases: [twin.address, ...twin.aliases] };
+      const router = {
+        address,
+        scheme: hit.scheme,
+        hostname: hit.hostname,
+        isGateway: address === o.gateway,
+        aliases: [twin.address, ...twin.aliases],
+      };
       found.set(address, router);
       report(router);
       return;
     }
-    const router = { address, scheme: hit.scheme, hostname: hit.hostname, isGateway: address === o.gateway, aliases: [] };
+    const router = {
+      address,
+      scheme: hit.scheme,
+      hostname: hit.hostname,
+      isGateway: address === o.gateway,
+      aliases: [],
+    };
     found.set(address, router);
     report(router);
   };
@@ -92,7 +104,14 @@ export async function scan(o: ScanOptions): Promise<DiscoveredRouter[]> {
 export function sortRouters(routers: DiscoveredRouter[]): DiscoveredRouter[] {
   const ipKey = (a: string) => {
     const parts = a.split('.').map(Number);
-    return parts.length === 4 && parts.every((n) => Number.isInteger(n)) ? parts.reduce((acc, n) => acc * 256 + n, 0) : Infinity;
+    return parts.length === 4 && parts.every((n) => Number.isInteger(n))
+      ? parts.reduce((acc, n) => acc * 256 + n, 0)
+      : Infinity;
   };
-  return [...routers].sort((a, b) => Number(b.isGateway) - Number(a.isGateway) || ipKey(a.address) - ipKey(b.address) || a.address.localeCompare(b.address));
+  return [...routers].sort(
+    (a, b) =>
+      Number(b.isGateway) - Number(a.isGateway) ||
+      ipKey(a.address) - ipKey(b.address) ||
+      a.address.localeCompare(b.address),
+  );
 }

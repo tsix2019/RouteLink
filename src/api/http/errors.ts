@@ -2,7 +2,12 @@ import type { NativeErrorCode } from 'routelink-native';
 
 export type { NativeErrorCode };
 
-const CONNECTIVITY: ReadonlySet<NativeErrorCode> = new Set(['ERR_TIMEOUT', 'ERR_UNREACHABLE', 'ERR_DNS', 'ERR_NETWORK']);
+const CONNECTIVITY: ReadonlySet<NativeErrorCode> = new Set([
+  'ERR_TIMEOUT',
+  'ERR_UNREACHABLE',
+  'ERR_DNS',
+  'ERR_NETWORK',
+]);
 const KNOWN: ReadonlySet<string> = new Set<NativeErrorCode>([
   'ERR_TIMEOUT',
   'ERR_UNREACHABLE',
@@ -38,5 +43,4 @@ export function toNativeError(error: unknown): unknown {
   return error;
 }
 
-export const isConnectivityError = (error: unknown): boolean =>
-  error instanceof NativeError && error.isConnectivity();
+export const isConnectivityError = (error: unknown): boolean => error instanceof NativeError && error.isConnectivity();

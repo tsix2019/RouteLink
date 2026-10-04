@@ -27,7 +27,9 @@ export const useSnapshots = create<SnapshotsState>()(
     (set) => ({
       byRouter: {},
       save: (routerId, patch) =>
-        set((s) => ({ byRouter: { ...s.byRouter, [routerId]: { ...s.byRouter[routerId], ...patch, updatedAt: Date.now() } } })),
+        set((s) => ({
+          byRouter: { ...s.byRouter, [routerId]: { ...s.byRouter[routerId], ...patch, updatedAt: Date.now() } },
+        })),
       forget: (routerId) =>
         set((s) => {
           const { [routerId]: _removed, ...rest } = s.byRouter;

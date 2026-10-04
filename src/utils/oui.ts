@@ -10,7 +10,10 @@ const RECORD = 9;
 let db: OuiDb | null = null;
 
 export function lookupVendor(mac: string): string | null {
-  const key = mac.replace(/[^0-9a-f]/gi, '').slice(0, 6).toUpperCase();
+  const key = mac
+    .replace(/[^0-9a-f]/gi, '')
+    .slice(0, 6)
+    .toUpperCase();
   if (key.length !== 6 || isRandomizedMac(key)) return null;
   db ??= require('@/data/oui.json') as OuiDb;
 

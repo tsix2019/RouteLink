@@ -26,7 +26,10 @@ export function useTabBarSpace(): number {
 }
 
 /** Floating capsule (Android). A glass "droplet" springs to the focused tab. */
-export const GlassTabBar = forwardRef<RNView, ViewProps & { children: ReactNode }>(function GlassTabBar({ children, style, ...rest }, ref) {
+export const GlassTabBar = forwardRef<RNView, ViewProps & { children: ReactNode }>(function GlassTabBar(
+  { children, style, ...rest },
+  ref,
+) {
   const insets = useSafeAreaInsets();
   const count = Children.count(children);
   const focused = useSharedValue(0);

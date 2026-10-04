@@ -53,7 +53,9 @@ export function GlassSurface({ variant = 'card', tint, radius, style, children, 
           pointerEvents="none"
         />
       ) : null}
-      {tint ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: tint, opacity: 0.16 }]} /> : null}
+      {tint ? (
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: tint, opacity: 0.16 }]} />
+      ) : null}
       {children}
     </View>
   );

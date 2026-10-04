@@ -1,1 +1,68 @@
-{ "title": "Devices" }
+{
+  "title": "Devices",
+  "search": "Search name, IP, MAC or vendor",
+  "filter": {
+    "all": "All",
+    "online": "Online",
+    "offline": "Offline",
+    "wifi": "Wi-Fi",
+    "wired": "Wired"
+  },
+  "summary": "{{online}} online / {{total}} total",
+  "empty": "No devices match",
+  "privateAddress": "Private address",
+  "badge": {
+    "static": "Static",
+    "blocked": "Blocked"
+  },
+  "detail": {
+    "ip": "IP address",
+    "ipv6": "IPv6",
+    "mac": "MAC address",
+    "vendor": "Vendor",
+    "hostname": "Hostname",
+    "connection": "Connection",
+    "wired": "Wired",
+    "signal": "Signal",
+    "rates": "Rx / Tx rate",
+    "connectedFor": "Connected for",
+    "lease": "Lease remaining",
+    "staticIp": "Static IP",
+    "notFound": "This device is no longer listed"
+  },
+  "actions": {
+    "title": "Actions",
+    "rename": "Rename",
+    "renamePrompt": "New name",
+    "renameHint": "Names made of letters, digits and hyphens also go into the router's DNS; other names are shown in RouteLink only.",
+    "staticIp": "Reserve IP",
+    "staticIpEdit": "Change Reserved IP",
+    "removeStaticIp": "Release Reserved IP",
+    "kick": "Disconnect",
+    "kickBan": "Block reconnecting for 5 minutes",
+    "block": "Block Internet",
+    "unblock": "Unblock",
+    "wake": "Wake on LAN",
+    "addToWol": "Add to Wake List",
+    "copyIp": "Copy IP",
+    "copyMac": "Copy MAC"
+  },
+  "confirm": {
+    "kickTitle": "Disconnect “{{name}}”?",
+    "kickConsequence": "The device leaves Wi-Fi and will try to reconnect",
+    "kickBanConsequence": "It can't reconnect for 5 minutes",
+    "blockTitle": "Block “{{name}}”?",
+    "blockConsequence": "The device loses internet access until you unblock it",
+    "unblockTitle": "Unblock “{{name}}”?",
+    "unblockConsequence": "The device gets internet access again",
+    "staticTitle": "Reserve {{ip}} for “{{name}}”?",
+    "staticConsequence": "The device picks up the address after it reconnects",
+    "applyConsequence": "Applied safely: the router reverts on its own if something goes wrong"
+  },
+  "result": {
+    "applied": "Applied",
+    "rolledBack": "The change was reverted: the router didn't get a confirmation in time",
+    "woken": "Wake packet sent",
+    "wokenByPhone": "Wake packet sent from this phone"
+  }
+}

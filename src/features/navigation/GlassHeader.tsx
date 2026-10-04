@@ -24,7 +24,12 @@ export function GlassHeader({ options, route, back }: GlassHeaderProps) {
   const { colors } = useTheme();
   const title = typeof options.headerTitle === 'string' ? options.headerTitle : (options.title ?? route.name);
   const left = back ? (
-    <Pressable accessibilityRole="button" accessibilityLabel="back" onPress={() => router.back()} hitSlop={12} style={styles.back}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="back"
+      onPress={() => router.back()}
+      hitSlop={12}
+      style={styles.back}>
       <Icon name="chevronRight" size={22} color={colors.accent} />
     </Pressable>
   ) : (
@@ -36,7 +41,11 @@ export function GlassHeader({ options, route, back }: GlassHeaderProps) {
     <View
       style={[
         styles.wrap,
-        { paddingTop: insets.top + spacing.s, backgroundColor: colors.glassFillStrong, borderBottomColor: colors.separator },
+        {
+          paddingTop: insets.top + spacing.s,
+          backgroundColor: colors.glassFillStrong,
+          borderBottomColor: colors.separator,
+        },
       ]}>
       <View style={styles.bar}>
         <View style={styles.side}>{left}</View>

@@ -7,7 +7,12 @@ describe('services', () => {
     const services = await listServices(new FixtureConnection());
     expect(services.length).toBe(22);
     expect(services.map((s) => s.name)).toEqual([...services.map((s) => s.name)].sort((a, b) => a.localeCompare(b)));
-    expect(services.find((s) => s.name === 'uhttpd')).toEqual({ name: 'uhttpd', enabled: true, running: true, start: 50 });
+    expect(services.find((s) => s.name === 'uhttpd')).toEqual({
+      name: 'uhttpd',
+      enabled: true,
+      running: true,
+      start: 50,
+    });
   });
 
   it('runs rc init and validates the name', async () => {
@@ -30,7 +35,13 @@ describe('parseSyslog', () => {
         "Sun Oct  4 15:30:11 2026 daemon.notice netifd: Interface 'lan' is now up\nSun Oct  4 15:30:11 2026 user.err : jail: failed\nSun Oct  4 15:30:12 2026 kern.warning kernel: [ 1.0] x\ngarbage line",
       ),
     ).toEqual([
-      { time: 'Sun Oct 4 15:30:11 2026', facility: 'daemon', level: 'notice', source: 'netifd', text: "Interface 'lan' is now up" },
+      {
+        time: 'Sun Oct 4 15:30:11 2026',
+        facility: 'daemon',
+        level: 'notice',
+        source: 'netifd',
+        text: "Interface 'lan' is now up",
+      },
       { time: 'Sun Oct 4 15:30:11 2026', facility: 'user', level: 'err', source: undefined, text: 'jail: failed' },
       { time: 'Sun Oct 4 15:30:12 2026', facility: 'kern', level: 'warn', source: 'kernel', text: '[ 1.0] x' },
       { text: 'garbage line' },
@@ -60,7 +71,10 @@ describe('log readers', () => {
   });
 
   it('parses dmesg output when available', async () => {
-    const conn = new FixtureConnection().override('file.exec.bin-dmesg-r', ok({ code: 0, stdout: '<6>[ 1.0] booted\n' }));
+    const conn = new FixtureConnection().override(
+      'file.exec.bin-dmesg-r',
+      ok({ code: 0, stdout: '<6>[ 1.0] booted\n' }),
+    );
     await expect(kernelLog(conn)).resolves.toEqual([{ time: '1.0', level: 'info', text: 'booted' }]);
   });
 });

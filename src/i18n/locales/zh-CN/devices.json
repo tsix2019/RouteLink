@@ -1,1 +1,68 @@
-{ "title": "设备" }
+{
+  "title": "设备",
+  "search": "搜索名称、IP、MAC 或厂商",
+  "filter": {
+    "all": "全部",
+    "online": "在线",
+    "offline": "离线",
+    "wifi": "无线",
+    "wired": "有线"
+  },
+  "summary": "在线 {{online}} / 共 {{total}}",
+  "empty": "没有符合条件的设备",
+  "privateAddress": "私有地址",
+  "badge": {
+    "static": "静态",
+    "blocked": "已拉黑"
+  },
+  "detail": {
+    "ip": "IP 地址",
+    "ipv6": "IPv6",
+    "mac": "MAC 地址",
+    "vendor": "厂商",
+    "hostname": "主机名",
+    "connection": "连接方式",
+    "wired": "有线",
+    "signal": "信号",
+    "rates": "收 / 发速率",
+    "connectedFor": "已连接",
+    "lease": "租约剩余",
+    "staticIp": "静态 IP",
+    "notFound": "这台设备已不在列表中"
+  },
+  "actions": {
+    "title": "操作",
+    "rename": "改名",
+    "renamePrompt": "新名称",
+    "renameHint": "英文、数字和连字符组成的名字会同时写进路由器的 DNS；其他名字只在 RouteLink 里显示。",
+    "staticIp": "绑定静态 IP",
+    "staticIpEdit": "修改静态 IP",
+    "removeStaticIp": "取消静态 IP",
+    "kick": "踢下线",
+    "kickBan": "5 分钟内禁止重连",
+    "block": "拉黑",
+    "unblock": "解除拉黑",
+    "wake": "网络唤醒",
+    "addToWol": "加入唤醒列表",
+    "copyIp": "复制 IP",
+    "copyMac": "复制 MAC"
+  },
+  "confirm": {
+    "kickTitle": "把「{{name}}」踢下线？",
+    "kickConsequence": "这台设备会断开 Wi-Fi，之后会自动尝试重连",
+    "kickBanConsequence": "5 分钟内这台设备无法重新连接",
+    "blockTitle": "拉黑「{{name}}」？",
+    "blockConsequence": "这台设备将无法访问互联网，直到你解除拉黑",
+    "unblockTitle": "解除拉黑「{{name}}」？",
+    "unblockConsequence": "这台设备将恢复上网",
+    "staticTitle": "为「{{name}}」绑定 {{ip}}？",
+    "staticConsequence": "设备需要重新连接网络后才会使用新地址",
+    "applyConsequence": "修改会通过安全应用提交，出错时路由器会自动恢复"
+  },
+  "result": {
+    "applied": "已应用",
+    "rolledBack": "配置已自动恢复：路由器在规定时间内没有收到确认",
+    "woken": "唤醒包已发送",
+    "wokenByPhone": "唤醒包已从手机发出"
+  }
+}

@@ -24,7 +24,14 @@ export function RouterSwitcherCapsule() {
 
   const name = active ? (active.isDemo ? t('demoRouter') : active.name) : t('routers:add');
   const label = name.length > MAX_NAME ? `${name.slice(0, MAX_NAME - 1)}…` : name;
-  const dot: Status = active?.isDemo || system.isSuccess ? 'online' : system.isError ? 'offline' : status === 'needs-password' ? 'warning' : 'unknown';
+  const dot: Status =
+    active?.isDemo || system.isSuccess
+      ? 'online'
+      : system.isError
+        ? 'offline'
+        : status === 'needs-password'
+          ? 'warning'
+          : 'unknown';
 
   return (
     <Pressable

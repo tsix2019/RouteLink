@@ -28,7 +28,13 @@ export default function Welcome() {
         </AppText>
       </View>
       <GlassSurface variant="floating" style={styles.card}>
-        <GlassButton label={t('onboarding:addRouter')} icon="plus" variant="primary" onPress={() => router.push('/add-router')} testID="welcome-add" />
+        <GlassButton
+          label={t('onboarding:addRouter')}
+          icon="plus"
+          variant="primary"
+          onPress={() => router.push('/add-router')}
+          testID="welcome-add"
+        />
         <GlassButton
           label={t('onboarding:tryDemo')}
           icon="demo"

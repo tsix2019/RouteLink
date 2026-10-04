@@ -6,7 +6,14 @@ import { pickWan } from '@/api/services/network';
 import { DevicesCard, ResourcesCard, SystemCard, TrafficCard, WanCard } from '@/features/overview/cards';
 import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
-import { useCapabilities, useClients, useInterfaces, useSystem, useTemperature, useTraffic } from '@/hooks/router-queries';
+import {
+  useCapabilities,
+  useClients,
+  useInterfaces,
+  useSystem,
+  useTemperature,
+  useTraffic,
+} from '@/hooks/router-queries';
 import { useT } from '@/i18n';
 import { useSettings } from '@/state/settings';
 import { useSnapshots } from '@/state/snapshots';
@@ -55,14 +62,26 @@ export default function Overview() {
     <Screen
       refreshing={system.isRefetching}
       onRefresh={refresh}
-      top={<ConnectionBanner error={system.error} onRetry={refresh} updatedAt={system.data ? system.dataUpdatedAt : undefined} />}>
+      top={
+        <ConnectionBanner
+          error={system.error}
+          onRetry={refresh}
+          updatedAt={system.data ? system.dataUpdatedAt : undefined}
+        />
+      }>
       <TrafficCard series={traffic.series} latest={traffic.latest} intervalSec={intervalSec} />
       <DevicesCard clients={clients.data} />
       <WanCard wan={wan} loading={interfaces.isLoading} />
       <ResourcesCard system={system.data} temperature={temperature.data} />
       <SystemCard system={system.data} />
       <GlassCard title={t('overview:actions.title')} icon="bolt">
-        <GlassButton label={t('overview:actions.reboot')} icon="power" variant="warning" onPress={() => setConfirmReboot(true)} testID="action-reboot" />
+        <GlassButton
+          label={t('overview:actions.reboot')}
+          icon="power"
+          variant="warning"
+          onPress={() => setConfirmReboot(true)}
+          testID="action-reboot"
+        />
       </GlassCard>
       <RiskConfirm
         visible={confirmReboot}

@@ -8,7 +8,15 @@ import { defaultRadius, type GlassSurfaceProps } from './types';
 const LIQUID_GLASS = isLiquidGlassAvailable();
 
 /** Native Liquid Glass on iOS 26; system material blur on older iOS; opaque when transparency is reduced. */
-export function GlassSurface({ variant = 'card', interactive, tint, radius, style, children, ...rest }: GlassSurfaceProps) {
+export function GlassSurface({
+  variant = 'card',
+  interactive,
+  tint,
+  radius,
+  style,
+  children,
+  ...rest
+}: GlassSurfaceProps) {
   const { scheme, colors, reduceTransparency } = useTheme();
   const shape = { borderRadius: radius ?? defaultRadius(variant), overflow: 'hidden' as const };
 
@@ -34,7 +42,11 @@ export function GlassSurface({ variant = 'card', interactive, tint, radius, styl
     );
   }
   return (
-    <BlurView intensity={70} tint={scheme === 'dark' ? 'systemMaterialDark' : 'systemMaterialLight'} style={[shape, style]} {...rest}>
+    <BlurView
+      intensity={70}
+      tint={scheme === 'dark' ? 'systemMaterialDark' : 'systemMaterialLight'}
+      style={[shape, style]}
+      {...rest}>
       {children}
     </BlurView>
   );

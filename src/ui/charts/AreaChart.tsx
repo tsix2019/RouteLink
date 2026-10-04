@@ -8,7 +8,15 @@ import { useTheme } from '../theme/ThemeProvider';
 import { areaPath, niceMax } from './area-path';
 
 /** Download/upload rate history; the y-axis scales to the larger series. */
-export function TrafficChart({ series, height = 120, capacity = 60 }: { series: readonly RatePoint[]; height?: number; capacity?: number }) {
+export function TrafficChart({
+  series,
+  height = 120,
+  capacity = 60,
+}: {
+  series: readonly RatePoint[];
+  height?: number;
+  capacity?: number;
+}) {
   const { colors } = useTheme();
   const [width, setWidth] = useState(0);
   // Left-pad with zeros so the chart scrolls in from the right as samples arrive.
