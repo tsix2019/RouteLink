@@ -9,6 +9,16 @@ import { fixtureName } from './fixture-names';
 type Override = UbusResult | ((call: UbusCall) => UbusResult);
 
 export const ok = <T>(data: T): UbusResult<T> => ({ ok: true, data });
+
+/** Reads one recorded result, e.g. loadFixture('handmade', 'iwinfo.assoclist.phy0-ap0'). */
+export function loadFixture(set: string, name: string): UbusResult {
+  const stored = JSON.parse(readFileSync(join(__dirname, 'fixtures', set, `${name}.json`), 'utf8')) as {
+    ok: boolean;
+    data?: unknown;
+    error?: UbusErrorCode;
+  };
+  return stored.ok ? { ok: true, data: stored.data } : { ok: false, error: new UbusError(stored.error!, name) };
+}
 export const fail = (code: UbusErrorCode, call = 'x.y'): UbusResult => ({ ok: false, error: new UbusError(code, call) });
 
 /**

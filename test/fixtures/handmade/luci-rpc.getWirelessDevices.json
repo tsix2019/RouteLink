@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "data": {
+    "radio0": {
+      "up": true,
+      "pending": false,
+      "autostart": true,
+      "disabled": false,
+      "retry_setup_failed": false,
+      "config": { "type": "mac80211", "path": "platform/18000000.wifi", "band": "2g", "channel": "6", "htmode": "HE20", "country": "CN", "txpower": 20, "cell_density": 0 },
+      "interfaces": [
+        {
+          "section": "default_radio0",
+          "ifname": "phy0-ap0",
+          "config": { "mode": "ap", "ssid": "RouteLink", "encryption": "sae-mixed", "key": "correct horse", "network": ["lan"] },
+          "vlans": [],
+          "stations": [],
+          "iwinfo": { "ssid": "RouteLink", "bssid": "94:83:C4:00:00:01", "channel": 6, "frequency": 2437, "txpower": 20, "signal": 0, "noise": -95, "mode": "Master", "htmode": "HE20" }
+        }
+      ]
+    },
+    "radio1": {
+      "up": true,
+      "pending": false,
+      "autostart": true,
+      "disabled": false,
+      "retry_setup_failed": false,
+      "config": { "type": "mac80211", "path": "platform/18000000.wifi+1", "band": "5g", "channel": "36", "htmode": "HE80", "country": "CN", "cell_density": 0 },
+      "interfaces": [
+        {
+          "section": "default_radio1",
+          "ifname": "phy1-ap0",
+          "config": { "mode": "ap", "ssid": "RouteLink-5G", "encryption": "psk2", "key": "correct horse", "hidden": "1", "network": ["lan"] },
+          "vlans": [],
+          "stations": [],
+          "iwinfo": { "ssid": "RouteLink-5G", "bssid": "94:83:C4:00:00:02", "channel": 36, "frequency": 5180, "txpower": 23, "signal": 0, "noise": -92, "mode": "Master", "htmode": "HE80" }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "data": {
+    "results": [
+      { "mac": "3C:2E:F9:10:20:30", "signal": -48, "signal_avg": -49, "noise": -95, "inactive": 40, "connected_time": 5400, "authorized": true,
+        "rx": { "rate": 144400, "mcs": 15, "40mhz": false, "short_gi": true, "packets": 1200, "bytes": 900000 },
+        "tx": { "rate": 173300, "mcs": 9, "40mhz": false, "short_gi": true, "packets": 1500, "bytes": 2400000 } }
+    ]
+  }
+}

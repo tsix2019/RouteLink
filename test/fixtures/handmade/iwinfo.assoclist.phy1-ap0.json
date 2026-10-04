@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "data": {
+    "results": [
+      { "mac": "da:a1:19:aa:bb:cc", "signal": -62, "signal_avg": -63, "noise": -92, "inactive": 120, "connected_time": 600, "authorized": true,
+        "rx": { "rate": 866700, "mcs": 9, "40mhz": false, "short_gi": true, "nss": 2 },
+        "tx": { "rate": 1200900, "mcs": 11, "40mhz": false, "short_gi": true, "nss": 2 } }
+    ]
+  }
+}
