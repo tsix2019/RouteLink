@@ -1,0 +1,42 @@
+name: iOS
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Toolchain
+        run: xcodebuild -version && xcrun simctl list runtimes | grep -i ios
+      - name: Prebuild
+        run: npx expo prebuild -p ios --no-install
+      - name: CocoaPods
+        run: cd ios && pod install
+      - name: Build (simulator, Release)
+        run: |
+          set -o pipefail
+          xcodebuild -workspace ios/RouteLink.xcworkspace -scheme RouteLink -configuration Release \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log | grep -E "error:|warning: .*RouteLinkNative|BUILD (SUCCEEDED|FAILED)" || true
+          test -d build/Build/Products/Release-iphonesimulator/RouteLink.app
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-build-log
+          path: build.log
