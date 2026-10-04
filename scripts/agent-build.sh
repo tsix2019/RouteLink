@@ -4,8 +4,8 @@
 # Usage: scripts/agent-build.sh [release] [arch]   (default: 24.10.8 x86_64)
 # Output: openwrt/out/<release>/<arch>/*.ipk (or *.apk from 25.12 on)
 #
-# ROUTELINK_KEYS=<dir> signs like CI does: <dir>/apk-private-key.pem signs .apk packages (25.12+),
-# <dir>/usign-key-build is the opkg feed key. Keys never leave the build container's volume mount.
+# ROUTELINK_KEYS=<dir> signs .apk packages (25.12+) with <dir>/apk-private-key.pem like CI does, so they
+# install through LuCI's package helper once routelink-apk.pem is in /etc/apk/keys.
 set -euo pipefail
 REL="${1:-24.10.8}"
 ARCH="${2:-x86_64}"
@@ -45,22 +45,20 @@ else
 fi
 ./scripts/feeds install -p routelink -f routelinkd luci-app-routelink >/dev/null
 make defconfig >/dev/null
-SIGN=
-rm -f private-key.pem key-build
-if [ -d /keys ]; then
-  [ -f /keys/apk-private-key.pem ] && cp /keys/apk-private-key.pem private-key.pem
-  [ -f /keys/usign-key-build ] && cp /keys/usign-key-build key-build
-  SIGN=CONFIG_SIGNED_PACKAGES=y
-fi
 for p in routelinkd luci-app-routelink; do
   make package/$p/clean >/dev/null 2>&1 || true
 done
-if ! make package/routelinkd/compile package/luci-app-routelink/compile $SIGN -j"$(nproc)" V=s >build.log 2>&1; then
+if ! make package/routelinkd/compile package/luci-app-routelink/compile -j"$(nproc)" V=s >build.log 2>&1; then
   grep -nE "error:|Error [0-9]|missing dependencies|^ERROR" -A3 build.log | tail -40
-  rm -f private-key.pem key-build
   exit 1
 fi
-rm -f private-key.pem key-build
 cp bin/packages/*/routelink/*.[ia]pk /out/
+# apk (25.12+) refuses unsigned local packages: sign each one like CI (adbsign takes one file per call)
+if [ -f /keys/apk-private-key.pem ]; then
+  for f in /out/*.apk; do
+    [ -f "$f" ] && staging_dir/host/bin/apk adbsign --allow-untrusted --reset-signatures \
+      --sign-key /keys/apk-private-key.pem "$f"
+  done
+fi
 ls /out
 '

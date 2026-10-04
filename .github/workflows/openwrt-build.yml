@@ -44,9 +44,31 @@ jobs:
           NO_REFRESH_CHECK: true
           # the SDK image has no shfmt and openwrt/ is not a git root; openwrt.yml checks the init script
           NO_SHFMT_CHECK: true
-          INDEX: ${{ inputs.sign && '1' || '0' }}
+          # opkg feeds (23.05, 24.10): the SDK writes and usign-signs the index. apk (25.12+) is done below:
+          # the SDK does not sign packages, and re-signing them afterwards would invalidate its index.
+          INDEX: ${{ inputs.sign && !startsWith(matrix.release, '25.') && '1' || '0' }}
           KEY_BUILD: ${{ inputs.sign && secrets.OPENWRT_USIGN_KEY || '' }}
-          PRIVATE_KEY: ${{ inputs.sign && secrets.OPENWRT_APK_KEY || '' }}
+      - name: Sign apk packages and index
+        if: inputs.sign && startsWith(matrix.release, '25.')
+        env:
+          APK_KEY: ${{ secrets.OPENWRT_APK_KEY }}
+          SDK: openwrt/sdk:${{ matrix.arch }}-${{ matrix.release }}
+          PKGS: ${{ github.workspace }}/bin/packages/${{ matrix.arch }}/routelink
+        run: |
+          # local installs need signed packages (apk refuses unsigned files and LuCI's helper cannot pass
+          # --allow-untrusted); adbsign takes one file per call
+          docker run --rm --user root -e APK_KEY -v "$PKGS:/pkgs" "$SDK" bash -c '
+            set -e
+            umask 077
+            printf "%s\n" "$APK_KEY" > /tmp/key.pem
+            apk=/builder/staging_dir/host/bin/apk
+            cd /pkgs
+            rm -f packages.adb
+            for f in *.apk; do
+              "$apk" adbsign --allow-untrusted --reset-signatures --sign-key /tmp/key.pem "$f"
+            done
+            "$apk" mkndx --allow-untrusted --sign-key /tmp/key.pem --output packages.adb *.apk
+            rm -f /tmp/key.pem'
       - name: Store packages
         uses: actions/upload-artifact@v7
         with:
