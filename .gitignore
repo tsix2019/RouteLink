@@ -46,3 +46,6 @@ yarn-error.*
 test/integration/.cache/
 *.apk
 *.ipa
+modules/**/android/build/
+modules/**/android/.gradle/
+modules/**/android/.cxx/
