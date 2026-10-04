@@ -1,9 +1,10 @@
 // Redacted compatibility report for a real router. Prints counts and error codes only:
 // no host names, IP or MAC addresses of your devices, no Wi-Fi names or keys.
 //
-//   read -rsp "Router password: " RL_PW && echo && RL_PW="$RL_PW" npx tsx scripts/router-check.ts http://192.168.1.1
+//   npx tsx scripts/router-check.ts http://192.168.1.1
 //
-// Add --insecure for HTTPS with a self-signed certificate (diagnostics only).
+// The password is asked for with hidden input (or taken from RL_PW). Add --insecure for HTTPS with a
+// self-signed certificate (diagnostics only), --user NAME for a non-root account.
 import { detectCapabilities } from '../src/api/capabilities';
 import { LiveConnection } from '../src/api/connection/live';
 import { classifyError } from '../src/api/connection/types';
@@ -15,6 +16,42 @@ import { listServices } from '../src/api/services/services';
 import { getSystem, getTemperature } from '../src/api/services/system';
 import { getRadios } from '../src/api/services/wireless';
 import type { AuthMode } from '../src/api/ubus/login';
+
+const ENTER = new Set(['\r', '\n']);
+const BACKSPACE = new Set(['\u007f', '\b']);
+const CTRL_C = '\u0003';
+
+/** Reads a line without echoing it (works in PowerShell, cmd and bash terminals). */
+function promptHidden(question: string): Promise<string> {
+  const stdin = process.stdin;
+  if (!stdin.isTTY) return Promise.reject(new Error('not a terminal: set RL_PW instead'));
+  process.stdout.write(question);
+  stdin.setRawMode(true);
+  stdin.resume();
+  stdin.setEncoding('utf8');
+  return new Promise((resolve) => {
+    let input = '';
+    const onData = (chunk: string) => {
+      for (const ch of chunk) {
+        if (ENTER.has(ch)) {
+          stdin.setRawMode(false);
+          stdin.pause();
+          stdin.off('data', onData);
+          process.stdout.write('\n');
+          resolve(input);
+          return;
+        }
+        if (ch === CTRL_C) {
+          process.stdout.write('\n');
+          process.exit(130);
+        }
+        if (BACKSPACE.has(ch)) input = input.slice(0, -1);
+        else input += ch;
+      }
+    };
+    stdin.on('data', onData);
+  });
+}
 
 async function step<T>(label: string, run: () => Promise<T>, describe: (v: T) => string) {
   try {
@@ -31,12 +68,11 @@ async function step<T>(label: string, run: () => Promise<T>, describe: (v: T) =>
 
 async function main() {
   const url = process.argv.find((a) => /^https?:\/\//.test(a) || /^\d+\.\d+\.\d+\.\d+/.test(a));
-  if (!url) throw new Error('usage: RL_PW=... npx tsx scripts/router-check.ts http://192.168.1.1 [--insecure] [--user root]');
+  if (!url) throw new Error('usage: npx tsx scripts/router-check.ts http://192.168.1.1 [--insecure] [--user root]');
   if (process.argv.includes('--insecure')) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   const userIndex = process.argv.indexOf('--user');
   const username = userIndex > 0 ? process.argv[userIndex + 1] : 'root';
-  const password = process.env.RL_PW ?? process.env.ROUTER_PASSWORD;
-  if (password === undefined) throw new Error('set RL_PW (see the command at the top of this file)');
+  const password = process.env.RL_PW ?? (await promptHidden(`Password for ${username}@${url}: `));
 
   let mode: AuthMode | undefined;
   const conn = new LiveConnection({
@@ -71,7 +107,9 @@ async function main() {
   await step('kernel log', () => kernelLog(conn), (l) => `${l.length} lines`);
 }
 
-main().catch((e) => {
-  console.error(e instanceof Error ? e.message : e);
-  process.exit(1);
-});
+main()
+  .then(() => process.exit(0))
+  .catch((e) => {
+    console.error(e instanceof Error ? e.message : e);
+    process.exit(1);
+  });
