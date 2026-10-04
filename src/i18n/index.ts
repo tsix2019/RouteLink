@@ -1,6 +1,6 @@
 import { getLocales } from 'expo-localization';
-import { createInstance } from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import { createInstance, type TFunction } from 'i18next';
+import { initReactI18next, useTranslation } from 'react-i18next';
 
 import { namespaces, resources } from './resources';
 
@@ -34,3 +34,12 @@ export function setLanguage(pref: LanguagePreference) {
 }
 
 export const currentLanguage = (): AppLanguage => (i18n.language === 'zh-CN' ? 'zh-CN' : 'en');
+
+const ALL_NAMESPACES = [...namespaces];
+
+/** Translator over every namespace: plain keys read `common`, others are prefixed ("errors:connection.auth"). */
+export type AppT = TFunction<typeof ALL_NAMESPACES>;
+
+export function useT(): AppT {
+  return useTranslation(ALL_NAMESPACES).t;
+}

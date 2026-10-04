@@ -1,1 +1,28 @@
-{ "generic": "Something went wrong: {{message}}" }
+{
+  "generic": "Something went wrong: {{message}}",
+  "connection": {
+    "offline": "Can't reach the router",
+    "auth": "Wrong user name or password",
+    "not-openwrt": "This address isn't an OpenWrt router, or LuCI isn't installed",
+    "tls-untrusted": "The router's HTTPS certificate isn't trusted",
+    "tls-mismatch": "The router's certificate doesn't match the one you trusted",
+    "permission": "This account isn't allowed to do that",
+    "protocol": "The router sent an unexpected response (HTTP {{status}})"
+  },
+  "connectionHint": {
+    "offline": "Make sure your phone is on the same network as the router and that the router is on."
+  },
+  "action": {
+    "name-empty": "Name can't be empty",
+    "name-too-long": "Names can be at most 64 characters",
+    "ip-invalid": "That isn't a valid IP address",
+    "ip-in-use": "This IP is already reserved for another device",
+    "not-static": "This device has no static IP",
+    "already-blocked": "This device is already blocked",
+    "not-blocked": "This device isn't blocked",
+    "not-wireless": "Only Wi-Fi devices can be disconnected",
+    "wol-failed": "Wake-on-LAN failed: {{message}}",
+    "wol-unavailable": "etherwake isn't installed on the router, and iOS can't send wake packets itself",
+    "log-unavailable": "Couldn't read the log: {{message}}"
+  }
+}

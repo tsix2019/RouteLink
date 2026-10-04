@@ -1,1 +1,28 @@
-{ "generic": "出错了：{{message}}" }
+{
+  "generic": "出错了：{{message}}",
+  "connection": {
+    "offline": "无法连接到路由器",
+    "auth": "用户名或密码错误",
+    "not-openwrt": "这个地址不是 OpenWrt 路由器，或者路由器上没有 LuCI",
+    "tls-untrusted": "路由器的 HTTPS 证书不受信任",
+    "tls-mismatch": "路由器的证书和之前信任的不一样",
+    "permission": "当前账号没有权限执行这个操作",
+    "protocol": "路由器返回了意外的响应（HTTP {{status}}）"
+  },
+  "connectionHint": {
+    "offline": "检查手机和路由器是否在同一个网络，以及路由器是否开机。"
+  },
+  "action": {
+    "name-empty": "名称不能为空",
+    "name-too-long": "名称最长 64 个字符",
+    "ip-invalid": "IP 地址格式不正确",
+    "ip-in-use": "这个 IP 已经绑定给了其他设备",
+    "not-static": "这台设备没有绑定静态 IP",
+    "already-blocked": "这台设备已经被拉黑",
+    "not-blocked": "这台设备没有被拉黑",
+    "not-wireless": "只能踢掉无线设备",
+    "wol-failed": "网络唤醒失败：{{message}}",
+    "wol-unavailable": "路由器没有安装 etherwake，iOS 也不能直接发送唤醒包",
+    "log-unavailable": "无法读取日志：{{message}}"
+  }
+}
