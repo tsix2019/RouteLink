@@ -67,7 +67,7 @@ export default function Overview() {
       }>
       <TrafficCard series={traffic.series} latest={traffic.latest} intervalSec={intervalSec} />
       <DevicesCard clients={clients.data} />
-      <WanCard wan={wan} loading={interfaces.isLoading} />
+      <WanCard wan={wan} loading={!interfaces.data} />
       <ResourcesCard system={system.data} temperature={temperature.data} />
       <SystemCard system={system.data} />
       <GlassCard title={t('overview:actions.title')} icon="bolt">
