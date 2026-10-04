@@ -39,8 +39,10 @@ export interface Client {
   /** What the UI shows: alias, hostname, vendor or MAC. */
   name: string;
   hostname?: string;
-  /** Name stored on the router (dhcp host). */
+  /** Name stored on the router: dhcp host 'name' (DNS-safe) or the RouteLink alias option (any text). */
   alias?: string;
+  /** Where the alias lives; 'custom' means the ALIAS_OPTION uci option. */
+  aliasSource?: 'name' | 'custom';
   vendor: string | null;
   randomizedMac: boolean;
   ipv4?: string;
@@ -73,6 +75,8 @@ export interface ClientInputs {
 }
 
 export const BLOCK_RULE_PREFIX = 'RouteLink: block ';
+/** uci option holding names dnsmasq would reject (spaces, CJK); dnsmasq ignores unknown options. */
+export const ALIAS_OPTION = 'routelink_alias';
 const ONLINE_STATES = new Set(['REACHABLE', 'STALE', 'DELAY', 'PROBE']);
 
 const listOf = (v: unknown): string[] =>
@@ -140,6 +144,7 @@ interface Draft {
   wifi?: Client['wifi'];
   hostSection?: string;
   alias?: string;
+  aliasSource?: 'name' | 'custom';
   staticIp?: string;
   blockSection?: string;
 }
@@ -208,7 +213,14 @@ export function mergeClients(input: ClientInputs): Client[] {
       const d = draft(mac);
       if (!d) continue;
       d.hostSection = h['.name'];
-      d.alias = typeof h.name === 'string' && h.name ? h.name : undefined;
+      const custom = h[ALIAS_OPTION];
+      if (typeof custom === 'string' && custom) {
+        d.alias = custom;
+        d.aliasSource = 'custom';
+      } else if (typeof h.name === 'string' && h.name) {
+        d.alias = h.name;
+        d.aliasSource = 'name';
+      }
       d.staticIp = typeof h.ip === 'string' && h.ip ? h.ip : undefined;
     }
   }
@@ -248,6 +260,7 @@ export function mergeClients(input: ClientInputs): Client[] {
         name: d.alias ?? hostname ?? vendor ?? d.mac,
         hostname,
         alias: d.alias,
+        aliasSource: d.aliasSource,
         vendor,
         randomizedMac: isRandomizedMac(d.mac),
         ipv4: d.leaseIp ?? d.hintIps.find(inLan) ?? d.hintIps[0] ?? d.neighIp ?? d.staticIp,
