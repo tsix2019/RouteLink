@@ -75,11 +75,20 @@ case "${1:-}" in
     MSYS_NO_PATHCONV=1 docker cp "$SRC" "$NAME:/etc/config/network"
     rm -f "$TMP"
     docker start "$NAME" >/dev/null
+    # Docker does not keep the order of a container's networks: if eth0 is the WAN link, swap the names
+    LAN_MAC="$(docker inspect "$NAME" --format "{{(index .NetworkSettings.Networks \"$LAN\").MacAddress}}")"
+    MSYS_NO_PATHCONV=1 docker exec "$NAME" sh -c "
+      [ \"\$(cat /sys/class/net/eth0/address)\" = '$LAN_MAC' ] && exit 0
+      sed -i -e 's/eth0/ethX/' -e 's/eth1/eth0/' -e 's/ethX/eth1/' /etc/config/network
+      /etc/init.d/network restart" >/dev/null 2>&1 || true
     for _ in $(seq 1 60); do
       curl -sf -o /dev/null http://127.0.0.1:18280/ && break
       sleep 1
     done
     MSYS_NO_PATHCONV=1 docker exec "$NAME" sh -c 'printf "routelink-test\nroutelink-test\n" | passwd root >/dev/null 2>&1'
+    # a container cannot set the clock, so ntpd never reports a sync: with NTP off, routelinkd trusts
+    # the clock right away instead of waiting (on a freshly booted CI runner) before writing to disk
+    MSYS_NO_PATHCONV=1 docker exec "$NAME" sh -c 'uci set system.ntp.enabled=0 && uci commit system && /etc/init.d/sysntpd stop' >/dev/null 2>&1 || true
     echo "OpenWrt $V ready: http://127.0.0.1:18280 (root / routelink-test)"
     ;;
   down)
