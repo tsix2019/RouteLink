@@ -28,7 +28,7 @@
 
 | 项目 | 决定 |
 |---|---|
-| 技术栈 | Expo SDK 57（React Native 0.87）+ TypeScript |
+| 技术栈 | Expo SDK 57（React Native 0.86）+ TypeScript |
 | 液态玻璃 | iOS 用系统原生组件（`NativeTabs`、`GlassView`）。Android 自己画仿制效果：真实背景模糊，加高光和描边 |
 | 功能范围 | 调研里出现过的全部功能（第一、二、三档，加上零碎功能，包括 VLAN）。GL.iNet 私有接口除外 |
 | 高风险功能 | 照做，按风险分级给出提示（第 10 节） |
@@ -41,7 +41,7 @@
 
 | 用途 | 选型 |
 |---|---|
-| 框架 | Expo SDK 57、React Native 0.87、TypeScript（strict 模式） |
+| 框架 | Expo SDK 57、React Native 0.86.3（SDK 57 锁定的版本）、TypeScript（strict 模式） |
 | 路由 | expo-router。iOS 用 `expo-router/unstable-native-tabs`；Android 用 `expo-router/ui` 的无头 Tab，自己画 Tab 栏 |
 | 玻璃和模糊 | `expo-glass-effect`（iOS 26 的 `GlassView`、`GlassContainer`）；`expo-blur`（Android 上用 `BlurTargetView` 加 `blurMethod="dimezisBlurView"`） |
 | 动画 | react-native-reanimated |
@@ -144,7 +144,7 @@ fetchServerCertificate(url) → { sha256, subject, issuer, notBefore, notAfter }
 
 // 网络
 getNetworkInfo() → { isWifi, ip, netmask, gateway, ifname }
-sendWakeOnLan(mac, broadcast?, port?)
+sendWakeOnLan(mac, broadcast?, port?)        // 仅 Android；iOS 发广播需要苹果审批的组播权限
 
 // SSH（M4）
 sshFetchHostKey(host, port) → { type, sha256 }
@@ -192,6 +192,7 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
   3. 扫描手机所在网段：
      - 网段不超过 /24 时，扫整个网段。
      - 网段更大时，只扫手机所在的那个 /24 和网关所在的那个 /24。
+     - 高级选项"扫描指定网段"：手动填 CIDR，比如 `192.168.1.0/24`，最大 /22。适用于两种情况：手机和路由器不在同一网段；在 Android 模拟器里测试（模拟器跑在虚拟网段里）。
 - **探测方法**：
   - 最多 48 个请求同时进行，每台主机 1.2 秒超时。
   - 每个地址探测 80 和 443 端口。
@@ -289,7 +290,7 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 | DV-3 | 静态 IP 绑定 | `dhcp host`，填 name、mac、ip | — | 中 | M1 |
 | DV-4 | 踢下线 | `hostapd.<接口> del_client` | — | 中 | M1 |
 | DV-5 | 拉黑（禁止上网） | 防火墙规则：`src_mac` 加 REJECT，规则名带 `RouteLink:` 前缀 | — | 中 | M1 |
-| DV-6 | 网络唤醒（WOL） | 优先让路由器发（etherwake）；路由器上没装时，手机直接发 UDP 广播 | luci-app-wol（可选） | 低 | M1 |
+| DV-6 | 网络唤醒（WOL） | 优先让路由器发（etherwake）。路由器上没装时，Android 手机直接发 UDP 广播；iOS 发广播需要苹果审批的组播权限，所以 iOS 上只能由路由器发 | luci-app-wol（可选） | 低 | M1 |
 | DV-7 | 单台设备的流量统计 | nlbwmon 的 JSON 输出 | nlbwmon | 低 | M2 |
 | DV-8 | 家长控制：按时段禁止某台设备上网 | 防火墙规则：`start_time`、`stop_time`、`weekdays` | — | 中 | M3 |
 
@@ -555,7 +556,8 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
   - iOS（液态玻璃）和 Android 截图并排放，浅色、深色都有。
   - iOS 截图来自 CI 构建产物，Android 截图在本机模拟器上截。全部使用演示模式。
   - 存放在 `docs/screenshots/{zh,en}/`。
-- **更新时机**：每个里程碑完成后推送，并更新 README 的功能清单和截图。
+- **建仓时机**：M1 一开始就建公开仓库，推送项目骨架，README 先标注"开发中"，这样 iOS CI 从第一天就能跑。开发过程中持续推送。
+- **更新时机**：每个里程碑完成后，更新 README 的功能清单和截图。
 
 ## 24. 里程碑
 
