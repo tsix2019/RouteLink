@@ -228,10 +228,14 @@ modules/routelink-native/  新增 Android 前台服务和实时更新通知
   - 数据目录在 jffs2 或 ubifs（闪存）上时，每 60 分钟写一次。
   - 其他文件系统（比如 x86 的硬盘）上每 10 分钟写一次。
   - 间隔也可以手动指定。
-- **额外写盘**：服务停止、重启路由器、升级固件之前，也各写一次。
+- **额外写盘**：服务停止、重启路由器、升级固件之前，也各写一次。这几次写盘会把还没满的这一分钟也写下去。
 - **升级固件**：数据目录写进 `/lib/upgrade/keep.d/routelink`，升级后数据保留。
 - **大小上限**：默认不超过数据目录所在分区剩余空间的 10%，最多 32 MB。超出时，先从最细的层开始删最旧的数据。
-- **断电**：最多丢失一个写盘间隔的数据，App 和 LuCI 的图表在缺口处断开，并标注"数据缺失"。
+- **重启后的恢复**：
+  - 背景：小时、天、月的当前桶只在内存里，直到这个时段结束才写成记录。
+  - 处理：守护进程启动时，先补写停机期间已经结束的小时、天、月记录（由更细一级的记录汇总），再用已存的更细一级记录重建当前的桶。
+  - 保留期下限：恢复要靠更细一级的数据，所以分钟数据至少保留 2 小时，按天数据至少保留 62 天。
+- **断电**：最多丢失一个写盘间隔的分钟数据，App 和 LuCI 的图表在缺口处断开，并标注"数据缺失"。
 
 ### 6.4 时间
 
@@ -260,7 +264,7 @@ modules/routelink-native/  新增 Android 前台服务和实时更新通知
 
 | 方法 | 参数 | 返回 | 期 |
 |---|---|---|---|
-| `info` | — | 插件版本、接口版本号 `api`、角色、启用的模块、加速模式、nlbwmon 冲突、数据目录和占用、是否已对时 | P1 |
+| `info` | — | 插件版本、接口版本号 `api`、角色、启用的模块、加速模式、nlbwmon 冲突、连接跟踪计数（`nf_conntrack_acct`）是否打开、数据目录和占用、是否已对时 | P1 |
 | `devices` | — | 设备列表：MAC、名称、IP（IPv4 和 IPv6）、首次和最近出现时间、是否在线、是否信任、是否随机 MAC、今日用量、当前速率 | P1 |
 | `live` | — | 申请或续期实时租约；同时返回 WAN 速率、各设备速率、在线数、占用最多的设备 | P1 |
 | `history` | `mac?`、`start`、`end`、`class?`（internet/lan/router/wan/all）、`hours?`（每天的时段） | 曲线数据。按时间范围自动选择粒度，最多 500 个点 | P1 |
@@ -308,14 +312,16 @@ config notify                    # 推送渠道：类型、地址或令牌、订
 
 ### 7.3 权限（ACL）
 
-`/usr/share/rpcd/acl.d/luci-app-routelink.json` 分成两组：
+ACL 文件是 `/usr/share/rpcd/acl.d/routelink.json`，组名 `routelink`，分读和写两部分：
 
-| 组 | 内容 |
+| 部分 | 内容 |
 |---|---|
-| 只读组 | 所有查询方法，以及 UCI `routelink` 的读权限 |
-| 读写组 | `speedtest_start`、`notify_test`、`reset`、`commit`，以及 UCI `routelink` 的写权限 |
+| read | 所有查询方法，以及 UCI `routelink` 的读权限 |
+| write | `speedtest_start`、`notify_test`、`reset`、`commit`，以及 UCI `routelink` 的写权限 |
 
-root 账号本来就能访问全部接口。LuCI 的非 root 账号可以单独授权。
+- **放在 `routelinkd` 包里**：rpcd 里 root 的"全部权限"是所有 ACL 组的并集，没有任何组授权 `routelink` 对象时，连 root 也调不了。所以 ACL 跟着守护进程安装，不装 LuCI 包 App 也能用。
+- **生效**：安装后重载 rpcd，新的 ACL 才生效。
+- **LuCI**：菜单依赖这个组。LuCI 的非 root 账号可以单独授权这个组。
 
 ## 8. 插件：LuCI 页面
 
@@ -414,8 +420,8 @@ AP 角色只显示"无线"和"设置"两页。
 
 | 包 | 架构 | 内容 |
 |---|---|---|
-| `routelinkd` | 按 CPU 架构编译 | 守护进程、init 脚本、UCI 默认配置、keep.d |
-| `luci-app-routelink` | 不分架构（all） | LuCI 页面、菜单、ACL |
+| `routelinkd` | 按 CPU 架构编译 | 守护进程、init 脚本、UCI 默认配置、keep.d、ACL |
+| `luci-app-routelink` | 不分架构（all） | LuCI 页面、菜单 |
 | `luci-i18n-routelink-zh-cn` | 不分架构（all） | 中文翻译 |
 
 - **依赖**：只依赖官方软件源里有的包：libubox、libubus、libuci、libjson-c、libmnl、kmod-nf-conntrack-netlink；P4 再加上限速需要的 tc-tiny 和 kmod-sched 系列。
@@ -423,41 +429,43 @@ AP 角色只显示"无线"和"设置"两页。
 
 ### 13.2 CI 与发布
 
-- **CI 工作流**：新增 `.github/workflows/openwrt.yml`，用 `openwrt/gh-action-sdk` 编译。
+- **CI 工作流**：用 `openwrt/gh-action-sdk` 编译，矩阵放在可复用的 `.github/workflows/openwrt-build.yml` 里。
   - 版本：23.05、24.10、25.12。前两个出 ipk，25.12 出 apk。
   - 架构：x86_64、aarch64_cortex-a53、aarch64_cortex-a72、aarch64_generic、arm_cortex-a7_neon-vfpv4、arm_cortex-a9_vfpv3-d16、arm_cortex-a15_neon-vfpv4、mipsel_24kc、mips_24kc。
-  - 同一个工作流里还跑守护进程的单元测试（§21）。
-- **发布**：
-  - 打 `agent-v*` 标签时，把安装包上传到 GitHub Releases。文件名带上 OpenWrt 版本和架构，保证不重名。
+  - `openwrt.yml`：每次推送时运行，内容是单元测试、init 脚本格式检查、不签名的编译，以及 Docker 上的准确性集成测试（§21）。
+- **发布**（`openwrt-release.yml`，打 `agent-v*` 标签时触发）：
+  - 带签名编译，然后把安装包上传到 GitHub Releases。文件名带上 OpenWrt 版本和架构，保证不重名。
   - 同时生成 `manifest.json`，内容包括：版本、接口版本号、每个"版本 × 架构"对应的文件名和 SHA-256。
+- **签名**：
+  - **opkg**：opkg 不检查本地包的签名；软件源索引由 SDK 生成，并用 usign 签名。
+  - **apk**：OpenWrt 的 SDK 不给 apk 包签名，而 apk 会拒绝安装未签名的本地包，LuCI 的辅助程序也不放行 `--allow-untrusted`。所以用 `apk adbsign` 逐个给包签名，然后用 `apk mkndx` 生成带签名的索引。签名会改变包的哈希，所以索引必须在签名之后生成。
 - **软件源**：
-  - 用 GitHub Pages 发布，目录是 `agent/<OpenWrt 版本>/<架构>/`。opkg 的索引用 usign 签名，apk 的索引用 apk 密钥签名。
-  - `manifest.json` 也放一份在 GitHub Pages 上。
+  - 用 GitHub Pages 发布，目录是 `agent/<OpenWrt 版本>/<架构>/`。
+  - `manifest.json` 和两个公钥（`agent/keys/`）也放在 GitHub Pages 上。
+  - 预发布标签（带 `-`）只发 Releases，不更新软件源。
 - **密钥**：签名密钥在本机生成，存进 GitHub Secrets，并在 `D:\RouteLink-keys\` 备份一份，和 Android 签名密钥的保管方式相同。
 - **安装说明**：README 写明如何手动添加软件源，以及用 opkg 或 apk 安装、升级。
 
 ### 13.3 App 一键安装（AG-8）
 
+rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管理页本来就有的权限。以下做法都在 23.05.6、24.10.8、25.12.5 上实测过（P1 计划"执行记录"的 T28）。
+
 1. **识别**：
    - OpenWrt 版本：从 `system board` 读。
-   - CPU 架构：读 `/etc/os-release` 里的 `OPENWRT_ARCH`。
-   - 包管理器：用 `file stat` 检查 opkg 或 apk 是否存在。
+   - CPU 架构：`/etc/os-release` 没有读权限，所以从可读的 `distfeeds` 文件里的软件源 URL 取（`…/packages/<架构>/base`）。
+   - 包管理器：用 `file stat` 检查。23.05 是 `opkg-call`（luci-app-opkg），24.10 起是 `package-manager-call`（luci-app-package-manager）。
    - 剩余空间：读 `/overlay`（或 `/`）所在分区。
 2. **取清单**：手机下载 `manifest.json`，找到匹配的安装包。找不到时，说明"暂不支持这种架构"。
 3. **下载**：手机下载安装包，并用 SHA-256 校验。
    - 下载地址可以在设置里加一个镜像前缀，因为国内访问 GitHub 不稳定。
-4. **上传**：rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管理页本来就有的权限。具体是：
-   - 辅助程序：23.05 是 `opkg-call`，24.10 起是 `package-manager-call`
-   - 上传路径：比如 `/tmp/upload.ipk`
-   - 写入方式：用 `file write` 分块写入安装包。不支持时，退而用 cgi-upload。
-   - 每个版本的具体情况在 P1 计划的 T28 里验证。
+4. **上传**：用 `file write`（base64，追加模式）分块写到辅助程序允许的路径（`/tmp/upload.ipk` 或 `/tmp/upload.apk`）。每块最多 32 KB，再大的话编码后会超过 uhttpd 64 KB 的请求上限。
 5. **安装**：
-   - 如果软件包列表不存在，先通过辅助程序更新列表。
-   - 然后通过辅助程序安装上传的包，依赖从官方软件源补装。
-   - 这几步命令的超时延长到 180 秒。
-   - 路由器上没有 LuCI 软件包管理页（`luci-app-opkg` 或 `luci-app-package-manager`）时，提示先安装它，或者改用手动安装。
+   - 如果软件包列表不存在，先通过辅助程序更新列表。23.05 的权限只认 `update` 后面带参数的形式，所以加一个会被辅助程序丢掉的 `-q`。
+   - apk 系统先把我们的公钥写进 `/etc/apk/keys/routelink.pem`，否则 apk 拒绝安装本地包。
+   - 通过 `/cgi-bin/cgi-exec` 调用辅助程序安装，依赖从官方软件源补装。不用 ubus 的 `file exec`：包的安装后脚本会重载 rpcd，请求会一直挂到 uhttpd 的 60 秒超时。
+   - 路由器上没有 LuCI 软件包管理页时，提示先安装它，或者改用手动安装。
 6. **安装后**：重新检测功能（主设计 §5 的功能检测），插件页显示安装结果。
-7. **可选**：勾选"同时添加软件源"，App 会把软件源地址和公钥写进路由器，以后也可以在 LuCI 里升级插件。
+7. **可选**：勾选"同时添加软件源"，App 会把软件源地址和公钥写进路由器，以后也可以在 LuCI 里升级插件。24.10 和 25.12 可以这样做；23.05 上 `/etc/opkg/keys/` 没有写权限，改为显示手动添加的命令。
 8. **批量**：网络组里的几台设备可以一起安装，每台单独显示进度。
 9. **升级和卸载**：
    - 插件页显示已装版本和最新版本。最新版本只在用户打开插件页时检查。

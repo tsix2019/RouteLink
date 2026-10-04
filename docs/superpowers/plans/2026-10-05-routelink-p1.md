@@ -1307,21 +1307,30 @@ export function historyCsv(h: History, tz: string): string;
 **`services/packages.ts`**（M2 的 MO-5 也会复用）：
 ```ts
 export interface PackageEnv {
-  release: string;            // "24.10"
-  arch: string;               // OPENWRT_ARCH
+  release: string;            // "24.10"，取自 system board
+  arch: string;               // 取自 distfeeds 里的 URL（.../packages/<arch>/base），/etc/os-release 没有读权限
   manager: 'opkg' | 'apk';
-  helper: string;             // T28 结论里的辅助程序路径
-  uploadPath: string;         // T28 结论里的上传路径
+  helper: '/usr/libexec/opkg-call' | '/usr/libexec/package-manager-call';
+  uploadPath: '/tmp/upload.ipk' | '/tmp/upload.apk';
+  updateArgs: string[];       // 23.05：['update', '-q']（ACL 只认 "update *"）；24.10 起：['update']
   freeKb: number;
   hasLists: boolean;
 }
 export function detectPackageEnv(conn: RouterConnection): Promise<PackageEnv | { unsupported: 'no-helper' | 'not-openwrt' | 'no-permission' }>;
-export function writeFileChunks(conn: RouterConnection, path: string, bytes: Uint8Array, chunk = 48 * 1024): Promise<void>;
+/** 每块 32 KB：48 KB 编码成 base64 后超过 uhttpd 64 KB 的请求上限，会返回 Parse error */
+export function writeFileChunks(conn: RouterConnection, path: string, bytes: Uint8Array, chunk = 32 * 1024): Promise<void>;
 export function updateLists(conn: RouterConnection, env: PackageEnv): Promise<void>;
+/** 走 conn.cgiExec：ubus 的 file exec 在包的 postinst 重载 rpcd 时会一直挂到 uhttpd 的 60 秒超时 */
 export function installUploaded(conn: RouterConnection, env: PackageEnv): Promise<{ ok: boolean; output: string }>;
 export function removePackages(conn: RouterConnection, env: PackageEnv, names: string[]): Promise<{ ok: boolean; output: string }>;
+/** apk 不接受未签名的本地包，辅助程序又不放行 --allow-untrusted：先把 routelink-apk.pem 写进 /etc/apk/keys/ */
+export function trustApkKey(conn: RouterConnection, pem: string): Promise<void>;
 ```
-具体的命令和参数按 T28 的结论来写。
+- **新增 `RouterConnection.cgiExec(argv: string[]): Promise<string>`**：
+  - LiveConnection 向 `<路由器地址>/cgi-bin/cgi-exec` POST 表单 `sessionid`、`command`；命令里的空白字符要用反斜杠转义，和 LuCI 的 `fs.exec_direct` 一样。
+  - 返回辅助程序打印的 JSON（`code`、`stdout`、`stderr`）。
+  - DemoConnection 里模拟这个方法。
+- 各版本的实测结论见"执行记录"的 T28。
 
 **`features/agent/manifest.ts`**：
 ```ts
@@ -1359,7 +1368,10 @@ export function installAgent(deps: InstallDeps, mirror?: string): Promise<Instal
 1. **识别**：`detectPackageEnv`。
 2. **取清单**：`fetchManifest`，再 `pickTarget`。
 3. **检查空间**：所需空间按文件总大小的 3 倍估算，剩余空间不够时失败。
-4. **逐个安装**：按 `INSTALL_ORDER` 的顺序，每个包依次 `download` → 校验 SHA-256 → `writeFileChunks` → `installUploaded`。第一次安装之前，如果 `!hasLists`，先 `updateLists`。
+4. **逐个安装**：
+   - 第一次安装之前，如果 `!hasLists`，先 `updateLists`。
+   - apk 系统先 `trustApkKey`。
+   - 按 `INSTALL_ORDER` 的顺序，每个包依次 `download` → 校验 SHA-256 → `writeFileChunks` → `installUploaded`。
 5. **确认**：每秒调用一次 `getAgentStatus`，最多 15 秒，直到变为 `ok`。
 
 **失败原因的判断**：
@@ -1371,7 +1383,9 @@ export function installAgent(deps: InstallDeps, mirror?: string): Promise<Instal
 2. 每一种 `InstallFailure` 各写一个用例。
 3. SHA-256 不一致时，不会上传。
 4. 镜像前缀被正确加到 URL 前面。
-5. 写文件分块：300 KB 的文件分成 7 块，第一块 `append:false`，其余 `append:true`。
+5. 写文件分块：300 KB 的文件分成 10 块，第一块 `append:false`，其余 `append:true`。
+6. apk 系统：安装前写入 `/etc/apk/keys/routelink.pem`；opkg 系统不写。
+7. 23.05 的 `update` 带 `-q`，24.10 起不带。
 
 **提交**：`feat(app): one-tap agent install state machine`
 
@@ -1621,15 +1635,32 @@ export function installAgent(deps: InstallDeps, mirror?: string): Promise<Instal
 
 | 项目 | 结论 |
 |---|---|
-| T2 SDK 镜像标签、首次编译用时、Docker 卷大小 | |
-| T3 编译矩阵里不存在的"版本 × 架构" | |
-| T13 Docker 内核的 conntrack 事件和计数 | |
-| T16 sysupgrade 钩子、安装后服务是否自动启动 | |
-| T18 各方法的实际调用结果 | |
-| T19 Docker 是否支持 flowtable；IPv6 转发的配法；各用例的实测误差 | |
-| T20 x86 和 QEMU MIPS 的性能数字 | |
-| T25 非 root 账号的 LuCI 访问 | |
-| T27 预发布的检查结果 | |
-| T28 三个版本的包管理器：辅助程序、上传路径、`file write` 的 base64 和 append、依赖补装、超时、能否添加软件源 | |
+| T2 SDK 镜像标签、首次编译用时、Docker 卷大小 | 镜像是 `openwrt/sdk:<架构>-<版本>`，例如 `x86_64-24.10.8`。首次编译约 8.5 分钟（主要是 `feeds update -a`），Docker 卷 2.8 GB；之后每次约 1 分钟。编译时发现漏了依赖 `libblobmsg-json`，已补上。**偏离计划**：`dev-router.sh` 的容器名、端口、网段和其他工作树共用，执行 `up` 会把别人正在用的测试路由器删掉重建（本次已经发生过一次）。所以插件改用独立的 `scripts/agent-router.sh`（容器 `routelink-agent-owrt`，网段 172.40/41.0.0/24，端口 18280），`dev-router.sh` 不改 |
+| T3 编译矩阵里不存在的"版本 × 架构" | 没有缺的，27 个组合全部编译通过（25.12 出 apk）。`gh-action-sdk` 自带的 shfmt 检查在 SDK 镜像里跑不了（镜像里没有 shfmt，`openwrt/` 也不是 git 根目录），所以设了 `NO_SHFMT_CHECK`，另外加了一个 `lint` job。编译矩阵后来拆成可复用的 `openwrt-build.yml` |
+| T13 Docker 内核的 conntrack 事件和计数 | Docker Desktop 的内核支持容器里的 ctnetlink。但容器里 `nf_conntrack_acct` 是 0：`/proc/sys` 只读，`/etc/sysctl.d` 的设置写不进去，所有计数都是 0。处理：`agent-router.sh` 创建容器时加 `--sysctl net.netfilter.nf_conntrack_acct=1`；守护进程在 `info` 里报告 `conntrack_accounting`，LuCI 据此提示 |
+| T16 sysupgrade 钩子、安装后服务是否自动启动 | 都生效：`sysupgrade -b` 会调用 `routelink_commit`（`/lib/upgrade/*.sh` 是在 `sysupgrade_init_conffiles` 赋值之后才 include 的）；安装后服务自动启用（`S95`/`K10`）。用命令行的 `uci commit` 不会触发重载，需要 `reload_config`，或者走 ubus 的 uci commit（LuCI 和 App 都是这样），约 2 秒后生效 |
+| T18 各方法的实际调用结果 | 全部方法都按约定返回；非法参数返回 `Invalid argument`，没见过的 MAC 返回 `Not found`。**偏离计划**：rpcd 里 root 的"全部权限"指的是所有 ACL 组的并集，没有任何组授权 `routelink` 对象时，连 root 也调不了。所以 ACL 文件改放进 `routelinkd` 包（组名 `routelink`），安装后重载 rpcd；LuCI 菜单依赖这个组，不装 LuCI 包 App 也能用。`info` 新增了 `conntrack_accounting` 字段 |
+| T19 Docker 是否支持 flowtable；IPv6 转发的配法；各用例的实测误差 | Docker Desktop 的内核没有 flowtable，开了 `flow_offloading` 之后 fw4 加载失败，所以本机跳过这一项，CI 的 Ubuntu 内核上照常跑。IPv6 的配法：两个 Docker 网络用 `--ipv6` 创建，路由器容器加 `--sysctl net.ipv6.conf.all.forwarding=1`。实测误差：下载 100 MB、1000 个短连接、IPv6 下载、上传，都是 0.00%（和终端网卡 IP 层字节数逐字节一致）。**测试发现的问题**：重启后丢数据。原因是小时、天、月的桶只在内存里，重启或断电会丢掉当天甚至当月的数据。已修复：新增 `core/recover`，启动时补算停机期间已经结束的桶，并用已存记录恢复当前的桶；正常停止前把未满的一分钟写下去。分钟保留期最少 2 小时，按天保留期最少 62 天。集成测试的 Jest 配置单独放在 `jest.agent.config.js`，因为原来的集成测试配置不编译 TypeScript，`testMatch` 在 Windows 上也匹配不到文件 |
+| T20 x86 和 QEMU MIPS 的性能数字 | x86（i5-13500H，Docker）上 52 台设备、5000 个连接：平时占单核 0.04%，实时模式 0.55%，内存 1.7 MB。QEMU MIPS 没有测；按 MIPS 慢 15～25 倍估算，也在目标以内（未经实机验证） |
+| T25 非 root 账号的 LuCI 访问 | 没有测。页面验证改用 Docker 里的无头 Chrome（`scripts/luci-screenshots.sh`）：LuCI 用 `requestAnimationFrame` 合并发送请求，浏览器面板隐藏时请求永远发不出去；完整版无头 Chrome 会拒绝访问内网地址，要用 `headless: 'shell'`。三个页面中英文都能加载，截图在 `docs/screenshots/luci/` |
+| T27 预发布的检查结果 | 没有执行：需要先把私钥存进 GitHub Secrets（`OPENWRT_USIGN_KEY`、`OPENWRT_APK_KEY`）、开启 GitHub Pages（来源选 GitHub Actions，`github-pages` 环境允许 `agent-v*` 标签），再推送标签。这几步要等你确认。工作流已经通过 actionlint 检查，`agent-manifest.ts` 有单元测试 |
+| T28 三个版本的包管理器：辅助程序、上传路径、`file write` 的 base64 和 append、依赖补装、超时、能否添加软件源 | 见下方的表 |
 | T35 新依赖和 SDK 57 的兼容性 | |
 | T45 真实路由器的联调结果 | |
+
+**T28 实测结果**（`scripts/pm-check.mjs`、`scripts/pm-cgi-exec.mjs`，root 会话，经由 HTTP）
+
+| 项目 | 23.05.6 | 24.10.8 | 25.12.5 |
+|---|---|---|---|
+| 辅助程序 | `/usr/libexec/opkg-call`（luci-app-opkg） | `/usr/libexec/package-manager-call` | `/usr/libexec/package-manager-call`（apk） |
+| 上传路径 | `/tmp/upload.ipk` | `/tmp/upload.ipk` | `/tmp/upload.apk` |
+| 更新软件包列表 | ACL 只认 `update *`，要带一个会被丢掉的参数，比如 `update -q` | `update`（带参数反而被拒） | 同 24.10 |
+| `file write` base64 + append | 可以，但每块最多 32 KB（48 KB 编码后超过 uhttpd 的 64 KB 上限） | 同左 | 同左 |
+| 用 ubus `file exec` 安装 | 能装好，但请求要挂满 60 秒才超时：包的 postinst 重载了 rpcd | 同左 | 同左 |
+| 用 `/cgi-bin/cgi-exec` 安装 | 0.3～1.4 秒，返回辅助程序的 JSON。**App 用这个** | 同左 | 同左 |
+| 本地包的签名 | 不检查 | 不检查 | 报 `UNTRUSTED signature`，辅助程序不放行 `--allow-untrusted`。解决：CI 用 `apk adbsign` 逐个签名（一次只能签一个文件），App 先把公钥写进 `/etc/apk/keys/`。已在 25.12.5 上验证通过 |
+| 依赖补装 | 从官方源自动补装（`kmod-nf-conntrack-netlink`） | 同左 | 同左 |
+| 识别架构 | `/etc/os-release`、`/etc/openwrt_release` 都没有读权限；从可读的 `/etc/opkg/distfeeds.conf` 里的 URL 取 | 同左 | 从 `/etc/apk/repositories.d/distfeeds.list` 取 |
+| App 能否加软件源 | 不能：`/etc/opkg/keys/` 没有写权限，只能显示手动命令 | 能：`customfeeds.conf` 和 `/etc/opkg/keys/` 都可写 | 能：`customfeeds.list` 和 `/etc/apk/keys/` 都可写 |
+
+另外：OpenWrt 的 SDK 只给 apk 软件源的索引签名，不给包签名；包签名后哈希会变，所以 25.12 的索引要在签名之后用 `apk mkndx` 重新生成（`openwrt-build.yml`）。按包名从自建的 apk 软件源安装，也已在 25.12.5 上验证通过。
