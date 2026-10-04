@@ -2,8 +2,9 @@ name: iOS
 
 on:
   push:
-    branches: ['**']
+    branches: [main]
     tags: ['v*']
+    paths-ignore: ['docs/**', '**/*.md', 'test/integration/**', '.github/workflows/android.yml', '.github/workflows/integration.yml']
   workflow_dispatch:
 
 concurrency:

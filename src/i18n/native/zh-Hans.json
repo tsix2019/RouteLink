@@ -1,4 +1,6 @@
 {
-  "CFBundleDisplayName": "RouteLink",
-  "NSLocalNetworkUsageDescription": "RouteLink 需要访问本地网络，用来发现和管理你的路由器。"
+  "ios": {
+    "CFBundleDisplayName": "RouteLink",
+    "NSLocalNetworkUsageDescription": "RouteLink 需要访问本地网络，用来发现和管理你的路由器。"
+  }
 }

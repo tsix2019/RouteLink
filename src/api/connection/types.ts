@@ -13,6 +13,8 @@ export interface RouterConnection {
   batch(calls: UbusCall[], options?: CallOptions): Promise<UbusResult[]>;
   /** Cheap reachability probe without credentials. */
   ping(): Promise<boolean>;
+  /** Same router, own fresh login: isolates staged uci changes (see stageAndApply). */
+  fork?(): RouterConnection;
 }
 
 export type ConnectionFailure =

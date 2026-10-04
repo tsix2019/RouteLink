@@ -1,5 +1,6 @@
 import { Redirect } from 'expo-router';
 
+import { launchUrlPath } from '@/features/demo/launchUrl';
 import { useRouters } from '@/state/routers';
 import { useSettings } from '@/state/settings';
 
@@ -7,5 +8,7 @@ import { useSettings } from '@/state/settings';
 export default function Index() {
   const demoMode = useSettings((s) => s.demoMode);
   const hasRouters = useRouters((s) => s.routers.length > 0);
+  const launched = launchUrlPath();
+  if (launched) return <Redirect href={launched as '/demo'} />;
   return <Redirect href={demoMode || hasRouters ? '/overview' : '/welcome'} />;
 }

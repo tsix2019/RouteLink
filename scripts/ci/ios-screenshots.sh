@@ -12,12 +12,10 @@ for lang in zh en; do
   for theme in light dark; do
     xcrun simctl ui "$UDID" appearance "$theme"
     for page in "${PAGES[@]}"; do
-      # Relaunch for every shot: a clean navigation stack and a demo router that has warmed up.
-      xcrun simctl terminate "$UDID" io.github.tsix2019.routelink >/dev/null 2>&1 || true
-      xcrun simctl launch "$UDID" io.github.tsix2019.routelink >/dev/null
-      sleep 3
-      xcrun simctl openurl "$UDID" "routelink://demo?lang=$lang&theme=$theme&route=/$page"
-      sleep 6
+      # Relaunch for every shot (clean navigation, warmed-up demo router). The link goes in as a launch
+      # argument: `simctl openurl` would make iOS ask "Open in RouteLink?".
+      xcrun simctl launch --terminate-running-process "$UDID" io.github.tsix2019.routelink         -RouteLinkLaunchURL "routelink://demo?lang=$lang&theme=$theme&route=/$page" >/dev/null
+      sleep 8
       xcrun simctl io "$UDID" screenshot "docs/screenshots/$lang/ios-$page-$theme.png" >/dev/null
       echo "docs/screenshots/$lang/ios-$page-$theme.png"
     done

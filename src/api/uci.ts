@@ -55,25 +55,15 @@ export interface ApplyOptions {
   now?: () => number;
 }
 
-const touchedConfigs = (changes: UbusCall[]) => [
-  ...new Set(changes.map((c) => c.params?.config).filter((c): c is string => typeof c === 'string')),
-];
-
-async function revert(conn: RouterConnection, configs: string[]): Promise<void> {
-  if (configs.length === 0) return;
-  try {
-    await conn.batch(configs.map((config) => ({ object: 'uci', method: 'revert', params: { config } })));
-  } catch {
-    // best effort: an unreachable router has nothing staged for us to clean up right now
-  }
-}
-
 /**
  * Stages `changes` and applies them (design §11).
  *
- * Verified rpcd behaviour (see the plan's execution log): any session may confirm; on timeout the
- * router restores /etc/config and puts the changes back into the applying session's staging area,
- * so staging is reverted both before staging and after a rollback.
+ * Verified rpcd behaviour (see the plan's execution log): only the applying session may confirm; on
+ * timeout the router restores /etc/config and puts the changes back into the applying session's
+ * staging area; and root may not `uci revert` over ubus (24.10 ACLs), so staging can't be cleaned
+ * up afterwards.
+ * Every change set is therefore staged in a session of its own (`conn.fork()`): a failed or
+ * rolled-back set is abandoned with that session and never leaks into a later apply.
  */
 export async function stageAndApply(
   conn: RouterConnection,
@@ -82,29 +72,26 @@ export async function stageAndApply(
 ): Promise<ApplyOutcome> {
   const sleep = o.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
   const now = o.now ?? Date.now;
-  const configs = touchedConfigs(changes);
+  const work = conn.fork?.() ?? conn;
 
-  await revert(conn, configs);
-  const staged = await conn.batch(changes);
+  const staged = await work.batch(changes);
   const failed = staged.find((r) => !r.ok);
-  if (failed && !failed.ok) {
-    await revert(conn, configs);
-    throw failed.error;
-  }
+  if (failed && !failed.ok) throw failed.error;
 
   if (o.mode === 'direct') {
-    await conn.call('uci', 'apply', { rollback: false });
+    await work.call('uci', 'apply', { rollback: false });
     return { status: 'applied' };
   }
 
   const timeoutSec = o.timeoutSec ?? 90;
   const deadline = now() + Math.max(5, timeoutSec - 10) * 1000;
-  await conn.call('uci', 'apply', { rollback: true, timeout: timeoutSec });
+  await work.call('uci', 'apply', { rollback: true, timeout: timeoutSec });
   await sleep(1_500);
 
   while (now() < deadline) {
     try {
-      await conn.call('uci', 'confirm', {}, { timeoutMs: 4_000 });
+      // Only the session that applied may confirm: never swap it for a fresh login here.
+      await work.call('uci', 'confirm', {}, { timeoutMs: 4_000, relogin: false });
       return { status: 'confirmed' };
     } catch (error) {
       if (error instanceof UbusError && error.code === 'NO_DATA') return { status: 'applied' };
@@ -116,6 +103,5 @@ export async function stageAndApply(
       await sleep(2_000);
     }
   }
-  await revert(conn, configs);
   return { status: 'rolled-back', reason: 'confirm-timeout' };
 }

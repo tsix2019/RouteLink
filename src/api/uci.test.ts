@@ -45,17 +45,22 @@ const changes = [
   uci.set('firewall', 'cfg1', { enabled: '0' }),
 ];
 
-it('direct mode reverts stale changes, stages, and applies without rollback', async () => {
+it('direct mode stages and applies without rollback', async () => {
   const conn = new ScriptedConnection(() => ({}));
   const outcome = await stageAndApply(conn, changes, { mode: 'direct', ...clock() });
   expect(outcome).toEqual({ status: 'applied' });
-  expect(conn.log).toEqual([
-    'uci.revert(dhcp)',
-    'uci.revert(firewall)',
-    'uci.add(dhcp)',
-    'uci.set(firewall)',
-    'uci.apply',
-  ]);
+  expect(conn.log).toEqual(['uci.add(dhcp)', 'uci.set(firewall)', 'uci.apply']);
+});
+
+it('stages, applies and confirms in a forked session, leaving the main session untouched', async () => {
+  const main = new ScriptedConnection(() => ({}));
+  const forked = new ScriptedConnection(() => ({}));
+  const conn = Object.assign(main, { fork: () => forked });
+  await expect(stageAndApply(conn, changes, { mode: 'rollback', ...clock() })).resolves.toEqual({
+    status: 'confirmed',
+  });
+  expect(main.log).toEqual([]);
+  expect(forked.log).toEqual(['uci.add(dhcp)', 'uci.set(firewall)', 'uci.apply', 'uci.confirm']);
 });
 
 it('confirms after a rollback-protected apply', async () => {
@@ -84,11 +89,11 @@ it('treats NO_DATA from confirm as nothing left to roll back', async () => {
   await expect(stageAndApply(conn, changes, { mode: 'rollback', ...clock() })).resolves.toEqual({ status: 'applied' });
 });
 
-it('reports a rollback when the router never comes back, and clears the restored staging', async () => {
+it('reports a rollback when the router never comes back', async () => {
   const conn = new ScriptedConnection((c) => (c.method === 'confirm' ? new NativeError('ERR_TIMEOUT', 'down') : {}));
   const outcome = await stageAndApply(conn, changes, { mode: 'rollback', timeoutSec: 90, ...clock() });
   expect(outcome).toEqual({ status: 'rolled-back', reason: 'confirm-timeout' });
-  expect(conn.log.slice(-2)).toEqual(['uci.revert(dhcp)', 'uci.revert(firewall)']);
+  expect(conn.log.filter((l) => l.startsWith('uci.revert'))).toEqual([]);
 });
 
 it('stops confirming before the router-side timeout', async () => {
@@ -98,13 +103,12 @@ it('stops confirming before the router-side timeout', async () => {
   expect(c.now()).toBeLessThanOrEqual(30_000);
 });
 
-it('reverts and rethrows when staging fails, without applying', async () => {
+it('rethrows when staging fails, without applying', async () => {
   const conn = new ScriptedConnection((c) => (c.method === 'set' ? new UbusError('INVALID_ARGUMENT', 'uci.set') : {}));
   await expect(stageAndApply(conn, changes, { mode: 'rollback', ...clock() })).rejects.toMatchObject({
     code: 'INVALID_ARGUMENT',
   });
   expect(conn.log).not.toContain('uci.apply');
-  expect(conn.log.slice(-2)).toEqual(['uci.revert(dhcp)', 'uci.revert(firewall)']);
 });
 
 it('passes the rollback timeout to apply', async () => {
