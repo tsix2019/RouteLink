@@ -16,7 +16,9 @@ export function AppStack() {
   const screenOptions: StackOptions =
     Platform.OS === 'ios'
       ? {
-          contentStyle: { backgroundColor: 'transparent' },
+          // An explicit grouped background: iOS would paint the system background (white) here,
+          // and white cards would disappear on it in light mode.
+          contentStyle: { backgroundColor: colors.background },
           headerLargeTitle: true,
           headerTransparent: true,
           headerShadowVisible: false,
@@ -25,6 +27,6 @@ export function AppStack() {
           headerTitleStyle: { color: colors.text },
           headerLargeTitleStyle: { color: colors.text },
         }
-      : { contentStyle: { backgroundColor: 'transparent' }, headerShown: false, animation: 'slide_from_right' };
+      : { contentStyle: { backgroundColor: colors.background }, headerShown: false, animation: 'slide_from_right' };
   return <Stack screenOptions={screenOptions} />;
 }

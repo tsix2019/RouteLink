@@ -15,7 +15,7 @@ for lang in zh en; do
       # Relaunch for every shot (clean navigation, warmed-up demo router). The link goes in as a launch
       # argument: `simctl openurl` would make iOS ask "Open in RouteLink?".
       xcrun simctl launch --terminate-running-process "$UDID" io.github.tsix2019.routelink         -RouteLinkLaunchURL "routelink://demo?lang=$lang&theme=$theme&route=/$page" >/dev/null
-      sleep 8
+      sleep 10
       xcrun simctl io "$UDID" screenshot "docs/screenshots/$lang/ios-$page-$theme.png" >/dev/null
       echo "docs/screenshots/$lang/ios-$page-$theme.png"
     done
