@@ -43,3 +43,9 @@ export type AppT = TFunction<typeof ALL_NAMESPACES>;
 export function useT(): AppT {
   return useTranslation(ALL_NAMESPACES).t;
 }
+
+/** Current UI language, re-rendering on change (for number/duration formatting). */
+export function useLang(): AppLanguage {
+  const { i18n: instance } = useTranslation();
+  return instance.language === 'zh-CN' ? 'zh-CN' : 'en';
+}

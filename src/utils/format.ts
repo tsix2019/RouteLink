@@ -46,6 +46,27 @@ export function formatDuration(seconds: number, lang: Lang): string {
   return parts.join(' ');
 }
 
+const PROTOCOLS: Record<string, { en: string; zh?: string }> = {
+  static: { en: 'Static', zh: '静态地址' },
+  dhcp: { en: 'DHCP' },
+  dhcpv6: { en: 'DHCPv6' },
+  pppoe: { en: 'PPPoE' },
+  pppoa: { en: 'PPPoA' },
+  wireguard: { en: 'WireGuard' },
+  openvpn: { en: 'OpenVPN' },
+  '6in4': { en: '6in4' },
+  qmi: { en: 'QMI' },
+  ncm: { en: 'NCM' },
+  none: { en: 'Unmanaged', zh: '不配置' },
+};
+
+/** Interface protocol as people write it: "pppoe" → "PPPoE". */
+export function protoLabel(proto: string, lang: Lang): string {
+  const p = PROTOCOLS[proto];
+  if (!p) return proto;
+  return lang === 'zh-CN' && p.zh ? p.zh : p.en;
+}
+
 /** Ratio 0..1 → "42%", clamped. */
 export function formatPercent(ratio: number): string {
   const r = Number.isFinite(ratio) ? Math.min(1, Math.max(0, ratio)) : 0;

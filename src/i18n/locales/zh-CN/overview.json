@@ -1,1 +1,64 @@
-{ "title": "概览" }
+{
+  "title": "概览",
+  "system": {
+    "title": "系统",
+    "model": "型号",
+    "firmware": "固件",
+    "kernel": "内核",
+    "hostname": "主机名",
+    "uptime": "运行时间",
+    "time": "路由器时间"
+  },
+  "resources": {
+    "title": "资源",
+    "load": "负载",
+    "memory": "内存",
+    "storage": "存储",
+    "temperature": "温度",
+    "loadDetail": "1/5/15 分钟负载：{{l1}} / {{l5}} / {{l15}}",
+    "cores": "{{count}} 核",
+    "used": "已用 {{used}} / {{total}}"
+  },
+  "wan": {
+    "title": "外网",
+    "connected": "已连接",
+    "disconnected": "未连接",
+    "ipv4": "IPv4",
+    "ipv6": "IPv6",
+    "dns": "DNS",
+    "gateway": "网关",
+    "uptime": "在线时长",
+    "none": "没有找到 WAN 接口"
+  },
+  "traffic": {
+    "title": "实时流量",
+    "down": "下行",
+    "up": "上行",
+    "interval": "每 {{seconds}} 秒刷新",
+    "collecting": "正在采集数据…"
+  },
+  "devices": {
+    "title": "在线设备",
+    "wifi": "无线 {{count}}",
+    "wired": "有线 {{count}}",
+    "total": "共 {{count}} 台"
+  },
+  "actions": {
+    "title": "快捷操作",
+    "reboot": "重启路由器"
+  },
+  "reboot": {
+    "confirmTitle": "重启路由器？",
+    "consequenceOffline": "所有设备会断网大约 1～2 分钟",
+    "consequenceUnsaved": "路由器上还没保存的配置会丢失",
+    "confirm": "重启",
+    "progressTitle": "正在重启",
+    "waitingDown": "正在等待路由器关机…",
+    "waitingUp": "正在等待路由器重新上线…",
+    "done": "路由器已恢复",
+    "timeout": "5 分钟内没有等到路由器恢复",
+    "timeoutHint": "检查路由器的电源和指示灯，或者稍后再试。",
+    "elapsed": "已用时 {{time}}",
+    "close": "关闭"
+  }
+}

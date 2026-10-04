@@ -59,7 +59,11 @@ export const GlassTabBar = forwardRef<RNView, ViewProps & { children: ReactNode 
 
 type ButtonProps = TabTriggerSlotProps & { icon: IconName; label: string; index: number };
 
-export const GlassTabButton = forwardRef<RNView, ButtonProps>(function GlassTabButton({ icon, label, index, isFocused, ...pressable }, ref) {
+export const GlassTabButton = forwardRef<RNView, ButtonProps>(function GlassTabButton(
+  // The trigger's own style would replace ours (row layout, no centring): drop it.
+  { icon, label, index, isFocused, style: _triggerStyle, ...pressable },
+  ref,
+) {
   const { colors } = useTheme();
   const bar = useContext(BarContext);
   useEffect(() => {

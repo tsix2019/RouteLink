@@ -1,4 +1,4 @@
-import { formatBitRate, formatBytes, formatDuration, formatPercent } from './format';
+import { formatBitRate, formatBytes, formatDuration, formatPercent, protoLabel } from './format';
 
 describe('formatBytes', () => {
   it.each([
@@ -54,5 +54,15 @@ describe('formatPercent', () => {
     [1.7, '100%'],
   ])('%d → %s', (ratio, expected) => {
     expect(formatPercent(ratio)).toBe(expected);
+  });
+});
+
+describe('protoLabel', () => {
+  it('spells protocols the usual way', () => {
+    expect(protoLabel('pppoe', 'en')).toBe('PPPoE');
+    expect(protoLabel('static', 'zh-CN')).toBe('静态地址');
+    expect(protoLabel('static', 'en')).toBe('Static');
+    expect(protoLabel('dhcp', 'zh-CN')).toBe('DHCP');
+    expect(protoLabel('batadv', 'en')).toBe('batadv');
   });
 });

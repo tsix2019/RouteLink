@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { skipToken, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
 
@@ -20,7 +20,7 @@ export function RouterSwitcherCapsule() {
   const { colors } = useTheme();
   const { router: active, status } = useActiveRouter();
   // Observe the cached system query without fetching: its state is the router's reachability.
-  const system = useQuery({ queryKey: [active?.id ?? 'none', 'system'], enabled: false });
+  const system = useQuery({ queryKey: [active?.id ?? 'none', 'system'], queryFn: skipToken });
 
   const name = active ? (active.isDemo ? t('demoRouter') : active.name) : t('routers:add');
   const label = name.length > MAX_NAME ? `${name.slice(0, MAX_NAME - 1)}…` : name;

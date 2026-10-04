@@ -1,1 +1,64 @@
-{ "title": "Overview" }
+{
+  "title": "Overview",
+  "system": {
+    "title": "System",
+    "model": "Model",
+    "firmware": "Firmware",
+    "kernel": "Kernel",
+    "hostname": "Hostname",
+    "uptime": "Uptime",
+    "time": "Router time"
+  },
+  "resources": {
+    "title": "Resources",
+    "load": "Load",
+    "memory": "Memory",
+    "storage": "Storage",
+    "temperature": "Temperature",
+    "loadDetail": "Load 1/5/15 min: {{l1}} / {{l5}} / {{l15}}",
+    "cores": "{{count}} cores",
+    "used": "{{used}} of {{total}} used"
+  },
+  "wan": {
+    "title": "Internet",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "ipv4": "IPv4",
+    "ipv6": "IPv6",
+    "dns": "DNS",
+    "gateway": "Gateway",
+    "uptime": "Connected for",
+    "none": "No WAN interface found"
+  },
+  "traffic": {
+    "title": "Live Traffic",
+    "down": "Down",
+    "up": "Up",
+    "interval": "Every {{seconds}} s",
+    "collecting": "Collecting samples…"
+  },
+  "devices": {
+    "title": "Devices Online",
+    "wifi": "{{count}} Wi-Fi",
+    "wired": "{{count}} wired",
+    "total": "{{count}} total"
+  },
+  "actions": {
+    "title": "Quick Actions",
+    "reboot": "Reboot Router"
+  },
+  "reboot": {
+    "confirmTitle": "Reboot the router?",
+    "consequenceOffline": "Every device loses its connection for about 1–2 minutes",
+    "consequenceUnsaved": "Configuration not yet saved on the router is lost",
+    "confirm": "Reboot",
+    "progressTitle": "Rebooting",
+    "waitingDown": "Waiting for the router to shut down…",
+    "waitingUp": "Waiting for the router to come back…",
+    "done": "The router is back",
+    "timeout": "The router did not come back within 5 minutes",
+    "timeoutHint": "Check the router's power and status lights, or try again later.",
+    "elapsed": "Elapsed {{time}}",
+    "close": "Close"
+  }
+}
