@@ -216,7 +216,7 @@ modules/routelink-native/  新增 Android 前台服务和实时更新通知
 
 ### 6.2 格式
 
-- **记录**：每一层一个文件，记录是定长的二进制结构，追加写入。一条流量记录包括：时间戳、设备序号、互联网收发字节、局域网收发字节、连接数。
+- **记录**：每一层一个文件，记录是 32 字节的定长二进制结构，追加写入。一条流量记录包括：时间戳、设备序号、分类、连接数、收发字节。同一台设备在同一个桶里，每个分类各占一条记录。WAN 口每个桶都写一条记录，流量为 0 时也写，查询时用它区分"没有流量"和"数据缺失"。
 - **设备表**：MAC 和序号的对应关系、首次和最近出现时间，存成一个 JSON 文件。
 - **原子写入**：先写临时文件，再改名替换。
 - **为什么不用 SQLite 和 RRD**：SQLite 在小路由器上太重；RRD 每台设备每项指标一个文件，时间范围也固定。
@@ -237,7 +237,10 @@ modules/routelink-native/  新增 Android 前台服务和实时更新通知
 
 - **时间戳**：所有记录用 UTC 时间戳保存。
 - **对齐**：按天、按月的汇总，按路由器的时区（UCI `system.zonename`）对齐边界。
-- **对时**：开机后要等 NTP 对时完成（ntpd 的 hotplug 事件，或者系统时间晚于软件包的构建时间），才开始写盘。在此之前数据只留在内存里。
+- **对时**：开机后要等 NTP 对时完成，才开始写盘，在此之前数据只留在内存里。满足以下任一条件就认为已经对时：
+  - 收到 ntpd 的 hotplug 对时事件
+  - 系统关闭了 NTP
+  - 运行时间超过 15 分钟，并且系统时间晚于软件包的构建时间
 
 ### 6.5 性能目标
 
@@ -260,7 +263,7 @@ modules/routelink-native/  新增 Android 前台服务和实时更新通知
 | `info` | — | 插件版本、接口版本号 `api`、角色、启用的模块、加速模式、nlbwmon 冲突、数据目录和占用、是否已对时 | P1 |
 | `devices` | — | 设备列表：MAC、名称、IP（IPv4 和 IPv6）、首次和最近出现时间、是否在线、是否信任、是否随机 MAC、今日用量、当前速率 | P1 |
 | `live` | — | 申请或续期实时租约；同时返回 WAN 速率、各设备速率、在线数、占用最多的设备 | P1 |
-| `history` | `mac?`、`start`、`end`、`class?`（internet/lan/router/wan）、`hours?`（每天的时段） | 曲线数据。按时间范围自动选择粒度，最多 500 个点 | P1 |
+| `history` | `mac?`、`start`、`end`、`class?`（internet/lan/router/wan/all）、`hours?`（每天的时段） | 曲线数据。按时间范围自动选择粒度，最多 500 个点 | P1 |
 | `summary` | `start`、`end`、`class?`、`hours?`、`sort`、`limit`、`offset` | 时间段内各设备的用量和排行 | P1 |
 | `events` | `start`、`end`、`types?`、`mac?` | 上下线、新设备、配额、断网等事件 | P1 |
 | `stations` | — | 当前无线终端的详细信息（AP 角色） | P2 |
@@ -275,6 +278,8 @@ modules/routelink-native/  新增 Android 前台服务和实时更新通知
 | `dns` | `mac?`、`start`、`end`、`q?`、`limit`、`offset` | DNS 记录 | P4 |
 | `notify_test` | `section` | 向指定渠道发送一条测试消息 | P4 |
 | `reset` | `scope` | 清空指定类别的数据 | P1 |
+| `commit` | — | 立即写盘（设置页的按钮和升级固件前的钩子用） | P1 |
+| `ntp_synced` | — | 内部方法，由 ntpd 的 hotplug 脚本调用，不授权给任何账号 | P1 |
 
 - **大小限制**：所有返回结果都分页或降采样，每条消息控制在 ubus 的 1 MB 上限以内。
 - **版本兼容**：
@@ -308,7 +313,7 @@ config notify                    # 推送渠道：类型、地址或令牌、订
 | 组 | 内容 |
 |---|---|
 | 只读组 | 所有查询方法，以及 UCI `routelink` 的读权限 |
-| 读写组 | `speedtest_start`、`notify_test`、`reset`，以及 UCI `routelink` 的写权限 |
+| 读写组 | `speedtest_start`、`notify_test`、`reset`、`commit`，以及 UCI `routelink` 的写权限 |
 
 root 账号本来就能访问全部接口。LuCI 的非 root 账号可以单独授权。
 
@@ -323,7 +328,7 @@ root 账号本来就能访问全部接口。LuCI 的非 root 账号可以单独�
 |---|---|---|
 | 概览 | 角色和状态、冲突与加速提示、WAN 实时速率、今日排行前 5 | P1 |
 | 流量 | 时间段选择、上下行曲线、设备排行、实时速率表、CSV 导出 | P1 |
-| 设备详情 | 曲线、上下线记录；P4 起加上访问去向和 DNS | P1 |
+| 设备详情（流量页里的弹窗） | 曲线、上下线记录；P4 起加上访问去向和 DNS | P1 |
 | 无线 | 终端信号表、信号历史、信道繁忙度 | P2 |
 | 延迟与断网 | 延迟曲线、丢包、断网列表、测速 | P3 |
 | 限速与配额 | 规则列表和编辑 | P4 |
@@ -413,7 +418,7 @@ AP 角色只显示"无线"和"设置"两页。
 | `luci-app-routelink` | 不分架构（all） | LuCI 页面、菜单、ACL |
 | `luci-i18n-routelink-zh-cn` | 不分架构（all） | 中文翻译 |
 
-- **依赖**：只依赖官方软件源里有的包：libubox、libubus、libuci、libnl-tiny、kmod-nf-conntrack-netlink，以及限速需要的 tc-tiny 和 kmod-sched 系列。最终的列表在实现时确定。
+- **依赖**：只依赖官方软件源里有的包：libubox、libubus、libuci、libjson-c、libmnl、kmod-nf-conntrack-netlink；P4 再加上限速需要的 tc-tiny 和 kmod-sched 系列。
 - **版本号**：`PKG_VERSION` 用纯语义化版本，比如 `1.2.0`；`PKG_RELEASE` 用整数。接口版本号 `api` 单独维护。
 
 ### 13.2 CI 与发布
@@ -441,11 +446,16 @@ AP 角色只显示"无线"和"设置"两页。
 2. **取清单**：手机下载 `manifest.json`，找到匹配的安装包。找不到时，说明"暂不支持这种架构"。
 3. **下载**：手机下载安装包，并用 SHA-256 校验。
    - 下载地址可以在设置里加一个镜像前缀，因为国内访问 GitHub 不稳定。
-4. **上传**：用 cgi-upload 把安装包传到路由器的 `/tmp/routelink/`。
+4. **上传**：rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管理页本来就有的权限。具体是：
+   - 辅助程序：23.05 是 `opkg-call`，24.10 起是 `package-manager-call`
+   - 上传路径：比如 `/tmp/upload.ipk`
+   - 写入方式：用 `file write` 分块写入安装包。不支持时，退而用 cgi-upload。
+   - 每个版本的具体情况在 P1 计划的 T28 里验证。
 5. **安装**：
-   - 如果软件包列表不存在，先执行 `opkg update` 或 `apk update`。
-   - 然后执行 `opkg install` 或 `apk add --allow-untrusted`，依赖从官方软件源补装。
+   - 如果软件包列表不存在，先通过辅助程序更新列表。
+   - 然后通过辅助程序安装上传的包，依赖从官方软件源补装。
    - 这几步命令的超时延长到 180 秒。
+   - 路由器上没有 LuCI 软件包管理页（`luci-app-opkg` 或 `luci-app-package-manager`）时，提示先安装它，或者改用手动安装。
 6. **安装后**：重新检测功能（主设计 §5 的功能检测），插件页显示安装结果。
 7. **可选**：勾选"同时添加软件源"，App 会把软件源地址和公钥写进路由器，以后也可以在 LuCI 里升级插件。
 8. **批量**：网络组里的几台设备可以一起安装，每台单独显示进度。
@@ -460,6 +470,8 @@ AP 角色只显示"无线"和"设置"两页。
 | 空间不够 | 显示需要多少、还剩多少 |
 | 依赖装不上 | 列出缺少的包名，提示路由器需要能上网 |
 | 不是 root 账号 | 提示改用 root 登录 |
+| 没有 LuCI 软件包管理页 | 提示先安装 `luci-app-opkg` 或 `luci-app-package-manager` |
+| 安装包校验失败 | 提示重新下载，或者换一个镜像地址 |
 
 以上每种情况都附上手动安装说明的链接。
 
