@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
-import { AppText } from './AppText';
+import { AppText, fontFor } from './AppText';
 import { Icon } from './Icon';
 import { useTheme } from './theme/ThemeProvider';
 import { radius, spacing } from './theme/tokens';
@@ -35,7 +35,7 @@ export function TextField({ label, error, hint, secret, monospace, style, ...res
           autoCapitalize="none"
           autoCorrect={false}
           secureTextEntry={secret && !visible}
-          style={[styles.input, { color: colors.text }, monospace && styles.mono, style]}
+          style={[styles.input, monospace ? null : fontFor('400'), { color: colors.text }, monospace && styles.mono, style]}
           {...rest}
         />
         {secret ? (

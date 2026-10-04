@@ -2,24 +2,21 @@ import { Stack } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { Platform } from 'react-native';
 
-import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
 import { useTheme } from '@/ui/theme/ThemeProvider';
-
-import { GlassHeader, type GlassHeaderProps } from './GlassHeader';
 
 type StackOptions = NonNullable<ComponentProps<typeof Stack>['screenOptions']>;
 
 /**
  * One stack per tab. iOS: native large-title header, transparent so iOS 26 renders its glass edge
- * effect. Android: a custom glass header. The tab root shows the router switcher on the left.
+ * effect. Android: no native header — Screen draws an iOS 26–style bar. Titles and header items are
+ * set by each screen through <Screen title headerLeft headerRight>.
  */
-export function TabStack({ title }: { title: string }) {
+export function TabStack() {
   const { colors } = useTheme();
-  const common: StackOptions = { contentStyle: { backgroundColor: 'transparent' } };
   const screenOptions: StackOptions =
     Platform.OS === 'ios'
       ? {
-          ...common,
+          contentStyle: { backgroundColor: 'transparent' },
           headerLargeTitle: true,
           headerTransparent: true,
           headerShadowVisible: false,
@@ -28,11 +25,6 @@ export function TabStack({ title }: { title: string }) {
           headerTitleStyle: { color: colors.text },
           headerLargeTitleStyle: { color: colors.text },
         }
-      : { ...common, header: (props) => <GlassHeader {...(props as unknown as GlassHeaderProps)} /> };
-
-  return (
-    <Stack screenOptions={screenOptions}>
-      <Stack.Screen name="index" options={{ title, headerLeft: () => <RouterSwitcherCapsule /> }} />
-    </Stack>
-  );
+      : { contentStyle: { backgroundColor: 'transparent' }, headerShown: false, animation: 'slide_from_right' };
+  return <Stack screenOptions={screenOptions} />;
 }

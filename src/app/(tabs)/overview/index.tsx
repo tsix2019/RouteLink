@@ -6,6 +6,7 @@ import { pickWan } from '@/api/services/network';
 import { DevicesCard, ResourcesCard, SystemCard, TrafficCard, WanCard } from '@/features/overview/cards';
 import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
+import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
 import {
   useCapabilities,
   useClients,
@@ -60,6 +61,8 @@ export default function Overview() {
 
   return (
     <Screen
+      title={t('tabs.overview')}
+      headerLeft={<RouterSwitcherCapsule />}
       refreshing={system.isRefetching}
       onRefresh={refresh}
       top={

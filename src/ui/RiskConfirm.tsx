@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useT } from '@/i18n';
@@ -10,6 +10,7 @@ import { GlassSurface } from './glass/GlassSurface';
 import { Icon } from './Icon';
 import { TextField } from './TextField';
 import { useTheme } from './theme/ThemeProvider';
+import { Toggle } from './Toggle';
 import { spacing } from './theme/tokens';
 
 export interface RiskConfirmProps {
@@ -64,12 +65,7 @@ function MediumRisk({ title, consequences, confirmLabel, disruptive, option, onC
               <AppText variant="body" style={styles.flex}>
                 {option.label}
               </AppText>
-              <Switch
-                value={option.value}
-                onValueChange={option.onChange}
-                trackColor={{ true: colors.accent }}
-                accessibilityLabel={option.label}
-              />
+              <Toggle value={option.value} onValueChange={option.onChange} accessibilityLabel={option.label} />
             </View>
           ) : null}
           <GlassButton label={confirmLabel} variant={disruptive ? 'warning' : 'primary'} onPress={onConfirm} />

@@ -6,6 +6,7 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { DeviceRow } from '@/features/devices/DeviceRow';
 import { filterClients, type LinkFilter, type StatusFilter } from '@/features/devices/filter';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
+import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
 import { useClients } from '@/hooks/router-queries';
 import { useT } from '@/i18n';
 import { AppText } from '@/ui/AppText';
@@ -40,6 +41,8 @@ export default function Devices() {
         />
       ) : null}
       <Screen
+        title={t('tabs.devices')}
+        headerLeft={<RouterSwitcherCapsule />}
         refreshing={clients.isRefetching}
         onRefresh={() => void clients.refetch()}
         top={<ConnectionBanner error={clients.data ? clients.error : null} onRetry={() => void clients.refetch()} />}>

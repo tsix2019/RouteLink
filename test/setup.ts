@@ -2,6 +2,10 @@
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories cannot use import
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories cannot use import
+jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories cannot use import
+jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 
 // The real module calls requireNativeModule() at import time. Tests override individual functions.
 jest.mock('routelink-native', () => {

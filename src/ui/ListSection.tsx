@@ -1,10 +1,11 @@
 import { Children, Fragment, isValidElement, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from './AppText';
 import { GlassSurface } from './glass/GlassSurface';
 import { Icon, type IconName } from './Icon';
 import { useTheme } from './theme/ThemeProvider';
+import { Toggle } from './Toggle';
 import { spacing } from './theme/tokens';
 
 export function ListSection({ title, footer, children }: { title?: string; footer?: string; children: ReactNode }) {
@@ -96,7 +97,7 @@ export function ListRow({
       ) : null}
       {right}
       {switchValue !== undefined ? (
-        <Switch value={switchValue} onValueChange={onSwitch} disabled={disabled} trackColor={{ true: colors.accent }} />
+        <Toggle value={switchValue} onValueChange={onSwitch} disabled={disabled} accessibilityLabel={title} />
       ) : null}
       {chevron ? <Icon name="chevronRight" size={16} color={colors.textTertiary} /> : null}
     </View>
