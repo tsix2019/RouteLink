@@ -28,9 +28,17 @@ jobs:
           cmake --build build -j
           ctest --test-dir build --output-on-failure
 
+  lint:
+    name: init script format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: |
+          docker run --rm -v "$PWD/openwrt/routelinkd/files:/w" -w /w mvdan/shfmt:latest -d -sr -s routelink.init
+
   build:
     name: ${{ matrix.release }} ${{ matrix.arch }}
-    needs: unit
+    needs: [unit, lint]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -56,6 +64,8 @@ jobs:
           FEED_DIR: ${{ github.workspace }}/openwrt
           PACKAGES: routelinkd luci-app-routelink
           NO_REFRESH_CHECK: true
+          # the SDK image has no shfmt and openwrt/ is not a git root; the init script is checked below
+          NO_SHFMT_CHECK: true
       - name: Store packages
         uses: actions/upload-artifact@v7
         with:
