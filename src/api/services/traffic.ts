@@ -36,4 +36,10 @@ export class RateTracker {
     this.last = undefined;
     this.points.length = 0;
   }
+
+  /** Starts an empty tracker with earlier points (the demo router's made-up history). */
+  seed(points: readonly RatePoint[]): void {
+    if (this.points.length) return;
+    this.points.push(...points.slice(-this.capacity));
+  }
 }

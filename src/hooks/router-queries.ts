@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useIsFocused } from 'expo-router';
 
 import { detectCapabilities } from '@/api/capabilities';
+import { demoRateHistory } from '@/api/connection/demo/history';
 import type { RouterConnection } from '@/api/connection/types';
 import { getClients } from '@/api/services/clients';
 import { kernelLog, systemLog } from '@/api/services/logs';
@@ -72,6 +73,7 @@ export function useTraffic() {
     ['traffic', wanDevice],
     async (conn): Promise<readonly RatePoint[]> => {
       const tracker = trackerFor(key);
+      if (conn.kind === 'demo') tracker.seed(demoRateHistory(59, intervalMs, Date.now()));
       const counters = (await getDeviceCounters(conn))[wanDevice ?? ''];
       if (counters) tracker.push(Date.now(), counters.rx, counters.tx);
       return [...tracker.series]; // copy: the tracker mutates in place

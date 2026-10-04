@@ -43,6 +43,8 @@ export interface ScreenProps {
   contentStyle?: StyleProp<ViewStyle>;
   /** For screens that scroll themselves, e.g. a log jumping to its end. */
   scrollRef?: RefObject<ScrollView | null>;
+  onContentSizeChange?: (width: number, height: number) => void;
+  onScrollBeginDrag?: () => void;
 }
 
 const BAR_HEIGHT = 52;
@@ -95,6 +97,8 @@ function NativeHeaderScreen({
   top,
   contentStyle,
   scrollRef,
+  onContentSizeChange,
+  onScrollBeginDrag,
 }: ScreenProps) {
   const { colors } = useTheme();
   const tabSpace = useTabBarSpace();
@@ -113,6 +117,8 @@ function NativeHeaderScreen({
       ) : null}
       <ScrollView
         ref={scrollRef}
+        onContentSizeChange={onContentSizeChange}
+        onScrollBeginDrag={onScrollBeginDrag}
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.content, { paddingBottom: bottom }, contentStyle]}
@@ -143,6 +149,8 @@ function GlassBarScreen({
   top,
   contentStyle,
   scrollRef,
+  onContentSizeChange,
+  onScrollBeginDrag,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -190,6 +198,8 @@ function GlassBarScreen({
     <View style={styles.flex}>
       <Animated.ScrollView
         ref={scrollRef}
+        onContentSizeChange={onContentSizeChange}
+        onScrollBeginDrag={onScrollBeginDrag}
         onScroll={onScroll}
         scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"

@@ -1,5 +1,6 @@
 import { FixtureConnection, ok } from '../../../test/fixture-connection';
 import { getDeviceCounters, getInterfaces, pickWan, reconnectInterface } from './network';
+import { demoRateHistory } from '../connection/demo/history';
 import { RateTracker } from './traffic';
 
 describe('getInterfaces (OpenWrt 24.10 fixture)', () => {
@@ -85,5 +86,27 @@ describe('RateTracker', () => {
     for (let i = 0; i <= 10; i++) t.push(i * 1000, i * 100, 0);
     expect(t.series).toHaveLength(3);
     expect(t.latest?.t).toBe(10_000);
+  });
+
+  it('seeds an empty tracker only, within capacity', () => {
+    const t = new RateTracker(3);
+    const history = demoRateHistory(5, 2000, 10_000);
+    t.seed(history);
+    expect(t.series.map((p) => p.t)).toEqual([6000, 8000, 10_000]);
+    t.seed(demoRateHistory(5, 2000, 99_000));
+    expect(t.latest?.t).toBe(10_000);
+  });
+});
+
+describe('demoRateHistory', () => {
+  it('is reproducible, evenly spaced and in a believable range', () => {
+    const a = demoRateHistory(60, 2000, 120_000);
+    expect(a).toEqual(demoRateHistory(60, 2000, 120_000));
+    expect(a[59].t - a[0].t).toBe(59 * 2000);
+    for (const p of a) {
+      expect(p.rxBps).toBeGreaterThan(1_000_000);
+      expect(p.rxBps).toBeLessThan(200_000_000);
+      expect(p.txBps).toBeGreaterThan(100_000);
+    }
   });
 });

@@ -20,6 +20,12 @@ demo network -e wifi show -e level 4 -e mobile show -e datatype none -e level 4
 demo notifications -e visible false
 trap 'demo exit' EXIT
 
+# Warm-up: the first launch after installing is slow and would spoil a shot.
+"${ADB[@]}" shell am force-stop "$PKG"
+MSYS_NO_PATHCONV=1 "${ADB[@]}" shell am start -W -a android.intent.action.VIEW \
+  -d "'routelink://demo?lang=en&route=/overview'" "$PKG" >/dev/null
+sleep 15
+
 for lang in zh en; do
   mkdir -p "docs/screenshots/$lang"
   for theme in light dark; do

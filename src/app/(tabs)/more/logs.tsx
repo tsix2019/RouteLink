@@ -34,9 +34,11 @@ export default function Logs() {
   const matching = q ? all.filter((l) => lineText(l).toLowerCase().includes(q)) : all;
   const shown = matching.slice(-MAX_LINES);
 
-  // Logs are read bottom-up: jump to the newest line whenever the content changes.
+  // Logs are read bottom-up: stay pinned to the newest line as the content grows, until the user
+  // scrolls; new data, another log or another filter pins it again.
+  const pinned = useRef(true);
   useEffect(() => {
-    if (log.data) requestAnimationFrame(() => scroll.current?.scrollToEnd({ animated: false }));
+    pinned.current = true;
   }, [log.data, kind, q]);
 
   const color = (l: LogLine) =>
@@ -50,6 +52,12 @@ export default function Logs() {
     <Screen
       title={t('more:logs')}
       scrollRef={scroll}
+      onContentSizeChange={() => {
+        if (pinned.current) scroll.current?.scrollToEnd({ animated: false });
+      }}
+      onScrollBeginDrag={() => {
+        pinned.current = false;
+      }}
       onRefresh={() => log.refetch()}
       headerRight={
         <HeaderButton
