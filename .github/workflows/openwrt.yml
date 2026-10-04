@@ -74,3 +74,29 @@ jobs:
             bin/packages/${{ matrix.arch }}/routelink/*.ipk
             bin/packages/${{ matrix.arch }}/routelink/*.apk
           if-no-files-found: error
+
+  integration:
+    name: accuracy on Docker (24.10.8 x86_64)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          name: pkg-24.10.8-x86_64
+          path: openwrt/out/24.10.8/x86_64
+      - run: scripts/agent-router.sh up 24.10.8
+      - run: scripts/agent-dev-install.sh
+      - run: scripts/traffic-lab.sh up
+      - run: npx jest -c jest.agent.config.js
+        env:
+          ROUTER_URL: http://127.0.0.1:18280
+          ROUTER_PASSWORD: routelink-test
+      - name: Router log
+        if: failure()
+        run: docker exec routelink-agent-owrt logread | tail -100
