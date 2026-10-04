@@ -1,0 +1,7 @@
+{
+  "ok": true,
+  "data": {
+    "code": 1,
+    "stderr": "dmesg: klogctl: Operation not permitted\n"
+  }
+}

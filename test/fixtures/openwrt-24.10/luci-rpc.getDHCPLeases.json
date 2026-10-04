@@ -1,0 +1,7 @@
+{
+  "ok": true,
+  "data": {
+    "dhcp_leases": [],
+    "dhcp6_leases": []
+  }
+}

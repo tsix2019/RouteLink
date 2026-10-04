@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "data": {
+    "16:C1:8C:3E:B3:D2": {
+      "ipaddrs": [
+        "172.30.0.1"
+      ],
+      "ip6addrs": []
+    },
+    "52:FD:6B:26:D2:2D": {
+      "ipaddrs": [
+        "172.30.0.2"
+      ],
+      "ip6addrs": [],
+      "name": "routelink-owrt.routelink-lan"
+    },
+    "D2:FA:F9:44:33:6D": {
+      "ipaddrs": [
+        "172.31.0.2"
+      ],
+      "ip6addrs": [],
+      "name": "routelink-owrt.routelink-wan"
+    }
+  }
+}

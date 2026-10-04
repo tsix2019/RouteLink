@@ -1,0 +1,48 @@
+{
+  "ok": true,
+  "data": {
+    "values": {
+      "loopback": {
+        ".anonymous": false,
+        ".type": "interface",
+        ".name": "loopback",
+        ".index": 0,
+        "device": "lo",
+        "proto": "static",
+        "ipaddr": "127.0.0.1",
+        "netmask": "255.0.0.0"
+      },
+      "globals": {
+        ".anonymous": false,
+        ".type": "globals",
+        ".name": "globals",
+        ".index": 1,
+        "ula_prefix": "fd12:3456:789a::/48"
+      },
+      "lan": {
+        ".anonymous": false,
+        ".type": "interface",
+        ".name": "lan",
+        ".index": 2,
+        "device": "eth0",
+        "proto": "static",
+        "ipaddr": "172.30.0.2",
+        "netmask": "255.255.255.0"
+      },
+      "wan": {
+        ".anonymous": false,
+        ".type": "interface",
+        ".name": "wan",
+        ".index": 3,
+        "device": "eth1",
+        "proto": "static",
+        "ipaddr": "172.31.0.2",
+        "netmask": "255.255.255.0",
+        "gateway": "172.31.0.1",
+        "dns": [
+          "1.1.1.1"
+        ]
+      }
+    }
+  }
+}

@@ -2485,7 +2485,7 @@ printf 'routelink' | gh secret set ANDROID_KEY_ALIAS
 |---|---|
 | T17 Citadel 能否通过 SPM 接入 | |
 | T24/T60 rpcd 行为假设 A1～A4 | |
-| T25 读邻居表用哪种方式（`ip neigh` 或 `/proc/net/arp`） | |
+| T25 读邻居表用哪种方式（`ip neigh` 或 `/proc/net/arp`） | 用 `file exec /sbin/ip -4 neigh show`（luci-mod-status 授权）；`/proc/net/arp` 没有读权限。另外：24.10 下 `log read` 和 `/proc/stat` 都被拒绝，系统日志改用 `/usr/libexec/syslog-wrapper`；CPU 使用率拿不到，改为"1 分钟负载 ÷ 核心数"，核心数通过 `file list /sys/devices/system/cpu` 统计；温度在原版 OpenWrt 上读不到（`luci getTempInfo` 只有 ImmortalWrt 有）；`network.device status` 和 `iwinfo devices` 被拒绝，改用 `luci-rpc getNetworkDevices` 和 `getWirelessDevices`。Docker 版测试路由器需要 `NET_ADMIN` 权限，否则 netifd 会卡住 |
 | T29 只有 name 和 mac 的 `dhcp host` 条目能否生效 | |
 | T56 拖动排序用的库 | |
 | T32 真实路由器的兼容性问题 | |
