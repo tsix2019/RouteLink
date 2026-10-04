@@ -84,6 +84,7 @@ function RootStack() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="welcome" />
         <Stack.Screen name="demo" options={{ animation: 'none' }} />
+        <Stack.Screen name="selftest" />
         <Stack.Screen name="add-router" options={{ presentation: 'modal' }} />
         <Stack.Screen name="router-switcher" options={sheetOptions([0.55, 1])} />
         <Stack.Screen name="trust-certificate" options={sheetOptions([0.8, 1])} />
