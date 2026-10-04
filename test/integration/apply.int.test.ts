@@ -2,7 +2,7 @@
 // Findings recorded in the plan's execution log (T24/T60): A1 confirm keeps the change, A2 confirm
 // without a pending apply is NO_DATA, A3 only the applying session may confirm, A4 an unconfirmed apply is rolled
 // back and its changes return to the applying session's staging area, A5 root may not `uci revert`
-// over ubus — which is why every change set is staged in a session of its own.
+// over ubus before 25.12 — which is why every change set is staged in a session of its own.
 import { UbusError } from '../../src/api/ubus/errors';
 import { stageAndApply, uci, type UciSection } from '../../src/api/uci';
 import { connect, sleep } from './router';
@@ -39,14 +39,16 @@ describe('rpcd apply / confirm / rollback', () => {
     await stageAndApply(main, [uci.delOption('system', section, OPTION)], { mode: 'direct' }).catch(() => undefined);
   });
 
-  it('A5: root may not revert or commit over ubus', async () => {
+  it('A5: root may not revert or commit over ubus before 25.12', async () => {
+    const board = await main.call<{ release?: { version?: string } }>('system', 'board');
+    const allowed = /^25\./.test(board.release?.version ?? '');
     for (const fn of ['revert', 'commit']) {
       const r = await main.call<{ access?: boolean }>('session', 'access', {
         scope: 'ubus',
         object: 'uci',
         function: fn,
       });
-      expect(r.access).toBe(false);
+      expect(r.access).toBe(allowed);
     }
   });
 

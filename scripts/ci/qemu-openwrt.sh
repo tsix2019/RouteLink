@@ -50,14 +50,27 @@ if command -v apk >/dev/null 2>&1; then
 else
   opkg update && opkg install kmod-mac80211-hwsim wpad-basic-mbedtls luci-app-wol
 fi
-# The radios appear once the module is loaded and netifd has noticed them (25.12 is slower).
-modprobe mac80211_hwsim 2>/dev/null || true
+# Three simulated radios: two APs that RouteLink manages (2.4 and 5 GHz) and a "neighbour" AP on
+# 2.4 GHz, so that scans from radio0 find something. `wifi config` would pick 6 GHz for hwsim radios,
+# where an open network can't start, so bands, channels and keys are set explicitly.
+rmmod mac80211_hwsim 2>/dev/null || true
+modprobe mac80211_hwsim radios=3 2>/dev/null || insmod mac80211_hwsim radios=3 2>/dev/null || true
 sleep 3
 rm -f /etc/config/wireless
 for i in $(seq 1 10); do wifi config >/dev/null 2>&1 && [ -s /etc/config/wireless ] && break; sleep 3; done
-for r in radio0 radio1; do uci -q set "wireless.$r.disabled=0" || true; done
-uci -q set wireless.default_radio0.ssid=RouteLink || true
-uci -q set wireless.default_radio1.ssid=RouteLink-5G || true
+setup_radio() { # radio band channel htmode ssid
+  uci -q set "wireless.$1.disabled=0"
+  uci -q set "wireless.$1.band=$2"
+  uci -q set "wireless.$1.channel=$3"
+  uci -q set "wireless.$1.htmode=$4"
+  uci -q set "wireless.$1.country=US"
+  uci -q set "wireless.default_$1.ssid=$5"
+  uci -q set "wireless.default_$1.encryption=psk2"
+  uci -q set "wireless.default_$1.key=routelink-test"
+}
+setup_radio radio0 2g 1 HT20 RouteLink || true
+setup_radio radio1 5g 36 VHT80 RouteLink-5G || true
+setup_radio radio2 2g 11 HT20 Neighbor-Test || true
 uci commit wireless
 # netifd must re-read the config before `wifi up` knows the radios (25.12 answers "Not found" otherwise).
 ubus call network reload 2>/dev/null || true

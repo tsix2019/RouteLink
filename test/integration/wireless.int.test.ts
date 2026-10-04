@@ -24,6 +24,9 @@ describe('wireless', () => {
     expect(['confirmed', 'applied']).toContain(outcome.status);
     expect((await getRadios(conn)).find((r) => r.name === radio.name)?.channel).toBe(channel);
 
+    // Radios only listed in the config (none running) would pass the checks above: CI wants them up.
+    const running = await waitFor(async () => (await getRadios(conn)).some((r) => r.up), 60_000, 3_000);
+    if (process.env.EXPECT_RADIOS === '1') expect(running).toBe(true);
     const ifname = (await getRadios(conn)).flatMap((r) => r.networks).find((n) => n.ifname)?.ifname;
     if (!ifname) return;
     let results: Awaited<ReturnType<typeof scan>> = [];
