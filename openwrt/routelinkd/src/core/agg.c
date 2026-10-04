@@ -208,6 +208,37 @@ void rl_agg_open(const rl_agg *a, rl_tier tier, rl_rec_cb cb, void *ctx)
 	free(list);
 }
 
+void rl_agg_flush(rl_agg *a, rl_tier tier)
+{
+	if (!a->open[tier])
+		return;
+	slot **list;
+	size_t k = touched_sorted(a, tier, &list);
+	for (size_t i = 0; i < k; i++) {
+		rl_rec r = to_rec(list[i], tier, a->open[tier]);
+		memset(&list[i]->t[tier], 0, sizeof(acc));
+		if (a->on_close)
+			a->on_close(tier, &r, a->ctx);
+	}
+	free(list);
+}
+
+void rl_agg_hydrate(rl_agg *a, int64_t now, rl_tier tier, const rl_rec *r)
+{
+	open_if_needed(a, now);
+	slot *s = get_slot(a, r->dev, (rl_class)r->cls);
+	s->t[tier].rx += r->rx;
+	s->t[tier].tx += r->tx;
+	if (r->conns > s->t[tier].conns)
+		s->t[tier].conns = r->conns;
+	s->t[tier].touched = 1;
+}
+
+int64_t rl_agg_open_start(const rl_agg *a, rl_tier tier)
+{
+	return a->open[tier];
+}
+
 void rl_agg_reset(rl_agg *a)
 {
 	a->n = 0;

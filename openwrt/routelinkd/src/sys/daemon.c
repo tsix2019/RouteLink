@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include "core/classify.h"
+#include "core/recover.h"
 #include "core/util.h"
 #include "core/version.h"
 #include "sys/api.h"
@@ -216,6 +217,7 @@ static void handle_time_jump(rl_daemon *d, int64_t now)
 		/* everything recorded so far carries the wrong time: drop it, the clock is set now */
 		rl_agg_reset(d->agg);
 		rl_store_discard_pending(d->store);
+		rl_recover(d->store, d->agg, now);
 		d->synced = true;
 	}
 	event(d, RL_EV_TIME_JUMP, RL_EV_NO_DEV, jump);
@@ -386,13 +388,15 @@ static void compute_limits(rl_daemon *d)
 	d->commit_interval = d->cfg.commit_interval ? d->cfg.commit_interval : on_flash(d->cfg.data_dir) ? 3600 : 600;
 }
 
-int rl_daemon_commit(rl_daemon *d)
+int rl_daemon_commit(rl_daemon *d, bool flush_minute)
 {
 	check_synced(d);
 	if (!d->synced)
 		return -1;
 	int64_t now = rl_daemon_now();
 	int rc = 0;
+	if (flush_minute)
+		rl_agg_flush(d->agg, RL_TIER_MINUTE); /* the partial minute; rl_recover adds it back after a restart */
 	if (rl_store_commit(d->store) != 0)
 		rc = -1;
 	if (rl_devtab_save(d->devs, d->devtab_path) != 0)
@@ -418,7 +422,7 @@ int rl_daemon_commit(rl_daemon *d)
 static void commit_timer_cb(struct uloop_timeout *t)
 {
 	rl_daemon *d = container_of(t, rl_daemon, commit_timer);
-	rl_daemon_commit(d);
+	rl_daemon_commit(d, false);
 	uloop_timeout_set(t, d->commit_interval * 1000);
 }
 
@@ -556,6 +560,9 @@ int rl_daemon_init(rl_daemon *d)
 		abort();
 	if (open_data(d) != 0)
 		return -1;
+	int caught_up = rl_recover(d->store, d->agg, d->started);
+	if (caught_up)
+		syslog(LOG_INFO, "rebuilt %d hour/day/month records after downtime", caught_up);
 	d->last_compact_day = rl_bucket_start(RL_TIER_DAY, d->started);
 	d->synced = !rl_config_ntp_enabled() || (uptime() > 900 && d->started > RL_BUILD_EPOCH);
 	event(d, RL_EV_DAEMON_START, RL_EV_NO_DEV, 0);
@@ -592,7 +599,7 @@ void rl_daemon_reload(rl_daemon *d)
 		/* data is not migrated: close the old directory after a final write */
 		rl_config moved = d->cfg;
 		d->cfg = old;
-		rl_daemon_commit(d);
+		rl_daemon_commit(d, true);
 		d->cfg = moved;
 		close_data(d);
 		rl_devtab_clear(d->devs);
@@ -604,6 +611,7 @@ void rl_daemon_reload(rl_daemon *d)
 			snprintf(d->cfg.data_dir, sizeof(d->cfg.data_dir), "%s", old.data_dir);
 			open_data(d);
 		}
+		rl_recover(d->store, d->agg, rl_daemon_now());
 		d->baseline_next = true;
 	}
 	compute_limits(d);
@@ -617,7 +625,7 @@ void rl_daemon_reload(rl_daemon *d)
 
 void rl_daemon_shutdown(rl_daemon *d)
 {
-	rl_daemon_commit(d);
+	rl_daemon_commit(d, true);
 	close_traffic(d);
 	if (d->neigh) {
 		uloop_fd_delete(&d->neigh_fd);

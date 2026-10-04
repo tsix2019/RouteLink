@@ -478,7 +478,7 @@ static int m_reset(struct ubus_context *ctx, struct ubus_object *obj, struct ubu
 static int m_commit(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req, const char *method,
 		    struct blob_attr *msg)
 {
-	int rc = rl_daemon_commit(D);
+	int rc = rl_daemon_commit(D, true);
 	blob_buf_init(&b, 0);
 	blobmsg_add_u8(&b, "ok", rc == 0);
 	return ubus_send_reply(ctx, req, b.head);

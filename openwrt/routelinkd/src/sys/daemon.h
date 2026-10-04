@@ -65,8 +65,9 @@ bool rl_daemon_traffic_on(const rl_daemon *d);
 void rl_daemon_sample(rl_daemon *d);
 /* Starts or extends the live lease; samples immediately when it was not running. */
 void rl_daemon_live(rl_daemon *d);
-/* Writes pending data when the clock is trusted (always when force and synced). Returns 0 on success. */
-int rl_daemon_commit(rl_daemon *d);
+/* Writes pending data when the clock is trusted; flush_minute also writes the unfinished minute (before a
+ * shutdown or a firmware backup). Returns 0 on success. */
+int rl_daemon_commit(rl_daemon *d, bool flush_minute);
 void rl_daemon_reset(rl_daemon *d, unsigned scope);
 void rl_daemon_time_synced(rl_daemon *d);
 int64_t rl_daemon_now(void);

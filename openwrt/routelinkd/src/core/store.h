@@ -44,6 +44,8 @@ int rl_store_scan(rl_store *s, rl_tier tier, int64_t start, int64_t end, rl_rec_
 uint64_t rl_store_bytes(const rl_store *s);
 /* Oldest record of a tier, or INT64_MAX when empty. */
 int64_t rl_store_oldest(rl_store *s, rl_tier tier);
+/* Newest record of a tier (pending included), or INT64_MIN when empty. */
+int64_t rl_store_newest(rl_store *s, rl_tier tier);
 /* Truncates every tier and drops pending records. */
 int rl_store_reset(rl_store *s);
 

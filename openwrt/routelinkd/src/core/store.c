@@ -422,6 +422,25 @@ int64_t rl_store_oldest(rl_store *s, rl_tier tier)
 	return f->n_pending ? f->pending[0].ts : INT64_MAX;
 }
 
+int64_t rl_store_newest(rl_store *s, rl_tier tier)
+{
+	tier_file *f = &s->t[tier];
+	if (f->n_pending)
+		return f->pending[f->n_pending - 1].ts;
+	uint64_t n = disk_records(f);
+	if (n) {
+		uint8_t raw[RL_STORE_REC_SIZE];
+		int fd = open(f->path, O_RDONLY | O_CLOEXEC);
+		if (fd >= 0) {
+			bool ok = read_at(fd, raw, sizeof(raw), (off_t)(RL_STORE_HDR_SIZE + (n - 1) * RL_STORE_REC_SIZE));
+			close(fd);
+			if (ok)
+				return get_u32(raw);
+		}
+	}
+	return INT64_MIN;
+}
+
 int rl_store_reset(rl_store *s)
 {
 	int rc = 0;

@@ -67,9 +67,10 @@ void rl_config_load(rl_config *c)
 		c->max_size_percent = clamp(get_int(ctx, m, "max_size_percent", c->max_size_percent), 1, 90);
 		c->sample_interval = clamp(get_int(ctx, m, "sample_interval", c->sample_interval), 5, 300);
 		c->live_interval = clamp(get_int(ctx, m, "live_interval", c->live_interval), 1, 10);
-		c->ret.minute_hours = clamp(get_int(ctx, r, "minute_hours", c->ret.minute_hours), 1, 24 * 14);
+		/* restart recovery rebuilds a tier from the next finer one: keep enough of each */
+		c->ret.minute_hours = clamp(get_int(ctx, r, "minute_hours", c->ret.minute_hours), 2, 24 * 14);
 		c->ret.hour_days = clamp(get_int(ctx, r, "hour_days", c->ret.hour_days), 2, 3660);
-		c->ret.day_days = clamp(get_int(ctx, r, "day_days", c->ret.day_days), 7, 36600);
+		c->ret.day_days = clamp(get_int(ctx, r, "day_days", c->ret.day_days), 62, 36600);
 		c->ret.event_days = clamp(get_int(ctx, r, "event_days", c->ret.event_days), 1, 3660);
 	}
 	uci_free_context(ctx);

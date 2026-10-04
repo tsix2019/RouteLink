@@ -26,6 +26,16 @@ void rl_agg_tick(rl_agg *a, int64_t now);
 void rl_agg_open(const rl_agg *a, rl_tier tier, rl_rec_cb cb, void *ctx);
 /* Drops all open buckets and rates (reset of the traffic data). */
 void rl_agg_reset(rl_agg *a);
+/*
+ * Emits the open bucket of one tier as (partial) records and empties it; the bucket stays open.
+ * Used for the minute tier before a shutdown: records are summed, so a second record for the same
+ * minute after the restart is fine.
+ */
+void rl_agg_flush(rl_agg *a, rl_tier tier);
+/* Adds a stored record to the open bucket of a tier (rebuilding open buckets after a restart). */
+void rl_agg_hydrate(rl_agg *a, int64_t now, rl_tier tier, const rl_rec *r);
+/* Start of the open bucket of a tier (0 when nothing is open). */
+int64_t rl_agg_open_start(const rl_agg *a, rl_tier tier);
 
 typedef struct {
 	uint16_t dev;
