@@ -9,12 +9,18 @@ describe('services and logs', () => {
   const dropbear = async () => (await listServices(conn)).find((s) => s.name === 'dropbear');
 
   it('stops and starts a service', async () => {
-    expect((await dropbear())?.running).toBe(true);
+    const before = await dropbear();
+    expect(before?.enabled).toBe(true);
+    await serviceAction(conn, 'dropbear', 'stop');
+    await serviceAction(conn, 'dropbear', 'start');
+    // 23.05 lists init scripts without their state: there the calls succeeding is all we can check.
+    if (before?.running === undefined) return;
+    expect(before.running).toBe(true);
     await serviceAction(conn, 'dropbear', 'stop');
     expect(await waitFor(async () => (await dropbear())?.running === false, 15_000)).toBe(true);
     await serviceAction(conn, 'dropbear', 'start');
     expect(await waitFor(async () => (await dropbear())?.running === true, 15_000)).toBe(true);
-  }, 60_000);
+  }, 90_000);
 
   it('reads the system log', async () => {
     expect((await systemLog(conn)).length).toBeGreaterThan(0);

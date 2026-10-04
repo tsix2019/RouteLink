@@ -75,10 +75,16 @@ export default function Services() {
                   key={s.name}
                   title={s.name}
                   subtitle={[
-                    s.running ? t('more:servicesScreen.running') : t('more:servicesScreen.stopped'),
+                    s.running === undefined
+                      ? null
+                      : s.running
+                        ? t('more:servicesScreen.running')
+                        : t('more:servicesScreen.stopped'),
                     s.enabled ? t('more:servicesScreen.enabled') : t('more:servicesScreen.disabled'),
-                  ].join(' · ')}
-                  left={<StatusDot status={s.running ? 'online' : 'offline'} />}
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                  left={<StatusDot status={s.running === undefined ? 'unknown' : s.running ? 'online' : 'offline'} />}
                   right={
                     isCritical(s.name) ? <Badge label={t('more:servicesScreen.core')} tone="warning" /> : undefined
                   }
@@ -108,11 +114,13 @@ export default function Services() {
         actions={
           selected
             ? [
-                selected.running
-                  ? { label: label('restart'), icon: 'refresh' as const, onPress: () => choose(selected, 'restart') }
-                  : { label: label('start'), icon: 'power' as const, onPress: () => choose(selected, 'start') },
-                ...(selected.running
+                // Unknown state (23.05): offer everything.
+                ...(selected.running !== true
+                  ? [{ label: label('start'), icon: 'power' as const, onPress: () => choose(selected, 'start') }]
+                  : []),
+                ...(selected.running !== false
                   ? [
+                      { label: label('restart'), icon: 'refresh' as const, onPress: () => choose(selected, 'restart') },
                       {
                         label: label('stop'),
                         icon: 'block' as const,

@@ -9,6 +9,8 @@ describe('wireless', () => {
   it('reads radios, changes a channel and scans', async () => {
     const radios = await getRadios(conn);
     if (radios.length === 0) {
+      // CI's QEMU routers have hwsim radios: there a silent skip would hide a broken setup.
+      if (process.env.EXPECT_RADIOS === '1') throw new Error('EXPECT_RADIOS=1 but the router has no radios');
       console.warn('no radios on this router: wireless checks skipped');
       return;
     }

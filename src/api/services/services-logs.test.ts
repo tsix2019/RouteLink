@@ -1,4 +1,4 @@
-import { FixtureConnection, ok } from '../../../test/fixture-connection';
+import { fail, FixtureConnection, ok } from '../../../test/fixture-connection';
 import { kernelLog, parseDmesg, parseSyslog, systemLog } from './logs';
 import { isCritical, listServices, serviceAction } from './services';
 
@@ -22,9 +22,39 @@ describe('services', () => {
     await expect(serviceAction(conn, 'cron; reboot', 'stop')).rejects.toThrow(/invalid/);
   });
 
+  it('falls back to LuCI init helpers where rc is not granted (23.05)', async () => {
+    const conn = new FixtureConnection()
+      .override('rc.list', fail('PERMISSION_DENIED', 'rc.list'))
+      .override('rc.init', fail('PERMISSION_DENIED', 'rc.init'))
+      .override('luci.getInitList', ok({ cron: { enabled: true, index: 50 }, dnsmasq: { enabled: false, index: 19 } }))
+      .override('luci.setInitAction', ok({}));
+    expect(await listServices(conn)).toEqual([
+      { name: 'cron', enabled: true, start: 50 },
+      { name: 'dnsmasq', enabled: false, start: 19 },
+    ]);
+    await serviceAction(conn, 'cron', 'stop');
+    expect(conn.calls.at(-1)).toEqual({
+      object: 'luci',
+      method: 'setInitAction',
+      params: { name: 'cron', action: 'stop' },
+    });
+  });
+
   it('knows which services keep the router reachable', () => {
     expect(isCritical('uhttpd')).toBe(true);
     expect(isCritical('cron')).toBe(false);
+  });
+});
+
+describe('systemLog', () => {
+  it("uses logread with LuCI's arguments where the syslog wrapper is missing (23.05)", async () => {
+    const conn = new FixtureConnection()
+      .override('file.exec.usr-libexec-syslog-wrapper', fail('NOT_FOUND', 'file.exec'))
+      .override('file.exec.sbin-logread-e', ok({ code: 0, stdout: 'Sun Oct  4 15:30:11 2026 daemon.info x: y\n' }));
+    const lines = await systemLog(conn);
+    expect(lines).toEqual([
+      { time: 'Sun Oct 4 15:30:11 2026', facility: 'daemon', level: 'info', source: 'x', text: 'y' },
+    ]);
   });
 });
 

@@ -50,9 +50,11 @@ if command -v apk >/dev/null 2>&1; then
 else
   opkg update && opkg install kmod-mac80211-hwsim wpad-basic-mbedtls luci-app-wol
 fi
-sleep 2
+# The radios appear once the module is loaded and netifd has noticed them (25.12 is slower).
+modprobe mac80211_hwsim 2>/dev/null || true
+sleep 3
 rm -f /etc/config/wireless
-wifi config
+for i in $(seq 1 10); do wifi config >/dev/null 2>&1 && [ -s /etc/config/wireless ] && break; sleep 3; done
 for r in radio0 radio1; do uci -q set "wireless.$r.disabled=0" || true; done
 uci -q set wireless.default_radio0.ssid=RouteLink || true
 uci -q set wireless.default_radio1.ssid=RouteLink-5G || true

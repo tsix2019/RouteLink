@@ -43,6 +43,8 @@ jobs:
       - name: Native self-test
         run: scripts/ci/ios-selftest.sh build/Build/Products/Release-iphonesimulator/RouteLink.app "${{ steps.sim.outputs.udid }}"
       - name: Screenshots (demo mode)
+        # Also when the self-test failed: the screenshots don't depend on it.
+        if: always() && steps.sim.outcome == 'success'
         run: scripts/ci/ios-screenshots.sh "${{ steps.sim.outputs.udid }}"
       - name: Upload screenshots
         if: always()

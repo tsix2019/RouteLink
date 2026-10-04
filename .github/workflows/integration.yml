@@ -48,6 +48,7 @@ jobs:
         env:
           ROUTER_URL: http://127.0.0.1:18080
           ROUTER_PASSWORD: routelink-test
+          EXPECT_RADIOS: '1'
         run: npm run test:int
       - name: Record fixtures
         if: success()

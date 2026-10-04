@@ -30,7 +30,10 @@ interface Access {
 }
 
 interface Requirement {
+  /** All of these must be granted... */
   access: Access[];
+  /** ...or, instead, all of one of these alternative sets (older releases name things differently). */
+  orAccess?: Access[][];
   /** Files that must exist (checked with `file stat`). */
   files?: string[];
   /** Empty: the feature is simply unsupported when unavailable. */
@@ -51,8 +54,18 @@ const REQUIREMENTS: Record<Exclude<Feature, 'wireless'>, Requirement> = {
   },
   'wireless.scan': { access: [ubus('iwinfo', 'scan')], packages: ['rpcd-mod-iwinfo'] },
   'system.temperature': { access: [ubus('luci', 'getTempInfo')], packages: [] },
-  services: { access: [ubus('rc', 'list'), ubus('rc', 'init')], packages: ['rpcd'] },
-  'logs.system': { access: [file('/usr/libexec/syslog-wrapper')], packages: ['luci-mod-status'] },
+  // 24.10: rc list/init. 23.05: LuCI's own init helpers.
+  services: {
+    access: [ubus('rc', 'list'), ubus('rc', 'init')],
+    orAccess: [[ubus('luci', 'getInitList'), ubus('luci', 'setInitAction')]],
+    packages: ['rpcd'],
+  },
+  // 24.10: LuCI's syslog wrapper. 23.05: logread with LuCI's exact arguments.
+  'logs.system': {
+    access: [file('/usr/libexec/syslog-wrapper')],
+    orAccess: [[file('/sbin/logread -e ^')]],
+    packages: ['luci-mod-status'],
+  },
   'logs.kernel': { access: [file('/bin/dmesg -r')], packages: ['luci-mod-status'] },
   'interfaces.control': { access: [file('/sbin/ifup'), file('/sbin/ifdown')], packages: ['luci-mod-network'] },
 };
@@ -64,7 +77,7 @@ export async function detectCapabilities(conn: RouterConnection): Promise<Capabi
   const accesses = new Map<string, Access>();
   const files = new Set<string>();
   for (const req of Object.values(REQUIREMENTS)) {
-    req.access.forEach((a) => accesses.set(accessKey(a), a));
+    [req.access, ...(req.orAccess ?? [])].flat().forEach((a) => accesses.set(accessKey(a), a));
     req.files?.forEach((f) => files.add(f));
   }
   const accessList = [...accesses.values()];
@@ -94,8 +107,10 @@ export async function detectCapabilities(conn: RouterConnection): Promise<Capabi
   } as Capabilities;
 
   for (const [feature, req] of Object.entries(REQUIREMENTS) as [Exclude<Feature, 'wireless'>, Requirement][]) {
+    const allGranted = (set: Access[]) => set.every((a) => granted.get(accessKey(a)));
     const available =
-      req.access.every((a) => granted.get(accessKey(a))) && (req.files ?? []).every((f) => present.get(f));
+      (allGranted(req.access) || (req.orAccess ?? []).some(allGranted)) &&
+      (req.files ?? []).every((f) => present.get(f));
     caps[feature] = available
       ? { status: 'ok' }
       : req.packages.length

@@ -1,4 +1,5 @@
 import type { RouterConnection } from '../connection/types';
+import { UbusError } from '../ubus/errors';
 import { ActionError } from './action-error';
 
 export type LogLevel = 'emerg' | 'alert' | 'crit' | 'err' | 'warn' | 'notice' | 'info' | 'debug';
@@ -61,9 +62,17 @@ async function run(conn: RouterConnection, command: string, params?: string[]): 
   return r.stdout ?? '';
 }
 
-/** LuCI's syslog wrapper (24.10 denies `log read` and plain logread to root over ubus). */
+/**
+ * LuCI's syslog wrapper on 24.10 (which denies `log read` and plain logread to root over ubus);
+ * 23.05 has no wrapper but grants logread with exactly LuCI's arguments.
+ */
 export async function systemLog(conn: RouterConnection): Promise<LogLine[]> {
-  return parseSyslog(await run(conn, '/usr/libexec/syslog-wrapper'));
+  try {
+    return parseSyslog(await run(conn, '/usr/libexec/syslog-wrapper'));
+  } catch (error) {
+    if (!(error instanceof UbusError && ['NOT_FOUND', 'PERMISSION_DENIED'].includes(error.code))) throw error;
+    return parseSyslog(await run(conn, '/sbin/logread', ['-e', '^']));
+  }
 }
 
 export async function kernelLog(conn: RouterConnection): Promise<LogLine[]> {
