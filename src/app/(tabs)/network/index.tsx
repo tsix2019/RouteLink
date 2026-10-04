@@ -23,8 +23,7 @@ export default function Network() {
     <Screen
       title={t('tabs.network')}
       headerLeft={<RouterSwitcherCapsule />}
-      refreshing={interfaces.isRefetching}
-      onRefresh={() => void interfaces.refetch()}
+      onRefresh={() => interfaces.refetch()}
       top={
         interfaces.data ? (
           <ConnectionBanner

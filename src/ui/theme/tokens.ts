@@ -10,6 +10,9 @@ export interface Palette {
   background: string;
   /** iOS secondarySystemGroupedBackground: grouped lists and cards. */
   card: string;
+  /** Sheets and the cards inside them (iOS elevated grouped colours; lighter in dark mode). */
+  sheet: string;
+  sheetCard: string;
   /** iOS tertiarySystemFill: text fields, pressed rows, selected options. */
   fill: string;
   text: string;
@@ -36,6 +39,8 @@ export const palettes: Record<Scheme, Palette> = {
   light: {
     background: '#F2F2F7',
     card: '#FFFFFF',
+    sheet: '#F2F2F7',
+    sheetCard: '#FFFFFF',
     fill: 'rgba(118,118,128,0.12)',
     text: '#000000',
     textSecondary: 'rgba(60,60,67,0.60)',
@@ -56,6 +61,8 @@ export const palettes: Record<Scheme, Palette> = {
   dark: {
     background: '#000000',
     card: '#1C1C1E',
+    sheet: '#1C1C1E',
+    sheetCard: '#2C2C2E',
     fill: 'rgba(118,118,128,0.24)',
     text: '#FFFFFF',
     textSecondary: 'rgba(235,235,245,0.60)',

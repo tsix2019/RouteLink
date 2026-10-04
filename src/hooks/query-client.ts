@@ -8,8 +8,14 @@ export function createQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        // Wrong password, untrusted certificate or missing permission will not fix themselves.
-        retry: (failures, error) => !isPermanentFailure(classifyError(error)) && failures < 2,
+        // Wrong password, untrusted certificate or missing permission will not fix themselves. An
+        // unreachable router gets one quick retry; polling tries again on its next tick anyway, and
+        // the offline banner should not wait for a long retry chain.
+        retry: (failures, error) => {
+          const failure = classifyError(error);
+          if (isPermanentFailure(failure)) return false;
+          return failures < (failure.kind === 'offline' ? 1 : 2);
+        },
         retryDelay: (attempt) => Math.min(1_000 * 2 ** attempt, 8_000),
         staleTime: 2_000,
         gcTime: 30 * 60_000,

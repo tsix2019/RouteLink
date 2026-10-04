@@ -61,3 +61,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 }
 
 export const useTheme = () => useContext(ThemeContext);
+
+/**
+ * Content of a sheet: iOS lifts sheets in dark mode (#1C1C1E) and their grouped cells one step
+ * further (#2C2C2E), so cards stay distinguishable from the sheet behind them.
+ */
+export function ElevatedTheme({ children }: { children: ReactNode }) {
+  const theme = useTheme();
+  const value = useMemo<Theme>(
+    () => ({
+      ...theme,
+      colors: { ...theme.colors, background: theme.colors.sheet, card: theme.colors.sheetCard },
+    }),
+    [theme],
+  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}

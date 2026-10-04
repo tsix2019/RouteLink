@@ -55,8 +55,7 @@ export default function Services() {
     <>
       <Screen
         title={t('more:services')}
-        refreshing={services.isRefetching}
-        onRefresh={() => void services.refetch()}
+        onRefresh={() => services.refetch()}
         top={
           services.data ? <ConnectionBanner error={services.error} onRetry={() => void services.refetch()} /> : null
         }>

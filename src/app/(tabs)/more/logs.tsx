@@ -50,8 +50,7 @@ export default function Logs() {
     <Screen
       title={t('more:logs')}
       scrollRef={scroll}
-      refreshing={log.isRefetching}
-      onRefresh={() => void log.refetch()}
+      onRefresh={() => log.refetch()}
       headerRight={
         <HeaderButton
           icon="share"

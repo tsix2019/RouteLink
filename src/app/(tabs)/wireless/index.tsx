@@ -35,8 +35,7 @@ export default function Wireless() {
           />
         ) : undefined
       }
-      refreshing={radios.isRefetching}
-      onRefresh={() => void radios.refetch()}
+      onRefresh={() => radios.refetch()}
       top={
         radios.data ? (
           <ConnectionBanner

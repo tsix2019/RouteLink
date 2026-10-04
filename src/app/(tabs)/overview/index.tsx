@@ -51,17 +51,12 @@ export default function Overview() {
     });
   }, [router, system.data, wan, clients.data, saveSnapshot]);
 
-  const refresh = () => {
-    void system.refetch();
-    void interfaces.refetch();
-    void clients.refetch();
-  };
+  const refresh = () => Promise.all([system.refetch(), interfaces.refetch(), clients.refetch()]);
 
   return (
     <Screen
       title={t('tabs.overview')}
       headerLeft={<RouterSwitcherCapsule />}
-      refreshing={system.isRefetching}
       onRefresh={refresh}
       top={
         <ConnectionBanner

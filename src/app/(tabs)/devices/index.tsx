@@ -43,8 +43,7 @@ export default function Devices() {
       <Screen
         title={t('tabs.devices')}
         headerLeft={<RouterSwitcherCapsule />}
-        refreshing={clients.isRefetching}
-        onRefresh={() => void clients.refetch()}
+        onRefresh={() => clients.refetch()}
         top={<ConnectionBanner error={clients.data ? clients.error : null} onRetry={() => void clients.refetch()} />}>
         {Platform.OS === 'android' ? (
           <TextField placeholder={t('devices:search')} value={query} onChangeText={setQuery} />

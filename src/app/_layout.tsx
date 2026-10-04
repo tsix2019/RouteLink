@@ -18,6 +18,8 @@ import { FONT_ASSETS } from '@/ui/fonts';
 import { ThemeProvider, useTheme } from '@/ui/theme/ThemeProvider';
 import { ToastProvider } from '@/ui/Toast';
 
+export { RouteErrorBoundary as ErrorBoundary } from '@/ui/RouteErrorBoundary';
+
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initI18n('system');
 

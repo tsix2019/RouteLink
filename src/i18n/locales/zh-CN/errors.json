@@ -24,5 +24,17 @@
     "wol-failed": "网络唤醒失败：{{message}}",
     "wol-unavailable": "路由器没有安装 etherwake，iOS 也不能直接发送唤醒包",
     "log-unavailable": "无法读取日志：{{message}}"
+  },
+  "offlineNamed": "无法连接「{{name}}」",
+  "relogin": {
+    "title": "需要重新登录「{{name}}」",
+    "action": "输入密码",
+    "prompt": "输入「{{name}}」的密码",
+    "submit": "登录"
+  },
+  "boundary": {
+    "title": "这个页面出错了",
+    "message": "可以重试；如果一直出错，请在 GitHub 上反馈。",
+    "retry": "重试"
   }
 }
