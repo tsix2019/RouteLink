@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Demo-mode screenshots on an Android emulator (plan T62): zh/en x light/dark x six screens.
+# Usage: scripts/screenshots-android.sh [adb serial]
+# Install a release build first (no developer overlays); the app opens itself via routelink://demo.
+set -euo pipefail
+SERIAL="${1:-${ANDROID_SERIAL:-}}"
+ADB=(adb)
+[ -n "$SERIAL" ] && ADB=(adb -s "$SERIAL")
+PKG=io.github.tsix2019.routelink
+PAGES=(overview devices device wireless network more)
+
+demo() { "${ADB[@]}" shell am broadcast -a com.android.systemui.demo -e command "$@" >/dev/null; }
+
+# A clean, identical status bar on every shot.
+"${ADB[@]}" shell settings put global sysui_demo_allowed 1
+demo enter
+demo clock -e hhmm 0941
+demo battery -e level 100 -e plugged false
+demo network -e wifi show -e level 4 -e mobile show -e datatype none -e level 4
+demo notifications -e visible false
+trap 'demo exit' EXIT
+
+for lang in zh en; do
+  mkdir -p "docs/screenshots/$lang"
+  for theme in light dark; do
+    if [ "$theme" = dark ]; then "${ADB[@]}" shell cmd uimode night yes >/dev/null; else "${ADB[@]}" shell cmd uimode night no >/dev/null; fi
+    for page in "${PAGES[@]}"; do
+      # Fresh start for every shot: clean navigation and a warmed-up demo router.
+      "${ADB[@]}" shell am force-stop "$PKG"
+      MSYS_NO_PATHCONV=1 "${ADB[@]}" shell am start -W -a android.intent.action.VIEW \
+        -d "'routelink://demo?lang=$lang&theme=$theme&route=/$page'" "$PKG" >/dev/null
+      sleep 6
+      "${ADB[@]}" exec-out screencap -p > "docs/screenshots/$lang/android-$page-$theme.png"
+      echo "docs/screenshots/$lang/android-$page-$theme.png"
+    done
+  done
+done
+"${ADB[@]}" shell cmd uimode night no >/dev/null

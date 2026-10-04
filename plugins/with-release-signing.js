@@ -31,7 +31,8 @@ function addSigning(gradle) {
   const before = out;
   out = out.replace(
     /(release\s*\{\s*\n(?:\s*\/\/[^\n]*\n)*\s*)signingConfig signingConfigs\.debug/,
-    `$1signingConfig (${condition}) ? signingConfigs.release : signingConfigs.debug`,
+    // Parenthesised call: Groovy would read `signingConfig (a) ? b : c` as `signingConfig(a) ? b : c`.
+    `$1signingConfig((${condition}) ? signingConfigs.release : signingConfigs.debug)`,
   );
   if (out === before) throw new Error('with-release-signing: release buildType signingConfig not found');
   return out;
