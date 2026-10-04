@@ -80,7 +80,13 @@ for i in $(seq 1 20); do
   ubus call network.wireless status 2>/dev/null | grep -q '"up": true' && break
   sleep 2
 done
-ubus call network.wireless status 2>/dev/null | grep -E '"(radio[0-9]|up)"' || echo "warning: radios not up"
+if ! ubus call network.wireless status 2>/dev/null | grep -q '"up": true'; then
+  echo "warning: radios not up"
+  echo "--- wireless status"; ubus call network.wireless status 2>&1 | head -80
+  echo "--- iw dev"; iw dev 2>&1 | head -40
+  echo "--- /etc/config/wireless"; cat /etc/config/wireless
+  echo "--- log"; logread | grep -iE 'hostapd|netifd|wifi|mac80211|hwsim|wpa' | tail -60
+fi
 printf 'routelink-test\nroutelink-test\n' | passwd root >/dev/null
 REMOTE
 sleep 10
