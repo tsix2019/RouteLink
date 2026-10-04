@@ -2,9 +2,9 @@ import type { ColorValue, ViewProps } from 'react-native';
 
 export interface GlassSurfaceProps extends ViewProps {
   /**
-   * card: content cards (Android draws them without blur: they sit on a smooth background).
-   * floating: surfaces over scrolling content (tab bar, sheets) — real blur on Android 12+.
-   * pill: capsule controls.
+   * card: content cards and grouped lists — solid, like iOS 26 Settings.
+   * floating: chrome over scrolling content (tab bar, sheets, toasts) — glass.
+   * pill: capsule controls (bar buttons, router switcher) — glass.
    */
   variant?: 'card' | 'floating' | 'pill';
   /** iOS 26 interactive glass (press feedback). */
@@ -13,4 +13,4 @@ export interface GlassSurfaceProps extends ViewProps {
   radius?: number;
 }
 
-export const defaultRadius = (variant: GlassSurfaceProps['variant']) => (variant === 'pill' ? 999 : 24);
+export const defaultRadius = (variant: GlassSurfaceProps['variant']) => (variant === 'pill' ? 999 : 26);

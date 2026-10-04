@@ -129,7 +129,7 @@ function GlassBarScreen({
   const router = useRouter();
   const canGoBack = (navigation.getState()?.index ?? 0) > 0;
   const barHeight = insets.top + BAR_HEIGHT;
-  const bg = colors.background[0];
+  const bg = colors.background;
 
   // Like UINavigationBar: the compact title is centred on screen when it fits, otherwise it slides
   // towards the free side, and it only truncates when the space between the bar items runs out.

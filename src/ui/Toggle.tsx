@@ -19,9 +19,18 @@ export interface ToggleProps {
 /** iOS system switch on iOS; an iOS-style capsule switch elsewhere. */
 export function Toggle({ value, onValueChange, disabled, accessibilityLabel }: ToggleProps) {
   if (Platform.OS === 'ios') {
-    return <Switch value={value} onValueChange={onValueChange} disabled={disabled} accessibilityLabel={accessibilityLabel} />;
+    return (
+      <Switch value={value} onValueChange={onValueChange} disabled={disabled} accessibilityLabel={accessibilityLabel} />
+    );
   }
-  return <CapsuleSwitch value={value} onValueChange={onValueChange} disabled={disabled} accessibilityLabel={accessibilityLabel} />;
+  return (
+    <CapsuleSwitch
+      value={value}
+      onValueChange={onValueChange}
+      disabled={disabled}
+      accessibilityLabel={accessibilityLabel}
+    />
+  );
 }
 
 function CapsuleSwitch({ value, onValueChange, disabled, accessibilityLabel }: ToggleProps) {

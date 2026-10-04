@@ -15,7 +15,6 @@ import { i18n, initI18n, setLanguage } from '@/i18n';
 import { useRouters } from '@/state/routers';
 import { useSettings } from '@/state/settings';
 import { FONT_ASSETS } from '@/ui/fonts';
-import { GradientBackground } from '@/ui/GradientBackground';
 import { ThemeProvider, useTheme } from '@/ui/theme/ThemeProvider';
 import { ToastProvider } from '@/ui/Toast';
 
@@ -75,10 +74,9 @@ const sheetOptions = (detents: number[]) =>
     : { presentation: 'transparentModal' as const, animation: 'none' as const, contentStyle: styles.transparent };
 
 function RootStack() {
-  const { scheme } = useTheme();
+  const { scheme, colors } = useTheme();
   return (
-    <View style={styles.flex}>
-      <GradientBackground />
+    <View style={[styles.flex, { backgroundColor: colors.background }]}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: styles.transparent }}>
         <Stack.Screen name="(tabs)" />

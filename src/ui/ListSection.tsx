@@ -110,7 +110,7 @@ export function ListRow({
       disabled={disabled}
       onPress={onPress}
       onLongPress={onLongPress}
-      style={({ pressed }) => ({ backgroundColor: pressed ? colors.separator : 'transparent' })}>
+      style={({ pressed }) => ({ backgroundColor: pressed ? colors.fill : 'transparent' })}>
       {body}
     </Pressable>
   );

@@ -26,10 +26,7 @@ export function TextField({ label, error, hint, secret, monospace, style, ...res
         </AppText>
       ) : null}
       <View
-        style={[
-          styles.field,
-          { backgroundColor: colors.glassFill, borderColor: error ? colors.danger : colors.glassBorder },
-        ]}>
+        style={[styles.field, { backgroundColor: colors.fill, borderColor: error ? colors.danger : 'transparent' }]}>
         <TextInput
           placeholderTextColor={colors.textTertiary}
           autoCapitalize="none"

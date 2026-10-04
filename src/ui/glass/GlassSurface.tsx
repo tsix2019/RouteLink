@@ -1,5 +1,4 @@
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { useTheme } from '../theme/ThemeProvider';
@@ -9,33 +8,39 @@ import { defaultRadius, type GlassSurfaceProps } from './types';
 const CAN_BLUR = Platform.OS === 'android' && Number(Platform.Version) >= 31;
 
 /**
- * Android (and fallback) glass: translucent fill, top highlight and a light border. Floating surfaces
- * add a real background blur on Android 12+ when a blur target is available.
+ * Android (and fallback). Cards are plain grouped cells, as in iOS 26 Settings. Floating chrome —
+ * capsules, the tab bar, sheets — imitates Liquid Glass: a light translucent fill with a soft
+ * shadow, plus a real background blur on Android 12+ where a blur target exists.
  */
 export function GlassSurface({ variant = 'card', tint, radius, style, children, ...rest }: GlassSurfaceProps) {
   const { scheme, colors, reduceTransparency } = useTheme();
   const target = useBlurTarget();
-  const blur = variant === 'floating' && CAN_BLUR && !reduceTransparency && !!target;
   const borderRadius = radius ?? defaultRadius(variant);
+  const tintLayer = tint ? (
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: tint, opacity: 0.14 }]} />
+  ) : null;
 
+  if (variant === 'card') {
+    return (
+      <View style={[styles.card, { borderRadius, backgroundColor: colors.card }, style]} {...rest}>
+        {tintLayer}
+        {children}
+      </View>
+    );
+  }
+
+  const blur = variant === 'floating' && CAN_BLUR && !reduceTransparency && !!target;
   return (
     <View
       style={[
-        styles.base,
+        styles.glass,
+        variant === 'floating' ? styles.floating : styles.pill,
         {
           borderRadius,
           borderColor: colors.glassBorder,
-          backgroundColor: reduceTransparency
-            ? colors.glassFillStrong
-            : blur
-              ? 'transparent'
-              : variant === 'floating'
-                ? // Sheets and dialogs float over arbitrary content: without blur they need to be nearly opaque.
-                  `${colors.background[0]}F0`
-                : colors.glassFill,
+          backgroundColor: reduceTransparency ? colors.card : blur ? 'transparent' : colors.glassFillStrong,
           shadowColor: colors.shadow,
         },
-        variant === 'floating' && styles.floating,
         style,
       ]}
       {...rest}>
@@ -48,35 +53,28 @@ export function GlassSurface({ variant = 'card', tint, radius, style, children, 
             tint={scheme}
             style={StyleSheet.absoluteFill}
           />
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.glassFill, opacity: 0.6 }]} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.glassFill }]} />
         </>
       ) : null}
-      {!reduceTransparency ? (
-        <LinearGradient
-          colors={[colors.glassHighlight, 'transparent']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 0.7 }}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-      ) : null}
-      {tint ? (
-        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: tint, opacity: 0.16 }]} />
-      ) : null}
+      {tintLayer}
       {children}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth * 2,
+  card: { overflow: 'hidden' },
+  glass: { overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth },
+  pill: {
+    elevation: 2,
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
   },
   floating: {
-    elevation: 8,
-    shadowOpacity: 0.25,
-    shadowRadius: 18,
+    elevation: 10,
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
     shadowOffset: { width: 0, height: 8 },
   },
 });

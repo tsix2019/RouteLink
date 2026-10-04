@@ -5,6 +5,7 @@ import { useT } from '@/i18n';
 import { BlurTarget, BlurTargetProvider } from '@/ui/glass/BlurTarget';
 import { GlassTabBar, GlassTabButton } from '@/ui/tabs/GlassTabBar';
 import type { IconName } from '@/ui/Icon';
+import { useTheme } from '@/ui/theme/ThemeProvider';
 
 const TABS: {
   name: string;
@@ -25,10 +26,12 @@ const TABS: {
  */
 export default function AppTabs() {
   const t = useT();
+  const { colors } = useTheme();
   return (
     <BlurTargetProvider>
       <Tabs style={styles.flex}>
-        <BlurTarget style={styles.flex}>
+        {/* The blur samples this view, so it carries the page background itself. */}
+        <BlurTarget style={[styles.flex, { backgroundColor: colors.background }]}>
           <TabSlot />
         </BlurTarget>
         <TabList asChild>

@@ -65,10 +65,14 @@ function AndroidSheet({ children, detent }: { children: ReactNode; detent: numbe
       <Animated.View
         style={[
           styles.panel,
-          { height: sheetHeight, bottom: Math.max(insets.bottom, 8), backgroundColor: colors.glassFillStrong, borderColor: colors.glassBorder },
+          {
+            height: sheetHeight,
+            bottom: Math.max(insets.bottom, 8),
+            backgroundColor: colors.background,
+            borderColor: colors.glassBorder,
+          },
           panelStyle,
         ]}>
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background[0], opacity: 0.92 }]} pointerEvents="none" />
         <GestureDetector gesture={drag}>
           <View style={styles.grabberArea}>
             <View style={[styles.grabber, { backgroundColor: colors.textTertiary }]} />

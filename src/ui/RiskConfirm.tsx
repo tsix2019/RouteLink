@@ -88,7 +88,7 @@ function HighRisk({ title, consequences, confirmLabel, confirmPhrase = '', onCon
     <Modal animationType="slide" onRequestClose={onCancel} presentationStyle="fullScreen">
       <KeyboardAvoidingView
         behavior="padding"
-        style={[styles.full, { backgroundColor: colors.background[0], paddingTop: insets.top + spacing.l }]}>
+        style={[styles.full, { backgroundColor: colors.background, paddingTop: insets.top + spacing.l }]}>
         <ScrollView contentContainerStyle={styles.fullContent} keyboardShouldPersistTaps="handled">
           <View style={[styles.hazard, { backgroundColor: colors.danger }]}>
             <Icon name="error" size={36} color={colors.accentText} />

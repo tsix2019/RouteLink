@@ -1,13 +1,17 @@
 import { BlurView } from 'expo-blur';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from '../theme/ThemeProvider';
 import { defaultRadius, type GlassSurfaceProps } from './types';
 
 const LIQUID_GLASS = isLiquidGlassAvailable();
 
-/** Native Liquid Glass on iOS 26; system material blur on older iOS; opaque when transparency is reduced. */
+/**
+ * Cards are plain grouped cells (iOS 26 keeps content solid). Floating chrome — capsules, toasts,
+ * custom bars — is native Liquid Glass on iOS 26, system material blur before it, and opaque when
+ * Reduce Transparency is on.
+ */
 export function GlassSurface({
   variant = 'card',
   interactive,
@@ -20,9 +24,12 @@ export function GlassSurface({
   const { scheme, colors, reduceTransparency } = useTheme();
   const shape = { borderRadius: radius ?? defaultRadius(variant), overflow: 'hidden' as const };
 
-  if (reduceTransparency) {
+  if (variant === 'card' || reduceTransparency) {
     return (
-      <View style={[shape, { backgroundColor: colors.glassFillStrong }, style]} {...rest}>
+      <View style={[shape, { backgroundColor: colors.card }, style]} {...rest}>
+        {tint ? (
+          <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: tint, opacity: 0.14 }]} />
+        ) : null}
         {children}
       </View>
     );

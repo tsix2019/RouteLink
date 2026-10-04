@@ -6,9 +6,12 @@ export type Scheme = 'light' | 'dark';
 export const MONO_FONT = Platform.select({ ios: 'Menlo', default: 'monospace' });
 
 export interface Palette {
-  /** Background gradient stops (top-left → bottom-right) and the colour blobs floating over it. */
-  background: readonly [string, string, string];
-  blobs: readonly [string, string, string];
+  /** iOS systemGroupedBackground: the plain page background. */
+  background: string;
+  /** iOS secondarySystemGroupedBackground: grouped lists and cards. */
+  card: string;
+  /** iOS tertiarySystemFill: text fields, pressed rows, selected options. */
+  fill: string;
   text: string;
   textSecondary: string;
   textTertiary: string;
@@ -18,57 +21,57 @@ export interface Palette {
   success: string;
   warning: string;
   danger: string;
-  /** Glass emulation (Android, pre-iOS 26). */
+  /** Floating chrome (tab bar, bar buttons, sheets) where real Liquid Glass is not available. */
   glassFill: string;
   glassFillStrong: string;
   glassBorder: string;
-  glassHighlight: string;
   shadow: string;
   /** Series colours for charts: download, upload. */
   chartDown: string;
   chartUp: string;
 }
 
+/** iOS 26 system colours: grouped background, cards on top, glass only for floating chrome. */
 export const palettes: Record<Scheme, Palette> = {
   light: {
-    background: ['#EAF1FF', '#F4ECFF', '#E6FAF3'],
-    blobs: ['rgba(10,132,255,0.28)', 'rgba(175,82,222,0.20)', 'rgba(48,209,88,0.18)'],
-    text: '#0B1220',
-    textSecondary: 'rgba(11,18,32,0.62)',
-    textTertiary: 'rgba(11,18,32,0.38)',
-    separator: 'rgba(11,18,32,0.10)',
-    accent: '#0A84FF',
+    background: '#F2F2F7',
+    card: '#FFFFFF',
+    fill: 'rgba(118,118,128,0.12)',
+    text: '#000000',
+    textSecondary: 'rgba(60,60,67,0.60)',
+    textTertiary: 'rgba(60,60,67,0.30)',
+    separator: 'rgba(60,60,67,0.20)',
+    accent: '#007AFF',
     accentText: '#FFFFFF',
-    success: '#30B350',
-    warning: '#E68A00',
+    success: '#34C759',
+    warning: '#FF9500',
     danger: '#FF3B30',
-    glassFill: 'rgba(255,255,255,0.55)',
-    glassFillStrong: 'rgba(255,255,255,0.78)',
-    glassBorder: 'rgba(255,255,255,0.75)',
-    glassHighlight: 'rgba(255,255,255,0.65)',
-    shadow: 'rgba(31,45,90,0.16)',
-    chartDown: '#0A84FF',
-    chartUp: '#14C8C8',
+    glassFill: 'rgba(255,255,255,0.70)',
+    glassFillStrong: 'rgba(255,255,255,0.94)',
+    glassBorder: 'rgba(0,0,0,0.06)',
+    shadow: 'rgba(0,0,0,0.14)',
+    chartDown: '#007AFF',
+    chartUp: '#30B0C7',
   },
   dark: {
-    background: ['#0A0F1E', '#171033', '#06191A'],
-    blobs: ['rgba(10,132,255,0.32)', 'rgba(175,82,222,0.24)', 'rgba(20,200,200,0.18)'],
-    text: '#F2F5FF',
-    textSecondary: 'rgba(242,245,255,0.64)',
-    textTertiary: 'rgba(242,245,255,0.40)',
-    separator: 'rgba(242,245,255,0.12)',
+    background: '#000000',
+    card: '#1C1C1E',
+    fill: 'rgba(118,118,128,0.24)',
+    text: '#FFFFFF',
+    textSecondary: 'rgba(235,235,245,0.60)',
+    textTertiary: 'rgba(235,235,245,0.30)',
+    separator: 'rgba(84,84,88,0.60)',
     accent: '#0A84FF',
     accentText: '#FFFFFF',
     success: '#30D158',
     warning: '#FF9F0A',
     danger: '#FF453A',
-    glassFill: 'rgba(28,30,44,0.55)',
-    glassFillStrong: 'rgba(28,30,44,0.80)',
-    glassBorder: 'rgba(255,255,255,0.14)',
-    glassHighlight: 'rgba(255,255,255,0.10)',
-    shadow: 'rgba(0,0,0,0.45)',
-    chartDown: '#409CFF',
-    chartUp: '#3DE0D4',
+    glassFill: 'rgba(44,44,46,0.70)',
+    glassFillStrong: 'rgba(44,44,46,0.94)',
+    glassBorder: 'rgba(255,255,255,0.10)',
+    shadow: 'rgba(0,0,0,0.50)',
+    chartDown: '#0A84FF',
+    chartUp: '#40C8E0',
   },
 };
 
