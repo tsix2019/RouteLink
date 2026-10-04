@@ -14,7 +14,7 @@ define Package/routelinkd
   CATEGORY:=Network
   TITLE:=RouteLink per-device traffic monitor
   URL:=https://github.com/tsix2019/RouteLink
-  DEPENDS:=+libubox +libubus +libuci +libjson-c +libmnl +kmod-nf-conntrack-netlink
+  DEPENDS:=+libubox +libubus +libuci +libblobmsg-json +libjson-c +libmnl +kmod-nf-conntrack-netlink
 endef
 
 define Package/routelinkd/description
