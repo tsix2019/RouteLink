@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'rea
 import { AppText, fontFor } from './AppText';
 import { Icon } from './Icon';
 import { useTheme } from './theme/ThemeProvider';
-import { radius, spacing } from './theme/tokens';
+import { MONO_FONT, radius, spacing } from './theme/tokens';
 
 export interface TextFieldProps extends TextInputProps {
   label?: string;
@@ -35,7 +35,13 @@ export function TextField({ label, error, hint, secret, monospace, style, ...res
           autoCapitalize="none"
           autoCorrect={false}
           secureTextEntry={secret && !visible}
-          style={[styles.input, monospace ? null : fontFor('400'), { color: colors.text }, monospace && styles.mono, style]}
+          style={[
+            styles.input,
+            monospace ? null : fontFor('400'),
+            { color: colors.text },
+            monospace && styles.mono,
+            style,
+          ]}
           {...rest}
         />
         {secret ? (
@@ -69,5 +75,5 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   input: { flex: 1, fontSize: 17, paddingVertical: spacing.s },
-  mono: { fontFamily: 'monospace', fontSize: 15 },
+  mono: { fontFamily: MONO_FONT, fontSize: 15 },
 });

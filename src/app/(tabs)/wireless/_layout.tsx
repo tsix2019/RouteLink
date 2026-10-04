@@ -1,5 +1,5 @@
-import { TabStack } from '@/features/navigation/TabStack';
+import { AppStack } from '@/features/navigation/AppStack';
 
 export default function Layout() {
-  return <TabStack />;
+  return <AppStack />;
 }

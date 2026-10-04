@@ -76,6 +76,7 @@ export const ICONS = {
   about: { sf: 'info.circle', ion: 'information-circle-outline' },
   pin: { sf: 'pin', ion: 'pin-outline' },
   close: { sf: 'xmark', ion: 'close' },
+  stop: { sf: 'stop.fill', ion: 'stop' },
 } as const satisfies Record<string, { sf: string; ion: IonName } | { sf: string; mci: MciName }>;
 
 export type IconName = keyof typeof ICONS;

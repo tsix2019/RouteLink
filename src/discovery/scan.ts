@@ -32,11 +32,23 @@ export interface ScanOptions {
 
 export const DEFAULT_HOSTNAMES = ['openwrt.lan', 'openwrt'];
 
-/** Probes targets with bounded concurrency; gateway and host names first. Never sends credentials. */
+/** Addresses routers usually sit on: x.x.x.1 and x.x.x.254. */
+const isLikelyRouter = (address: string) => /^\d+\.\d+\.\d+\.(1|254)$/.test(address);
+
+/** How many likely addresses are probed at once before the sweep. */
+const PRIORITY_CONCURRENCY = 8;
+
+/**
+ * Probes targets with bounded concurrency and never sends credentials. The gateway, the host names
+ * and the .1/.254 addresses are probed first, on their own: a sweep of a whole /24 floods slow
+ * networks (and the emulator's NAT) with connection attempts, and the router must not time out in it.
+ */
 export async function scan(o: ScanOptions): Promise<DiscoveredRouter[]> {
   const hostnames = o.hostnames ?? DEFAULT_HOSTNAMES;
-  const ordered = [...new Set([...(o.gateway ? [o.gateway] : []), ...hostnames, ...o.targets])];
-  const total = ordered.length;
+  const all = [...new Set([...(o.gateway ? [o.gateway] : []), ...hostnames, ...o.targets])];
+  const priority = all.filter((a) => a === o.gateway || hostnames.includes(a) || isLikelyRouter(a));
+  const rest = all.filter((a) => !priority.includes(a));
+  const total = all.length;
   const found = new Map<string, DiscoveredRouter>();
   let next = 0;
   let done = 0;
@@ -80,11 +92,12 @@ export async function scan(o: ScanOptions): Promise<DiscoveredRouter[]> {
     report(router);
   };
 
+  let queue: string[] = [];
   const worker = async () => {
     while (!o.signal.aborted) {
       const i = next++;
-      if (i >= total) return;
-      const address = ordered[i];
+      if (i >= queue.length) return;
+      const address = queue[i];
       try {
         const hit = await o.prober.probe(address, o.signal);
         if (hit && !o.signal.aborted) merge(address, hit);
@@ -96,7 +109,14 @@ export async function scan(o: ScanOptions): Promise<DiscoveredRouter[]> {
     }
   };
 
-  await Promise.all(Array.from({ length: Math.min(o.concurrency ?? 48, total) }, worker));
+  const run = async (list: string[], concurrency: number) => {
+    queue = list;
+    next = 0;
+    await Promise.all(Array.from({ length: Math.min(concurrency, list.length) }, worker));
+  };
+  const concurrency = o.concurrency ?? 48;
+  await run(priority, Math.min(PRIORITY_CONCURRENCY, concurrency));
+  await run(rest, concurrency);
   return sortRouters([...found.values()]);
 }
 

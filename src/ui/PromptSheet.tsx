@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet } from 'react-native';
+import { KeyboardAvoidingView, Modal, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useT } from '@/i18n';
@@ -53,10 +53,9 @@ function PromptContent({
   return (
     <Modal transparent animationType="slide" onRequestClose={onCancel} statusBarTranslucent>
       <Pressable style={styles.scrim} onPress={onCancel} accessibilityLabel={t('cancel')} />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={[styles.wrap, { paddingBottom: insets.bottom + spacing.m }]}>
-        <GlassSurface variant="floating" style={styles.sheet}>
+      {/* KeyboardAvoidingView owns paddingBottom, so the safe-area inset goes on an inner view. */}
+      <KeyboardAvoidingView behavior="padding" style={styles.wrap}>
+        <GlassSurface variant="floating" style={[styles.sheet, { marginBottom: insets.bottom + spacing.m }]}>
           <AppText variant="title">{title}</AppText>
           <TextField
             value={value}

@@ -1,4 +1,4 @@
-import { classifyError } from '@/api/connection/types';
+import { classifyError, type ConnectionFailure } from '@/api/connection/types';
 import { ActionError } from '@/api/services/action-error';
 import type { AppT } from '@/i18n';
 
@@ -9,7 +9,11 @@ export function describeError(t: AppT, error: unknown): { title: string; detail?
     const known = t(key, { message: error.message, defaultValue: '' });
     return { title: known || t('errors:generic', { message: error.message }) };
   }
-  const failure = classifyError(error);
+  return describeFailure(t, classifyError(error));
+}
+
+/** Same as describeError, for a failure that was already classified. */
+export function describeFailure(t: AppT, failure: ConnectionFailure): { title: string; detail?: string } {
   switch (failure.kind) {
     case 'offline':
       return { title: t('errors:connection.offline'), detail: t('errors:connectionHint.offline') };

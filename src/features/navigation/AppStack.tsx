@@ -7,11 +7,11 @@ import { useTheme } from '@/ui/theme/ThemeProvider';
 type StackOptions = NonNullable<ComponentProps<typeof Stack>['screenOptions']>;
 
 /**
- * One stack per tab. iOS: native large-title header, transparent so iOS 26 renders its glass edge
+ * A stack inside a tab or a modal. iOS: native large-title header, transparent so iOS 26 renders its glass edge
  * effect. Android: no native header — Screen draws an iOS 26–style bar. Titles and header items are
  * set by each screen through <Screen title headerLeft headerRight>.
  */
-export function TabStack() {
+export function AppStack() {
   const { colors } = useTheme();
   const screenOptions: StackOptions =
     Platform.OS === 'ios'

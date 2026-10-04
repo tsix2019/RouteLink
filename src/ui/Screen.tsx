@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from './AppText';
 import { GlassSurface } from './glass/GlassSurface';
-import { Icon } from './Icon';
+import { Icon, type IconName } from './Icon';
 import { useTabBarSpace } from './tabs/GlassTabBar';
 import { useTheme } from './theme/ThemeProvider';
 import { spacing } from './theme/tokens';
@@ -234,16 +234,45 @@ function GlassBarScreen({
   );
 }
 
-/** iOS 26 back button: a round glass button with a chevron. */
-export function BackButton({ onPress }: { onPress: () => void }) {
+/**
+ * Round bar button. Android: a glass circle drawn here. iOS: a plain icon — the native header puts
+ * bar items on Liquid Glass itself.
+ */
+export function HeaderButton({
+  icon,
+  onPress,
+  accessibilityLabel,
+  testID,
+}: {
+  icon: IconName;
+  onPress: () => void;
+  accessibilityLabel: string;
+  testID?: string;
+}) {
   const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel="back" onPress={onPress} hitSlop={8}>
-      <GlassSurface variant="pill" interactive style={styles.back}>
-        <Icon name="chevronLeft" size={22} color={colors.text} />
-      </GlassSurface>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      onPress={onPress}
+      hitSlop={8}
+      testID={testID}>
+      {Platform.OS === 'ios' ? (
+        <View style={styles.back}>
+          <Icon name={icon} size={20} color={colors.text} />
+        </View>
+      ) : (
+        <GlassSurface variant="pill" interactive style={styles.back}>
+          <Icon name={icon} size={22} color={colors.text} />
+        </GlassSurface>
+      )}
     </Pressable>
   );
+}
+
+/** iOS 26 back button: a round glass button with a chevron. */
+export function BackButton({ onPress }: { onPress: () => void }) {
+  return <HeaderButton icon="chevronLeft" onPress={onPress} accessibilityLabel="back" />;
 }
 
 const styles = StyleSheet.create({

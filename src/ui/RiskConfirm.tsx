@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useT } from '@/i18n';
@@ -86,15 +86,9 @@ function HighRisk({ title, consequences, confirmLabel, confirmPhrase = '', onCon
 
   return (
     <Modal animationType="slide" onRequestClose={onCancel} presentationStyle="fullScreen">
-      <View
-        style={[
-          styles.full,
-          {
-            backgroundColor: colors.background[0],
-            paddingTop: insets.top + spacing.l,
-            paddingBottom: insets.bottom + spacing.l,
-          },
-        ]}>
+      <KeyboardAvoidingView
+        behavior="padding"
+        style={[styles.full, { backgroundColor: colors.background[0], paddingTop: insets.top + spacing.l }]}>
         <ScrollView contentContainerStyle={styles.fullContent} keyboardShouldPersistTaps="handled">
           <View style={[styles.hazard, { backgroundColor: colors.danger }]}>
             <Icon name="error" size={36} color={colors.accentText} />
@@ -142,11 +136,11 @@ function HighRisk({ title, consequences, confirmLabel, confirmPhrase = '', onCon
             placeholder={confirmPhrase}
           />
         </ScrollView>
-        <View style={styles.actions}>
+        <View style={[styles.actions, { paddingBottom: insets.bottom + spacing.l }]}>
           <GlassButton label={confirmLabel} variant="destructive" disabled={!ready} onPress={onConfirm} />
           <GlassButton label={t('cancel')} onPress={onCancel} />
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

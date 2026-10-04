@@ -1,4 +1,9 @@
+import { Platform } from 'react-native';
+
 export type Scheme = 'light' | 'dark';
+
+/** 'monospace' is an Android alias only; iOS needs a real family name. */
+export const MONO_FONT = Platform.select({ ios: 'Menlo', default: 'monospace' });
 
 export interface Palette {
   /** Background gradient stops (top-left → bottom-right) and the colour blobs floating over it. */
@@ -78,5 +83,5 @@ export const type = {
   subhead: { fontSize: 15, fontWeight: '400', letterSpacing: -0.24 },
   footnote: { fontSize: 13, fontWeight: '400', letterSpacing: -0.08 },
   caption: { fontSize: 12, fontWeight: '400', letterSpacing: 0 },
-  mono: { fontSize: 13, fontFamily: 'monospace' },
+  mono: { fontSize: 13, fontFamily: MONO_FONT },
 } as const;

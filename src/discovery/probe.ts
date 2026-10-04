@@ -3,7 +3,11 @@ import type { HttpClient, HttpResponse } from '@/api/http/types';
 
 import type { ProbeHit, Prober } from './scan';
 
-const TIMEOUT_MS = 1_200;
+/**
+ * Per request. LuCI can take a few hundred milliseconds to render its login page on slow routers,
+ * and Wi-Fi in power-save mode adds latency spikes; 1.2 s (the original design) missed routers.
+ */
+const TIMEOUT_MS = 2_500;
 
 /** "OpenWrt - LuCI" → "OpenWrt"; LuCI puts the router's host name in the login page title. */
 export function hostnameFromTitle(html: string): string | undefined {
@@ -11,7 +15,12 @@ export function hostnameFromTitle(html: string): string | undefined {
   return m?.[1] || undefined;
 }
 
-export const looksLikeLuci = (res: HttpResponse) => res.status === 200 && /luci/i.test(res.body);
+/**
+ * LuCI answers 200, or 403 with its login form when not signed in (21.02 and later). The word "luci"
+ * alone is not enough: vendor firmwares built on LuCI (e.g. Xiaomi) have it in their URLs but no ubus.
+ */
+export const looksLikeLuci = (res: HttpResponse) =>
+  (res.status === 200 || res.status === 403) && (!!hostnameFromTitle(res.body) || /luci-static\//i.test(res.body));
 
 function looksLikeUbus(res: HttpResponse): boolean {
   if (res.status !== 200) return false;

@@ -25,7 +25,14 @@ export function GlassSurface({ variant = 'card', tint, radius, style, children, 
         {
           borderRadius,
           borderColor: colors.glassBorder,
-          backgroundColor: reduceTransparency ? colors.glassFillStrong : blur ? 'transparent' : colors.glassFill,
+          backgroundColor: reduceTransparency
+            ? colors.glassFillStrong
+            : blur
+              ? 'transparent'
+              : variant === 'floating'
+                ? // Sheets and dialogs float over arbitrary content: without blur they need to be nearly opaque.
+                  `${colors.background[0]}F0`
+                : colors.glassFill,
           shadowColor: colors.shadow,
         },
         variant === 'floating' && styles.floating,

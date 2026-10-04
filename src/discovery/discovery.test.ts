@@ -45,6 +45,21 @@ describe('scan', () => {
     expect(onProgress).toHaveBeenLastCalledWith(30, 30);
   });
 
+  it('probes the gateway, host names and .1/.254 before sweeping the rest', async () => {
+    const order: string[] = [];
+    const prober: Prober = {
+      async probe(host) {
+        order.push(host);
+        await new Promise((r) => setTimeout(r, 1));
+        return null;
+      },
+    };
+    const list = Array.from({ length: 254 }, (_, i) => `10.0.0.${i + 1}`);
+    await scan({ targets: list, gateway: '10.0.0.77', prober, signal: new AbortController().signal });
+    expect(order.slice(0, 5).sort()).toEqual(['10.0.0.1', '10.0.0.254', '10.0.0.77', 'openwrt', 'openwrt.lan']);
+    expect(order).toHaveLength(256);
+  });
+
   it('respects the concurrency limit', async () => {
     const prober = fakeProber({}, 5);
     await scan({ targets, hostnames: [], prober, concurrency: 4, signal: new AbortController().signal });
@@ -108,6 +123,15 @@ describe('createProber', () => {
     });
   });
 
+  it('reads the host name from the 403 login page of current LuCI', async () => {
+    const http = new FakeHttpClient().on('GET http://10.0.0.1/cgi-bin/luci/', {
+      status: 403,
+      headers: {},
+      body: '<html><head><title>gw - LuCI</title></head></html>',
+    });
+    await expect(createProber(http).probe('10.0.0.1', signal)).resolves.toEqual({ scheme: 'http', hostname: 'gw' });
+  });
+
   it('follows a redirect to HTTPS with the insecure probe mode', async () => {
     const http = new FakeHttpClient()
       .on('GET http://10.0.0.1/cgi-bin/luci/', {
@@ -124,6 +148,17 @@ describe('createProber', () => {
     expect(http.requests.every((r) => !r.body?.includes('password'))).toBe(true);
   });
 
+  it('rejects vendor firmware that merely mentions luci', async () => {
+    const http = new FakeHttpClient()
+      .on('GET http://10.0.0.5/cgi-bin/luci/', {
+        status: 200,
+        headers: {},
+        body: '<title>Vendor Router</title><meta http-equiv="refresh" content="0; url=/cgi-bin/luci/web" />',
+      })
+      .on('POST http://10.0.0.5/ubus', { status: 404, headers: {}, body: '' });
+    await expect(createProber(http).probe('10.0.0.5', signal)).resolves.toBeNull();
+  });
+
   it('accepts a bare ubus endpoint without LuCI', async () => {
     const http = new FakeHttpClient()
       .on('GET http://10.0.0.2/cgi-bin/luci/', { status: 404, headers: {}, body: '' })
@@ -137,7 +172,11 @@ describe('createProber', () => {
   it('tries HTTPS when port 80 is refused, and gives up on timeouts', async () => {
     const refused = new FakeHttpClient()
       .on('GET http://10.0.0.3/cgi-bin/luci/', new NativeError('ERR_UNREACHABLE', 'refused'))
-      .on('GET https://10.0.0.3/cgi-bin/luci/', { status: 200, headers: {}, body: 'luci' });
+      .on('GET https://10.0.0.3/cgi-bin/luci/', {
+        status: 200,
+        headers: {},
+        body: '<link href="/luci-static/bootstrap/cascade.css">',
+      });
     await expect(createProber(refused).probe('10.0.0.3', signal)).resolves.toEqual({
       scheme: 'https',
       hostname: undefined,

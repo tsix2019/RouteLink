@@ -1618,7 +1618,7 @@ export async function scan(o: {
 }): Promise<DiscoveredRouter[]>;
 ```
 
-**探测器**（`probe.ts` 里的 `nativeProber`，超时都是 1.2 秒，请求不带任何账号信息）
+**探测器**（`probe.ts` 里的 `nativeProber`，超时都是 1.2 秒，请求不带任何账号信息。实施时调整为 2.5 秒，并接受 403 登录页，见执行记录 T49）
 1. `GET http://host/cgi-bin/luci/`：
    - 返回 200，并且页面里有 `luci` 字样（不区分大小写），判定为 OpenWrt。标题按 `<title>(.+?) - LuCI</title>` 提取，括号里就是主机名。
    - 返回 3xx，跳转地址是 https，进入第 3 步。
@@ -1627,7 +1627,7 @@ export async function scan(o: {
 4. 端口 80 超时，说明这台主机多半不存在，直接跳过 443。
 
 **扫描**（`scan`）
-- 最多 48 个任务并发。
+- 最多 48 个任务并发（实施时改为先单独探测网关、主机名和 .1/.254，再并发扫其余地址，见执行记录 T49）。
 - 网关排在第一位。
 - `openwrt.lan`、`openwrt` 这两个主机名也当作探测目标。如果某个主机名的结果和某个 IP 结果的标题主机名相同，就合并成一条：保留 IP 那条，主机名记进 `aliases`。
 - 支持用 `AbortSignal` 取消；`onProgress` 每完成一个目标调用一次。
@@ -2487,5 +2487,6 @@ printf 'routelink' | gh secret set ANDROID_KEY_ALIAS
 | T24/T60 rpcd 行为假设 A1～A4 | 在 Docker 24.10.8 上实测：A1 成立；A2 成立（没有待确认的回滚时，`uci confirm` 返回 NO_DATA）；**A3 不成立**：任何会话都能 confirm，所以确认阶段允许重新登录；A4 成立：超时后 /etc/config 恢复原样，**但这次的改动会被放回发起 apply 的那个会话的暂存区**。因此实现时：暂存改动前，先对涉及的 config 执行 `uci revert`；回滚后再 revert 一次。QEMU 上的复核放在 T60 |
 | T25 读邻居表用哪种方式（`ip neigh` 或 `/proc/net/arp`） | 用 `file exec /sbin/ip -4 neigh show`（luci-mod-status 授权）；`/proc/net/arp` 没有读权限。另外：24.10 下 `log read` 和 `/proc/stat` 都被拒绝，系统日志改用 `/usr/libexec/syslog-wrapper`；CPU 使用率拿不到，改为"1 分钟负载 ÷ 核心数"，核心数通过 `file list /sys/devices/system/cpu` 统计；温度在原版 OpenWrt 上读不到（`luci getTempInfo` 只有 ImmortalWrt 有）；`network.device status` 和 `iwinfo devices` 被拒绝，改用 `luci-rpc getNetworkDevices` 和 `getWirelessDevices`。Docker 版测试路由器需要 `NET_ADMIN` 权限，否则 netifd 会卡住 |
 | T29 只有 name 和 mac 的 `dhcp host` 条目能否生效 | 可以：dnsmasq 启动脚本只在 ip、name、hostid 都为空时才跳过，会生成 `--dhcp-host=MAC,name`。但 name 会被原样拼进 dnsmasq 参数，中文和空格会让 dnsmasq 起不来，所以**调整了设计**：符合 DNS 规范的名字写 `name`；其他名字写自定义选项 `routelink_alias`（dnsmasq 会忽略它），只有 App 里看得到。拉黑规则用 `src * / dest *`，不依赖防火墙区域的名字。以上都已在 Docker 路由器上实测 |
+| T49 添加路由器与自动发现 | 手动添加 Docker 路由器通过（登录后进入概览，数据正常）。在真实局域网里扫描 /24 能发现网关上的 OpenWrt（只发现，没有登录）。实测后调整了探测：① LuCI 21.02 起未登录访问 `/cgi-bin/luci/` 返回 **403** 登录页，探测要接受 403，主机名照样从标题里取；② 有些厂商固件也是基于 LuCI 改的，页面里有 luci 字样但没有 ubus，改为必须满足"标题是 `主机名 - LuCI`"或"页面引用了 `luci-static/`"，否则再走 ubus 探测；③ 模拟器经过 NAT 访问局域网的往返时间约 300 毫秒，整段并发扫描时连网关都会超时，所以单次请求超时从 1.2 秒改为 2.5 秒，并且先单独探测网关、主机名和 .1/.254 这几个最可能的地址，再扫其余地址（并发 48） |
 | T56 拖动排序用的库 | |
 | T32 真实路由器的兼容性问题 | |

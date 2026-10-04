@@ -1,3 +1,6 @@
+import { useRouter } from 'expo-router';
+
+import { classifyError } from '@/api/connection/types';
 import { useT } from '@/i18n';
 import { describeError } from '@/ui/errorText';
 import { Banner } from '@/ui/Feedback';
@@ -18,10 +21,21 @@ export function ConnectionBanner({
   updatedAt?: number;
 }) {
   const t = useT();
-  const { status } = useActiveRouter();
+  const nav = useRouter();
+  const { status, router } = useActiveRouter();
   if (status === 'needs-password') return <Banner tone="warning" text={t('errors:connection.auth')} />;
   if (!error) return null;
   const { title } = describeError(t, error);
+  const kind = classifyError(error).kind;
+  if ((kind === 'tls-untrusted' || kind === 'tls-mismatch') && router && !router.isDemo) {
+    return (
+      <Banner
+        tone="error"
+        text={title}
+        action={{ label: t('routers:trust.view'), onPress: () => nav.push('/trust-certificate') }}
+      />
+    );
+  }
   const stale = updatedAt ? ` · ${t('lastUpdated', { time: new Date(updatedAt).toLocaleTimeString() })}` : '';
   return (
     <Banner
