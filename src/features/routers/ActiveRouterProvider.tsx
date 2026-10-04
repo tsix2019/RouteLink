@@ -36,7 +36,11 @@ export function ActiveRouterProvider({ children }: { children: ReactNode }) {
   const activeId = useRouters((s) => s.activeId);
   const getPassword = useRouters((s) => s.getPassword);
   const update = useRouters((s) => s.update);
-  const profile = routers.find((r) => r.id === activeId) ?? null;
+  // No (valid) selection yet: fall back to the most recently used router.
+  const profile =
+    routers.find((r) => r.id === activeId) ??
+    [...routers].sort((a, b) => (b.lastUsedAt ?? 0) - (a.lastUsedAt ?? 0))[0] ??
+    null;
 
   const [password, setPassword] = useState<{ id: string; value: string | null } | null>(null);
 

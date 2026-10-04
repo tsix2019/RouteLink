@@ -49,7 +49,7 @@ const config: ExpoConfig = {
     ['expo-build-properties', { android: { usesCleartextTraffic: true } }],
   ],
   experiments: {
-    typedRoutes: true,
+    typedRoutes: false,
     reactCompiler: true,
   },
 };

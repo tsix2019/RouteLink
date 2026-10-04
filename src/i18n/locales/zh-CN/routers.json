@@ -1,1 +1,7 @@
-{ "title": "路由器", "add": "添加路由器", "manage": "管理路由器" }
+{
+  "title": "路由器",
+  "add": "添加路由器",
+  "manage": "管理",
+  "switch": "切换路由器",
+  "switcherTitle": "切换路由器"
+}

@@ -1,14 +1,11 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Redirect } from 'expo-router';
 
-export default function Placeholder() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>RouteLink</Text>
-    </View>
-  );
+import { useRouters } from '@/state/routers';
+import { useSettings } from '@/state/settings';
+
+/** First screen: the dashboard when there is something to show, otherwise onboarding. */
+export default function Index() {
+  const demoMode = useSettings((s) => s.demoMode);
+  const hasRouters = useRouters((s) => s.routers.length > 0);
+  return <Redirect href={demoMode || hasRouters ? '/overview' : '/welcome'} />;
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 34, fontWeight: '700' },
-});

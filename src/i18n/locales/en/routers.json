@@ -1,1 +1,7 @@
-{ "title": "Routers", "add": "Add Router", "manage": "Manage Routers" }
+{
+  "title": "Routers",
+  "add": "Add Router",
+  "manage": "Manage",
+  "switch": "Switch router",
+  "switcherTitle": "Switch Router"
+}

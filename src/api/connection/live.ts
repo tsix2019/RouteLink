@@ -20,6 +20,16 @@ export interface LiveConnectionConfig {
   onLogin?: (session: Session) => void;
 }
 
+/** Any HTTP answer (even 404) or TLS handshake means the router is up. No credentials are sent. */
+export async function pingRouter(http: HttpClient, baseUrl: string, tls: TlsOptions = { mode: 'system' }): Promise<boolean> {
+  try {
+    await http.request({ url: `${baseUrl}/`, method: 'GET', timeoutMs: 1_500, tls });
+    return true;
+  } catch (error) {
+    return !(error instanceof NativeError && error.isConnectivity());
+  }
+}
+
 export class LiveConnection implements RouterConnection {
   readonly kind = 'live' as const;
   readonly routerId: string;
@@ -46,13 +56,7 @@ export class LiveConnection implements RouterConnection {
     return this.session.batch(calls, options);
   }
 
-  /** Any HTTP answer (even 404) or TLS handshake means the router is up. */
-  async ping(): Promise<boolean> {
-    try {
-      await this.cfg.http.request({ url: `${this.baseUrl}/`, method: 'GET', timeoutMs: 1_500, tls: this.tls });
-      return true;
-    } catch (error) {
-      return !(error instanceof NativeError && error.isConnectivity());
-    }
+  ping(): Promise<boolean> {
+    return pingRouter(this.cfg.http, this.baseUrl, this.tls);
   }
 }
