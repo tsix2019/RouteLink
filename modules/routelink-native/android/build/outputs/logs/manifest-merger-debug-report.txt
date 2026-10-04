@@ -1,0 +1,24 @@
+-- Merging decision tree log ---
+manifest
+ADDED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml:1:1-4:12
+INJECTED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml:1:1-4:12
+	package
+		INJECTED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml:1:11-69
+uses-permission#android.permission.INTERNET
+ADDED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml:2:3-65
+	android:name
+		ADDED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml:2:20-62
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml:3:3-77
+	android:name
+		ADDED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml:3:20-74
+uses-sdk
+INJECTED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml
+INJECTED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from D:\RouteLink\modules\routelink-native\android\src\main\AndroidManifest.xml
