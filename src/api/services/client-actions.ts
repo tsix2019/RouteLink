@@ -1,7 +1,7 @@
 import { isIPv4 } from '@/utils/net';
 
 import type { RouterConnection } from '../connection/types';
-import { stageAndApply, uci, type ApplyOptions, type ApplyOutcome } from '../uci';
+import { stageAndApply, uci, type ApplyOptions, type ApplyOutcome, type UciValues } from '../uci';
 import type { UbusCall } from '../ubus/types';
 import { ActionError } from './action-error';
 import { ALIAS_OPTION, BLOCK_RULE_PREFIX, type Client } from './clients';
@@ -20,7 +20,7 @@ export function renameChanges(client: Client, newName: string): UbusCall[] {
   if (!name) throw new ActionError('name-empty');
   if (name.length > 64) throw new ActionError('name-too-long');
   const dnsSafe = isDnsSafeName(name);
-  const values = dnsSafe ? { name } : { [ALIAS_OPTION]: name };
+  const values: UciValues = dnsSafe ? { name } : { [ALIAS_OPTION]: name };
   if (!client.hostSection) return [uci.add('dhcp', 'host', { mac: client.mac, ...values })];
   const calls = [uci.set('dhcp', client.hostSection, values)];
   if (dnsSafe && client.aliasSource === 'custom') calls.push(uci.delOption('dhcp', client.hostSection, ALIAS_OPTION));
@@ -32,7 +32,7 @@ export function staticIpChanges(client: Client, ip: string, clients: Client[]): 
   if (!isIPv4(addr)) throw new ActionError('ip-invalid');
   if (clients.some((c) => c.mac !== client.mac && c.staticIp === addr)) throw new ActionError('ip-in-use');
   if (client.hostSection) return [uci.set('dhcp', client.hostSection, { ip: addr })];
-  const name = client.hostname && isDnsSafeName(client.hostname) ? { name: client.hostname } : {};
+  const name: UciValues = client.hostname && isDnsSafeName(client.hostname) ? { name: client.hostname } : {};
   return [uci.add('dhcp', 'host', { mac: client.mac, ip: addr, ...name })];
 }
 
