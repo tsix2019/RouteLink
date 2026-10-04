@@ -1,13 +1,159 @@
-import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
-import { useT } from '@/i18n';
-import { GlassCard } from '@/ui/GlassCard';
-import { Screen } from '@/ui/Screen';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Platform } from 'react-native';
 
-export default function Placeholder() {
+import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
+import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
+import { useRebootConfirm } from '@/features/routers/useRebootConfirm';
+import { useT, type LanguagePreference } from '@/i18n';
+import { useRouters } from '@/state/routers';
+import { useSettings, type RefreshInterval, type ThemePreference } from '@/state/settings';
+import { ListRow, ListSection } from '@/ui/ListSection';
+import { Screen } from '@/ui/Screen';
+import { SelectSheet } from '@/ui/SelectSheet';
+
+type Picker = 'language' | 'theme' | 'refresh' | null;
+
+const LANGUAGES: LanguagePreference[] = ['system', 'zh-CN', 'en'];
+const THEMES: ThemePreference[] = ['system', 'light', 'dark'];
+const INTERVALS: RefreshInterval[] = [1, 2, 5, 10];
+
+/** More tab: router tools on top, app settings below — one grouped list, like iOS Settings. */
+export default function More() {
   const t = useT();
+  const nav = useRouter();
+  const { router } = useActiveRouter();
+  const routerCount = useRouters((s) => s.routers.length);
+  const settings = useSettings();
+  const reboot = useRebootConfirm();
+  const [picker, setPicker] = useState<Picker>(null);
+  const hasRouter = !!router;
+
   return (
-    <Screen title={t('tabs.more')} headerLeft={<RouterSwitcherCapsule />}>
-      <GlassCard title={t('tabs.more')} subtitle="…" />
-    </Screen>
+    <>
+      <Screen title={t('tabs.more')} headerLeft={<RouterSwitcherCapsule />}>
+        <ListSection title={t('more:router')}>
+          <ListRow
+            title={t('more:services')}
+            icon="services"
+            chevron
+            disabled={!hasRouter}
+            onPress={() => nav.push('/more/services')}
+            testID="more-services"
+          />
+          <ListRow
+            title={t('more:logs')}
+            icon="logs"
+            chevron
+            disabled={!hasRouter}
+            onPress={() => nav.push('/more/logs')}
+            testID="more-logs"
+          />
+          <ListRow
+            title={t('more:wol')}
+            icon="bolt"
+            chevron
+            disabled={!hasRouter}
+            onPress={() => nav.push('/more/wol')}
+            testID="more-wol"
+          />
+          <ListRow
+            title={t('more:reboot')}
+            icon="power"
+            destructive
+            disabled={!hasRouter}
+            onPress={reboot.open}
+            testID="more-reboot"
+          />
+        </ListSection>
+
+        <ListSection title={t('more:app')}>
+          <ListRow
+            title={t('more:manageRouters')}
+            icon="router"
+            value={routerCount ? String(routerCount) : undefined}
+            chevron
+            onPress={() => nav.push('/more/routers')}
+            testID="more-routers"
+          />
+          <ListRow
+            title={t('settings:language.title')}
+            icon="language"
+            value={t(`settings:language.${settings.language}`)}
+            chevron
+            onPress={() => setPicker('language')}
+            testID="more-language"
+          />
+          <ListRow
+            title={t('settings:theme.title')}
+            icon="appearance"
+            value={t(`settings:theme.${settings.theme}`)}
+            chevron
+            onPress={() => setPicker('theme')}
+          />
+          <ListRow
+            title={t('settings:refresh.title')}
+            icon="timer"
+            value={t('settings:refresh.value', { count: settings.refreshIntervalSec })}
+            chevron
+            onPress={() => setPicker('refresh')}
+          />
+          {Platform.OS === 'android' ? (
+            <ListRow
+              title={t('settings:reduceTransparency.title')}
+              icon="transparency"
+              switchValue={settings.reduceTransparency}
+              onSwitch={(v) => settings.set({ reduceTransparency: v })}
+            />
+          ) : null}
+          <ListRow
+            title={t('settings:demo.title')}
+            icon="demo"
+            switchValue={settings.demoMode}
+            onSwitch={(v) => {
+              settings.set({ demoMode: v });
+              if (!v && routerCount === 0) nav.replace('/welcome');
+            }}
+            testID="more-demo"
+          />
+          <ListRow title={t('more:about')} icon="about" chevron onPress={() => nav.push('/more/about')} />
+        </ListSection>
+      </Screen>
+
+      <SelectSheet
+        visible={picker === 'language'}
+        title={t('settings:language.title')}
+        options={LANGUAGES.map((v) => ({ value: v, label: t(`settings:language.${v}`) }))}
+        value={settings.language}
+        onSelect={(v) => {
+          settings.set({ language: v });
+          setPicker(null);
+        }}
+        onCancel={() => setPicker(null)}
+      />
+      <SelectSheet
+        visible={picker === 'theme'}
+        title={t('settings:theme.title')}
+        options={THEMES.map((v) => ({ value: v, label: t(`settings:theme.${v}`) }))}
+        value={settings.theme}
+        onSelect={(v) => {
+          settings.set({ theme: v });
+          setPicker(null);
+        }}
+        onCancel={() => setPicker(null)}
+      />
+      <SelectSheet
+        visible={picker === 'refresh'}
+        title={t('settings:refresh.title')}
+        options={INTERVALS.map((v) => ({ value: String(v), label: t('settings:refresh.value', { count: v }) }))}
+        value={String(settings.refreshIntervalSec)}
+        onSelect={(v) => {
+          settings.set({ refreshIntervalSec: Number(v) as RefreshInterval });
+          setPicker(null);
+        }}
+        onCancel={() => setPicker(null)}
+      />
+      {reboot.element}
+    </>
   );
 }

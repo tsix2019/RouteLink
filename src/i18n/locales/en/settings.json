@@ -1,1 +1,8 @@
-{ "title": "Settings", "language": { "title": "Language", "system": "System", "zh-CN": "中文", "en": "English" } }
+{
+  "title": "Settings",
+  "language": { "title": "Language", "system": "System", "zh-CN": "中文", "en": "English" },
+  "theme": { "title": "Appearance", "system": "System", "light": "Light", "dark": "Dark" },
+  "refresh": { "title": "Refresh Interval", "value": "{{count}} s" },
+  "reduceTransparency": { "title": "Reduce Transparency", "hint": "Turns off blur and makes glass opaque; easier on slower phones." },
+  "demo": { "title": "Demo Mode", "hint": "Uses a built-in demo router instead of a real one. Demo changes reset when the app restarts." }
+}

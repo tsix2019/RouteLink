@@ -1,5 +1,4 @@
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { isAvailable } from '@/api/capabilities';
 import { pickWan } from '@/api/services/network';
@@ -7,6 +6,7 @@ import { DevicesCard, ResourcesCard, SystemCard, TrafficCard, WanCard } from '@/
 import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
 import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
+import { useRebootConfirm } from '@/features/routers/useRebootConfirm';
 import {
   useCapabilities,
   useClients,
@@ -20,12 +20,10 @@ import { useSettings } from '@/state/settings';
 import { useSnapshots } from '@/state/snapshots';
 import { GlassButton } from '@/ui/GlassButton';
 import { GlassCard } from '@/ui/GlassCard';
-import { RiskConfirm } from '@/ui/RiskConfirm';
 import { Screen } from '@/ui/Screen';
 
 export default function Overview() {
   const t = useT();
-  const nav = useRouter();
   const { router } = useActiveRouter();
   const system = useSystem();
   const interfaces = useInterfaces();
@@ -35,7 +33,7 @@ export default function Overview() {
   const traffic = useTraffic();
   const intervalSec = useSettings((s) => s.refreshIntervalSec);
   const saveSnapshot = useSnapshots((s) => s.save);
-  const [confirmReboot, setConfirmReboot] = useState(false);
+  const reboot = useRebootConfirm();
   const wan = pickWan(interfaces.data ?? []);
 
   // Keep the last good overview for cold starts, the router switcher and widgets.
@@ -82,23 +80,11 @@ export default function Overview() {
           label={t('overview:actions.reboot')}
           icon="power"
           variant="warning"
-          onPress={() => setConfirmReboot(true)}
+          onPress={reboot.open}
           testID="action-reboot"
         />
       </GlassCard>
-      <RiskConfirm
-        visible={confirmReboot}
-        level="medium"
-        disruptive
-        title={t('overview:reboot.confirmTitle')}
-        consequences={[t('overview:reboot.consequenceOffline'), t('overview:reboot.consequenceUnsaved')]}
-        confirmLabel={t('overview:reboot.confirm')}
-        onCancel={() => setConfirmReboot(false)}
-        onConfirm={() => {
-          setConfirmReboot(false);
-          nav.push('/reboot');
-        }}
-      />
+      {reboot.element}
     </Screen>
   );
 }

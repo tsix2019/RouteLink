@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useIsFocused, useNavigation, useRoute, useRouter } from 'expo-router';
-import { useState, type ReactNode } from 'react';
+import { useState, type ReactNode, type RefObject } from 'react';
 import {
   Platform,
   Pressable,
@@ -41,6 +41,8 @@ export interface ScreenProps {
   /** Rendered above the content, e.g. a connection banner. */
   top?: ReactNode;
   contentStyle?: StyleProp<ViewStyle>;
+  /** For screens that scroll themselves, e.g. a log jumping to its end. */
+  scrollRef?: RefObject<ScrollView | null>;
 }
 
 const BAR_HEIGHT = 52;
@@ -75,6 +77,7 @@ function NativeHeaderScreen({
   onRefresh,
   top,
   contentStyle,
+  scrollRef,
 }: ScreenProps) {
   const { colors } = useTheme();
   const tabSpace = useTabBarSpace();
@@ -91,6 +94,7 @@ function NativeHeaderScreen({
         />
       ) : null}
       <ScrollView
+        ref={scrollRef}
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.content, { paddingBottom: bottom }, contentStyle]}
@@ -121,6 +125,7 @@ function GlassBarScreen({
   onRefresh,
   top,
   contentStyle,
+  scrollRef,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -166,6 +171,7 @@ function GlassBarScreen({
   return (
     <View style={styles.flex}>
       <Animated.ScrollView
+        ref={scrollRef}
         onScroll={onScroll}
         scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"

@@ -1,1 +1,76 @@
-{ "title": "更多" }
+{
+  "title": "更多",
+  "router": "路由器",
+  "app": "App",
+  "services": "服务",
+  "logs": "日志",
+  "wol": "网络唤醒",
+  "reboot": "重启路由器",
+  "manageRouters": "管理路由器",
+  "about": "关于",
+  "servicesScreen": {
+    "search": "搜索服务",
+    "running": "运行中",
+    "stopped": "已停止",
+    "enabled": "开机自启",
+    "disabled": "不自启",
+    "empty": "没有找到服务",
+    "start": "启动",
+    "stop": "停止",
+    "restart": "重启",
+    "enable": "启用开机自启",
+    "disable": "禁用开机自启",
+    "confirmTitle": "{{action}} {{name}}？",
+    "consequence": "依赖这个服务的功能会受影响",
+    "critical": "这是关键服务，操作后 App 可能与路由器断开",
+    "done": "已执行：{{action}} {{name}}",
+    "core": "关键"
+  },
+  "logsScreen": {
+    "system": "系统日志",
+    "kernel": "内核日志",
+    "filter": "筛选关键字",
+    "empty": "没有日志",
+    "noMatch": "没有匹配的日志",
+    "share": "分享",
+    "count": "{{shown}} / {{total}} 行"
+  },
+  "wolScreen": {
+    "empty": "还没有保存的设备",
+    "emptyHint": "添加电脑的名称和 MAC 地址，之后就能一键唤醒。电脑需要在 BIOS 和网卡里开启网络唤醒（Wake-on-LAN）。",
+    "add": "添加设备",
+    "wake": "唤醒",
+    "name": "名称",
+    "mac": "MAC 地址",
+    "macInvalid": "MAC 地址格式不正确",
+    "delete": "删除",
+    "deleteTitle": "删除 {{name}}？",
+    "fromDevices": "从设备列表添加"
+  },
+  "routersScreen": {
+    "edit": "编辑",
+    "done": "完成",
+    "current": "当前",
+    "add": "添加路由器",
+    "empty": "还没有添加路由器",
+    "moveUp": "上移",
+    "moveDown": "下移"
+  },
+  "routerEdit": {
+    "title": "编辑路由器",
+    "passwordHint": "留空表示不修改",
+    "delete": "删除路由器",
+    "deleteTitle": "删除 {{name}}？",
+    "deleteConsequence": "App 会删掉这台路由器的地址和保存的密码，路由器本身不受影响",
+    "saved": "已保存",
+    "certificate": "已信任的证书",
+    "forgetCertificate": "忘记证书"
+  },
+  "aboutScreen": {
+    "version": "版本 {{version}}",
+    "source": "源代码",
+    "privacy": "隐私",
+    "privacyText": "RouteLink 不收集任何数据，没有统计和广告。App 只和你添加的路由器通信；密码保存在系统钥匙串里。",
+    "license": "开源许可：MIT"
+  }
+}
