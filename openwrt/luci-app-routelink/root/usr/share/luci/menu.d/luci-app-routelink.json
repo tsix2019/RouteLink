@@ -1,0 +1,39 @@
+{
+	"admin/services/routelink": {
+		"title": "RouteLink",
+		"order": 60,
+		"action": {
+			"type": "firstchild"
+		},
+		"depends": {
+			"acl": [ "routelink" ]
+		}
+	},
+
+	"admin/services/routelink/overview": {
+		"title": "Overview",
+		"order": 1,
+		"action": {
+			"type": "view",
+			"path": "routelink/overview"
+		}
+	},
+
+	"admin/services/routelink/traffic": {
+		"title": "Traffic",
+		"order": 2,
+		"action": {
+			"type": "view",
+			"path": "routelink/traffic"
+		}
+	},
+
+	"admin/services/routelink/settings": {
+		"title": "Settings",
+		"order": 9,
+		"action": {
+			"type": "view",
+			"path": "routelink/settings"
+		}
+	}
+}

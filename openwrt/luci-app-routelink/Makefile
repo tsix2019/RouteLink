@@ -6,6 +6,9 @@ PKG_RELEASE:=1
 PKG_LICENSE:=MIT
 PKG_MAINTAINER:=tsix2019 <tsix2019@users.noreply.github.com>
 
+# the translation package follows the app version instead of file times
+PKG_PO_VERSION:=$(PKG_VERSION)-r$(PKG_RELEASE)
+
 LUCI_TITLE:=LuCI support for RouteLink
 LUCI_DEPENDS:=+routelinkd
 LUCI_PKGARCH:=all
