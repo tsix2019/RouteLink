@@ -1,5 +1,6 @@
 // Global jest setup: in-memory replacements for native modules.
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories cannot use import
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 
 // The real module calls requireNativeModule() at import time. Tests override individual functions.
