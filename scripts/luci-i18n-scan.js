@@ -5,7 +5,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const app = path.join(__dirname, '..', 'openwrt', 'luci-app-routelink');
+const app = path.join(path.dirname(process.argv[1]), '..', 'openwrt', 'luci-app-routelink');
 const strings = new Map(); // msgid -> [locations]
 
 function add(msgid, where) {
