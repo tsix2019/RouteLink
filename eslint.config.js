@@ -5,6 +5,15 @@ const expoConfig = require('eslint-config-expo/flat');
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*', 'android/*', 'ios/*', 'build/*', 'modules/**/android/build/*', 'test/integration/.cache/*'],
+    ignores: [
+      'dist/*',
+      'android/*',
+      'ios/*',
+      'build/*',
+      'modules/**/android/build/*',
+      'test/integration/.cache/*',
+      // Worktrees of parallel sessions live inside the repo.
+      '.claude/**',
+    ],
   },
 ]);

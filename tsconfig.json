@@ -3,23 +3,12 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/assets/*": [
-        "./assets/*"
-      ],
-      "routelink-native": [
-        "./modules/routelink-native"
-      ]
+      "@/*": ["./src/*"],
+      "@/assets/*": ["./assets/*"],
+      "routelink-native": ["./modules/routelink-native"]
     },
-    "types": [
-      "jest",
-      "node"
-    ]
+    "types": ["jest", "node"]
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", ".claude"]
 }

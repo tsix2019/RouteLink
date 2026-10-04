@@ -72,3 +72,8 @@ export function formatPercent(ratio: number): string {
   const r = Number.isFinite(ratio) ? Math.min(1, Math.max(0, ratio)) : 0;
   return `${Math.round(r * 100)}%`;
 }
+
+/** Link speed in Mbit/s → "1 Gbps", "2.5 Gbps", "100 Mbps". */
+export function formatLinkSpeed(mbps: number): string {
+  return mbps >= 1000 ? `${Number((mbps / 1000).toFixed(1))} Gbps` : `${mbps} Mbps`;
+}

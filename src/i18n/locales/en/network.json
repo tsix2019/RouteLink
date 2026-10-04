@@ -1,1 +1,34 @@
-{ "title": "Network" }
+{
+  "title": "Network",
+  "interfaces": "Interfaces",
+  "empty": "No network interfaces found",
+  "down": "Down",
+  "noAddress": "No address",
+  "traffic": "↓ {{rx}}  ↑ {{tx}}",
+  "detail": {
+    "status": "Status",
+    "connected": "Connected",
+    "disconnected": "Down",
+    "protocol": "Protocol",
+    "device": "Device",
+    "uptime": "Uptime",
+    "ipv4": "IPv4 Address",
+    "ipv6": "IPv6 Address",
+    "gateway": "Gateway",
+    "dns": "DNS",
+    "received": "Received",
+    "sent": "Sent",
+    "speed": "Link Speed",
+    "errors": "Errors",
+    "addresses": "Addresses",
+    "trafficTitle": "Traffic"
+  },
+  "reconnect": {
+    "button": "Reconnect",
+    "title": "Reconnect {{name}}?",
+    "consequence": "The interface goes down and up again; connections through it drop meanwhile",
+    "appConsequence": "The app reaches the router through this interface: it will lose the connection for a few seconds",
+    "pppoe": "PPPoE dials again, so your public IP may change",
+    "done": "Reconnect requested"
+  }
+}
