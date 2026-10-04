@@ -83,6 +83,13 @@ static void uncommitted_is_lost(void)
 	rl_store_close(s);
 	s = rl_store_open(dir);
 	T_EQ_I64(scan(s, RL_TIER_HOUR, 0, 100000).n, 1);
+	rl_store_append(s, RL_TIER_HOUR, &(rl_rec){ .ts = 10800, .rx = 3 });
+	rl_store_discard_pending(s);
+	T_EQ_U64(rl_store_pending(s), 0);
+	rl_store_commit(s);
+	rl_store_close(s);
+	s = rl_store_open(dir);
+	T_EQ_I64(scan(s, RL_TIER_HOUR, 0, 100000).n, 1);
 	rl_store_close(s);
 }
 

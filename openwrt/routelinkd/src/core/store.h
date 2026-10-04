@@ -33,6 +33,8 @@ int rl_store_recovered(const rl_store *s);
 
 void rl_store_append(rl_store *s, rl_tier tier, const rl_rec *r);
 size_t rl_store_pending(const rl_store *s);
+/* Forgets records that were not committed yet (recorded before the clock was set). */
+void rl_store_discard_pending(rl_store *s);
 /* Appends pending records to disk and fsyncs; on failure the files keep their old length. */
 int rl_store_commit(rl_store *s);
 /* Drops expired records, then the oldest minute/hour/day records while the total exceeds max_bytes. */

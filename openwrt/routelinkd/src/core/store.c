@@ -227,6 +227,12 @@ size_t rl_store_pending(const rl_store *s)
 	return n;
 }
 
+void rl_store_discard_pending(rl_store *s)
+{
+	for (int t = 0; t < RL_TIER_COUNT; t++)
+		s->t[t].n_pending = 0;
+}
+
 static int commit_tier(tier_file *f)
 {
 	if (!f->n_pending)
