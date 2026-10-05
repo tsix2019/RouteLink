@@ -6,7 +6,9 @@ import { getLeds } from '@/api/services/leds';
 import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
 import { useRebootConfirm } from '@/features/routers/useRebootConfirm';
-import { useRouterQuery } from '@/hooks/router-queries';
+import { isAvailable } from '@/api/capabilities';
+import { useFactoryReset } from '@/features/maintenance/useFactoryReset';
+import { useCapabilities, useRouterQuery } from '@/hooks/router-queries';
 import { useT, type LanguagePreference } from '@/i18n';
 import { useRouters } from '@/state/routers';
 import { useSettings, type RefreshInterval, type ThemePreference } from '@/state/settings';
@@ -28,6 +30,8 @@ export default function More() {
   const routerCount = useRouters((s) => s.routers.length);
   const settings = useSettings();
   const reboot = useRebootConfirm();
+  const reset = useFactoryReset();
+  const caps = useCapabilities();
   const [picker, setPicker] = useState<Picker>(null);
   const hasRouter = !!router;
   // Most x86 routers have no LEDs: the row only shows when there is something to set.
@@ -120,6 +124,33 @@ export default function More() {
           />
         </ListSection>
 
+        <ListSection title={t('more:maintenance')}>
+          <ListRow
+            title={t('more:backup')}
+            icon="backup"
+            chevron
+            disabled={!hasRouter}
+            onPress={() => nav.push('/more/backup')}
+            testID="more-backup"
+          />
+          <ListRow
+            title={t('more:firmware')}
+            icon="firmware"
+            chevron
+            disabled={!hasRouter}
+            onPress={() => nav.push('/more/firmware')}
+            testID="more-firmware"
+          />
+          <ListRow
+            title={t('more:reset')}
+            icon="reset"
+            destructive
+            disabled={!hasRouter || !isAvailable(caps.data, 'system.reset')}
+            onPress={reset.open}
+            testID="more-reset"
+          />
+        </ListSection>
+
         <ListSection title={t('more:app')}>
           <ListRow
             title={t('more:manageRouters')}
@@ -207,6 +238,7 @@ export default function More() {
         onCancel={() => setPicker(null)}
       />
       {reboot.element}
+      {reset.element}
     </>
   );
 }
