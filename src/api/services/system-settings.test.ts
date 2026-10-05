@@ -19,7 +19,11 @@ describe('time zone and clock', () => {
   it('lists time zones sorted, with their POSIX strings', async () => {
     const conn = new FixtureConnection('none').override(
       'luci.getTimezones',
-      ok({ 'Europe/Berlin': { tzstring: 'CET-1CEST,M3.5.0,M10.5.0/3' }, 'Asia/Shanghai': { tzstring: 'CST-8' }, UTC: { tzstring: 'UTC' } }),
+      ok({
+        'Europe/Berlin': { tzstring: 'CET-1CEST,M3.5.0,M10.5.0/3' },
+        'Asia/Shanghai': { tzstring: 'CST-8' },
+        UTC: { tzstring: 'UTC' },
+      }),
     );
     expect(await getTimezones(conn)).toEqual([
       { zonename: 'Asia/Shanghai', tz: 'CST-8' },

@@ -2,13 +2,31 @@ import { FixtureConnection, ok } from '../../../test/fixture-connection';
 import { getLeds, ledChanges, type Led } from './leds';
 
 const leds = {
-  'green:power': { brightness: 255, max_brightness: 255, triggers: ['none', 'timer', 'default-on', 'netdev'], active_trigger: 'default-on' },
-  'green:wan': { brightness: 0, max_brightness: 1, triggers: ['none', 'netdev', 'heartbeat'], active_trigger: 'netdev' },
+  'green:power': {
+    brightness: 255,
+    max_brightness: 255,
+    triggers: ['none', 'timer', 'default-on', 'netdev'],
+    active_trigger: 'default-on',
+  },
+  'green:wan': {
+    brightness: 0,
+    max_brightness: 1,
+    triggers: ['none', 'netdev', 'heartbeat'],
+    active_trigger: 'netdev',
+  },
 };
 const system = {
   values: {
     cfg01e48a: { '.name': 'cfg01e48a', '.type': 'system', hostname: 'OpenWrt' },
-    led_wan: { '.name': 'led_wan', '.type': 'led', name: 'WAN', sysfs: 'green:wan', trigger: 'netdev', dev: 'eth1', mode: 'link tx rx' },
+    led_wan: {
+      '.name': 'led_wan',
+      '.type': 'led',
+      name: 'WAN',
+      sysfs: 'green:wan',
+      trigger: 'netdev',
+      dev: 'eth1',
+      mode: 'link tx rx',
+    },
   },
 };
 
@@ -56,7 +74,11 @@ describe('ledChanges', () => {
 
   it('switches a LED off or on with the none trigger and a default', () => {
     expect(ledChanges(wan(), { trigger: 'none', on: false })).toEqual([
-      { object: 'uci', method: 'set', params: { config: 'system', section: 'led_wan', values: { trigger: 'none', default: '0' } } },
+      {
+        object: 'uci',
+        method: 'set',
+        params: { config: 'system', section: 'led_wan', values: { trigger: 'none', default: '0' } },
+      },
     ]);
   });
 
@@ -66,7 +88,11 @@ describe('ledChanges', () => {
       {
         object: 'uci',
         method: 'add',
-        params: { config: 'system', type: 'led', values: { name: 'green:power', sysfs: 'green:power', trigger: 'heartbeat' } },
+        params: {
+          config: 'system',
+          type: 'led',
+          values: { name: 'green:power', sysfs: 'green:power', trigger: 'heartbeat' },
+        },
       },
     ]);
   });

@@ -1,4 +1,5 @@
 import type { UciSection } from '../../uci';
+import { createDemoAdmin, type DemoAdmin } from './admin';
 import { createDemoAgent, type DemoAgent } from './agent';
 import { createRandom, type Random } from './random';
 
@@ -35,6 +36,8 @@ export interface DemoState {
   kernel: string[];
   /** The router plugin (installed from the start; can be removed and installed again). */
   agent: DemoAgent;
+  /** Processes, crontab and clock. */
+  admin: DemoAdmin;
 }
 
 /** Real vendor prefixes so the device list shows believable vendors. */
@@ -156,6 +159,18 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
         { hostname: 'RouteLink-Demo', timezone: 'CST-8', zonename: 'Asia/Shanghai' },
         true,
       ),
+      ntp: section('ntp', 'timeserver', {
+        enabled: '1',
+        enable_server: '0',
+        server: ['0.openwrt.pool.ntp.org', '1.openwrt.pool.ntp.org', '2.openwrt.pool.ntp.org'],
+      }),
+      led_wan: section('led_wan', 'led', {
+        name: 'WAN',
+        sysfs: 'green:wan',
+        trigger: 'netdev',
+        dev: 'pppoe-wan',
+        mode: 'link tx rx',
+      }),
     },
     network: {
       loopback: section('loopback', 'interface', {
@@ -173,6 +188,13 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
       wan: section('wan', 'interface', { device: 'eth0', proto: 'pppoe', username: 'demo@isp' }),
       wan6: section('wan6', 'interface', { device: '@wan', proto: 'dhcpv6' }),
       wg0: section('wg0', 'interface', { proto: 'wireguard', addresses: ['10.8.0.1/24'] }),
+      // An office network behind a second router on the LAN.
+      cfg_route: section(
+        'cfg_route',
+        'route',
+        { interface: 'lan', target: '10.10.0.0/16', gateway: '192.168.8.2', metric: '10' },
+        true,
+      ),
     },
     wireless: {
       radio0: section('radio0', 'wifi-device', {
@@ -265,6 +287,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     syslog: buildSyslog(rng, devices),
     kernel: buildKernel(),
     agent: createDemoAgent(now),
+    admin: createDemoAdmin(),
   };
 }
 

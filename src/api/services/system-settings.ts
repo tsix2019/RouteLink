@@ -29,7 +29,10 @@ export interface TimeSettings {
   ntp: boolean;
 }
 
-export async function getTimeSettings(conn: RouterConnection, phoneNowSec = Math.floor(Date.now() / 1000)): Promise<TimeSettings> {
+export async function getTimeSettings(
+  conn: RouterConnection,
+  phoneNowSec = Math.floor(Date.now() / 1000),
+): Promise<TimeSettings> {
   const [system, time] = (await conn.batch([
     { object: 'uci', method: 'get', params: { config: 'system' } },
     { object: 'luci', method: 'getLocaltime' },
@@ -55,7 +58,10 @@ export function timezoneChanges(section: string, zone: Timezone): UbusCall[] {
 }
 
 /** Sets the router clock to the phone's (routers without NTP or a battery-backed clock). */
-export async function syncRouterClock(conn: RouterConnection, phoneNowSec = Math.floor(Date.now() / 1000)): Promise<void> {
+export async function syncRouterClock(
+  conn: RouterConnection,
+  phoneNowSec = Math.floor(Date.now() / 1000),
+): Promise<void> {
   await conn.call('luci', 'setLocaltime', { localtime: phoneNowSec });
 }
 

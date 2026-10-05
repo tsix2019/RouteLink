@@ -27,11 +27,22 @@ import {
   type History,
 } from '../../services/agent';
 import { getClients } from '../../services/clients';
+import { parseCrontab, readCrontab, writeCrontab } from '../../services/cron';
+import { getLeds, ledChanges } from '../../services/leds';
 import { kernelLog, systemLog } from '../../services/logs';
 import { getDeviceCounters, getInterfaces, pickWan, reconnectInterface } from '../../services/network';
 import { detectPackageEnv, removePackages } from '../../services/packages';
+import { listProcesses, signalProcess } from '../../services/processes';
+import { deleteStaticRoute, getRoutes, saveStaticRoute } from '../../services/routes';
 import { listServices, serviceAction } from '../../services/services';
 import { getSystem, getTemperature, loadRatio, reboot } from '../../services/system';
+import {
+  getTimeSettings,
+  getTimezones,
+  setAdminPassword,
+  syncRouterClock,
+  timezoneChanges,
+} from '../../services/system-settings';
 import { getRadios, networkChanges, radioChanges, scan } from '../../services/wireless';
 import { stageAndApply } from '../../uci';
 import { DemoConnection } from './connection';
@@ -147,6 +158,78 @@ describe('demo router: writes change what reads return', () => {
     clock.advance(10_000);
     expect(await conn.ping()).toBe(true);
     expect((await getSystem(conn)).uptimeSec).toBeLessThan(before);
+  });
+});
+
+describe('demo router: system and network pages (M2)', () => {
+  it('processes: listed, and a stopped one goes away', async () => {
+    const { conn } = demo();
+    const ps = await listProcesses(conn);
+    expect(ps.length).toBeGreaterThan(15);
+    const ntpd = ps.find((p) => p.name === 'ntpd')!;
+    await signalProcess(conn, ntpd.pid, 'TERM');
+    expect((await listProcesses(conn)).some((p) => p.pid === ntpd.pid)).toBe(false);
+    await expect(signalProcess(conn, 99_999, 'TERM')).rejects.toMatchObject({ code: 'kill-failed' });
+  });
+
+  it('scheduled tasks: read, add one, read it back', async () => {
+    const { conn } = demo();
+    const tab = await readCrontab(conn);
+    expect(tab.lines.filter((l) => l.kind === 'entry')).toHaveLength(2);
+    const [added] = parseCrontab('0 3 * * * /etc/init.d/dnsmasq restart');
+    await writeCrontab(conn, [...tab.lines, added], tab.original);
+    expect((await readCrontab(conn)).lines.filter((l) => l.kind === 'entry')).toHaveLength(3);
+    await expect(writeCrontab(conn, tab.lines, tab.original)).rejects.toMatchObject({ code: 'cron-changed' });
+  });
+
+  it('LEDs: switching one off changes its state', async () => {
+    const { conn } = demo();
+    const leds = await getLeds(conn);
+    expect(leds.find((l) => l.sysfs === 'green:wan')).toMatchObject({ trigger: 'netdev', dev: 'pppoe-wan' });
+    const status = leds.find((l) => l.sysfs === 'white:status')!;
+    expect(status.on).toBe(true);
+    await stageAndApply(conn, ledChanges(status, { trigger: 'none', on: false }), { mode: 'direct', ...fast });
+    expect((await getLeds(conn)).find((l) => l.sysfs === 'white:status')).toMatchObject({ on: false, trigger: 'none' });
+  });
+
+  it('time zone, clock and password', async () => {
+    const { conn, clock } = demo();
+    const phone = Math.floor(clock.now() / 1000);
+    const t = await getTimeSettings(conn, phone);
+    expect(t).toMatchObject({ zonename: 'Asia/Shanghai', offsetSec: 0, ntp: true });
+    const zones = await getTimezones(conn);
+    const tokyo = zones.find((z) => z.zonename === 'Asia/Tokyo')!;
+    await stageAndApply(conn, timezoneChanges(t.section, tokyo), { mode: 'direct', ...fast });
+    expect((await getTimeSettings(conn, phone)).zonename).toBe('Asia/Tokyo');
+    await syncRouterClock(conn, phone + 60);
+    expect((await getTimeSettings(conn, phone)).offsetSec).toBe(60);
+    await setAdminPassword(conn, 'root', 'correct horse');
+  });
+
+  it('routes: the static route is installed; new ones appear and can be deleted', async () => {
+    const { conn } = demo();
+    const r = await getRoutes(conn);
+    expect(r.statics).toHaveLength(1);
+    expect(r.kernel.find((k) => k.target === '10.10.0.0/16')).toMatchObject({ via: '192.168.8.2', proto: 'static' });
+    expect(r.kernel.some((k) => k.family === 6 && k.target === 'default')).toBe(true);
+
+    const input = {
+      family: 4 as const,
+      interface: 'lan',
+      target: '172.20.0.0/16',
+      gateway: '192.168.8.3',
+      metric: '',
+      table: '',
+    };
+    expect((await saveStaticRoute(conn, input, undefined, fast)).status).toBe('confirmed');
+    const after = await getRoutes(conn);
+    expect(after.kernel.find((k) => k.target === '172.20.0.0/16')).toMatchObject({ dev: 'br-lan' });
+    await deleteStaticRoute(
+      conn,
+      after.statics.find((s) => s.target === '172.20.0.0/16')!,
+      fast,
+    );
+    expect((await getRoutes(conn)).statics).toHaveLength(1);
   });
 });
 

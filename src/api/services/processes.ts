@@ -48,7 +48,9 @@ export function parseProcesses(raw: unknown): Process[] {
       pid,
       ppid: Number(p.PPID) || 0,
       user: String(p.USER ?? ''),
-      state: String(p.STAT ?? '').trim().charAt(0),
+      state: String(p.STAT ?? '')
+        .trim()
+        .charAt(0),
       memoryKb: sizeKb(p.VSZ),
       memPercent: percent(p['%MEM']),
       cpuPercent: percent(p['%CPU']),

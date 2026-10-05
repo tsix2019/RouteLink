@@ -90,7 +90,10 @@ describe('reading and writing', () => {
       path: '/etc/crontabs/root',
       data: `${text}\n`,
     });
-    expect(conn.calls.find((c) => c.method === 'exec')?.params).toEqual({ command: '/etc/init.d/cron', params: ['reload'] });
+    expect(conn.calls.find((c) => c.method === 'exec')?.params).toEqual({
+      command: '/etc/init.d/cron',
+      params: ['reload'],
+    });
 
     await expect(writeCrontab(conn, tab, 'something else')).rejects.toMatchObject({ code: 'cron-changed' });
   });

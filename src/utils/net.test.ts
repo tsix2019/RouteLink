@@ -1,4 +1,17 @@
-import { cidrHosts, intToIp, ipToInt, isIPv4, netmaskToPrefix, parseCidr, scanTargets } from './net';
+import {
+  cidrHosts,
+  intToIp,
+  ipToInt,
+  ipv6ToWords,
+  isIPv4,
+  isIPv6,
+  netmaskToPrefix,
+  parseCidr,
+  parsePrefix,
+  prefixContains,
+  scanTargets,
+  wordsToIpv6,
+} from './net';
 
 describe('ipToInt / intToIp', () => {
   it('round-trips addresses', () => {
@@ -81,5 +94,80 @@ describe('scanTargets', () => {
     const t = scanTargets({ ip: '192.168.8.5', netmask: '255.255.255.0', gateway: null });
     expect(t).toHaveLength(253);
     expect(t[0]).toBe('192.168.8.1');
+  });
+});
+
+describe('IPv6 addresses', () => {
+  it('expands "::" and dotted IPv4 tails', () => {
+    expect(ipv6ToWords('::')).toEqual([0, 0, 0, 0, 0, 0, 0, 0]);
+    expect(ipv6ToWords('::1')).toEqual([0, 0, 0, 0, 0, 0, 0, 1]);
+    expect(ipv6ToWords('FE80::1')).toEqual([0xfe80, 0, 0, 0, 0, 0, 0, 1]);
+    expect(ipv6ToWords('2001:db8::ff00:42:8329')).toEqual([0x2001, 0xdb8, 0, 0, 0, 0xff00, 0x42, 0x8329]);
+    expect(ipv6ToWords('::ffff:192.0.2.1')).toEqual([0, 0, 0, 0, 0, 0xffff, 0xc000, 0x0201]);
+    expect(ipv6ToWords('1:2:3:4:5:6:7:8')).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
+  it('rejects malformed addresses', () => {
+    for (const bad of [
+      '',
+      ':1',
+      '1:::2',
+      '1::2::3',
+      '12345::',
+      'g::1',
+      '1:2:3:4:5:6:7',
+      '1:2:3:4:5:6:7:8:9',
+      '1:2:3:4::5:6:7:8',
+      '::1%eth0',
+      '1.2.3.4::',
+      '192.168.1.1',
+    ]) {
+      expect(isIPv6(bad)).toBe(false);
+    }
+    expect(isIPv6('fd00::1')).toBe(true);
+  });
+
+  it('prints the RFC 5952 form', () => {
+    expect(wordsToIpv6([0, 0, 0, 0, 0, 0, 0, 0])).toBe('::');
+    expect(wordsToIpv6([0x2001, 0xdb8, 0, 1, 1, 1, 1, 1])).toBe('2001:db8:0:1:1:1:1:1');
+    expect(wordsToIpv6([0x2001, 0xdb8, 0, 0, 1, 0, 0, 1])).toBe('2001:db8::1:0:0:1');
+    expect(wordsToIpv6([0x2001, 0, 0, 1, 0, 0, 0, 1])).toBe('2001:0:0:1::1');
+    expect(wordsToIpv6([0xfe80, 0, 0, 0, 0, 0, 0, 0])).toBe('fe80::');
+  });
+});
+
+describe('parsePrefix / prefixContains', () => {
+  it('reads both families, with the network address', () => {
+    expect(parsePrefix('192.168.1.5/24')).toEqual({
+      family: 4,
+      address: '192.168.1.5',
+      prefix: 24,
+      network: '192.168.1.0',
+    });
+    expect(parsePrefix('10.0.0.1')).toEqual({ family: 4, address: '10.0.0.1', prefix: 32, network: '10.0.0.1' });
+    expect(parsePrefix('0.0.0.0/0')).toMatchObject({ prefix: 0, network: '0.0.0.0' });
+    expect(parsePrefix('2001:DB8:0:0:1::5/64')).toEqual({
+      family: 6,
+      address: '2001:db8::1:0:0:5',
+      prefix: 64,
+      network: '2001:db8::',
+    });
+    expect(parsePrefix('fd00:8::1')).toMatchObject({ family: 6, prefix: 128 });
+    expect(parsePrefix('::/0')).toMatchObject({ family: 6, prefix: 0, network: '::' });
+  });
+
+  it('rejects malformed prefixes', () => {
+    for (const bad of ['', 'abc', '1.2.3.4/33', '::/129', '1.2.3.4/x', '1.2.3.4/', '1.2.3.4/24/1', '1.2.3/24']) {
+      expect(parsePrefix(bad)).toBeNull();
+    }
+  });
+
+  it('tests membership within one family', () => {
+    expect(prefixContains('192.168.1.0/24', '192.168.1.77')).toBe(true);
+    expect(prefixContains('192.168.1.0/24', '192.168.2.1')).toBe(false);
+    expect(prefixContains('203.0.113.45/32', '203.0.113.45')).toBe(true);
+    expect(prefixContains('fd00:8::/64', 'fd00:8::1234')).toBe(true);
+    expect(prefixContains('fd00:8::/64', 'fd00:9::1')).toBe(false);
+    expect(prefixContains('0.0.0.0/0', 'fd00::1')).toBe(false);
   });
 });

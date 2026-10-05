@@ -4,7 +4,9 @@ const BS = String.fromCharCode(92);
 
 describe('wifiQrString', () => {
   it('writes the Wi-Fi QR format phones understand', () => {
-    expect(wifiQrString({ ssid: 'Home', key: 'secret123', encryption: 'psk2' })).toBe('WIFI:T:WPA;S:Home;P:secret123;;');
+    expect(wifiQrString({ ssid: 'Home', key: 'secret123', encryption: 'psk2' })).toBe(
+      'WIFI:T:WPA;S:Home;P:secret123;;',
+    );
   });
 
   it('uses WPA for WPA3 and mixed modes, WEP for WEP', () => {
@@ -15,7 +17,9 @@ describe('wifiQrString', () => {
   });
 
   it('leaves the password out of open networks', () => {
-    expect(wifiQrString({ ssid: 'CoffeeShop', key: 'ignored', encryption: 'none' })).toBe('WIFI:T:nopass;S:CoffeeShop;;');
+    expect(wifiQrString({ ssid: 'CoffeeShop', key: 'ignored', encryption: 'none' })).toBe(
+      'WIFI:T:nopass;S:CoffeeShop;;',
+    );
   });
 
   it('marks hidden networks', () => {

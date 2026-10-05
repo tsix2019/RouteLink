@@ -1,11 +1,14 @@
 import { UbusError } from '../../ubus/errors';
 import type { UciSection } from '../../uci';
+import { adminHandlers, demoKill } from './admin';
 import { agentHandlers } from './agent';
+import { demoIpRoute } from './routing';
 import type { DemoDevice, DemoState } from './state';
 
 type Params = Record<string, unknown>;
 export type Handler = (state: DemoState, params: Params, now: number) => unknown;
 
+const CRONTAB = '/etc/crontabs/root';
 const LAN_MAC = '94:83:C4:00:00:10';
 const WAN_MAC = '94:83:C4:00:00:11';
 const IFNAMES: Record<string, string> = { radio0: 'phy0-ap0', radio1: 'phy1-ap0' };
@@ -100,7 +103,10 @@ const files: Record<
   (s: DemoState, args: string[], now: number) => { code: number; stdout?: string; stderr?: string }
 > = {
   '/sbin/ip': (s, args, now) => {
-    if (args.join(' ') !== '-4 neigh show') return { code: 1, stderr: 'unsupported' };
+    const command = args.join(' ');
+    if (command === '-4 route show table all') return { code: 0, stdout: demoIpRoute(s, 4) };
+    if (command === '-6 route show table all') return { code: 0, stdout: demoIpRoute(s, 6) };
+    if (command !== '-4 neigh show') return { code: 1, stderr: 'unsupported' };
     const lines = s.devices.map((d) => {
       const reachable = d.online && !(d.bannedUntil && d.bannedUntil > now);
       return `${d.ip} dev br-lan lladdr ${d.mac.toLowerCase()} ref 1 used 0/0/0 probes 1 ${reachable ? 'REACHABLE' : 'FAILED'}`;
@@ -113,6 +119,8 @@ const files: Record<
     s.rebootingUntil = now + 8_000;
     return { code: 0 };
   },
+  '/bin/kill': (s, args) => demoKill(s, args),
+  '/etc/init.d/cron': (_s, args) => (args[0] === 'reload' ? { code: 0 } : { code: 1, stderr: 'unsupported' }),
   '/sbin/ifup': () => ({ code: 0 }),
   '/sbin/ifdown': () => ({ code: 0 }),
   '/usr/bin/etherwake': (s, args) => {
@@ -145,23 +153,29 @@ export const handlers: Record<string, Handler> = {
             })),
           }
         : { entries: [] },
-  'file.read': (_s, p) =>
-    p.path === '/etc/opkg/distfeeds.conf'
-      ? {
-          data: ['core', 'base', 'luci', 'packages']
-            .map((feed) =>
-              feed === 'core'
-                ? 'src/gz openwrt_core https://downloads.openwrt.org/releases/24.10.8/targets/mediatek/filogic/packages'
-                : `src/gz openwrt_${feed} https://downloads.openwrt.org/releases/24.10.8/packages/aarch64_cortex-a53/${feed}`,
-            )
-            .join('\n'),
-        }
-      : notFound('file.read'),
-  // Plugin uploads (package installs) and the apk key: accepted and dropped.
-  'file.write': (_s, p) =>
-    String(p.path).startsWith('/tmp/upload.') || String(p.path).startsWith('/etc/apk/keys/')
-      ? {}
-      : notFound('file.write'),
+  'file.read': (s, p) =>
+    p.path === CRONTAB
+      ? { data: s.admin.crontab }
+      : p.path === '/etc/opkg/distfeeds.conf'
+        ? {
+            data: ['core', 'base', 'luci', 'packages']
+              .map((feed) =>
+                feed === 'core'
+                  ? 'src/gz openwrt_core https://downloads.openwrt.org/releases/24.10.8/targets/mediatek/filogic/packages'
+                  : `src/gz openwrt_${feed} https://downloads.openwrt.org/releases/24.10.8/packages/aarch64_cortex-a53/${feed}`,
+              )
+              .join('\n'),
+          }
+        : notFound('file.read'),
+  'file.write': (s, p) => {
+    if (p.path === CRONTAB) {
+      s.admin.crontab = String(p.data ?? '');
+      return {};
+    }
+    // Plugin uploads (package installs) and the apk key: accepted and dropped.
+    if (String(p.path).startsWith('/tmp/upload.') || String(p.path).startsWith('/etc/apk/keys/')) return {};
+    return notFound('file.write');
+  },
   'file.exec': (s, p, now) => {
     const run = files[String(p.command)];
     if (!run) throw new UbusError('PERMISSION_DENIED', 'file.exec');
@@ -354,6 +368,7 @@ export const handlers: Record<string, Handler> = {
   'uci.changes': () => ({ changes: {} }),
 
   ...agentHandlers,
+  ...adminHandlers,
 
   'rc.list': (s) => s.services,
   'rc.init': (s, p) => {

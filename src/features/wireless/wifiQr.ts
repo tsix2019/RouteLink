@@ -11,7 +11,11 @@ function escape(value: string): string {
 }
 
 const authType = (encryption: string) =>
-  encryption === 'none' || encryption === 'owe' || !encryption ? 'nopass' : encryption.startsWith('wep') ? 'WEP' : 'WPA';
+  encryption === 'none' || encryption === 'owe' || !encryption
+    ? 'nopass'
+    : encryption.startsWith('wep')
+      ? 'WEP'
+      : 'WPA';
 
 /** "WIFI:T:WPA;S:<ssid>;P:<key>;H:true;;" — the format phone cameras join networks from. */
 export function wifiQrString(n: { ssid: string; key?: string; encryption: string; hidden?: boolean }): string {

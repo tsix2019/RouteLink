@@ -32,7 +32,12 @@ export function parseCrontab(text: string): CronLine[] {
     const schedule = m ? (m.slice(1, 6) as CronEntry['schedule']) : null;
     if (m && schedule && !line.trimStart().startsWith('#') && validateSchedule(schedule) === null) {
       const prev = out[out.length - 1];
-      out.push({ kind: 'entry', schedule, command: m[6], managed: prev?.kind === 'other' && prev.text.startsWith(MANAGED_MARK) });
+      out.push({
+        kind: 'entry',
+        schedule,
+        command: m[6],
+        managed: prev?.kind === 'other' && prev.text.startsWith(MANAGED_MARK),
+      });
     } else {
       out.push({ kind: 'other', text: line });
     }
@@ -49,7 +54,12 @@ const FIELDS = [
   { name: 'minute', min: 0, max: 59 },
   { name: 'hour', min: 0, max: 23 },
   { name: 'day', min: 1, max: 31 },
-  { name: 'month', min: 1, max: 12, names: ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'] },
+  {
+    name: 'month',
+    min: 1,
+    max: 12,
+    names: ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
+  },
   { name: 'weekday', min: 0, max: 7, names: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] },
 ] as const;
 
@@ -106,7 +116,8 @@ export function describeSchedule(s: readonly string[], lang: 'zh-CN' | 'en'): st
     return zh ? `每${d} ${time}` : `${d} at ${time}`;
   }
   if (day === '*' && weekday === '1-5') return zh ? `周一至周五 ${time}` : `Weekdays at ${time}`;
-  if (/^\d+$/.test(day) && weekday === '*') return zh ? `每月 ${day} 日 ${time}` : `Day ${day} of each month at ${time}`;
+  if (/^\d+$/.test(day) && weekday === '*')
+    return zh ? `每月 ${day} 日 ${time}` : `Day ${day} of each month at ${time}`;
   return null;
 }
 
@@ -132,6 +143,9 @@ export async function writeCrontab(conn: RouterConnection, lines: CronLine[], or
   const current = await readCrontab(conn);
   if (current.original !== original) throw new ActionError('cron-changed');
   await conn.call('file', 'write', { path: CRONTAB, data: serializeCrontab(lines) });
-  const r = await conn.call<{ code?: number; stderr?: string }>('file', 'exec', { command: '/etc/init.d/cron', params: ['reload'] });
+  const r = await conn.call<{ code?: number; stderr?: string }>('file', 'exec', {
+    command: '/etc/init.d/cron',
+    params: ['reload'],
+  });
   if (r.code !== 0) throw new ActionError('cron-reload', r.stderr);
 }
