@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Boots an official OpenWrt x86-64 image in QEMU for the integration tests (plan T60). Linux + KVM only.
 # Usage: scripts/ci/qemu-openwrt.sh <version> [workdir]
-#   LAN (eth0) 192.168.1.1, forwarded to 127.0.0.1:18080 (http), :18443 (https), :18022 (ssh)
+#   LAN (eth0) 192.168.1.1, forwarded to 127.0.0.1:18080 (http), :18443 (https), :18022 (ssh);
+#   :18081 reaches 192.168.1.5, where the LAN address test (A6) moves the router for a moment
 #   WAN (eth1) user-mode NAT with internet access for the package manager
 # Afterwards: three mac80211_hwsim radios — RouteLink (2.4 GHz), RouteLink-5G (5 GHz) and a
 # "Neighbor-Test" AP for scans — luci-app-wol, and root password routelink-test.
@@ -22,7 +23,7 @@ cp "$IMG" "$WORK/run.img"
 qemu-system-x86_64 -enable-kvm -cpu host -m 512 -smp 2 -display none -daemonize \
   -pidfile "$WORK/qemu.pid" \
   -drive "file=$WORK/run.img,format=raw,if=virtio" \
-  -netdev "user,id=lan,net=192.168.1.0/24,host=192.168.1.2,hostfwd=tcp:127.0.0.1:18080-192.168.1.1:80,hostfwd=tcp:127.0.0.1:18443-192.168.1.1:443,hostfwd=tcp:127.0.0.1:18022-192.168.1.1:22" \
+  -netdev "user,id=lan,net=192.168.1.0/24,host=192.168.1.2,hostfwd=tcp:127.0.0.1:18080-192.168.1.1:80,hostfwd=tcp:127.0.0.1:18443-192.168.1.1:443,hostfwd=tcp:127.0.0.1:18022-192.168.1.1:22,hostfwd=tcp:127.0.0.1:18081-192.168.1.5:80" \
   -device virtio-net-pci,netdev=lan \
   -netdev user,id=wan -device virtio-net-pci,netdev=wan \
   -serial "file:$WORK/serial.log"

@@ -51,6 +51,8 @@ jobs:
           ROUTER_URL: http://127.0.0.1:18080
           ROUTER_PASSWORD: routelink-test
           EXPECT_RADIOS: '1'
+          ROUTER_ALT_URL: http://127.0.0.1:18081
+          ROUTER_ALT_IP: 192.168.1.5
         run: npm run test:int
       - name: Record fixtures
         # Also after failed tests: the recordings help to see what the router answered.

@@ -14,12 +14,12 @@ export interface TestConnection {
 
 let counter = 0;
 
-/** A fresh connection (own login, own session) to the test router. */
-export function connect(o: { password?: string; authMode?: AuthMode } = {}): TestConnection {
+/** A fresh connection (own login, own session) to the test router; `url` reaches it at another address. */
+export function connect(o: { password?: string; authMode?: AuthMode; url?: string } = {}): TestConnection {
   const sessions: Session[] = [];
   const conn = new LiveConnection({
     routerId: `int-${++counter}`,
-    baseUrl: ROUTER_URL,
+    baseUrl: o.url ?? ROUTER_URL,
     username: 'root',
     password: o.password ?? ROUTER_PASSWORD,
     authMode: o.authMode,
