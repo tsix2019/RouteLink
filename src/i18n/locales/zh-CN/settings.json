@@ -35,6 +35,8 @@
     "testBody": "通知可以正常显示。",
     "widgetSection": "桌面小组件",
     "widgetFooter": "在桌面添加 RouteLink 小组件，显示当前路由器的在线状态、速率和在线设备数。数据在打开 App 和后台检查时更新，可能有延迟。",
+    "pin": "添加到桌面",
+    "pinUnsupported": "这个桌面不支持从 App 里添加小组件：请长按桌面空白处，在小组件列表里找到 RouteLink。",
     "offlineTitle": "{{router}} 连不上了",
     "offlineBody": "后台检查时连不上路由器：可能停电、断网，或者路由器在重启。",
     "onlineTitle": "{{router}} 恢复了",

@@ -5,6 +5,7 @@ import { useSettings } from '@/state/settings';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { Screen } from '@/ui/Screen';
 import { useToast } from '@/ui/Toast';
+import { pinWidget } from '@/widgets/update';
 
 /** AP-4 / AP-5 (design §19): which routers the background check watches, and what the widget shows. */
 export default function NotificationSettings() {
@@ -32,6 +33,11 @@ export default function NotificationSettings() {
     await notify(t('settings:notify.testTitle'), t('settings:notify.testBody'));
   };
 
+  const pin = async () => {
+    const asked = await (pinWidget?.() ?? Promise.resolve(false)).catch(() => false);
+    if (!asked) toast(t('settings:notify.pinUnsupported'), 'warning');
+  };
+
   return (
     <Screen title={t('settings:notify.title')}>
       <ListSection title={t('settings:notify.section')} footer={t('settings:notify.footer')}>
@@ -51,6 +57,14 @@ export default function NotificationSettings() {
       </ListSection>
       <ListSection title={t('settings:notify.widgetSection')} footer={t('settings:notify.widgetFooter')}>
         <ListRow title={t('widget.name')} subtitle={t('widget.description')} icon="widget" />
+        {pinWidget ? (
+          <ListRow
+            title={t('settings:notify.pin')}
+            icon="plus"
+            onPress={() => void pin()}
+            testID="widget-pin"
+          />
+        ) : null}
       </ListSection>
     </Screen>
   );

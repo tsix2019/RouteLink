@@ -116,6 +116,8 @@ const config: ExpoConfig = {
             targetCellWidth: 2,
             targetCellHeight: 2,
             resizeMode: 'horizontal|vertical',
+            // What the widget picker shows (the demo router, from the emulator).
+            previewImage: './assets/images/widget-preview.png',
             // Android's minimum; the app and the background check push fresher data.
             updatePeriodMillis: 1_800_000,
           },

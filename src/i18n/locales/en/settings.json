@@ -35,6 +35,8 @@
     "testBody": "Notifications work.",
     "widgetSection": "Home Screen Widget",
     "widgetFooter": "Add the RouteLink widget to your home screen for the current router's state, speed and devices online. It updates when the app is open and on background checks, so it may lag behind.",
+    "pin": "Add to Home Screen",
+    "pinUnsupported": "This launcher can't add widgets from the app: long-press an empty spot on the home screen and pick RouteLink from the widgets.",
     "offlineTitle": "{{router}} is unreachable",
     "offlineBody": "The background check could not reach the router: a power cut, no internet, or a restart.",
     "onlineTitle": "{{router}} is back",

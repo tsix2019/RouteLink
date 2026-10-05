@@ -43,4 +43,12 @@ describe('widget', () => {
     expect(updateWidgetFromApp(t, { ...input, devicesOnline: 14 }, 61_000)).toBe(true);
     expect(updateWidgetFromApp(t, { ...input, devicesOnline: 14 }, 61_000 + 10 * 60_000)).toBe(true);
   });
+
+  it('redraws once the rates are known: the first reading usually comes before them', () => {
+    resetWidgetThrottle();
+    const input = { name: 'Home', online: true, devicesOnline: 13, updatedAt: 0 };
+    expect(updateWidgetFromApp(t, input, 0)).toBe(true);
+    expect(updateWidgetFromApp(t, { ...input, rxBps: 1_000, txBps: 2_000 }, 2_000)).toBe(true);
+    expect(updateWidgetFromApp(t, { ...input, rxBps: 3_000, txBps: 4_000 }, 4_000)).toBe(false);
+  });
 });

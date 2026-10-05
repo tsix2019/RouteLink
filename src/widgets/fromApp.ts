@@ -10,7 +10,8 @@ let last: { at: number; key: string } | null = null;
 
 /** The overview's fresh data on the home-screen widget, sparingly. */
 export function updateWidgetFromApp(t: AppT, input: WidgetInput, now = Date.now()): boolean {
-  const key = `${input.name}|${input.online}|${input.devicesOnline ?? ''}`;
+  // The rates arrive a moment after the rest: their first value counts as news too.
+  const key = `${input.name}|${input.online}|${input.devicesOnline ?? ''}|${input.rxBps !== undefined}`;
   if (last && last.key === key && now - last.at < EVERY_MS) return false;
   last = { at: now, key };
   void showOnWidget(widgetProps(t, input)).catch(() => undefined);

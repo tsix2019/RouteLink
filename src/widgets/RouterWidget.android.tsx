@@ -4,6 +4,15 @@ import { FlexWidget, TextWidget } from 'react-native-android-widget';
 
 import type { WidgetProps } from './props';
 
+/** Narrower than this (dp) and the rates are left out. */
+const WIDE = 220;
+
+/** The widget in both colour schemes, for a widget `width` dp wide; the launcher picks the system's one. */
+export const renderRouterWidget = (props: WidgetProps, width: number) => ({
+  light: <RouterWidget props={props} dark={false} wide={width >= WIDE} />,
+  dark: <RouterWidget props={props} dark wide={width >= WIDE} />,
+});
+
 /** AP-4 on Android (react-native-android-widget): drawn to a bitmap from these props, tap opens the app. */
 export function RouterWidget({ props, dark, wide }: { props: WidgetProps; dark: boolean; wide: boolean }) {
   const text = dark ? '#FFFFFF' : '#1C1C1E';

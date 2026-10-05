@@ -5,3 +5,6 @@ import RouterWidget from './RouterWidget.ios';
 export async function showOnWidget(props: WidgetProps): Promise<void> {
   RouterWidget.updateSnapshot(props);
 }
+
+/** iOS widgets are added from the home screen only. */
+export const pinWidget: (() => Promise<boolean>) | undefined = undefined;
