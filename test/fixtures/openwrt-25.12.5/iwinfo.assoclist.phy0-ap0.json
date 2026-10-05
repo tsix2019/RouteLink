@@ -1,4 +1,6 @@
 {
-  "ok": false,
-  "error": "NOT_FOUND"
+  "ok": true,
+  "data": {
+    "results": []
+  }
 }

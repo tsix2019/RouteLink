@@ -2,11 +2,11 @@
   "ok": true,
   "data": {
     "radio0": {
-      "up": false,
+      "up": true,
       "pending": false,
       "autostart": true,
       "disabled": false,
-      "retry_setup_failed": true,
+      "retry_setup_failed": false,
       "config": {
         "disabled": false,
         "type": "mac80211",
@@ -30,20 +30,74 @@
             "disabled": false,
             "encryption": "psk2",
             "key": "routelink-test",
-            "macfilter": "disable",
-            "maclist": [
-              "02:00:00:00:00:99"
-            ],
             "ssid": "RouteLink",
             "radios": []
           },
+          "ifname": "phy0-ap0",
           "vlans": [],
-          "stations": []
+          "stations": [],
+          "iwinfo": {
+            "noise": -92,
+            "channel": 11,
+            "country": "US",
+            "phy": "phy0",
+            "txpower": 30,
+            "frequency": 2462,
+            "hwmodes": [
+              "b",
+              "g",
+              "n",
+              "ac",
+              "ax",
+              "be"
+            ],
+            "hwmodes_text": "ac/ax/b/be/g/n",
+            "htmodes": [
+              "HT20",
+              "HT40",
+              "VHT20",
+              "VHT40",
+              "VHT80",
+              "VHT80+80",
+              "VHT160",
+              "HE20",
+              "HE40",
+              "HE80",
+              "HE80+80",
+              "HE160",
+              "EHT20",
+              "EHT40",
+              "EHT80",
+              "EHT80+80",
+              "EHT160",
+              "EHT320"
+            ],
+            "quality_max": 70,
+            "mode": "Master",
+            "ssid": "RouteLink",
+            "bssid": "02:00:00:00:00:00",
+            "encryption": {
+              "enabled": true,
+              "wpa": [
+                2
+              ],
+              "authentication": [
+                "psk"
+              ],
+              "ciphers": [
+                "ccmp"
+              ]
+            }
+          }
         }
       ],
       "iwinfo": {
+        "noise": -92,
+        "channel": 11,
         "country": "US",
         "phy": "phy0",
+        "txpower": 30,
+        "frequency": 2462,
         "hwmodes": [
           "b",
           "g",

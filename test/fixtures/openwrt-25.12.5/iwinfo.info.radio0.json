@@ -2,8 +2,15 @@
   "ok": true,
   "data": {
     "phy": "phy0",
+    "bssid": "02:00:00:00:00:00",
     "country": "US",
+    "mode": "Master",
+    "channel": 11,
+    "center_chan1": 11,
+    "frequency": 2462,
+    "txpower": 30,
     "quality_max": 70,
+    "noise": 0,
     "htmodes": [
       "HT20",
       "HT40",
@@ -33,6 +40,8 @@
       "be"
     ],
     "hwmodes_text": "ac/ax/b/be/g/n",
+    "hwmode": "n",
+    "htmode": "HT20",
     "hardware": {
       "name": "Generic MAC80211"
     }
