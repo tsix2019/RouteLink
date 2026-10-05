@@ -26,11 +26,14 @@ export function wifiQrString(n: { ssid: string; key?: string; encryption: string
   return `WIFI:${parts.join(';')};;`;
 }
 
+export const utf8Bytes = (text: string): number[] => Array.from(new TextEncoder().encode(text));
+
 /** Dark modules of the QR code for `text` (UTF-8, error correction M), row by row. */
 export function qrMatrix(text: string): boolean[][] {
-  // The library defaults to Latin-1; phones read Wi-Fi codes as UTF-8.
+  // The library defaults to Latin-1; phones read Wi-Fi codes as UTF-8. Its own UTF-8 table exists only in
+  // the CommonJS build, while Metro bundles the ESM one: bring the encoder along.
   const factory = qrcodeFactory;
-  factory.stringToBytes = factory.stringToBytesFuncs['UTF-8'];
+  factory.stringToBytes = utf8Bytes;
   const qr = factory(0, 'M');
   qr.addData(text, 'Byte');
   qr.make();

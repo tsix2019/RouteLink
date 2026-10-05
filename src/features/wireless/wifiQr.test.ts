@@ -1,4 +1,4 @@
-import { qrMatrix, wifiQrString } from './wifiQr';
+import { qrMatrix, utf8Bytes, wifiQrString } from './wifiQr';
 
 const BS = String.fromCharCode(92);
 
@@ -47,5 +47,23 @@ describe('qrMatrix', () => {
     expect(m.every((row) => row.length === m.length)).toBe(true);
     // finder pattern corner
     expect(m[0][0]).toBe(true);
+  });
+
+  it("works with the library's ESM build too, which has no table of encodings (what the app bundles)", () => {
+    // Jest loads the CommonJS build; Metro picks the ESM one through package exports, where
+    // stringToBytesFuncs does not exist ("Cannot read property 'UTF-8' of undefined" on a phone).
+    const lib = jest.requireActual<{ stringToBytesFuncs?: unknown }>('qrcode-generator');
+    const table = lib.stringToBytesFuncs;
+    delete lib.stringToBytesFuncs;
+    try {
+      const m = qrMatrix(wifiQrString({ ssid: '我家的网络', key: 'routelink', encryption: 'psk2' }));
+      expect(m.length).toBeGreaterThanOrEqual(21);
+    } finally {
+      lib.stringToBytesFuncs = table;
+    }
+  });
+
+  it('writes UTF-8 bytes', () => {
+    expect(utf8Bytes('Café 网')).toEqual([0x43, 0x61, 0x66, 0xc3, 0xa9, 0x20, 0xe7, 0xbd, 0x91]);
   });
 });
