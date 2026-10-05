@@ -89,5 +89,38 @@
     "termConsequence": "进程会退出；由系统管理的服务通常会自动重新启动",
     "killConsequence": "进程会立即退出，来不及保存任何数据",
     "done": "已发送给 {{name}}"
+  },
+  "cron": "计划任务",
+  "cronScreen": {
+    "empty": "没有计划任务",
+    "emptyHint": "计划任务会在设定的时间以 root 身份运行命令，比如每周重启一次。",
+    "add": "添加任务",
+    "edit": "编辑任务",
+    "delete": "删除",
+    "managed": "App",
+    "managedHint": "标着 App 的任务由 RouteLink 管理（Wi-Fi 定时开关），要在对应的页面里修改。",
+    "schedule": "时间",
+    "scheduleHint": "分 时 日 月 星期",
+    "command": "命令",
+    "presets": "常用时间",
+    "presetDaily": "每天 03:00",
+    "presetWeekly": "每周一 04:00",
+    "presetHourly": "每小时",
+    "presetHalfHour": "每 30 分钟",
+    "error": {
+      "fields": "需要 5 个字段：分 时 日 月 星期",
+      "minute": "分钟要在 0～59 之间",
+      "hour": "小时要在 0～23 之间",
+      "day": "日期要在 1～31 之间",
+      "month": "月份要在 1～12 之间",
+      "weekday": "星期要在 0～7 之间（0 和 7 都是周日）",
+      "command": "请输入命令（一行）"
+    },
+    "saveTitle": "保存这个任务？",
+    "saveConsequence": "命令会在设定的时间以 root 身份运行",
+    "deleteTitle": "删除这个任务？",
+    "deleteConsequence": "这条命令以后不再运行",
+    "changed": "路由器上的计划任务刚被别处改过，已重新读取，请再操作一次",
+    "saved": "已保存"
   }
 }

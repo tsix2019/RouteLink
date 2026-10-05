@@ -50,6 +50,14 @@ export default function More() {
             testID="more-processes"
           />
           <ListRow
+            title={t('more:cron')}
+            icon="schedule"
+            chevron
+            disabled={!hasRouter}
+            onPress={() => nav.push('/more/cron')}
+            testID="more-cron"
+          />
+          <ListRow
             title={t('more:logs')}
             icon="logs"
             chevron

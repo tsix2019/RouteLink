@@ -89,5 +89,38 @@
     "termConsequence": "The process ends; services managed by the system usually start again by themselves",
     "killConsequence": "The process ends immediately, without saving anything",
     "done": "Sent to {{name}}"
+  },
+  "cron": "Scheduled Tasks",
+  "cronScreen": {
+    "empty": "No scheduled tasks",
+    "emptyHint": "Tasks run commands as root at set times, e.g. a weekly reboot.",
+    "add": "Add Task",
+    "edit": "Edit Task",
+    "delete": "Delete",
+    "managed": "App",
+    "managedHint": "Tasks marked App are managed by RouteLink (Wi-Fi schedules) and change on their own pages.",
+    "schedule": "Schedule",
+    "scheduleHint": "minute hour day month weekday",
+    "command": "Command",
+    "presets": "Common Schedules",
+    "presetDaily": "Every day at 03:00",
+    "presetWeekly": "Every Monday at 04:00",
+    "presetHourly": "Every hour",
+    "presetHalfHour": "Every 30 minutes",
+    "error": {
+      "fields": "Five fields: minute hour day month weekday",
+      "minute": "Minute must be 0–59",
+      "hour": "Hour must be 0–23",
+      "day": "Day must be 1–31",
+      "month": "Month must be 1–12",
+      "weekday": "Weekday must be 0–7 (0 and 7 are Sunday)",
+      "command": "Enter a command (one line)"
+    },
+    "saveTitle": "Save this task?",
+    "saveConsequence": "The command runs as root at the scheduled times",
+    "deleteTitle": "Delete this task?",
+    "deleteConsequence": "The command no longer runs",
+    "changed": "The task list was changed on the router meanwhile; reloaded, please try again",
+    "saved": "Saved"
   }
 }
