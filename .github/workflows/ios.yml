@@ -55,6 +55,8 @@ jobs:
           xcodebuild -workspace ios/RouteLink.xcworkspace -scheme RouteLink -configuration Release \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log | grep -E "error:|warning: .*RouteLinkNative|BUILD (SUCCEEDED|FAILED)" || true
+          # The filter's `|| true` also hides xcodebuild's status, and a failed build can leave a partial .app.
+          grep -q '\*\* BUILD SUCCEEDED \*\*' build.log
           test -d build/Build/Products/Release-iphonesimulator/RouteLink.app
       - name: Boot simulator
         id: sim
@@ -105,6 +107,7 @@ jobs:
             -sdk iphoneos -destination 'generic/platform=iOS' -archivePath build/RouteLink.xcarchive archive \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" 2>&1 | tee archive.log \
             | grep -E "error:|ARCHIVE (SUCCEEDED|FAILED)" || true
+          grep -q '\*\* ARCHIVE SUCCEEDED \*\*' archive.log
           test -d build/RouteLink.xcarchive/Products/Applications/RouteLink.app
       - name: Package IPA
         run: |
