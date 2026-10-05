@@ -490,7 +490,7 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 
 ## 17. SSH 与终端
 
-- **原生实现**：Android 用 sshj，iOS 用 Citadel（通过 podspec 引入 SPM 依赖）。没有用现成的 React Native SSH 库，因为它们不校验主机指纹，iOS 端也不支持模拟器。（M1 已验证：在本地 Expo 模块的 podspec 里用 React Native 的 `spm_dependency` 引入 Citadel，在 Xcode 26 上编译通过。）
+- **原生实现**：Android 用 sshj，iOS 用 Citadel（通过 podspec 引入 SPM 依赖）。没有用现成的 React Native SSH 库，因为它们不校验主机指纹，iOS 端也不支持模拟器。（在本地 Expo 模块的 podspec 里用 React Native 的 `spm_dependency` 引入 Citadel。M1 记录的"在 Xcode 26 上编译通过"是误判：当时的 CI 吞掉了编译失败。Citadel 0.12 要求 iOS 17，所以 M4 起 App 的最低版本是 iOS 17，见 M4 计划 §0。）
 - **认证**：支持密码和私钥。App 可以生成一对 ed25519 密钥，再一键把公钥写进路由器的 `/etc/dropbear/authorized_keys`。
 - **主机指纹**：第一次连接时确认并固定，之后指纹变化就拦截。
 - **终端界面**：xterm.js 跑在 WebView 里，键盘上方加一排快捷键：Esc、Tab、Ctrl、方向键、`|`、`/`、`-`、`~`。支持复制粘贴、调整字号。每台路由器同时只开一个会话，断开后可以重连。
