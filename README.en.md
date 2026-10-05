@@ -130,8 +130,6 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 
 The RouteLink plugin runs on the router, counts what every device uploads and downloads, and keeps the history; the app and LuCI (Services → RouteLink) show it.
 
-> The plugin's first version (agent-v0.1.0) isn't released yet. Until then the one-tap install in the app reports a download error, and the packages and feeds below aren't available.
-
 - **How it counts**: connection-tracking counters summed per device MAC, IPv4 and IPv6; accurate with software flow offloading on. In the Docker lab it matches the byte counts of the client's network card exactly.
 - **How long**: per minute for 48 hours, per hour for 90 days, per day for 2 years. Data lives in `/etc/routelink` on the router, written to flash every 10 minutes by default, capped at 32 MB, kept across firmware upgrades.
 - **Cost**: on x86 (measured in Docker), with 52 devices and 5000 connections, 0.04% of one core and 1.7 MB of memory.

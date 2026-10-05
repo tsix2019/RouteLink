@@ -1650,7 +1650,8 @@ export function installAgent(deps: InstallDeps, mirror?: string): Promise<Instal
 | T34 演示模式 | 用确定性的模型代替存储：每台设备每小时一个速率（每天的作息曲线乘以按种子生成的系数），小时内再叠加一个整周期的正弦波，所以一小时内各分钟之和不变。任意时间段都能算出稳定的结果，汇总和曲线之和只差取整误差。演示路由器上可以卸载插件再一键安装，整个流程约 6 秒 |
 | T35 新依赖和 SDK 57 的兼容性 | 用 `npx expo install` 安装 expo-file-system、expo-sharing、expo-crypto、@react-native-community/datetimepicker 9.1.0，expo-doctor 21 项检查全部通过。下载安装包改用 `expo/fetch` 读取字节，不经过文件系统；文件系统只用于导出 CSV。发现一个 M1 遗留问题：Hermes 的 `toLocaleString(locale)` 只按手机系统语言格式化，中文界面在英文系统的手机上会显示"Oct 5"，改为 App 自己按中英文格式化日期（`utils/dates`）。本机编译时空闲内存只有约 2 GB，16 个线程并行编译 C++ 会内存不足，改为先关模拟器，再用 `--max-workers=2` 编译 |
 | T36～T43 界面 | 在模拟器上用演示路由器和 Docker 路由器逐页走查。插件的月层只用于两年前的数据，所以 WAN 口历史改为在手机上把小时数据按天汇总、把天数据按月汇总；"每天时段"筛选只对小时数据（90 天）有效，更早的时间段自动去掉这个筛选并提示；实时页在实验环境 2 MB/s 下载时显示 17.1 Mbps，和实际一致；插件清单还没发布时，安装失败并提示"下载失败" |
-| T45 真实路由器的联调结果 | |
+| T27/T46 发布 | Secrets 和 GitHub Pages（来源：GitHub Actions；`github-pages` 环境另外允许 `agent-v*` 标签）设好后，先发预发布 `agent-v0.1.0-rc.1`：82 个文件（54 个 ipk、27 个 apk、`manifest.json`），清单 27 个"版本×架构"，抽查的 SHA-256 一致。再发正式版 `agent-v0.1.0`。**发现的问题**：工作流用"标签里有没有连字符"判断预发布，`agent-v` 前缀本身就有连字符，结果正式版被标成预发布、软件源没有部署到 Pages。已改成只看版本号部分，并增加手动触发（`workflow_dispatch`，可以复用之前运行的安装包），用它重新发布了 0.1.0，没有删除也没有重新编译。之后：清单、各版本软件源、两把公钥在 Pages 上都能访问；Docker 24.10.8 上用 App 从正式清单一键安装成功（约 20 秒）；按 README 添加软件源后 `opkg update` 签名校验通过 |
+| T45 真实路由器的联调结果 | **暂停**（按你的要求，以后再做）。已经发现的两点：① 这台路由器用的第三方固件（Kwrt）的 uhttpd 返回错误时把 JSON-RPC 的 `id` 写成 `null`，App 按编号对应回复，于是所有失败的调用都成了 "missing response"（插件页报错）。已修复：没有编号的回复按位置对应，并加了测试。② 一键安装停在"查找匹配的安装包"：这个固件基于 25.12，但很可能仍然用 opkg，而插件的 25.12 只有 apk 包。后续要么给 25.12 也出 ipk，要么让 App 在这种情况下改用 24.10 的 ipk（需要先确认 ABI 兼容）。整个过程只读，路由器上没有任何改动 |
 
 **T28 实测结果**（`scripts/pm-check.mjs`、`scripts/pm-cgi-exec.mjs`，root 会话，经由 HTTP）
 
