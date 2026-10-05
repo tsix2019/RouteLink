@@ -40,9 +40,24 @@ export interface DemoState {
   /** Processes, crontab and clock. */
   admin: DemoAdmin;
   packages: DemoPackages;
-  /** Counter behind the keys that the demo's WireGuard key generator hands out. */
-  vpn: { keys: number };
+  /** Counter behind the demo's WireGuard keys; OpenVPN profiles under /etc/openvpn. */
+  vpn: { keys: number; files: Record<string, string> };
 }
+
+/** An imported OpenVPN client profile (NW-8). */
+const OFFICE_OVPN = `client
+dev tun
+proto udp
+remote vpn.example.com 1194
+nobind
+auth-user-pass
+remote-cert-tls server
+<ca>
+-----BEGIN CERTIFICATE-----
+(demo)
+-----END CERTIFICATE-----
+</ca>
+`;
 
 /** Real vendor prefixes so the device list shows believable vendors. */
 const DEVICES: [hostname: string, oui: string, kind: 'wifi' | 'wired', radio?: 'radio0' | 'radio1'][] = [
@@ -245,6 +260,18 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
         true,
       ),
     },
+    openvpn: {
+      // The package's disabled examples, and a profile the user imported.
+      custom_config: section('custom_config', 'openvpn', { enabled: '0', config: '/etc/openvpn/my-vpn.conf' }),
+      sample_server: section('sample_server', 'openvpn', { enabled: '0', port: '1194', proto: 'udp', dev: 'tun' }),
+      sample_client: section('sample_client', 'openvpn', { enabled: '0', client: '1', dev: 'tun', proto: 'udp' }),
+      office: section('office', 'openvpn', {
+        enabled: '1',
+        config: '/etc/openvpn/office.ovpn',
+        username: 'demo',
+        password: 'demo-password',
+      }),
+    },
     wireless: {
       radio0: section('radio0', 'wifi-device', {
         type: 'mac80211',
@@ -404,7 +431,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     agent: createDemoAgent(now),
     admin: createDemoAdmin(scheduledDev.mac),
     packages: createDemoPackages(),
-    vpn: { keys: 0 },
+    vpn: { keys: 0, files: { '/etc/openvpn/office.ovpn': OFFICE_OVPN } },
   };
 }
 

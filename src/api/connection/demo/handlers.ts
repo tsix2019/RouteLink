@@ -173,9 +173,26 @@ export const handlers: Record<string, Handler> = {
       s.admin.crontab = String(p.data ?? '');
       return {};
     }
+    if (String(p.path).startsWith('/etc/openvpn/')) {
+      s.vpn.files[String(p.path)] = String(p.data ?? '');
+      return {};
+    }
     // Plugin uploads (package installs) and the apk key: accepted and dropped.
     if (String(p.path).startsWith('/tmp/upload.') || String(p.path).startsWith('/etc/apk/keys/')) return {};
     return notFound('file.write');
+  },
+  'file.remove': (s, p) => {
+    if (!(String(p.path) in s.vpn.files)) return notFound('file.remove');
+    delete s.vpn.files[String(p.path)];
+    return {};
+  },
+  /** procd's view: OpenVPN instances run while they are enabled. */
+  'service.list': (s, p) => {
+    const instances = Object.values(s.uci.openvpn ?? {})
+      .filter((x) => x['.type'] === 'openvpn' && x.enabled === '1')
+      .map((x, i) => [x['.name'], { running: true, pid: 3100 + i }]);
+    const all = { openvpn: { instances: Object.fromEntries(instances) } };
+    return p.name ? (p.name === 'openvpn' ? all : {}) : all;
   },
   'file.exec': (s, p, now) => {
     const run = files[String(p.command)];

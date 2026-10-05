@@ -42,6 +42,7 @@ import { kernelLog, systemLog } from '../../services/logs';
 import { getDeviceCounters, getInterfaces, pickWan, reconnectInterface } from '../../services/network';
 import { installPackages, listAvailable, listInstalled, searchPackages } from '../../services/package-list';
 import { detectPackageEnv, removePackages } from '../../services/packages';
+import { deleteInstance, getOpenvpn, importOvpn, setInstanceEnabled, validateImport } from '../../services/openvpn';
 import { getParental, saveSchedule } from '../../services/parental';
 import { listProcesses, signalProcess } from '../../services/processes';
 import {
@@ -454,6 +455,25 @@ describe('demo router: WireGuard settings', () => {
     expect(after.publicKeys.wg1).toBe(serverKeys.publicKey);
     await applyWgChanges(conn, deleteInterfaceChanges(wg1, after.firewall), fast);
     expect((await getWgConfig(conn)).interfaces.map((i) => i.name)).toEqual(['wg0']);
+  });
+});
+
+describe('demo router: OpenVPN', () => {
+  it('lists the imported profile; a new one is imported, switched off and deleted', async () => {
+    const { conn } = demo();
+    const before = await getOpenvpn(conn);
+    expect(before.instances).toEqual([
+      { name: 'office', enabled: true, configFile: '/etc/openvpn/office.ovpn', hasLogin: true, running: true },
+    ]);
+    const profile = ['client', 'dev tun', 'remote travel.example.net 443 tcp', '<ca>', 'x', '</ca>', ''].join('\n');
+    expect(validateImport('travel', profile, before.instances)).toBeNull();
+    await importOvpn(conn, 'travel', profile, undefined, fast);
+    const travel = (await getOpenvpn(conn)).instances.find((i) => i.name === 'travel')!;
+    expect(travel).toMatchObject({ enabled: true, running: true, hasLogin: false });
+    await setInstanceEnabled(conn, travel, false, fast);
+    expect((await getOpenvpn(conn)).instances.find((i) => i.name === 'travel')?.running).toBe(false);
+    await deleteInstance(conn, travel, fast);
+    expect((await getOpenvpn(conn)).instances.map((i) => i.name)).toEqual(['office']);
   });
 });
 
