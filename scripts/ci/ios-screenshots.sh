@@ -5,7 +5,8 @@ set -euo pipefail
 UDID="$1"
 # name:route — the route is what routelink://demo opens (see src/features/demo/route.ts).
 PAGES=(overview devices device wireless network more traffic:network/traffic traffic-live:traffic-live
-  traffic-device:traffic-device wan:network/traffic/wan agent:more/agent)
+  traffic-device:traffic-device wan:network/traffic/wan agent:more/agent guest:wireless/guest
+  firewall:network/firewall connections:network/connections packages:more/packages processes:more/processes)
 xcrun simctl status_bar "$UDID" override --time 9:41 --dataNetwork wifi --wifiMode active --wifiBars 3 \
   --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
 
