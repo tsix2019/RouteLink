@@ -119,3 +119,18 @@ export async function installPackages(
   const out = parseHelperOutput(await conn.cgiExec([env.helper, 'install', ...names]));
   return { ok: out.code === 0, output: [out.stdout, out.stderr].filter(Boolean).join('\n') };
 }
+
+/** Packages the app talks through: removing one cuts the app off the router (allowed, but warned). */
+const APP_NEEDS = [
+  'rpcd',
+  'uhttpd',
+  'uhttpd-mod-ubus',
+  'luci-base',
+  'cgi-io',
+  'rpcd-mod-file',
+  'rpcd-mod-luci',
+  'ubus',
+  'ubusd',
+];
+
+export const removalCutsOffApp = (names: string[]): string[] => names.filter((n) => APP_NEEDS.includes(n));

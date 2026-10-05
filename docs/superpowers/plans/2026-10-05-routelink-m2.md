@@ -213,7 +213,7 @@
 
 | 项目 | 结论 |
 |---|---|
-| T1 各版本接口差异 | |
-| T11 A6：改 LAN IP 后会话是否有效 | |
+| T1 各版本接口差异 | 三个版本都录到了。差异：① 23.05 的 `ip` 是 busybox 版，输出没有 `proto`，字段之间有双空格；24.10 和 25.12 是 iproute2 格式。解析按"关键字 值"读，两种都支持。② **`luci getLocaltime` 谁都调不了**（root 也是 Access denied，三个版本的 ACL 里都没有它）。LuCI 自己的系统页用的是 `system info` 的 `localtime`（本地时间秒数），App 改成同样的做法，再用 uci 的 POSIX 时区串（含夏令时规则）换算回 UTC。③ x86 上 `getLEDs` 是空的。④ WireGuard 对端还没握手时，`getWgInstances` 的 `endpoint` 是 `(none)`，`allowed_ips` 是空数组（LuCI 只在有端点时才填）。⑤ QEMU 初始化脚本里 `uci -q delete` 在 `set -e` 下对不存在的段返回 1，导致第一次录制失败，已修 |
+| T11 A6：改 LAN IP 后会话是否有效 | **有效**，23.05、24.10、25.12 都一样：用回滚方式把 LAN 从 192.168.1.1 改到 192.168.1.5，原会话在新地址上 `uci confirm` 成功（中间几秒连不上），再用同样的方法改回去也成功。rpcd 的会话在网络重载后仍然有效。所以按设计 §11 做：App 临时用新地址连接并确认；确认不了时路由器 60～90 秒后自动改回 |
 | T12 访客网络在 QEMU 上的实测 | |
-| T14 opkg 和 apk 的已安装列表格式 | |
+| T14 opkg 和 apk 的已安装列表格式 | 23.05、24.10：`list-installed` 输出 opkg 的 status 文件（`Package:` 块，带 `Auto-Installed: yes` 标记依赖安装的包）；`list-available` 是各软件源列表解压后的同样格式。25.12：输出 apk 的 JSON 数组（`name`、`version`、`description`、`installed-size`、`depends`……，没有"是否手动安装"的信息）。列表走 cgi-exec（可用列表有几 MB）。可用列表在 Docker 24.10 上实测超过 1000 个包 |

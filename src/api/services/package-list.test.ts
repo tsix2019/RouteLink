@@ -6,6 +6,7 @@ import {
   listInstalled,
   parseApkJson,
   parseControl,
+  removalCutsOffApp,
   searchPackages,
   type PackageInfo,
 } from './package-list';
@@ -155,5 +156,12 @@ describe('listing through cgi-exec', () => {
     });
     expect(conn.execs[0]).toEqual([PACKAGE_MANAGER_CALL, 'install', 'adblock', 'luci-app-adblock']);
     await expect(installPackages(conn, env('opkg'), ['bad name;'])).rejects.toThrow('invalid package name');
+  });
+});
+
+describe('removalCutsOffApp', () => {
+  it('names the packages the app needs', () => {
+    expect(removalCutsOffApp(['adblock', 'uhttpd', 'rpcd'])).toEqual(['uhttpd', 'rpcd']);
+    expect(removalCutsOffApp(['adblock'])).toEqual([]);
   });
 });
