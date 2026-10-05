@@ -1,6 +1,6 @@
-import { isConnectivityError } from '../http/errors';
 import type { RouterConnection } from '../connection/types';
 import { ActionError } from './action-error';
+import { goneAway } from './firmware';
 
 /** MO-10: factory reset. `firstboot -r -y` wipes the overlay and reboots by itself (LuCI's command line). */
 
@@ -13,12 +13,12 @@ export async function factoryReset(conn: RouterConnection): Promise<void> {
       'file',
       'exec',
       { command: '/sbin/firstboot', params: ['-r', '-y'] },
-      { timeoutMs: 30_000 },
+      { timeoutMs: 30_000, relogin: false },
     );
     if (r.code !== undefined && r.code !== 0) throw new ActionError('reset-failed', r.stderr);
   } catch (error) {
     // The router may go down before it answers.
-    if (!isConnectivityError(error)) throw error;
+    if (!goneAway(error)) throw error;
   }
 }
 

@@ -1,4 +1,4 @@
-import { FixtureConnection, ok } from '../../../test/fixture-connection';
+import { fail, FixtureConnection, ok } from '../../../test/fixture-connection';
 import { NativeError } from '../http/errors';
 import type { UbusCall } from '../ubus/types';
 import {
@@ -295,5 +295,10 @@ describe('on the router', () => {
     expect(execOf(conn.calls[0])).toBe('/sbin/sysupgrade /tmp/firmware.bin');
     const refused = new FixtureConnection().override('file.exec', ok({ code: 1, stderr: 'Image check failed.' }));
     await expect(flashFirmware(refused, false, false)).rejects.toMatchObject({ code: 'flash-failed' });
+    // 25.12 in QEMU: rpcd is gone before it answers, and uhttpd reports a ubus timeout.
+    const stopped = new FixtureConnection().override('file.exec', fail('TIMEOUT'));
+    await expect(flashFirmware(stopped, true, false)).resolves.toBeUndefined();
+    const denied = new FixtureConnection().override('file.exec', fail('PERMISSION_DENIED'));
+    await expect(flashFirmware(denied, true, false)).rejects.toMatchObject({ code: 'PERMISSION_DENIED' });
   });
 });

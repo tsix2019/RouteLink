@@ -236,9 +236,20 @@ describe('M3: DDNS', () => {
       };
       expect(validateDdns(input, null)).toEqual({});
       await saveDdns(conn, ddnsChanges(input, state.sections));
-      expect(await waitFor(async () => hits.some((h) => h.includes('host=home.routelink.test')), 120_000, 2_000)).toBe(
-        true,
+      const updated = await waitFor(
+        async () => hits.some((h) => h.includes('host=home.routelink.test')),
+        120_000,
+        2_000,
       );
+      if (!updated) {
+        // What ddns-scripts did instead, for the CI log.
+        const log = await conn
+          .call<{ result?: string }>('luci.ddns', 'get_services_log', { service_name: 'home_routelink_test' })
+          .catch((e: unknown) => ({ result: String(e) }));
+        const status = JSON.stringify((await getDdns(conn)).services);
+        console.log(['ddns log:', log.result, `status: ${status}`].join('\n'));
+      }
+      expect(updated).toBe(true);
       expect(hits.find((h) => h.includes('host=home.routelink.test'))).toMatch(/ip=10\.0\.2\.\d+/);
       const service = (await getDdns(conn)).services.find((s) => s.domain === 'home.routelink.test')!;
       expect(service.status.running).toBe(true);
@@ -311,7 +322,18 @@ describe('M3: ad blocking', () => {
         return s.package === 'adblock' ? s : null;
       };
       expect(await waitFor(async () => (await adblock())?.status === 'running', 300_000, 5_000)).toBe(true);
-      expect((await adblock())!.blocked).toBeGreaterThan(1000);
+      // Lists may still be processing when the status first says enabled.
+      const counted = await waitFor(async () => ((await adblock())?.blocked ?? 0) > 1000, 120_000, 5_000);
+      if (!counted) {
+        for (const path of [
+          '/var/run/adb_runtime.json',
+          '/tmp/adb_runtime.json',
+          '/var/run/adblock/adblock.runtime.json',
+        ]) {
+          console.log(path, await conn.cgiRead(path).catch((e: unknown) => String(e)));
+        }
+      }
+      expect(counted).toBe(true);
     } finally {
       await adblockAction(conn, 'adblock', 'off');
     }

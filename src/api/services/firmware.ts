@@ -1,5 +1,6 @@
-import { isConnectivityError } from '../http/errors';
 import type { RouterConnection } from '../connection/types';
+import { isConnectivityError } from '../http/errors';
+import { UbusError } from '../ubus/errors';
 import { ActionError } from './action-error';
 import { writeFileChunks } from './packages';
 
@@ -226,17 +227,24 @@ export function sysupgradeArgs(keepSettings: boolean, force: boolean): string[] 
   return [...(keepSettings ? [] : ['-n']), ...(force ? ['--force'] : []), FIRMWARE_PATH];
 }
 
-/** Starts the upgrade. sysupgrade stops rpcd on its way, so a missing answer means it is running. */
+/**
+ * Starts the upgrade. sysupgrade stops rpcd on its way, so the call usually ends without an answer: uhttpd
+ * reports a ubus timeout, or the connection drops. Either means it is running (seen on 25.12 in QEMU).
+ */
 export async function flashFirmware(conn: RouterConnection, keepSettings: boolean, force: boolean): Promise<void> {
   try {
     const r = await conn.call<{ code?: number; stderr?: string }>(
       'file',
       'exec',
       { command: '/sbin/sysupgrade', params: sysupgradeArgs(keepSettings, force) },
-      { timeoutMs: 20_000 },
+      { timeoutMs: 20_000, relogin: false },
     );
     if (r.code !== undefined && r.code !== 0) throw new ActionError('flash-failed', r.stderr);
   } catch (error) {
-    if (!isConnectivityError(error)) throw error;
+    if (!goneAway(error)) throw error;
   }
 }
+
+/** The router stopped answering mid-call: what a command that takes it down looks like from here. */
+export const goneAway = (error: unknown) =>
+  isConnectivityError(error) || (error instanceof UbusError && error.code === 'TIMEOUT');
