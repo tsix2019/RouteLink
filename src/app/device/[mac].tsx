@@ -8,6 +8,7 @@ import { staticIpChanges } from '@/api/services/client-actions';
 import type { Client } from '@/api/services/clients';
 import { deviceIcon } from '@/features/devices/deviceIcon';
 import { useDeviceActions } from '@/features/devices/useDeviceActions';
+import { DeviceTrafficEntry } from '@/features/traffic/DeviceTrafficEntry';
 import { useClients } from '@/hooks/router-queries';
 import { useLang, useT } from '@/i18n';
 import { useSettings } from '@/state/settings';
@@ -138,6 +139,8 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
           ]}
         />
       </GlassCard>
+
+      <DeviceTrafficEntry mac={client.mac} />
 
       <ListSection title={t('devices:actions.title')}>
         <ListRow
