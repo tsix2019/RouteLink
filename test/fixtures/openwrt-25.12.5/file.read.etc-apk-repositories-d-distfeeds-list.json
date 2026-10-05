@@ -1,0 +1,6 @@
+{
+  "ok": true,
+  "data": {
+    "data": "https://downloads.openwrt.org/releases/25.12.5/targets/x86/64/packages/packages.adb\nhttps://downloads.openwrt.org/releases/25.12.5/packages/x86_64/base/packages.adb\nhttps://downloads.openwrt.org/releases/25.12.5/targets/x86/64/kmods/6.12.94-1-a7bc15f451f9652701ba04af9cfb0b95/packages.adb\nhttps://downloads.openwrt.org/releases/25.12.5/packages/x86_64/luci/packages.adb\nhttps://downloads.openwrt.org/releases/25.12.5/packages/x86_64/packages/packages.adb\nhttps://downloads.openwrt.org/releases/25.12.5/packages/x86_64/routing/packages.adb\nhttps://downloads.openwrt.org/releases/25.12.5/packages/x86_64/telephony/packages.adb\nhttps://downloads.openwrt.org/releases/25.12.5/packages/x86_64/video/packages.adb\n"
+  }
+}

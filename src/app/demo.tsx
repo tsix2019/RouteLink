@@ -9,7 +9,7 @@ import { useSettings } from '@/state/settings';
 
 /**
  * routelink://demo?lang=zh|en&theme=light|dark&route=/devices — turns on demo mode and opens a tab
- * screen (or, with route=/device, a demo device's sheet). Used by the screenshot scripts; harmless
+ * screen (or, with route=/device, a demo device's sheet; see safeDemoRoute). Used by the screenshot scripts; harmless
  * for anyone else: it only shows the demo router.
  */
 export default function DemoLink() {
@@ -31,6 +31,19 @@ export default function DemoLink() {
       void getClients(getDemoConnection()).then((clients) => {
         const device = clients.find((c) => c.online && c.wifi);
         if (device) setTimeout(() => router.push(deviceHref(device.mac)), 400);
+      });
+      return;
+    }
+    if (target === '/traffic-live') {
+      router.replace('/network/traffic?tab=live', { withAnchor: true });
+      return;
+    }
+    if (target === '/traffic-device') {
+      void getClients(getDemoConnection()).then((clients) => {
+        const device = clients.find((c) => c.name === 'Living-Room-TV') ?? clients.find((c) => c.online);
+        router.replace(device ? `/network/traffic/${encodeURIComponent(device.mac)}` : '/network/traffic', {
+          withAnchor: true,
+        });
       });
       return;
     }

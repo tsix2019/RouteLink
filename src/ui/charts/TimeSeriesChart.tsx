@@ -101,8 +101,8 @@ export function TimeSeriesChart({ points, step, start, end, height = 168, testID
                 )}`}
           </AppText>
         ) : (
-          <AppText variant="caption" tone="tertiary">
-            {formatBitRate(max)}
+          <AppText variant="caption" tone="tertiary" numberOfLines={1}>
+            {t('traffic:chart.hint')}
           </AppText>
         )}
       </View>
@@ -179,6 +179,9 @@ export function TimeSeriesChart({ points, step, start, end, height = 168, testID
                 {t('traffic:chart.missing')}
               </AppText>
             ))}
+          <AppText variant="caption" tone="tertiary" style={styles.axisMax}>
+            {formatBitRate(max)}
+          </AppText>
           {ticks.map((tick) => (
             <AppText
               key={tick.t}
@@ -196,6 +199,7 @@ export function TimeSeriesChart({ points, step, start, end, height = 168, testID
 
 const styles = StyleSheet.create({
   readout: { minHeight: 18, marginBottom: 4 },
+  axisMax: { position: 'absolute', right: 0, top: 2 },
   gapLabel: { position: 'absolute', textAlign: 'center' },
   tick: { position: 'absolute', width: 48, textAlign: 'center' },
 });

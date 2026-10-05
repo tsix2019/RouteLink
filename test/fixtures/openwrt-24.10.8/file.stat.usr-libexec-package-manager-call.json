@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "data": {
+    "path": "/usr/libexec/package-manager-call",
+    "type": "file",
+    "size": 2297,
+    "mode": 33261,
+    "atime": 1784877710,
+    "mtime": 1784877710,
+    "ctime": 1784877710,
+    "inode": 1297,
+    "uid": 0,
+    "gid": 0
+  }
+}

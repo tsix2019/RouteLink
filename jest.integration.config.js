@@ -11,6 +11,8 @@ module.exports = {
       },
     ],
   },
+  // Only look in here: in CI mode the unit tests' snapshot files would count as obsolete and fail the run.
+  roots: ['<rootDir>/test/integration'],
   testMatch: ['<rootDir>/test/integration/**/*.int.test.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',

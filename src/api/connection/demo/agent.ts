@@ -33,6 +33,9 @@ export const createDemoAgent = (nowMs: number): DemoAgent => {
   return { installed: true, dataSince: now - AGENT_DATA_DAYS * DAY, resetAt: 0, lastCommit: now - 300 };
 };
 
+/** Scales the profiles to a believable household: about 25 GB a day. */
+const DEMO_SCALE = 0.3;
+
 /** Download at the evening peak in bytes/s, upload as a share of it, LAN traffic (to the NAS) at the peak. */
 const PROFILES: Record<string, { rx: number; up: number; lan?: number }> = {
   'Living-Room-TV': { rx: 900_000, up: 0.03 },
@@ -94,7 +97,7 @@ function hourRate(ctx: Ctx, i: number, h: number, kind: Kind): Bytes {
   const p = PROFILES[ctx.state.devices[i].hostname] ?? { rx: 20_000, up: 0.1 };
   const peak = kind === 'lan' ? (p.lan ?? 0) : p.rx;
   if (!peak) return [0, 0];
-  const rx = peak * DAILY[localHour(h * HOUR)] * (0.35 + 1.3 * hash01(i, h, kind === 'lan' ? 7 : 3));
+  const rx = peak * DEMO_SCALE * DAILY[localHour(h * HOUR)] * (0.35 + 1.3 * hash01(i, h, kind === 'lan' ? 7 : 3));
   return [rx, kind === 'lan' ? rx * 0.25 : rx * p.up];
 }
 

@@ -8,6 +8,8 @@ const babelPresetExpo = require.resolve('babel-preset-expo', { paths: [require.r
 module.exports = {
   preset: 'jest-expo/node',
   // own folder and suffix: the general integration config (test/integration) must not pick these up
+  // Only look in here: in CI mode the unit tests' snapshot files would count as obsolete and fail the run.
+  roots: ['<rootDir>/test/agent'],
   testMatch: ['**/test/agent/*.agent.ts'],
   transform: { '^.+\\.[jt]sx?$': ['babel-jest', { presets: [babelPresetExpo] }] },
   moduleNameMapper: {

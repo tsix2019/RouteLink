@@ -90,6 +90,7 @@ function AgentContent({ status }: { status: AgentStatus }) {
   const info: AgentInfo | null = 'info' in status ? status.info : null;
   const installed = status.state !== 'not-installed';
   const invalidate = () => client.invalidateQueries({ queryKey: [router?.id ?? 'none'] });
+  const routerName = router ? (router.isDemo ? t('demoRouter') : router.name) : '';
 
   const commit = useRouterMutation((conn) => agentCommit(conn), [['agent']]);
   const clear = useRouterMutation((conn) => agentReset(conn, 'traffic'), [['agent']]);
@@ -119,7 +120,7 @@ function AgentContent({ status }: { status: AgentStatus }) {
           : { state: 'latest', version: info?.version ?? manifest.version },
       );
     } catch (error) {
-      setUpdate({ state: 'failed', reason: describeError(t, error).title });
+      setUpdate({ state: 'failed', reason: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -136,11 +137,28 @@ function AgentContent({ status }: { status: AgentStatus }) {
     <>
       {info ? <AgentBanner info={info} /> : null}
 
-      <GlassCard title={t('agent:title')} icon="plugin">
+      <GlassCard contentStyle={styles.card}>
         <AppText variant="subhead" tone="secondary">
           {t('agent:page.about')}
         </AppText>
-        {info ? (
+        {!installed ? (
+          <>
+            <AppText variant="footnote" tone="tertiary">
+              {t('agent:page.requirements', { size: '1 MB' })}
+            </AppText>
+            <GlassButton
+              label={t('agent:page.install')}
+              icon="download"
+              variant="primary"
+              onPress={() => setDialog('install')}
+              testID="agent-install"
+            />
+          </>
+        ) : null}
+      </GlassCard>
+
+      {info ? (
+        <GlassCard title={t('agent:page.status')} icon="plugin">
           <InfoGrid
             items={[
               { label: t('agent:page.version'), value: info.version },
@@ -163,21 +181,8 @@ function AgentContent({ status }: { status: AgentStatus }) {
               },
             ]}
           />
-        ) : !installed ? (
-          <>
-            <AppText variant="footnote" tone="tertiary">
-              {t('agent:page.requirements', { size: '1 MB' })}
-            </AppText>
-            <GlassButton
-              label={t('agent:page.install')}
-              icon="download"
-              variant="primary"
-              onPress={() => setDialog('install')}
-              testID="agent-install"
-            />
-          </>
-        ) : null}
-      </GlassCard>
+        </GlassCard>
+      ) : null}
 
       {installed ? (
         <ListSection title={t('agent:page.actions')}>
@@ -272,7 +277,7 @@ function AgentContent({ status }: { status: AgentStatus }) {
       <RiskConfirm
         visible={dialog === 'install'}
         level="medium"
-        title={t('agent:install.title', { name: router?.name ?? '' })}
+        title={t('agent:install.title', { name: routerName })}
         consequences={[
           t('agent:install.consequences.packages'),
           t('agent:install.consequences.dependencies'),
@@ -299,7 +304,7 @@ function AgentContent({ status }: { status: AgentStatus }) {
         visible={dialog === 'uninstall'}
         level="medium"
         disruptive
-        title={t('agent:uninstall.title', { name: router?.name ?? '' })}
+        title={t('agent:uninstall.title', { name: routerName })}
         consequences={[t('agent:uninstall.consequences.packages'), t('agent:uninstall.consequences.luci')]}
         confirmLabel={t('agent:uninstall.confirm')}
         option={{ label: t('agent:uninstall.deleteData'), value: deleteData, onChange: setDeleteData }}
@@ -321,5 +326,6 @@ function AgentContent({ status }: { status: AgentStatus }) {
 
 const styles = StyleSheet.create({
   loading: { gap: spacing.m },
+  card: { gap: spacing.m },
   mirror: { padding: spacing.m },
 });

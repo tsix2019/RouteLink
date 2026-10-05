@@ -102,3 +102,18 @@ export function rangeLabel(t: AppT, r: TimeRange, lang: AppLanguage, now = new D
   const text = `${formatDayTime(start, lang, { year })} – ${sameDay ? formatClock(end) : formatDayTime(end, lang, { year })}`;
   return r.hours ? `${text} · ${t('traffic:range.hours', { from: r.hours.from, to: r.hours.to })}` : text;
 }
+
+/**
+ * Hour-of-day filters work on the plugin's hourly data only (kept `hourDays` days); for older ranges the
+ * filter is dropped and the page says so, rather than the plugin rejecting the query.
+ */
+export function usableHoursMask(
+  r: TimeRange,
+  start: number,
+  now: Date,
+  hourDays: number,
+): { mask?: number; dropped: boolean } {
+  if (!r.hours) return { dropped: false };
+  const oldestHourly = Math.floor(now.getTime() / 1000) - hourDays * 86_400;
+  return start >= oldestHourly ? { mask: hoursMask(r.hours), dropped: false } : { dropped: true };
+}

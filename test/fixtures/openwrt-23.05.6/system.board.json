@@ -3,7 +3,7 @@
   "data": {
     "kernel": "5.15.189",
     "hostname": "OpenWrt",
-    "system": "AMD EPYC 9V74 80-Core Processor",
+    "system": "INTEL(R) XEON(R) PLATINUM 8573C",
     "model": "QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996)",
     "board_name": "qemu-ubuntu-24-04-pc-v2-i440fx-piix-arch_caps-fix-1996",
     "rootfs_type": "squashfs",

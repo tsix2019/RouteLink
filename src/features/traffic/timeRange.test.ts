@@ -6,6 +6,7 @@ import {
   rangeLabel,
   resolveRange,
   serializeRange,
+  usableHoursMask,
   validateCustom,
   type TimeRange,
 } from './timeRange';
@@ -140,5 +141,23 @@ describe('serializeRange / parseRange', () => {
     expect(parseRange(undefined)).toBeNull();
     expect(parseRange('yesterday-ish')).toBeNull();
     expect(parseRange('20-10')).toBeNull();
+  });
+});
+
+describe('usableHoursMask', () => {
+  const now = new Date('2026-10-05T13:47:00+08:00');
+  const nowSec = Math.floor(now.getTime() / 1000);
+  const r: TimeRange = { kind: 'preset', id: 'last7d', hours: { from: 20, to: 23 } };
+
+  it('keeps the filter within the hourly retention', () => {
+    expect(usableHoursMask(r, nowSec - 7 * 86400, now, 90)).toEqual({ mask: hoursMask({ from: 20, to: 23 }), dropped: false });
+  });
+
+  it('drops it for older data', () => {
+    expect(usableHoursMask(r, nowSec - 100 * 86400, now, 90)).toEqual({ dropped: true });
+  });
+
+  it('does nothing without a filter', () => {
+    expect(usableHoursMask({ kind: 'preset', id: 'today' }, nowSec, now, 90)).toEqual({ dropped: false });
   });
 });

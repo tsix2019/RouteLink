@@ -51,9 +51,14 @@ jobs:
       sign: false
 
   integration:
-    name: accuracy on Docker (24.10.8 x86_64)
+    name: accuracy on Docker (${{ matrix.release }} x86_64)
     needs: build
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # opkg on 23.05 and 24.10, apk on 25.12
+        release: ['23.05.6', '24.10.8', '25.12.5']
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -63,10 +68,10 @@ jobs:
       - run: npm ci
       - uses: actions/download-artifact@v8
         with:
-          name: pkg-24.10.8-x86_64
-          path: openwrt/out/24.10.8/x86_64
-      - run: scripts/agent-router.sh up 24.10.8
-      - run: scripts/agent-dev-install.sh
+          name: pkg-${{ matrix.release }}-x86_64
+          path: openwrt/out/${{ matrix.release }}/x86_64
+      - run: scripts/agent-router.sh up ${{ matrix.release }}
+      - run: scripts/agent-dev-install.sh ${{ matrix.release }} x86_64
       - run: scripts/traffic-lab.sh up
       - run: npx jest -c jest.agent.config.js
         env:

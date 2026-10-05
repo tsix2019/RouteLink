@@ -100,7 +100,7 @@ export default function InstallAgent() {
       </GlassCard>
 
       {last?.step === 'done' ? (
-        <GlassCard title={t('agent:install.done', { version: last.version })} icon="check">
+        <GlassCard title={t('agent:install.done', { version: last.version })} icon="check" contentStyle={styles.result}>
           <AppText variant="subhead" tone="secondary">
             {t('agent:install.doneMessage')}
           </AppText>
@@ -110,6 +110,7 @@ export default function InstallAgent() {
         <GlassCard
           title={t(`agent:install.failed.${last.reason}`, { ...failureArgs(last.detail) })}
           icon="warning"
+          contentStyle={styles.result}
           testID="install-failed">
           {last.detail && last.reason !== 'dependencies' && last.reason !== 'no-space' ? (
             <AppText variant="footnote" tone="tertiary" numberOfLines={6} selectable>
@@ -145,6 +146,7 @@ function failureArgs(detail?: string): { detail: string; need: string; free: str
 }
 
 const styles = StyleSheet.create({
+  result: { gap: spacing.m },
   step: { flexDirection: 'row', alignItems: 'center', gap: spacing.m, minHeight: 40 },
   marker: { width: 24, alignItems: 'center' },
   dot: { width: 8, height: 8, borderRadius: 4 },

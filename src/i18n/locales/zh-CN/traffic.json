@@ -11,7 +11,8 @@
     "custom": "自定义"
   },
   "range": {
-    "hours": "每天 {{from}}–{{to}} 点"
+    "hours": "每天 {{from}}–{{to}} 点",
+    "hoursDropped": "每天时段筛选只适用于最近 {{days}} 天的数据，这里显示的是全天。"
   },
   "csv": {
     "device": "设备",
@@ -24,7 +25,8 @@
     "time": "时间"
   },
   "chart": {
-    "missing": "数据缺失"
+    "missing": "数据缺失",
+    "hint": "按住图表可以查看各时刻的数值"
   },
   "picker": {
     "title": "自定义时间段",
@@ -69,8 +71,8 @@
     "title": "设备流量",
     "total": "总量",
     "peak": "下载峰值",
-    "peakNote": "按 {{minutes}} 分钟平均",
-    "peakNoteHours": "按 {{hours}} 小时平均",
+    "peakNote": "{{rate}}（按 {{minutes}} 分钟平均）",
+    "peakNoteHours": "{{rate}}（按 {{hours}} 小时平均）",
     "events": "上下线记录",
     "noEvents": "这个时间段没有上下线变化。",
     "event": {
