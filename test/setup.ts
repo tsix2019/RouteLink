@@ -13,6 +13,8 @@ jest.mock('routelink-native', () => {
     jest.fn(async () => {
       throw new Error(`routelink-native.${name} is not mocked in this test`);
     });
+  // Native events: tests fire them with __emit(name, payload).
+  const listeners = new Map<string, Set<(payload: unknown) => void>>();
   return {
     __esModule: true,
     default: {
@@ -20,6 +22,21 @@ jest.mock('routelink-native', () => {
       fetchServerCertificate: notMocked('fetchServerCertificate'),
       getNetworkInfo: notMocked('getNetworkInfo'),
       sendWakeOnLan: notMocked('sendWakeOnLan'),
+      sshGenerateKey: notMocked('sshGenerateKey'),
+      sshPublicKey: notMocked('sshPublicKey'),
+      sshHostKey: notMocked('sshHostKey'),
+      sshOpen: notMocked('sshOpen'),
+      sshWrite: notMocked('sshWrite'),
+      sshResize: notMocked('sshResize'),
+      sshClose: notMocked('sshClose'),
+      sshExec: notMocked('sshExec'),
+      addListener: jest.fn((name: string, listener: (payload: unknown) => void) => {
+        const set = listeners.get(name) ?? new Set();
+        set.add(listener);
+        listeners.set(name, set);
+        return { remove: () => set.delete(listener) };
+      }),
+      __emit: (name: string, payload: unknown) => listeners.get(name)?.forEach((l) => l(payload)),
     },
   };
 });

@@ -17,6 +17,8 @@ const KNOWN: ReadonlySet<string> = new Set<NativeErrorCode>([
   'ERR_NETWORK',
   'ERR_UNSUPPORTED',
   'ERR_INVALID_ARGUMENT',
+  'SSH_HOST_KEY_CHANGED',
+  'SSH_AUTH_FAILED',
 ]);
 
 /** Transport-level failure (network, TLS) raised by an HttpClient. */
