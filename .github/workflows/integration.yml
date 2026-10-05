@@ -44,6 +44,7 @@ jobs:
           path: .qemu/openwrt-${{ matrix.version }}.img
           key: openwrt-x86-64-${{ matrix.version }}
       - name: Boot OpenWrt ${{ matrix.version }}
+        id: boot
         run: scripts/ci/qemu-openwrt.sh ${{ matrix.version }} .qemu
       - name: Integration tests
         env:
@@ -52,13 +53,14 @@ jobs:
           EXPECT_RADIOS: '1'
         run: npm run test:int
       - name: Record fixtures
-        if: success()
+        # Also after failed tests: the recordings help to see what the router answered.
+        if: always() && steps.boot.outcome == 'success'
         env:
           ROUTER_URL: http://127.0.0.1:18080
           ROUTER_PASSWORD: routelink-test
         run: npx tsx scripts/record-fixtures.ts openwrt-${{ matrix.version }}
       - uses: actions/upload-artifact@v7
-        if: success()
+        if: always() && steps.boot.outcome == 'success'
         with:
           name: fixtures-${{ matrix.version }}
           path: test/fixtures/openwrt-${{ matrix.version }}

@@ -119,9 +119,18 @@ async function etherwake(conn: RouterConnection, args: string[]): Promise<ExecRe
 
 export async function wakeOnLan(conn: RouterConnection, mac: string, o: WolOptions): Promise<'router' | 'phone'> {
   if (o.routerSide) {
-    const r = await etherwake(conn, ['-D', '-i', o.lanDevice ?? 'br-lan', mac]);
-    if (r.code !== 0) throw new ActionError('wol-failed', r.stderr || `etherwake exited with ${r.code}`);
-    return 'router';
+    try {
+      const r = await etherwake(conn, ['-D', '-i', o.lanDevice ?? 'br-lan', mac]);
+      if (r.code !== 0) throw new ActionError('wol-failed', r.stderr || `etherwake exited with ${r.code}`);
+      return 'router';
+    } catch (error) {
+      // The router couldn't send it (25.12.5's luci.wol helper fails, for one): the phone may still manage.
+      if (!o.sendFromPhone) {
+        throw error instanceof ActionError
+          ? error
+          : new ActionError('wol-failed', error instanceof Error ? error.message : String(error));
+      }
+    }
   }
   if (o.sendFromPhone) {
     await o.sendFromPhone(mac);

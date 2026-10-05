@@ -168,6 +168,20 @@ describe('wakeOnLan', () => {
     });
   });
 
+  it('falls back to the phone when the router cannot send it', async () => {
+    const conn = new FixtureConnection()
+      .override('file.exec.usr-bin-etherwake-d-i-br-lan-aa-bb-cc-00-11-22', fail('PERMISSION_DENIED', 'file.exec'))
+      .override('luci.wol.exec', fail('UNKNOWN', 'luci.wol.exec'));
+    const send = jest.fn(async () => {});
+    await expect(wakeOnLan(conn, 'AA:BB:CC:00:11:22', { routerSide: true, sendFromPhone: send })).resolves.toBe(
+      'phone',
+    );
+    expect(send).toHaveBeenCalledWith('AA:BB:CC:00:11:22');
+    await expect(wakeOnLan(conn, 'AA:BB:CC:00:11:22', { routerSide: true })).rejects.toMatchObject({
+      code: 'wol-failed',
+    });
+  });
+
   it('reports etherwake failures', async () => {
     const conn = new FixtureConnection().override(
       'file.exec.usr-bin-etherwake-d-i-br-lan-aa-bb-cc-00-11-22',
