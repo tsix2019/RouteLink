@@ -1,0 +1,72 @@
+name: OpenWrt
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'openwrt/**'
+      - 'scripts/agent-*'
+      - 'scripts/traffic-lab.sh'
+      - 'test/agent/**'
+      - 'jest.agent.config.js'
+      - '.github/workflows/openwrt*.yml'
+  pull_request:
+    paths:
+      - 'openwrt/**'
+      - '.github/workflows/openwrt*.yml'
+
+concurrency:
+  group: openwrt-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: routelinkd unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get install -y -qq cmake libjson-c-dev
+      - run: |
+          cmake -S openwrt/routelinkd/src -B build -DRL_TESTS=ON -DRL_SANITIZE=ON
+          cmake --build build -j
+          ctest --test-dir build --output-on-failure
+
+  lint:
+    name: init script format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: |
+          docker run --rm -v "$PWD/openwrt/routelinkd/files:/w" -w /w mvdan/shfmt:latest -d -sr -s routelink.init
+
+  build:
+    needs: [unit, lint]
+    uses: ./.github/workflows/openwrt-build.yml
+    with:
+      sign: false
+
+  integration:
+    name: accuracy on Docker (24.10.8 x86_64)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          name: pkg-24.10.8-x86_64
+          path: openwrt/out/24.10.8/x86_64
+      - run: scripts/agent-router.sh up 24.10.8
+      - run: scripts/agent-dev-install.sh
+      - run: scripts/traffic-lab.sh up
+      - run: npx jest -c jest.agent.config.js
+        env:
+          ROUTER_URL: http://127.0.0.1:18280
+          ROUTER_PASSWORD: routelink-test
+      - name: Router log
+        if: failure()
+        run: docker exec routelink-agent-owrt logread | tail -100

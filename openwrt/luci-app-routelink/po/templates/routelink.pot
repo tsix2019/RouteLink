@@ -1,0 +1,482 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:92
+msgid "%s used of %s; last written %s."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:53
+msgid "0 = automatic: 60 minutes on flash, 10 minutes on disks and USB. Data since the last write is lost on power failure."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:57
+msgid "All"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:151
+msgid "Apply"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:299
+msgid "averaged over %d min"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:51
+msgid "Blue: download, orange: upload. Updated every 2 seconds."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:303
+msgid "came online"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:16 htdocs/luci-static/resources/view/routelink/traffic.js:139
+msgid "Cancel"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:22
+msgid "Clear"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:105
+msgid "Clear all data?"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:104
+msgid "Clear events"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:103
+msgid "Clear events?"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:106
+msgid "Clear everything"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:102
+msgid "Clear traffic"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:101
+msgid "Clear traffic data?"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:30
+msgid "Clock"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:306 htdocs/luci-static/resources/view/routelink/traffic.js:310
+msgid "Close"
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:250
+msgid "Connection accounting (nf_conntrack_acct) is off: device traffic reads 0."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:131
+msgid "Custom time range"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:46
+msgid "Custom…"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:82
+msgid "Daily data (days)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:91
+msgid "Data"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:20
+msgid "Data cleared."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:33 htdocs/luci-static/resources/view/routelink/settings.js:43
+msgid "Data directory"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:177
+msgid "day"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:225 htdocs/luci-static/resources/view/routelink/traffic.js:273 htdocs/luci-static/resources/view/routelink/traffic.js:318
+msgid "Device"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:60 htdocs/luci-static/resources/view/routelink/traffic.js:271
+msgid "devices online"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:169 htdocs/luci-static/resources/view/routelink/traffic.js:226 htdocs/luci-static/resources/view/routelink/traffic.js:273
+msgid "Download"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:318 htdocs/luci-static/resources/view/routelink/traffic.js:323
+msgid "Download (bytes)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:35
+msgid "Enable"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:49
+msgid "Enter an absolute path such as /mnt/usb/routelink"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:85
+msgid "Events (days)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:83
+msgid "Export CSV"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:303
+msgid "first seen"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:29
+msgid "Flow offloading"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:132
+msgid "From"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:28
+msgid "Gateway (traffic accounting)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:32
+msgid "General"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:29
+msgid "Hardware"
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:252
+msgid "Hardware offloading is on: offloaded traffic may not be counted."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:177
+msgid "hour"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:79
+msgid "Hourly data (days)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:55
+msgid "Internet"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:44
+msgid "Kept across firmware upgrades. Moving it starts with empty data: existing files are not copied."
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:52
+msgid "Last 30 days"
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:49
+msgid "Last 7 days"
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:46
+msgid "Last hour"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:274
+msgid "Last minute"
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:51
+msgid "Last month"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:32
+msgid "Last write to disk"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:68
+msgid "Live"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:70
+msgid "Live sampling interval (seconds)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:282
+msgid "Loading…"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:56
+msgid "Local network"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:61
+msgid "Maximum share of free space (%)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:57
+msgid "Maximum size (MB)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:93
+msgid "never"
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:257
+msgid "nlbwmon is running and resets the connection counters this plugin reads."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:305
+msgid "No changes in this range."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:231
+msgid "No traffic in this range."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:275
+msgid "No traffic right now."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:67
+msgid "No traffic yet today."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:28
+msgid "Not a gateway"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:30
+msgid "Not synchronised"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:98
+msgid "Not written: the router clock is not synchronised yet."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:32
+msgid "Not yet"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:29
+msgid "Off"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:176
+msgid "Older data is kept per %s; counting starts at %s."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:301
+msgid "Online history"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:39
+msgid "Only active on a gateway (a zone with masquerading)."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:134
+msgid "Only these hours of each day"
+msgstr ""
+
+#: root/usr/share/luci/menu.d/luci-app-routelink.json
+msgid "Overview"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:298
+msgid "peak"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:30
+msgid "Per-device traffic accounting for the RouteLink app. Changes apply after \"Save & Apply\"."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:76
+msgid "Per-minute data (hours)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:181 htdocs/luci-static/resources/view/routelink/traffic.js:309
+msgid "Query failed: %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:67
+msgid "Ranking"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:74
+msgid "Retention"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:28
+msgid "Role"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:41 htdocs/luci-static/resources/view/routelink/overview.js:83 root/usr/share/luci/menu.d/luci-app-routelink.json
+msgid "RouteLink"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:29
+msgid "RouteLink settings"
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:115
+msgid "Router itself"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:65
+msgid "Sampling interval (seconds)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:160
+msgid "selected hours only"
+msgstr ""
+
+#: root/usr/share/luci/menu.d/luci-app-routelink.json
+msgid "Settings"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:229
+msgid "Share"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:29
+msgid "Software"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:25
+msgid "Status"
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:258
+msgid "Stop and disable nlbwmon"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:31
+msgid "Storage"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:30
+msgid "Synchronised"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:143
+msgid "The end must be after the start."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:135
+msgid "The hour filter uses the router time zone and the hourly data (kept for %d days)."
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:254
+msgid "The router clock is not synchronised yet; data is kept in memory until it is."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:14
+msgid "This cannot be undone."
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:50
+msgid "This month"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:42 htdocs/luci-static/resources/view/routelink/traffic.js:37
+msgid "This router is not a gateway, so traffic accounting is off."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:323
+msgid "Time"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:133
+msgid "To"
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:47
+msgid "Today"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:65
+msgid "Top devices today"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:228
+msgid "Total"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:318
+msgid "Total (bytes)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:36 htdocs/luci-static/resources/view/routelink/traffic.js:77 root/usr/share/luci/menu.d/luci-app-routelink.json
+msgid "Traffic"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:39
+msgid "Traffic accounting"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:82
+msgid "Traffic class"
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:113
+msgid "Unidentified devices"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:170 htdocs/luci-static/resources/view/routelink/traffic.js:227 htdocs/luci-static/resources/view/routelink/traffic.js:274
+msgid "Upload"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:318 htdocs/luci-static/resources/view/routelink/traffic.js:323
+msgid "Upload (bytes)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:27
+msgid "Version"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:270
+msgid "WAN"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:171
+msgid "WAN counters include link-layer overhead (PPPoE etc.), so they read a few percent higher."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:172
+msgid "WAN interface"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/overview.js:49
+msgid "WAN now"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/traffic.js:303
+msgid "went offline"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:66
+msgid "While nobody watches live rates. Totals are exact at any interval."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:52
+msgid "Write to disk every (seconds)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:100
+msgid "Write to disk now"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/routelink/settings.js:97
+msgid "Written to disk."
+msgstr ""
+
+#: htdocs/luci-static/resources/routelink/common.js:48
+msgid "Yesterday"
+msgstr ""

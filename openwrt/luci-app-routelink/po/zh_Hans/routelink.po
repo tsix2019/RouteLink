@@ -1,0 +1,363 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+"Language: zh_Hans\n"
+
+msgid "%s used of %s; last written %s."
+msgstr "已用 %s，上限 %s；上次写盘 %s。"
+
+msgid "0 = automatic: 60 minutes on flash, 10 minutes on disks and USB. Data since the last write is lost on power failure."
+msgstr "0 表示自动：闪存上每 60 分钟，硬盘和 U 盘上每 10 分钟。断电时会丢失上次写盘之后的数据。"
+
+msgid "All"
+msgstr "全部"
+
+msgid "Apply"
+msgstr "应用"
+
+msgid "averaged over %d min"
+msgstr "按 %d 分钟平均"
+
+msgid "Blue: download, orange: upload. Updated every 2 seconds."
+msgstr "蓝色为下载，橙色为上传。每 2 秒刷新。"
+
+msgid "came online"
+msgstr "上线"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Clear"
+msgstr "清空"
+
+msgid "Clear all data?"
+msgstr "清空全部数据？"
+
+msgid "Clear events"
+msgstr "清空事件"
+
+msgid "Clear events?"
+msgstr "清空事件？"
+
+msgid "Clear everything"
+msgstr "清空全部"
+
+msgid "Clear traffic"
+msgstr "清空流量"
+
+msgid "Clear traffic data?"
+msgstr "清空流量数据？"
+
+msgid "Clock"
+msgstr "时钟"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Connection accounting (nf_conntrack_acct) is off: device traffic reads 0."
+msgstr "连接跟踪计数（nf_conntrack_acct）已关闭，设备流量会显示为 0。"
+
+msgid "Custom time range"
+msgstr "自定义时间段"
+
+msgid "Custom…"
+msgstr "自定义…"
+
+msgid "Daily data (days)"
+msgstr "按天数据（天）"
+
+msgid "Data"
+msgstr "数据"
+
+msgid "Data cleared."
+msgstr "数据已清空。"
+
+msgid "Data directory"
+msgstr "数据目录"
+
+msgid "day"
+msgstr "天"
+
+msgid "Device"
+msgstr "设备"
+
+msgid "devices online"
+msgstr "台设备在线"
+
+msgid "Download"
+msgstr "下载"
+
+msgid "Download (bytes)"
+msgstr "下载（字节）"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Enter an absolute path such as /mnt/usb/routelink"
+msgstr "请输入绝对路径，例如 /mnt/usb/routelink"
+
+msgid "Events (days)"
+msgstr "事件（天）"
+
+msgid "Export CSV"
+msgstr "导出 CSV"
+
+msgid "first seen"
+msgstr "首次出现"
+
+msgid "Flow offloading"
+msgstr "流量卸载（加速）"
+
+msgid "From"
+msgstr "开始"
+
+msgid "Gateway (traffic accounting)"
+msgstr "主路由（统计流量）"
+
+msgid "General"
+msgstr "常规"
+
+msgid "Hardware offloading is on: offloaded traffic may not be counted."
+msgstr "已开启硬件加速，走加速通道的流量可能统计不到。"
+
+msgid "Hardware"
+msgstr "硬件加速"
+
+msgid "hour"
+msgstr "小时"
+
+msgid "Hourly data (days)"
+msgstr "按小时数据（天）"
+
+msgid "Internet"
+msgstr "互联网"
+
+msgid "Kept across firmware upgrades. Moving it starts with empty data: existing files are not copied."
+msgstr "升级固件后保留。修改后从空数据开始，原有文件不会复制过去。"
+
+msgid "Last 30 days"
+msgstr "最近 30 天"
+
+msgid "Last 7 days"
+msgstr "最近 7 天"
+
+msgid "Last hour"
+msgstr "最近 1 小时"
+
+msgid "Last minute"
+msgstr "最近一分钟"
+
+msgid "Last month"
+msgstr "上月"
+
+msgid "Last write to disk"
+msgstr "上次写盘"
+
+msgid "Live"
+msgstr "实时"
+
+msgid "Live sampling interval (seconds)"
+msgstr "实时采样间隔（秒）"
+
+msgid "Loading…"
+msgstr "加载中…"
+
+msgid "Local network"
+msgstr "局域网"
+
+msgid "Maximum share of free space (%)"
+msgstr "最多占用剩余空间（%）"
+
+msgid "Maximum size (MB)"
+msgstr "最大占用（MB）"
+
+msgid "never"
+msgstr "从未"
+
+msgid "nlbwmon is running and resets the connection counters this plugin reads."
+msgstr "nlbwmon 正在运行，它会把本插件读取的连接计数清零。"
+
+msgid "No changes in this range."
+msgstr "这个时间段内没有变化。"
+
+msgid "No traffic in this range."
+msgstr "这个时间段内没有流量。"
+
+msgid "No traffic right now."
+msgstr "当前没有流量。"
+
+msgid "No traffic yet today."
+msgstr "今天还没有流量。"
+
+msgid "Not a gateway"
+msgstr "不是主路由"
+
+msgid "Not synchronised"
+msgstr "未同步"
+
+msgid "Not written: the router clock is not synchronised yet."
+msgstr "未写入：路由器时间还没有同步。"
+
+msgid "Not yet"
+msgstr "尚未写入"
+
+msgid "Older data is kept per %s; counting starts at %s."
+msgstr "较早的数据按%s保存，统计从 %s 开始。"
+
+msgid "Online history"
+msgstr "上下线记录"
+
+msgid "Only active on a gateway (a zone with masquerading)."
+msgstr "只在主路由（有开启 NAT 的防火墙区域）上生效。"
+
+msgid "Only these hours of each day"
+msgstr "只看每天的这个时段"
+
+msgid "Off"
+msgstr "未开启"
+
+msgid "Overview"
+msgstr "概览"
+
+msgid "peak"
+msgstr "峰值"
+
+msgid "Per-device traffic accounting for the RouteLink app. Changes apply after \"Save & Apply\"."
+msgstr "为 RouteLink App 统计每台设备的流量。修改在点击“保存并应用”后生效。"
+
+msgid "Per-minute data (hours)"
+msgstr "按分钟数据（小时）"
+
+msgid "Query failed: %s"
+msgstr "查询失败：%s"
+
+msgid "Ranking"
+msgstr "排行"
+
+msgid "Retention"
+msgstr "保留期"
+
+msgid "Role"
+msgstr "角色"
+
+msgid "RouteLink"
+msgstr "RouteLink"
+
+msgid "RouteLink settings"
+msgstr "RouteLink 设置"
+
+msgid "Router itself"
+msgstr "路由器自身"
+
+msgid "Sampling interval (seconds)"
+msgstr "采样间隔（秒）"
+
+msgid "selected hours only"
+msgstr "仅所选时段"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "Share"
+msgstr "占比"
+
+msgid "Software"
+msgstr "软件加速"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Stop and disable nlbwmon"
+msgstr "停止并禁用 nlbwmon"
+
+msgid "Storage"
+msgstr "存储"
+
+msgid "Synchronised"
+msgstr "已同步"
+
+msgid "The end must be after the start."
+msgstr "结束时间必须晚于开始时间。"
+
+msgid "The hour filter uses the router time zone and the hourly data (kept for %d days)."
+msgstr "时段筛选按路由器时区计算，使用按小时数据（保留 %d 天）。"
+
+msgid "The router clock is not synchronised yet; data is kept in memory until it is."
+msgstr "路由器时间还没有同步，同步之前数据只保存在内存里。"
+
+msgid "This cannot be undone."
+msgstr "此操作无法撤销。"
+
+msgid "This month"
+msgstr "本月"
+
+msgid "This router is not a gateway, so traffic accounting is off."
+msgstr "这台路由器不是主路由，流量统计未启用。"
+
+msgid "Time"
+msgstr "时间"
+
+msgid "To"
+msgstr "结束"
+
+msgid "Today"
+msgstr "今天"
+
+msgid "Top devices today"
+msgstr "今日流量排行"
+
+msgid "Total"
+msgstr "合计"
+
+msgid "Total (bytes)"
+msgstr "合计（字节）"
+
+msgid "Traffic"
+msgstr "流量"
+
+msgid "Traffic accounting"
+msgstr "流量统计"
+
+msgid "Traffic class"
+msgstr "流量类型"
+
+msgid "Unidentified devices"
+msgstr "未识别的设备"
+
+msgid "Upload"
+msgstr "上传"
+
+msgid "Upload (bytes)"
+msgstr "上传（字节）"
+
+msgid "Version"
+msgstr "版本"
+
+msgid "WAN"
+msgstr "WAN"
+
+msgid "WAN counters include link-layer overhead (PPPoE etc.), so they read a few percent higher."
+msgstr "WAN 口计数包含链路层开销（PPPoE 等），会比各设备之和多几个百分点。"
+
+msgid "WAN interface"
+msgstr "WAN 口"
+
+msgid "WAN now"
+msgstr "WAN 实时"
+
+msgid "went offline"
+msgstr "下线"
+
+msgid "While nobody watches live rates. Totals are exact at any interval."
+msgstr "没有人查看实时速率时使用。无论间隔多少，总量都是准确的。"
+
+msgid "Write to disk every (seconds)"
+msgstr "写盘间隔（秒）"
+
+msgid "Write to disk now"
+msgstr "立即写盘"
+
+msgid "Written to disk."
+msgstr "已写入磁盘。"
+
+msgid "Yesterday"
+msgstr "昨天"
