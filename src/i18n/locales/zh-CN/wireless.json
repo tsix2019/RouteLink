@@ -157,7 +157,7 @@
     "security_options": {
       "sae-mixed": "WPA2/WPA3",
       "psk2": "WPA2",
-      "none": "开放（不需要密码）"
+      "none": "开放"
     }
   }
 }

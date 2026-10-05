@@ -59,7 +59,8 @@ export default function Firewall() {
     (item.kind === 'forward' ? item.forward.name : item.rule.name) || t('network:firewall.unnamed');
   const zone = (z: string | undefined) =>
     z === undefined ? t('network:firewall.thisRouter') : z === '*' ? t('network:firewall.anyZone') : z;
-  const protoText = (p: string[]) => p.map((x) => x.toUpperCase()).join('/');
+  const protoText = (p: string[]) =>
+    p.map((x) => (x === 'all' ? t('network:firewall.proto.all') : x.toUpperCase())).join('/');
   const forwardDetail = (f: PortForward) =>
     `${f.srcZone}:${f.externalPort} → ${f.internalIp}:${f.internalPort ?? f.externalPort} · ${protoText(f.protocols)}`;
   const ruleDetail = (r: TrafficRule) =>
@@ -71,6 +72,8 @@ export default function Firewall() {
     ]
       .filter(Boolean)
       .join(' · ');
+
+  const policy = (p: string) => t(`network:firewall.target.${p as 'ACCEPT'}`, { defaultValue: p });
 
   const toggle = (item: Item, enabled: boolean) => {
     const section = item.kind === 'forward' ? item.forward.section : item.rule.section;
@@ -162,7 +165,11 @@ export default function Firewall() {
                   <ListSection key={z.section} title={z.name}>
                     <ListRow
                       title={z.networks.join(', ') || '—'}
-                      subtitle={t('network:firewall.policy', { input: z.input, output: z.output, forward: z.forward })}
+                      subtitle={t('network:firewall.policy', {
+                        input: policy(z.input),
+                        output: policy(z.output),
+                        forward: policy(z.forward),
+                      })}
                       right={z.masq ? <Badge label={t('network:firewall.masq')} tone="accent" /> : undefined}
                     />
                   </ListSection>
