@@ -3,7 +3,7 @@ import type { UciSection } from '../../uci';
 import { adminHandlers, demoKill, demoLocaltime } from './admin';
 import { agentHandlers } from './agent';
 import { demoConntrack, demoReverseDns } from './connections';
-import { demoIpRoute, demoWireGuard } from './routing';
+import { demoIpRoute, demoKey, demoPublicKey, demoWireGuard } from './routing';
 import type { DemoDevice, DemoState } from './state';
 
 type Params = Record<string, unknown>;
@@ -377,6 +377,14 @@ export const handlers: Record<string, Handler> = {
   'luci.getConntrackList': (s, _p, now) => demoConntrack(s, now),
   'network.rrdns.lookup': (s, p) => demoReverseDns(s, p.addrs),
   'luci.wireguard.getWgInstances': (s, _p, now) => demoWireGuard(s, now),
+  'luci.wireguard.generateKeyPair': (s, _p, now) => {
+    const priv = demoKey(`priv:${now}:${++s.vpn.keys}`);
+    return { keys: { priv, pub: demoPublicKey(priv) } };
+  },
+  'luci.wireguard.generatePsk': (s, _p, now) => ({ psk: demoKey(`psk:${now}:${++s.vpn.keys}`) }),
+  'luci.wireguard.getPublicAndPrivateKeyFromPrivate': (_s, p) => ({
+    keys: { priv: String(p.privkey), pub: demoPublicKey(String(p.privkey)) },
+  }),
 
   'rc.list': (s) => s.services,
   'rc.init': (s, p) => {

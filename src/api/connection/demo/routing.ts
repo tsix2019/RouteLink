@@ -1,3 +1,6 @@
+import { bytesToBase64 } from '@/utils/base64';
+
+import { hash01 } from './random';
 import type { DemoState } from './state';
 
 /** Routing tables of the demo router, as `ip -4|-6 route show table all` prints them. */
@@ -60,38 +63,58 @@ export function demoIpRoute(s: DemoState, family: 4 | 6): string {
   return `${lines.join(' \n')} \n`;
 }
 
-/** `luci.wireguard getWgInstances`: the demo's road-warrior tunnel with one phone on it right now. */
+/** Live state of the two seeded peers; peers added in the demo have not connected yet. */
+const SEEDED_PEERS: Record<string, { endpoint: string; ago: (t: number) => number; share: number }> = {
+  'GmV9qO7lc8XUb5Jbb2a1Q0a4H7mtw2C4mJx8Wn6K8Ug=': {
+    endpoint: '198.51.100.7:40211',
+    ago: (t) => 37 + (t % 120),
+    share: 0.8,
+  },
+  'x2Cq1v7d0Jc3bR1yQ6VQXr7w4k0D8Jx1m3T2tq4o2Ws=': {
+    endpoint: '203.0.113.200:51820',
+    ago: () => 2 * 86_400 + 3_600,
+    share: 0.2,
+  },
+};
+
+/** A key-shaped value derived from `text` (the demo cannot do Curve25519). */
+export function demoKey(text: string): string {
+  const seed = Array.from(text, (c) => c.charCodeAt(0));
+  const bytes = Uint8Array.from({ length: 32 }, (_, i) => Math.floor(hash01(i, ...seed) * 256));
+  return bytesToBase64(bytes);
+}
+export const demoPublicKey = (privateKey: string) => demoKey(`pub:${privateKey}`);
+
+/** `luci.wireguard getWgInstances`, from the WireGuard interfaces and peers in the demo's uci network. */
 export function demoWireGuard(s: DemoState, now: number) {
   const t = Math.floor(now / 1000);
   const wg = s.counters.wg0 ?? { rx: 0, tx: 0 };
-  return {
-    wg0: {
-      name: 'wg0',
-      public_key: 'nWhlfN3/0rR2NrHCVQ5Cty1AcDBV5XJ5j5Nf0Aaz9Wc=',
-      listen_port: '51820',
+  const network = Object.values(s.uci.network ?? {});
+  const out: Record<string, unknown> = {};
+  for (const iface of network.filter((x) => x['.type'] === 'interface' && x.proto === 'wireguard')) {
+    const name = iface['.name'];
+    out[name] = {
+      name,
+      public_key: typeof iface.private_key === 'string' ? demoPublicKey(iface.private_key) : '(none)',
+      listen_port: String(iface.listen_port ?? '0'),
       fwmark: 'off',
-      peers: [
-        {
-          name: 'iPhone (mobile data)',
-          public_key: 'GmV9qO7lc8XUb5Jbb2a1Q0a4H7mtw2C4mJx8Wn6K8Ug=',
-          endpoint: '198.51.100.7:40211',
-          allowed_ips: ['10.8.0.2/32'],
-          latest_handshake: String(t - 37 - (t % 120)),
-          transfer_rx: String(Math.round(wg.rx * 0.8)),
-          transfer_tx: String(Math.round(wg.tx * 0.8)),
-          persistent_keepalive: '25',
-        },
-        {
-          name: 'Office laptop',
-          public_key: 'x2Cq1v7d0Jc3bR1yQ6VQXr7w4k0D8Jx1m3T2tq4o2Ws=',
-          endpoint: '203.0.113.200:51820',
-          allowed_ips: ['10.8.0.3/32', '10.10.0.0/16'],
-          latest_handshake: String(t - 2 * 86_400 - 3_600),
-          transfer_rx: String(Math.round(wg.rx * 0.2)),
-          transfer_tx: String(Math.round(wg.tx * 0.2)),
-          persistent_keepalive: 'off',
-        },
-      ],
-    },
-  };
+      peers: network
+        .filter((p) => p['.type'] === `wireguard_${name}`)
+        .map((p) => {
+          const key = String(p.public_key ?? '');
+          const seeded = name === 'wg0' ? SEEDED_PEERS[key] : undefined;
+          return {
+            name: p.description,
+            public_key: key,
+            endpoint: seeded?.endpoint ?? '(none)',
+            allowed_ips: seeded ? [p.allowed_ips].flat() : [],
+            latest_handshake: seeded ? String(t - seeded.ago(t)) : '0',
+            transfer_rx: String(seeded ? Math.round(wg.rx * seeded.share) : 0),
+            transfer_tx: String(seeded ? Math.round(wg.tx * seeded.share) : 0),
+            persistent_keepalive: p.persistent_keepalive ? String(p.persistent_keepalive) : 'off',
+          };
+        }),
+    };
+  }
+  return out;
 }

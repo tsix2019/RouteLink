@@ -67,6 +67,19 @@ import {
   timezoneChanges,
 } from '../../services/system-settings';
 import { getWireGuard, peerConnected } from '../../services/wireguard';
+import {
+  applyWgChanges,
+  clientConfig,
+  createInterfaceChanges,
+  deleteInterfaceChanges,
+  generateKeyPair,
+  getWgConfig,
+  isWgKey,
+  nextPeerAddress,
+  peerChanges,
+  suggestInterface,
+  validateWgInterface,
+} from '../../services/wireguard-config';
 import { getRadios, networkChanges, radioChanges, scan } from '../../services/wireless';
 import { stageAndApply } from '../../uci';
 import { DemoConnection } from './connection';
@@ -393,6 +406,54 @@ describe('demo router: M3 router features', () => {
     expect(cleared.schedules).toEqual([]);
     // The parental-control entry is not the Wi-Fi schedule's to remove.
     expect(cleared.crontab.original).toContain('# RouteLink: schedule ');
+  });
+});
+
+describe('demo router: WireGuard settings', () => {
+  it('exports the phone, adds a peer, and creates and deletes a second tunnel', async () => {
+    const { conn } = demo();
+    const state = await getWgConfig(conn);
+    const [wg0] = state.interfaces;
+    expect(wg0.peers.map((p) => [p.name, !!p.privateKey])).toEqual([
+      ['iPhone (mobile data)', true],
+      ['Office laptop', false],
+    ]);
+    const text = clientConfig(wg0, wg0.peers[0], {
+      serverPublicKey: state.publicKeys.wg0,
+      endpoint: '203.0.113.45',
+      allowedIps: ['0.0.0.0/0'],
+    });
+    expect(text).toContain('Endpoint = 203.0.113.45:51820');
+
+    const keys = await generateKeyPair(conn);
+    expect(isWgKey(keys.privateKey) && isWgKey(keys.publicKey)).toBe(true);
+    const tablet = {
+      name: 'Tablet',
+      publicKey: keys.publicKey,
+      privateKey: keys.privateKey,
+      presharedKey: '',
+      allowedIps: nextPeerAddress(wg0)!,
+      endpointHost: '',
+      endpointPort: '',
+      keepalive: '25',
+      routeAllowedIps: false,
+    };
+    expect(tablet.allowedIps).toBe('10.8.0.4/32');
+    await applyWgChanges(conn, peerChanges(wg0, tablet), fast);
+    const [live] = await getWireGuard(conn);
+    expect(live.peers.map((p) => p.name)).toEqual(['iPhone (mobile data)', 'Office laptop', 'Tablet']);
+
+    const suggested = suggestInterface(state.interfaces, state.network);
+    const serverKeys = await generateKeyPair(conn);
+    const input = { ...suggested, privateKey: serverKeys.privateKey, mtu: '', joinLan: true, openPort: true };
+    expect(validateWgInterface(input, state.interfaces, state.network)).toEqual({});
+    await applyWgChanges(conn, createInterfaceChanges(input, state.firewall), fast);
+    const after = await getWgConfig(conn);
+    const wg1 = after.interfaces.find((i) => i.name === 'wg1')!;
+    expect(wg1).toMatchObject({ zone: 'lan', listenPort: '51821' });
+    expect(after.publicKeys.wg1).toBe(serverKeys.publicKey);
+    await applyWgChanges(conn, deleteInterfaceChanges(wg1, after.firewall), fast);
+    expect((await getWgConfig(conn)).interfaces.map((i) => i.name)).toEqual(['wg0']);
   });
 });
 

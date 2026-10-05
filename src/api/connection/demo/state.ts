@@ -40,6 +40,8 @@ export interface DemoState {
   /** Processes, crontab and clock. */
   admin: DemoAdmin;
   packages: DemoPackages;
+  /** Counter behind the keys that the demo's WireGuard key generator hands out. */
+  vpn: { keys: number };
 }
 
 /** Real vendor prefixes so the device list shows believable vendors. */
@@ -205,7 +207,36 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
       }),
       wan: section('wan', 'interface', { device: 'eth0', proto: 'pppoe', username: 'demo@isp' }),
       wan6: section('wan6', 'interface', { device: '@wan', proto: 'dhcpv6' }),
-      wg0: section('wg0', 'interface', { proto: 'wireguard', addresses: ['10.8.0.1/24'] }),
+      wg0: section('wg0', 'interface', {
+        proto: 'wireguard',
+        private_key: 'iBXGqvBKPM8JA+QZW1n9DvQXornufsF2Rk55OYPwClM=',
+        listen_port: '51820',
+        addresses: ['10.8.0.1/24'],
+      }),
+      // The phone's keys were made by the router, so its config can be exported; the laptop brought its own.
+      cfg_wg_phone: section(
+        'cfg_wg_phone',
+        'wireguard_wg0',
+        {
+          description: 'iPhone (mobile data)',
+          public_key: 'GmV9qO7lc8XUb5Jbb2a1Q0a4H7mtw2C4mJx8Wn6K8Ug=',
+          private_key: 'wI4UDOvDu16jdVNZRtwkV0I0nADG2y85AOy345MQBXw=',
+          allowed_ips: ['10.8.0.2/32'],
+          persistent_keepalive: '25',
+        },
+        true,
+      ),
+      cfg_wg_laptop: section(
+        'cfg_wg_laptop',
+        'wireguard_wg0',
+        {
+          description: 'Office laptop',
+          public_key: 'x2Cq1v7d0Jc3bR1yQ6VQXr7w4k0D8Jx1m3T2tq4o2Ws=',
+          allowed_ips: ['10.8.0.3/32', '10.10.0.0/16'],
+          route_allowed_ips: '1',
+        },
+        true,
+      ),
       // An office network behind a second router on the LAN.
       cfg_route: section(
         'cfg_route',
@@ -373,6 +404,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     agent: createDemoAgent(now),
     admin: createDemoAdmin(scheduledDev.mac),
     packages: createDemoPackages(),
+    vpn: { keys: 0 },
   };
 }
 
