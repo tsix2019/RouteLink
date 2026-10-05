@@ -21,13 +21,19 @@ for lang in zh en; do
     for entry in "${PAGES[@]}"; do
       page="${entry%%:*}"
       route="${entry#*:}"
-      # Relaunch for every shot (clean navigation, warmed-up demo router). The link goes in as a launch
-      # argument: `simctl openurl` would make iOS ask "Open in RouteLink?".
-      xcrun simctl launch --terminate-running-process "$UDID" io.github.tsix2019.routelink \
-        -RouteLinkLaunchURL "routelink://demo?lang=$lang&theme=$theme&route=/$route" >/dev/null
-      sleep 10
-      xcrun simctl io "$UDID" screenshot "docs/screenshots/$lang/ios-$page-$theme.png" >/dev/null
-      echo "docs/screenshots/$lang/ios-$page-$theme.png"
+      shot="docs/screenshots/$lang/ios-$page-$theme.png"
+      # A shot taken before the first frame is a blank screen of ~80 KB (real ones are 200 KB+): retry it.
+      for wait in 10 20 30; do
+        # Relaunch for every shot (clean navigation, warmed-up demo router). The link goes in as a launch
+        # argument: `simctl openurl` would make iOS ask "Open in RouteLink?".
+        xcrun simctl launch --terminate-running-process "$UDID" io.github.tsix2019.routelink \
+          -RouteLinkLaunchURL "routelink://demo?lang=$lang&theme=$theme&route=/$route" >/dev/null
+        sleep "$wait"
+        xcrun simctl io "$UDID" screenshot "$shot" >/dev/null
+        [ "$(wc -c <"$shot")" -gt 150000 ] && break
+        echo "$shot looks blank, retrying" >&2
+      done
+      echo "$shot"
     done
   done
 done

@@ -1,6 +1,6 @@
 import { skipToken, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { useT } from '@/i18n';
 import { AppText } from '@/ui/AppText';
@@ -13,7 +13,11 @@ import { useActiveRouter } from './ActiveRouterProvider';
 
 const MAX_NAME = 14;
 
-/** Header capsule on every tab root: current router, its status, and a tap to switch. */
+/**
+ * Header capsule on every tab root: current router, its status, and a tap to switch. Android: a glass
+ * pill drawn here. iOS: bare content — the native header puts bar items on Liquid Glass itself, and a
+ * glass of our own would show as a capsule inside a capsule.
+ */
 export function RouterSwitcherCapsule() {
   const t = useT();
   const router = useRouter();
@@ -33,23 +37,35 @@ export function RouterSwitcherCapsule() {
           ? 'warning'
           : 'unknown';
 
+  const content = (
+    <>
+      <StatusDot status={dot} size={8} />
+      <AppText variant="subhead" weight="600" numberOfLines={1}>
+        {label}
+      </AppText>
+      <Icon name="chevronDown" size={14} color={colors.textSecondary} />
+    </>
+  );
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={t('routers:switch')}
       onPress={() => router.push('/router-switcher')}
       hitSlop={6}>
-      <GlassSurface variant="pill" interactive style={styles.capsule}>
-        <StatusDot status={dot} size={8} />
-        <AppText variant="subhead" weight="600" numberOfLines={1}>
-          {label}
-        </AppText>
-        <Icon name="chevronDown" size={14} color={colors.textSecondary} />
-      </GlassSurface>
+      {Platform.OS === 'ios' ? (
+        <View style={[styles.capsule, styles.bare]}>{content}</View>
+      ) : (
+        <GlassSurface variant="pill" interactive style={styles.capsule}>
+          {content}
+        </GlassSurface>
+      )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   capsule: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7 },
+  // The system glass adds ~4pt around the item: together the same 12pt inset as the Android pill.
+  bare: { paddingHorizontal: 8 },
 });
