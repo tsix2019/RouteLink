@@ -131,6 +131,24 @@ describe('cgiExec', () => {
     await expect(make(http).cgiExec(['/bin/cat', '/etc/shadow'])).rejects.toMatchObject({ code: 'PERMISSION_DENIED' });
     expect(logins).toBe(1);
   });
+
+  it('reads a file through cgi-download, and tells a missing file from a refused one', async () => {
+    const http = new FakeHttpClient()
+      .on('POST http://r/ubus', login)
+      .on('POST http://r/cgi-bin/cgi-download', text(200, '{ "adblock_status": "enabled" }'), 1)
+      .on('POST http://r/cgi-bin/cgi-download', text(404, 'File not found'), 1)
+      .on('POST http://r/cgi-bin/cgi-download', text(403, 'Access to path denied by ACL'));
+    const conn = make(http);
+    await expect(conn.cgiRead('/var/run/adb_runtime.json')).resolves.toBe('{ "adblock_status": "enabled" }');
+    const form = new URLSearchParams(http.requests.find((r) => r.url.endsWith('/cgi-download'))!.body);
+    expect([form.get('sessionid'), form.get('path'), form.get('filename')]).toEqual([
+      'S1',
+      '/var/run/adb_runtime.json',
+      'adb_runtime.json',
+    ]);
+    await expect(conn.cgiRead('/tmp/none')).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    await expect(conn.cgiRead('/etc/shadow')).rejects.toMatchObject({ code: 'PERMISSION_DENIED' });
+  });
 });
 
 describe('classifyError', () => {

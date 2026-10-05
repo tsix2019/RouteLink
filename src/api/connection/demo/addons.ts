@@ -29,7 +29,39 @@ const DDNS_PROVIDERS: Record<string, { ipv4: string; ipv6?: string }> = {
 };
 const PROVIDERS_DIR = '/usr/share/ddns/default/';
 
+/** adblock-fast's shipped lists (a selection), two of them switched on. */
+const BLOCK_LISTS: [name: string, size: number, enabled: boolean][] = [
+  ['Hagezi - Pro', 3_476_485, false],
+  ['OISD - Big', 6_163_363, false],
+  ['StevenBlack - Unified hosts', 4_790_642, true],
+  ['1Hosts - Lite', 2_786_010, false],
+  ['CERT Polska - Dangerous Websites', 731_479, false],
+  ['Kboghdady - YouTube Ads DNS', 553_006, false],
+  ['AdAway - Hosts', 243_454, true],
+  ['Yoyo.org - Hosts', 99_588, false],
+];
+
 export const createAddonUci = (): Record<string, Record<string, UciSection>> => ({
+  'adblock-fast': {
+    config: section('config', 'adblock-fast', { enabled: '1', dns: 'dnsmasq.servers', force_dns: '1' }),
+    ...Object.fromEntries(
+      BLOCK_LISTS.map(([name, size, enabled], i) => [
+        `cfg_list${i}`,
+        section(
+          `cfg_list${i}`,
+          'file_url',
+          {
+            name,
+            url: `https://lists.example.org/${i}.txt`,
+            size: String(size),
+            action: 'block',
+            enabled: enabled ? '1' : '0',
+          },
+          true,
+        ),
+      ]),
+    ),
+  },
   // Shaping the PPPoE line a little below its 100/20 Mbit/s.
   sqm: {
     pppoe_wan: section('pppoe_wan', 'queue', {
@@ -114,7 +146,57 @@ export function demoAddonFile(path: string): string | null {
   return null;
 }
 
+/** Roughly one domain per 22 bytes of list. */
+function adblockFastStatus(s: DemoState) {
+  const config = s.uci['adblock-fast']?.config;
+  const enabled = config?.enabled === '1';
+  const running = enabled && s.services['adblock-fast']?.running !== false;
+  const lists = Object.values(s.uci['adblock-fast'] ?? {}).filter((x) => x['.type'] === 'file_url');
+  const on = lists.filter((x) => x.enabled !== '0' && x.action !== 'allow');
+  const entries = on.reduce((n, x) => n + Math.round(Number(x.size) / 22), 0);
+  return {
+    'adblock-fast': {
+      version: '1.2.4-r4',
+      packageCompat: 17,
+      enabled,
+      running,
+      status: !running ? 'statusStopped' : on.length ? 'statusSuccess' : 'statusFail',
+      message: '',
+      stats: '',
+      entries: running ? entries : 0,
+      dns: 'dnsmasq.servers',
+      errors: running && !on.length ? [{ code: 'errorNothingToDo', info: '' }] : [],
+      warnings: [],
+    },
+  };
+}
+
 export const addonHandlers: Record<string, (s: DemoState, p: Record<string, unknown>, now: number) => unknown> = {
+  'luci.adblock-fast.getInitStatus': (s) => adblockFastStatus(s),
+  'luci.adblock-fast.setInitAction': (s, p) => {
+    const svc = s.services['adblock-fast'];
+    const config = s.uci['adblock-fast']?.config;
+    if (!svc || !config) return { result: false };
+    switch (p.action) {
+      case 'enable':
+      case 'disable':
+        svc.enabled = p.action === 'enable';
+        config.enabled = svc.enabled ? '1' : '0';
+        break;
+      case 'start':
+      case 'restart':
+      case 'reload':
+      case 'dl':
+        svc.running = true;
+        break;
+      case 'stop':
+        svc.running = false;
+        break;
+      default:
+        return { result: false };
+    }
+    return { result: true };
+  },
   /** Enabled services last updated three hours ago and are waiting for the forced update (72 h + 10 min). */
   'luci.ddns.get_services_status': (s, _p, now) =>
     Object.fromEntries(

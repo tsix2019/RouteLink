@@ -42,6 +42,7 @@ import { kernelLog, systemLog } from '../../services/logs';
 import { getDeviceCounters, getInterfaces, pickWan, reconnectInterface } from '../../services/network';
 import { installPackages, listAvailable, listInstalled, searchPackages } from '../../services/package-list';
 import { detectPackageEnv, removePackages } from '../../services/packages';
+import { adblockAction, enableAdblock, getAdblock, saveSources, type AdblockState } from '../../services/adblock';
 import { ddnsChanges, deleteDdnsChanges, getDdns, readProvider, saveDdns, validateDdns } from '../../services/ddns';
 import { deleteInstance, getOpenvpn, importOvpn, setInstanceEnabled, validateImport } from '../../services/openvpn';
 import { getParental, saveSchedule } from '../../services/parental';
@@ -531,6 +532,28 @@ describe('demo router: SQM', () => {
     expect((await getSqm(conn)).queues[0]).toMatchObject({ download: 80, script: 'layer_cake.qos', active: true });
     await saveSqm(conn, queueChanges({ ...input, enabled: false }, queue));
     expect((await getSqm(conn)).queues[0].active).toBe(false);
+  });
+});
+
+describe('demo router: ad blocking', () => {
+  it('adblock-fast blocks with two lists; a third one is added, then blocking is switched off and on', async () => {
+    const { conn } = demo();
+    const state = (await getAdblock(conn)) as AdblockState;
+    expect(state).toMatchObject({ package: 'adblock-fast', enabled: true, status: 'running', both: false });
+    expect(state.sources.filter((x) => x.enabled).map((x) => x.name)).toEqual([
+      'StevenBlack - Unified hosts',
+      'AdAway - Hosts',
+    ]);
+    const before = state.blocked;
+    const yoyo = state.sources.find((x) => x.name === 'Yoyo.org - Hosts')!;
+    await saveSources(conn, state, { [yoyo.id]: true });
+    expect(((await getAdblock(conn)) as AdblockState).blocked).toBeGreaterThan(before);
+
+    await adblockAction(conn, 'adblock-fast', 'off');
+    const off = (await getAdblock(conn)) as AdblockState;
+    expect(off).toMatchObject({ enabled: false, status: 'stopped', blocked: 0 });
+    await enableAdblock(conn, off);
+    expect(((await getAdblock(conn)) as AdblockState).status).toBe('running');
   });
 });
 

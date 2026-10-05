@@ -82,24 +82,43 @@ export class LiveConnection implements RouterConnection {
   }
 
   async cgiExec(argv: string[], options: { timeoutMs?: number } = {}): Promise<string> {
+    return this.cgiPost(
+      'cgi-exec',
+      { command: cgiCommand(argv) },
+      `cgi-exec ${argv[0]}`,
+      options.timeoutMs ?? CGI_EXEC_TIMEOUT_MS,
+    );
+  }
+
+  /** A text file through /cgi-bin/cgi-download: LuCI's own way to read files that `file read` refuses. */
+  cgiRead(path: string, options: { timeoutMs?: number } = {}): Promise<string> {
+    const filename = path.slice(path.lastIndexOf('/') + 1) || 'file';
+    return this.cgiPost('cgi-download', { path, filename }, `cgi-download ${path}`, options.timeoutMs ?? 10_000);
+  }
+
+  private async cgiPost(endpoint: string, fields: Record<string, string>, label: string, timeoutMs: number) {
     const run = (s: Session) => {
       const headers: Record<string, string> = { 'Content-Type': 'application/x-www-form-urlencoded' };
       if (s.cookie) headers.Cookie = s.cookie;
+      const form = { sessionid: s.sid, ...fields };
       return this.cfg.http.request({
-        url: `${this.baseUrl}/cgi-bin/cgi-exec`,
+        url: `${this.baseUrl}/cgi-bin/${endpoint}`,
         method: 'POST',
         headers,
         tls: this.tls,
-        body: `sessionid=${encodeURIComponent(s.sid)}&command=${encodeURIComponent(cgiCommand(argv))}`,
-        timeoutMs: options.timeoutMs ?? CGI_EXEC_TIMEOUT_MS,
+        body: Object.entries(form)
+          .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+          .join('&'),
+        timeoutMs,
       });
     };
     const first = await this.session.ensureSession();
     let res = await run(first);
     // cgi-io answers 403 both for an expired session and for an ACL denial; only the first is worth a login.
     if (res.status === 403 && !/ACL/.test(res.body)) res = await run(await this.session.renewSession(first));
-    if (res.status === 403) throw new UbusError('PERMISSION_DENIED', `cgi-exec ${argv[0]}`, res.body.trim());
-    if (res.status !== 200) throw new ProtocolError(res.status, `HTTP ${res.status} from cgi-exec`);
+    if (res.status === 403) throw new UbusError('PERMISSION_DENIED', label, res.body.trim());
+    if (res.status === 404) throw new UbusError('NOT_FOUND', label, res.body.trim());
+    if (res.status !== 200) throw new ProtocolError(res.status, `HTTP ${res.status} from ${endpoint}`);
     return res.body;
   }
 

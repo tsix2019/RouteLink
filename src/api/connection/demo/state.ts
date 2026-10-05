@@ -90,6 +90,7 @@ function section(name: string, type: string, values: Record<string, string | str
 }
 
 const SERVICES: [string, boolean, boolean, number?][] = [
+  ['adblock-fast', true, true, 94],
   ['boot', true, false, 10],
   ['cron', true, true, 50],
   ['ddns', true, true, 95],

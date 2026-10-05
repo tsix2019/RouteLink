@@ -25,6 +25,11 @@ export interface RouterConnection {
    * ubus `file exec`, but it does not hang when the command reloads rpcd (package installs do).
    */
   cgiExec?(argv: string[], options?: { timeoutMs?: number }): Promise<string>;
+  /**
+   * Reads a text file through LuCI's /cgi-bin/cgi-download. rpcd's `file read` checks its ACL against the
+   * resolved path, so files behind /var/run (a link to /tmp/run) can only be read this way.
+   */
+  cgiRead?(path: string, options?: { timeoutMs?: number }): Promise<string>;
 }
 
 export type ConnectionFailure =
