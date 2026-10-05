@@ -18,11 +18,12 @@ RouteLink is a phone app for managing OpenWrt routers, for iOS and Android, in E
 - **iOS 26 look**: native Liquid Glass on iOS (tab bar, navigation bar, sheets); on Android the same iOS 26 design is drawn by the app: a floating glass tab bar, large-title navigation bars, rounded grouped lists.
 - **Auto-discovery**: scans the phone's network for OpenWrt, side routers included; or scan a subnet you name, or type an address.
 - **Several routers**: add as many as you like and switch from the capsule in the top-left corner.
+- **Traffic per device**: with the router plugin, live rates per device and usage for any period, per day and per month; the app installs the plugin in one tap.
 - **Safe changes**: every change goes through OpenWrt's own apply-and-confirm mechanism — if the app can't reach the router afterwards, the router undoes the change after 90 seconds. Anything that can cut connections asks first, with graded risk warnings.
 - **Demo mode**: try everything without a router, against a built-in simulated OpenWrt.
 - **Private**: no data collection; the app talks only to the routers you add.
 
-> The first milestone (M1) is complete; what comes next is in the feature list below.
+> The app's first milestone (M1) and the router plugin's first phase (P1) are complete; what comes next is in the feature list below.
 
 ## Screenshots
 
@@ -44,11 +45,19 @@ All screenshots use demo mode. The iOS ones are taken automatically by CI on an 
 | Network | <img src="docs/screenshots/en/ios-network-dark.png" width="240"> | <img src="docs/screenshots/en/android-network-dark.png" width="240"> |
 | More | <img src="docs/screenshots/en/ios-more-dark.png" width="240"> | <img src="docs/screenshots/en/android-more-dark.png" width="240"> |
 
+**Traffic (needs the router plugin)**
+
+| | iOS | Android |
+|---|---|---|
+| Traffic | <img src="docs/screenshots/en/ios-traffic-light.png" width="240"> | <img src="docs/screenshots/en/android-traffic-light.png" width="240"> |
+| Device traffic | <img src="docs/screenshots/en/ios-traffic-device-light.png" width="240"> | <img src="docs/screenshots/en/android-traffic-device-light.png" width="240"> |
+| WAN usage | <img src="docs/screenshots/en/ios-wan-dark.png" width="240"> | <img src="docs/screenshots/en/android-wan-dark.png" width="240"> |
+
 More screenshots in [docs/screenshots/en](docs/screenshots/en).
 
 ## Features
 
-✅ done (M1)　🚧 planned (milestone in brackets)
+✅ done　🚧 planned (phase in brackets: M2–M4 are milestones of the app itself, P2–P4 phases of the router plugin and what builds on it)
 
 **Overview**
 
@@ -57,6 +66,7 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Internet: protocol, IP, gateway, DNS, connected time
 - ✅ Live traffic chart, devices online
 - ✅ Reboot, with progress and a check that the router is back
+- ✅ Today's traffic card: today's download and upload and the busiest devices (needs the plugin)
 - 🚧 Wi-Fi QR code (M2), ask AI (M4)
 
 **Devices**
@@ -65,19 +75,23 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Rename (stored on the router; names that are valid host names also show up in LuCI and local DNS)
 - ✅ Reserve an IP, block internet access, disconnect from Wi-Fi
 - ✅ Wake-on-LAN (sent by the router when etherwake is installed, otherwise directly from Android phones)
-- 🚧 Per-device traffic (M2), parental control (M3)
+- ✅ Traffic of one device: curve, totals, peak, online/offline record (needs the plugin)
+- 🚧 Find unknown devices, trusted devices (P2), parental control (M3)
 
 **Wi-Fi**
 
 - ✅ Radios: on/off, channel, channel width, transmit power, country code
 - ✅ Networks: name, password, security, hidden, enabled. If your phone is on that network, the app warns you and walks you through rejoining
 - ✅ Scan nearby networks
-- 🚧 Guest network, MAC filter (M2), schedules (M3)
+- 🚧 Guest network, MAC filter (M2), signal monitor, channel scan and advice, Wi-Fi security check (P2), schedules (M3)
 
 **Network**
 
 - ✅ Interfaces with details, reconnect
-- 🚧 WAN/LAN settings, routes, live connections, firewall, WireGuard status, traffic history, diagnostics (M2)
+- ✅ Traffic (needs the plugin): totals and curve for any period (optionally only some hours of each day), ranking by device (internet or LAN), live rates, CSV export
+- ✅ WAN usage (needs the plugin): per day and per month, and this billing period from a monthly reset day
+- 🚧 WAN/LAN settings, routes, live connections, firewall, WireGuard status (M2)
+- 🚧 One-tap diagnosis, ping/traceroute/nslookup, outage and latency records, speed test (P3)
 - 🚧 VLANs, VPN setup, DDNS, SQM, ad blocking (M3)
 
 **More**
@@ -86,9 +100,11 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ System and kernel logs (filter, share)
 - ✅ Saved Wake-on-LAN devices
 - ✅ Router management (order, edit, delete, certificate), language, appearance, refresh interval, reduce transparency, demo mode
+- ✅ Router plugin: one-tap install, update check, restart, clear data, remove
 - 🚧 Processes, packages, scheduled tasks, LEDs, admin password (M2)
 - 🚧 Backup and restore, factory reset, firmware upgrade (M3 — high-risk, with multi-step confirmation)
-- 🚧 SSH terminal, speed test, AI assistant, home-screen widgets, offline alerts (M4)
+- 🚧 SSH terminal, AI assistant, home-screen widgets, offline alerts (M4)
+- 🚧 Rate limits and quotas, destinations and DNS log, online/offline push notifications, Android live monitor (P4)
 
 ## Install
 
@@ -109,6 +125,56 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - **Self-signed HTTPS certificates**: on first connection the app shows the certificate's fingerprint for you to confirm, then trusts only that certificate. If it ever changes, the app stops and tells you (a reset router — or someone impersonating it).
 - **HTTP** works, but the password crosses your network unencrypted; the app marks such routers as "Not encrypted". Turning on HTTPS is recommended.
 - The default account is `root`; other rpcd accounts work too. Where an account lacks permission or a package is missing, the feature says so.
+
+## Router plugin
+
+The RouteLink plugin runs on the router, counts what every device uploads and downloads, and keeps the history; the app and LuCI (Services → RouteLink) show it.
+
+> The plugin's first version (agent-v0.1.0) isn't released yet. Until then the one-tap install in the app reports a download error, and the packages and feeds below aren't available.
+
+- **How it counts**: connection-tracking counters summed per device MAC, IPv4 and IPv6; accurate with software flow offloading on. In the Docker lab it matches the byte counts of the client's network card exactly.
+- **How long**: per minute for 48 hours, per hour for 90 days, per day for 2 years. Data lives in `/etc/routelink` on the router, written to flash every 10 minutes by default, capped at 32 MB, kept across firmware upgrades.
+- **Cost**: on x86 (measured in Docker), with 52 devices and 5000 connections, 0.04% of one core and 1.7 MB of memory.
+- **Runs on**: OpenWrt 23.05, 24.10 and 25.12; x86_64, aarch64 (cortex-a53, cortex-a72, generic), arm (cortex-a7, cortex-a9, cortex-a15), mipsel_24kc, mips_24kc.
+
+**Install**
+
+- **From the app**: More → Router plugin → Install Plugin. Needs the root account and a router that can reach the official OpenWrt package servers (for dependencies). Where GitHub is slow, set a download mirror on the same page.
+- **By hand**: download the packages for your release and architecture from [Releases](https://github.com/tsix2019/RouteLink/releases) (`manifest.json` lists them) and install them on the router. `. /etc/openwrt_release; echo $DISTRIB_ARCH` shows the architecture.
+
+  ```sh
+  # OpenWrt 23.05 / 24.10
+  opkg update
+  opkg install routelinkd_*.ipk luci-app-routelink_*.ipk luci-i18n-routelink-zh-cn_*.ipk
+
+  # OpenWrt 25.12: trust the RouteLink signing key first
+  wget -O /etc/apk/keys/routelink.pem https://tsix2019.github.io/RouteLink/agent/keys/routelink-apk.pem
+  apk update
+  apk add routelinkd-*.apk luci-app-routelink-*.apk luci-i18n-routelink-zh-cn-*.apk
+  ```
+
+- **As a package feed** (later updates through LuCI's software page). Replace `24.10` and `x86_64` with your release and architecture:
+
+  ```sh
+  # OpenWrt 23.05 / 24.10
+  wget -O /etc/opkg/keys/a276fe73982c5f59 https://tsix2019.github.io/RouteLink/agent/keys/a276fe73982c5f59
+  echo 'src/gz routelink https://tsix2019.github.io/RouteLink/agent/24.10/x86_64' >> /etc/opkg/customfeeds.conf
+  opkg update && opkg install routelinkd luci-app-routelink
+
+  # OpenWrt 25.12
+  wget -O /etc/apk/keys/routelink.pem https://tsix2019.github.io/RouteLink/agent/keys/routelink-apk.pem
+  echo 'https://tsix2019.github.io/RouteLink/agent/25.12/x86_64/packages.adb' >> /etc/apk/repositories.d/customfeeds.list
+  apk update && apk add routelinkd luci-app-routelink
+  ```
+
+**Good to know**
+
+- **nlbwmon** resets the connection counters the plugin reads, so totals come out low while both run. The app and LuCI say so and offer to stop it.
+- **Hardware offloading** (or Turbo ACC/SFE) hides offloaded traffic from the counters; the plugin warns that totals may be low. Software offloading is fine.
+- **Time**: until the router's clock is synchronised, data stays in memory; days and months follow the router's time zone.
+- **Privacy**: the data stays on your router; the app contacts GitHub only when you check for updates or install the plugin.
+
+<img src="docs/screenshots/luci/en-traffic.png" width="720" alt="LuCI traffic page">
 
 ## Security and privacy
 
@@ -135,6 +201,15 @@ scripts/dev-router.sh up   # a disposable OpenWrt in Docker
 ROUTER_URL=http://127.0.0.1:18080 ROUTER_PASSWORD=routelink-test npm run test:int
 ```
 
+The router plugin (needs Docker):
+
+```bash
+scripts/agent-test.sh                    # daemon unit tests (ASan, UBSan)
+scripts/agent-build.sh 24.10.8 x86_64    # build with the OpenWrt SDK into openwrt/out/
+scripts/agent-router.sh up && scripts/agent-dev-install.sh && scripts/traffic-lab.sh up
+npx jest -c jest.agent.config.js         # accuracy tests
+```
+
 ## Contributing
 
 The code is layered; lower layers never import upper ones:
@@ -147,11 +222,14 @@ src/api/connection         RouterConnection: real and demo routers
 src/api/services           domain services: system, network, devices, Wi-Fi, services, logs… (version differences live here)
 src/hooks, src/state       React Query hooks, local state (routers, settings)
 src/app, src/features      screens and feature components (expo-router)
-src/ui                     iOS 26–style components: glass, lists, sheets, risk confirmation
+src/ui                     iOS 26–style components: glass, lists, sheets, risk confirmation, charts
+openwrt/                   the router plugin: routelinkd (C daemon), luci-app-routelink (LuCI pages), feed keys
 ```
 
 - Design (in Chinese): [docs/superpowers/specs/2026-10-05-routelink-design.md](docs/superpowers/specs/2026-10-05-routelink-design.md)
 - M1 plan and execution log (in Chinese): [docs/superpowers/plans/2026-10-05-routelink-m1.md](docs/superpowers/plans/2026-10-05-routelink-m1.md)
+- Plugin design (in Chinese): [docs/superpowers/specs/2026-10-05-routelink-agent-design.md](docs/superpowers/specs/2026-10-05-routelink-agent-design.md)
+- P1 plan and execution log (in Chinese): [docs/superpowers/plans/2026-10-05-routelink-p1.md](docs/superpowers/plans/2026-10-05-routelink-p1.md)
 
 ## Acknowledgements
 

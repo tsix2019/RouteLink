@@ -18,11 +18,12 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - **iOS 26 风格**：iOS 上用系统原生的液态玻璃（Tab 栏、导航栏、底部面板）；Android 上也按 iOS 26 的样式绘制：悬浮玻璃 Tab 栏、大标题导航栏、圆角分组列表。
 - **自动发现**：扫描手机所在的局域网，找出 OpenWrt 设备，旁路由也能找到；也可以扫描指定网段或手动输入地址。
 - **多路由器**：添加多台路由器，在页面左上角一键切换。
+- **按设备统计流量**：配合路由器插件，看每台设备的实时速率，以及任意时间段、按天、按月的用量；插件可以在 App 里一键安装。
 - **改配置更安全**：所有改动都走 OpenWrt 自带的"应用 + 确认"机制，App 联系不上路由器时，路由器会在 90 秒后自动撤销改动；会断网的操作都有分级的风险提示。
 - **演示模式**：没有路由器也能先试用，内置一台模拟的 OpenWrt 路由器。
 - **隐私**：不收集任何数据，App 只和你添加的路由器通信。
 
-> 第一个里程碑（M1）已完成，后续功能见下面的功能清单。
+> App 的第一个里程碑（M1）和路由器插件的第一期（P1）已完成，后续功能见下面的功能清单。
 
 ## 截图
 
@@ -44,11 +45,19 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 | 网络 | <img src="docs/screenshots/zh/ios-network-dark.png" width="240"> | <img src="docs/screenshots/zh/android-network-dark.png" width="240"> |
 | 更多 | <img src="docs/screenshots/zh/ios-more-dark.png" width="240"> | <img src="docs/screenshots/zh/android-more-dark.png" width="240"> |
 
+**流量统计（需要路由器插件）**
+
+| | iOS | Android |
+|---|---|---|
+| 流量总览 | <img src="docs/screenshots/zh/ios-traffic-light.png" width="240"> | <img src="docs/screenshots/zh/android-traffic-light.png" width="240"> |
+| 设备流量 | <img src="docs/screenshots/zh/ios-traffic-device-light.png" width="240"> | <img src="docs/screenshots/zh/android-traffic-device-light.png" width="240"> |
+| WAN 口历史 | <img src="docs/screenshots/zh/ios-wan-dark.png" width="240"> | <img src="docs/screenshots/zh/android-wan-dark.png" width="240"> |
+
 其余截图在 [docs/screenshots/zh](docs/screenshots/zh)。
 
 ## 功能
 
-✅ 已完成（M1）　🚧 计划中（括号里是里程碑）
+✅ 已完成　🚧 计划中（括号里是阶段：M2～M4 是 App 本身的里程碑，P2～P4 是路由器插件和配套功能的分期）
 
 **概览**
 
@@ -57,6 +66,7 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - ✅ 外网状态：协议、IP、网关、DNS、在线时长
 - ✅ 实时流量曲线、在线设备数
 - ✅ 重启路由器（带进度和恢复检测）
+- ✅ 今日流量卡片：今天的上下行和用得最多的设备（需要插件）
 - 🚧 Wi-Fi 二维码分享（M2）、问 AI（M4）
 
 **设备**
@@ -65,19 +75,23 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - ✅ 改名（写到路由器上；符合主机名规则的名字在 LuCI 和局域网 DNS 里也能看到）
 - ✅ 绑定静态 IP、拉黑（禁止上网）、踢下线
 - ✅ 网络唤醒（路由器装了 etherwake 时由路由器发送；否则 Android 手机直接发送）
-- 🚧 单台设备流量统计（M2）、家长控制（M3）
+- ✅ 单台设备的流量：曲线、总量、峰值、上下线记录（需要插件）
+- 🚧 查蹭网、信任设备（P2），家长控制（M3）
 
 **无线**
 
 - ✅ 射频设置：开关、信道、频宽、发射功率、国家码
 - ✅ Wi-Fi 设置：名称、密码、加密方式、隐藏、启用。手机正连着这个 Wi-Fi 时，会提示并引导重新连接
 - ✅ 扫描周边 Wi-Fi
-- 🚧 访客网络、MAC 过滤（M2），定时开关（M3）
+- 🚧 访客网络、MAC 过滤（M2），信号监测、信道扫描与优化、Wi-Fi 安全检查（P2），定时开关（M3）
 
 **网络**
 
 - ✅ 接口列表和详情、重连接口
-- 🚧 WAN/LAN 设置、路由表、实时连接、防火墙、WireGuard 状态、流量历史、诊断工具（M2）
+- ✅ 流量统计（需要插件）：任意时间段（可以只看每天的某几个小时）的总量和曲线、设备排行（互联网或局域网）、实时速率、导出 CSV
+- ✅ WAN 口历史（需要插件）：按日、按月的用量，按每月重置日计算本期已用
+- 🚧 WAN/LAN 设置、路由表、实时连接、防火墙、WireGuard 状态（M2）
+- 🚧 一键诊断、ping/traceroute/nslookup、断网和延迟记录、测速（P3）
 - 🚧 VLAN、VPN 配置、DDNS、SQM、广告过滤（M3）
 
 **更多**
@@ -86,9 +100,11 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - ✅ 系统日志、内核日志（筛选、分享）
 - ✅ 网络唤醒常用设备列表
 - ✅ 管理路由器（排序、编辑、删除、证书）、语言、外观、刷新间隔、降低透明度、演示模式
+- ✅ 路由器插件：一键安装、检查更新、重启、清空数据、卸载
 - 🚧 进程、软件包、计划任务、LED、修改密码（M2）
 - 🚧 备份与恢复、恢复出厂、固件升级（M3，均为高风险操作，需要多重确认）
-- 🚧 SSH 终端、测速、AI 助手、桌面小组件、掉线通知（M4）
+- 🚧 SSH 终端、AI 助手、桌面小组件、掉线通知（M4）
+- 🚧 限速和流量配额、访问去向和 DNS 记录、上下线推送、Android 实时监控（P4）
 
 ## 安装
 
@@ -109,6 +125,56 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - **HTTPS 自签名证书**：第一次连接时，App 会显示证书指纹请你确认，确认后只信任这一张证书。之后证书如果变了，App 会拦下连接并提示（可能是重置了路由器，也可能有人冒充）。
 - **HTTP**：可以用，但密码会以明文在局域网里传输，App 会标注"未加密"。建议在路由器上开启 HTTPS。
 - 登录账号默认是 `root`，也可以用其他 rpcd 账号；没有权限或缺少软件包时，相应功能会给出提示。
+
+## 路由器插件
+
+RouteLink 插件装在路由器上，统计每台设备的上传和下载并保存历史，App 和 LuCI 页面（服务 → RouteLink）都能查看。
+
+> 插件的第一个版本（agent-v0.1.0）还没有发布。发布之前，App 里的一键安装会提示下载失败，下面的安装包和软件源也还不能用。
+
+- **怎么统计**：按设备 MAC 汇总连接跟踪的计数，IPv4、IPv6 都算；开着软件加速（flow offloading）也准确，在 Docker 实验环境里和终端网卡的字节数逐字节一致。
+- **保存多久**：按分钟保存 48 小时，按小时保存 90 天，按天保存 2 年；数据在路由器的 `/etc/routelink`，默认每 10 分钟写一次闪存，占用上限 32 MB，升级固件时会保留。
+- **占用**：在 x86 上（Docker 实测）52 台设备、5000 个连接时，平时占单核 0.04%，内存 1.7 MB。
+- **支持**：OpenWrt 23.05、24.10、25.12；架构 x86_64、aarch64（cortex-a53、cortex-a72、generic）、arm（cortex-a7、cortex-a9、cortex-a15）、mipsel_24kc、mips_24kc。
+
+**安装**
+
+- **App 一键安装**：更多 → 路由器插件 → 安装插件。需要 root 账号，并且路由器能连上 OpenWrt 官方软件源（补装依赖）。国内访问 GitHub 慢时，可以在同一页填写下载镜像。
+- **手动安装**：从 [Releases](https://github.com/tsix2019/RouteLink/releases) 下载对应版本和架构的安装包（`manifest.json` 里有清单），传到路由器上安装。架构可以用 `. /etc/openwrt_release; echo $DISTRIB_ARCH` 查看。
+
+  ```sh
+  # OpenWrt 23.05 / 24.10
+  opkg update
+  opkg install routelinkd_*.ipk luci-app-routelink_*.ipk luci-i18n-routelink-zh-cn_*.ipk
+
+  # OpenWrt 25.12：先信任 RouteLink 的签名公钥
+  wget -O /etc/apk/keys/routelink.pem https://tsix2019.github.io/RouteLink/agent/keys/routelink-apk.pem
+  apk update
+  apk add routelinkd-*.apk luci-app-routelink-*.apk luci-i18n-routelink-zh-cn-*.apk
+  ```
+
+- **添加软件源**（以后可以在 LuCI 的软件包页面升级）。把 `24.10`、`x86_64` 换成你的版本和架构：
+
+  ```sh
+  # OpenWrt 23.05 / 24.10
+  wget -O /etc/opkg/keys/a276fe73982c5f59 https://tsix2019.github.io/RouteLink/agent/keys/a276fe73982c5f59
+  echo 'src/gz routelink https://tsix2019.github.io/RouteLink/agent/24.10/x86_64' >> /etc/opkg/customfeeds.conf
+  opkg update && opkg install routelinkd luci-app-routelink luci-i18n-routelink-zh-cn
+
+  # OpenWrt 25.12
+  wget -O /etc/apk/keys/routelink.pem https://tsix2019.github.io/RouteLink/agent/keys/routelink-apk.pem
+  echo 'https://tsix2019.github.io/RouteLink/agent/25.12/x86_64/packages.adb' >> /etc/apk/repositories.d/customfeeds.list
+  apk update && apk add routelinkd luci-app-routelink luci-i18n-routelink-zh-cn
+  ```
+
+**注意**
+
+- **nlbwmon**：它会把插件读取的连接计数清零，两者同时运行时统计会偏少。App 和 LuCI 页面都会提示，并提供"停用 nlbwmon"按钮。
+- **硬件加速**：开了硬件加速（或 Turbo ACC/SFE）以后，走加速通道的流量统计不到，插件会提示"统计可能偏少"。软件加速没有影响。
+- **时间**：路由器时间同步之前，数据只保存在内存里；按天、按月的统计以路由器的时区为准。
+- **隐私**：数据只保存在你的路由器上；App 只在你点检查更新或安装插件时访问 GitHub。
+
+<img src="docs/screenshots/luci/zh-traffic.png" width="720" alt="LuCI 流量页">
 
 ## 安全与隐私
 
@@ -135,6 +201,15 @@ scripts/dev-router.sh up   # 用 Docker 启动一台测试用的 OpenWrt
 ROUTER_URL=http://127.0.0.1:18080 ROUTER_PASSWORD=routelink-test npm run test:int
 ```
 
+路由器插件（需要 Docker）：
+
+```bash
+scripts/agent-test.sh                    # 守护进程的单元测试（ASan、UBSan）
+scripts/agent-build.sh 24.10.8 x86_64    # 用 OpenWrt SDK 编译，输出到 openwrt/out/
+scripts/agent-router.sh up && scripts/agent-dev-install.sh && scripts/traffic-lab.sh up
+npx jest -c jest.agent.config.js         # 准确性测试
+```
+
 ## 参与开发
 
 代码按层组织，下层不依赖上层：
@@ -147,11 +222,14 @@ src/api/connection         RouterConnection：真实路由器和演示路由器
 src/api/services           领域服务：系统、网络、设备、无线、服务、日志……（版本差异只在这一层处理）
 src/hooks、src/state       React Query 查询、本地状态（路由器、设置）
 src/app、src/features      页面和功能组件（expo-router）
-src/ui                     iOS 26 风格的组件：玻璃、列表、面板、风险确认
+src/ui                     iOS 26 风格的组件：玻璃、列表、面板、风险确认、图表
+openwrt/                   路由器插件：routelinkd（C 守护进程）、luci-app-routelink（LuCI 页面）、软件源公钥
 ```
 
 - 设计文档：[docs/superpowers/specs/2026-10-05-routelink-design.md](docs/superpowers/specs/2026-10-05-routelink-design.md)
 - M1 实施计划与执行记录：[docs/superpowers/plans/2026-10-05-routelink-m1.md](docs/superpowers/plans/2026-10-05-routelink-m1.md)
+- 插件设计：[docs/superpowers/specs/2026-10-05-routelink-agent-design.md](docs/superpowers/specs/2026-10-05-routelink-agent-design.md)
+- P1 实施计划与执行记录：[docs/superpowers/plans/2026-10-05-routelink-p1.md](docs/superpowers/plans/2026-10-05-routelink-p1.md)
 
 ## 致谢
 
