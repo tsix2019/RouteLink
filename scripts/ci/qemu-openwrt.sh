@@ -120,8 +120,8 @@ printf 'routelink-test\nroutelink-test\n' | passwd root >/dev/null
 
 # M2 test data: a scheduled task, a port forward and a WireGuard interface with one peer.
 echo '*/30 * * * * logger routelink-test' > /etc/crontabs/root
-/etc/init.d/cron enable; /etc/init.d/cron restart
-uci -q delete firewall.test_https
+/etc/init.d/cron enable; /etc/init.d/cron restart || true
+uci -q delete firewall.test_https || true  # set -e: a missing section is not an error here
 uci set firewall.test_https=redirect
 uci set firewall.test_https.name='Test-HTTPS'
 uci set firewall.test_https.src='wan'
@@ -133,7 +133,7 @@ uci set firewall.test_https.proto='tcp'
 uci set firewall.test_https.target='DNAT'
 uci commit firewall
 if command -v wg >/dev/null 2>&1; then
-  uci -q delete network.wg0
+  uci -q delete network.wg0 || true
   uci set network.wg0=interface
   uci set network.wg0.proto='wireguard'
   uci set network.wg0.private_key="$(wg genkey)"
