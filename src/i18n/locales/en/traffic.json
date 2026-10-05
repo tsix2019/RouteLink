@@ -12,5 +12,15 @@
   },
   "range": {
     "hours": "daily {{from}}:00–{{to}}:00"
+  },
+  "csv": {
+    "device": "Device",
+    "mac": "MAC",
+    "rx": "Download (bytes)",
+    "tx": "Upload (bytes)",
+    "total": "Total (bytes)",
+    "from": "From",
+    "to": "To",
+    "time": "Time"
   }
 }

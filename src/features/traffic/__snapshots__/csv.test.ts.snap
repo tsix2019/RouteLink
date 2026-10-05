@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`historyCsv uses the language of the app for headers 1`] = `
+"﻿时间,下载（字节）,上传（字节）
+2026-10-05 12:00,10,1
+2026-10-05 12:01,,
+2026-10-05 12:02,30,3
+"
+`;
+
+exports[`summaryCsv matches the full output 1`] = `
+"﻿Device,MAC,Download (bytes),Upload (bytes),Total (bytes),From,To
+"Kitchen, ""Echo""",AA:BB:CC:00:11:22,2000,200,2200,2026-10-05 00:00,2026-10-05 13:47
+AA:BB:CC:00:11:33,AA:BB:CC:00:11:33,1000,100,1100,2026-10-05 00:00,2026-10-05 13:47
+"
+`;
