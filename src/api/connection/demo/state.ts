@@ -1,4 +1,5 @@
 import type { UciSection } from '../../uci';
+import { createAddonUci } from './addons';
 import { createDemoAdmin, type DemoAdmin } from './admin';
 import { createDemoAgent, type DemoAgent } from './agent';
 import { createDemoPackages, type DemoPackages } from './packages';
@@ -91,6 +92,7 @@ function section(name: string, type: string, values: Record<string, string | str
 const SERVICES: [string, boolean, boolean, number?][] = [
   ['boot', true, false, 10],
   ['cron', true, true, 50],
+  ['ddns', true, true, 95],
   ['dnsmasq', true, true, 19],
   ['dropbear', true, true, 19],
   ['firewall', true, true, 19],
@@ -99,6 +101,7 @@ const SERVICES: [string, boolean, boolean, number?][] = [
   ['log', true, true, 12],
   ['network', true, true, 20],
   ['odhcpd', true, true, 35],
+  ['openvpn', true, true, 90],
   ['rpcd', true, true, 12],
   ['sysctl', true, false, 11],
   ['sysfixtime', true, false, 0],
@@ -185,6 +188,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
   });
 
   const uci: DemoState['uci'] = {
+    ...createAddonUci(),
     system: {
       cfg01e48a: section(
         'cfg01e48a',

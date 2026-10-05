@@ -42,6 +42,7 @@ import { kernelLog, systemLog } from '../../services/logs';
 import { getDeviceCounters, getInterfaces, pickWan, reconnectInterface } from '../../services/network';
 import { installPackages, listAvailable, listInstalled, searchPackages } from '../../services/package-list';
 import { detectPackageEnv, removePackages } from '../../services/packages';
+import { ddnsChanges, deleteDdnsChanges, getDdns, readProvider, saveDdns, validateDdns } from '../../services/ddns';
 import { deleteInstance, getOpenvpn, importOvpn, setInstanceEnabled, validateImport } from '../../services/openvpn';
 import { getParental, saveSchedule } from '../../services/parental';
 import { listProcesses, signalProcess } from '../../services/processes';
@@ -474,6 +475,37 @@ describe('demo router: OpenVPN', () => {
     expect((await getOpenvpn(conn)).instances.find((i) => i.name === 'travel')?.running).toBe(false);
     await deleteInstance(conn, travel, fast);
     expect((await getOpenvpn(conn)).instances.map((i) => i.name)).toEqual(['office']);
+  });
+});
+
+describe('demo router: DDNS', () => {
+  it('one service updating; another one added, edited and deleted', async () => {
+    const { conn } = demo();
+    const state = await getDdns(conn);
+    expect(state.providers).toContain('duckdns.org');
+    expect(state.services).toHaveLength(1);
+    expect(state.services[0]).toMatchObject({ provider: 'duckdns.org', enabled: true, status: { running: true } });
+    expect(state.services[0].status.ip).toBe('203.0.113.45');
+
+    expect(await readProvider(conn, 'no-ip.com')).toMatchObject({ username: true, password: true });
+    const input = {
+      provider: 'dynv6.com',
+      updateUrl: '',
+      domain: 'cabin.dynv6.net',
+      username: '',
+      password: 'tok',
+      ipv6: true,
+      source: 'wan' as const,
+      enabled: true,
+    };
+    expect(validateDdns(input, await readProvider(conn, 'dynv6.com'))).toEqual({});
+    await saveDdns(conn, ddnsChanges(input, state.sections));
+    const added = (await getDdns(conn)).services.find((x) => x.domain === 'cabin.dynv6.net')!;
+    expect(added).toMatchObject({ section: 'cabin_dynv6_net', ipv6: true, status: { ip: '2001:db8:45::1' } });
+    await saveDdns(conn, ddnsChanges({ ...input, enabled: false }, state.sections, added));
+    expect((await getDdns(conn)).services.find((x) => x.section === added.section)?.status.next).toBe('disabled');
+    await saveDdns(conn, deleteDdnsChanges(added));
+    expect((await getDdns(conn)).services).toHaveLength(1);
   });
 });
 

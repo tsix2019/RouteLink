@@ -1,0 +1,126 @@
+import type { UciSection } from '../../uci';
+import { demoLocaltime } from './admin';
+import type { DemoState } from './state';
+
+/** Optional packages on the demo router (M3): DDNS, SQM and ad blocking, with what their LuCI apps read. */
+
+const section = (name: string, type: string, values: Record<string, string | string[]>, anonymous = false) =>
+  ({ '.name': name, '.type': type, '.anonymous': anonymous, ...values }) as UciSection;
+
+/** Update URLs as ddns-scripts ships them (a few are update scripts). */
+const DDNS_PROVIDERS: Record<string, { ipv4: string; ipv6?: string }> = {
+  'afraid.org-keyauth': { ipv4: 'http://freedns.afraid.org/dynamic/update.php?[PASSWORD]&address=[IP]' },
+  'cloudflare.com-v4': { ipv4: 'update_cloudflare_com_v4.sh', ipv6: 'update_cloudflare_com_v4.sh' },
+  'dnspod.cn': { ipv4: 'update_dnspod_cn.sh', ipv6: 'update_dnspod_cn.sh' },
+  'duckdns.org': {
+    ipv4: 'http://www.duckdns.org/update?domains=[DOMAIN]&token=[PASSWORD]&ip=[IP]',
+    ipv6: 'http://www.duckdns.org/update?domains=[DOMAIN]&token=[PASSWORD]&ipv6=[IP]',
+  },
+  'dynv6.com': {
+    ipv4: 'https://dynv6.com/api/update?hostname=[DOMAIN]&token=[PASSWORD]&ipv4=[IP]',
+    ipv6: 'https://dynv6.com/api/update?hostname=[DOMAIN]&token=[PASSWORD]&ipv6=[IP]',
+  },
+  'he.net': {
+    ipv4: 'http://[DOMAIN]:[PASSWORD]@dyn.dns.he.net/nic/update?hostname=[DOMAIN]&myip=[IP]',
+    ipv6: 'http://[DOMAIN]:[PASSWORD]@dyn.dns.he.net/nic/update?hostname=[DOMAIN]&myip=[IP]',
+  },
+  'no-ip.com': { ipv4: 'http://[USERNAME]:[PASSWORD]@dynupdate.no-ip.com/nic/update?hostname=[DOMAIN]&myip=[IP]' },
+  'oray.com': { ipv4: 'http://[USERNAME]:[PASSWORD]@ddns.oray.com/ph/update?hostname=[DOMAIN]&myip=[IP]' },
+};
+const PROVIDERS_DIR = '/usr/share/ddns/default/';
+
+export const createAddonUci = (): Record<string, Record<string, UciSection>> => ({
+  ddns: {
+    global: section('global', 'ddns', { ddns_dateformat: '%F %R', ddns_loglines: '250', upd_privateip: '0' }),
+    myddns_ipv4: section('myddns_ipv4', 'service', {
+      service_name: 'dyndns.org',
+      lookup_host: 'yourhost.example.com',
+      domain: 'yourhost.example.com',
+      username: 'your_username',
+      password: 'your_password',
+      interface: 'wan',
+      ip_source: 'network',
+      ip_network: 'wan',
+    }),
+    myddns_ipv6: section('myddns_ipv6', 'service', {
+      update_url: 'http://[USERNAME]:[PASSWORD]@your.provider.net/nic/update?hostname=[DOMAIN]&myip=[IP]',
+      lookup_host: 'yourhost.example.com',
+      domain: 'yourhost.example.com',
+      username: 'your_username',
+      password: 'your_password',
+      use_ipv6: '1',
+      interface: 'wan6',
+      ip_source: 'network',
+      ip_network: 'wan6',
+    }),
+    home: section('home', 'service', {
+      enabled: '1',
+      service_name: 'duckdns.org',
+      domain: 'routelink-demo.duckdns.org',
+      lookup_host: 'routelink-demo.duckdns.org',
+      password: 'demo-token',
+      use_ipv6: '0',
+      interface: 'wan',
+      ip_source: 'network',
+      ip_network: 'wan',
+    }),
+  },
+});
+
+/** "%F %R" in router time. */
+function routerDate(s: DemoState, now: number, offsetSec = 0): string {
+  return new Date((demoLocaltime(s, now) + offsetSec) * 1000).toISOString().slice(0, 16).replace('T', ' ');
+}
+
+export function demoAddonList(path: string): { name: string; type: string }[] | null {
+  if (path === PROVIDERS_DIR.slice(0, -1)) {
+    return Object.keys(DDNS_PROVIDERS).map((name) => ({ name: `${name}.json`, type: 'file' }));
+  }
+  return null;
+}
+
+export function demoAddonFile(path: string): string | null {
+  if (path.startsWith(PROVIDERS_DIR)) {
+    const name = path.slice(PROVIDERS_DIR.length, -'.json'.length);
+    const p = DDNS_PROVIDERS[name];
+    if (!p) return null;
+    return JSON.stringify({ name, ipv4: { url: p.ipv4 }, ...(p.ipv6 ? { ipv6: { url: p.ipv6 } } : {}) }, null, '\t');
+  }
+  return null;
+}
+
+export const addonHandlers: Record<string, (s: DemoState, p: Record<string, unknown>, now: number) => unknown> = {
+  /** Enabled services last updated three hours ago and are waiting for the forced update (72 h + 10 min). */
+  'luci.ddns.get_services_status': (s, _p, now) =>
+    Object.fromEntries(
+      Object.values(s.uci.ddns ?? {})
+        .filter((x) => x['.type'] === 'service')
+        .map((x) => {
+          const on = x.enabled === '1';
+          const running = on && s.services.ddns?.running !== false;
+          return [
+            x['.name'],
+            running
+              ? {
+                  ip: x.use_ipv6 === '1' ? '2001:db8:45::1' : '203.0.113.45',
+                  last_update: routerDate(s, now, -3 * 3600),
+                  next_update: routerDate(s, now, 69 * 3600 + 600),
+                  pid: 4410,
+                }
+              : { ip: null, last_update: null, next_update: on ? 'Stopped' : 'Disabled', pid: null },
+          ];
+        }),
+    ),
+  'luci.ddns.get_env': () => ({
+    has_wget: true,
+    has_curl: false,
+    has_ssl: true,
+    has_proxy: true,
+    has_forceip: true,
+    has_bindnet: true,
+    has_bindhost: false,
+    has_dnsserver: true,
+    has_cacerts: true,
+    has_ipv6: true,
+  }),
+};

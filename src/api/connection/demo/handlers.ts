@@ -3,6 +3,7 @@ import type { UciSection } from '../../uci';
 import { adminHandlers, demoKill, demoLocaltime } from './admin';
 import { agentHandlers } from './agent';
 import { demoConntrack, demoReverseDns } from './connections';
+import { addonHandlers, demoAddonFile, demoAddonList } from './addons';
 import { demoIpRoute, demoKey, demoPublicKey, demoWireGuard } from './routing';
 import type { DemoDevice, DemoState } from './state';
 
@@ -144,30 +145,34 @@ export const handlers: Record<string, Handler> = {
     return size ? { path: p.path, type: 'file', size } : notFound('file.stat');
   },
   'file.list': (_s, p) =>
-    p.path === '/sys/devices/system/cpu'
-      ? { entries: ['cpu0', 'cpu1', 'cpu2', 'cpu3', 'cpufreq'].map((name) => ({ name, type: 'directory' })) }
-      : p.path === '/var/opkg-lists'
-        ? {
-            entries: ['openwrt_base', 'openwrt_core', 'openwrt_luci', 'openwrt_packages'].map((name) => ({
-              name,
-              type: 'file',
-            })),
-          }
-        : { entries: [] },
+    demoAddonList(String(p.path)) !== null
+      ? { entries: demoAddonList(String(p.path)) }
+      : p.path === '/sys/devices/system/cpu'
+        ? { entries: ['cpu0', 'cpu1', 'cpu2', 'cpu3', 'cpufreq'].map((name) => ({ name, type: 'directory' })) }
+        : p.path === '/var/opkg-lists'
+          ? {
+              entries: ['openwrt_base', 'openwrt_core', 'openwrt_luci', 'openwrt_packages'].map((name) => ({
+                name,
+                type: 'file',
+              })),
+            }
+          : { entries: [] },
   'file.read': (s, p) =>
-    p.path === CRONTAB
-      ? { data: s.admin.crontab }
-      : p.path === '/etc/opkg/distfeeds.conf'
-        ? {
-            data: ['core', 'base', 'luci', 'packages']
-              .map((feed) =>
-                feed === 'core'
-                  ? 'src/gz openwrt_core https://downloads.openwrt.org/releases/24.10.8/targets/mediatek/filogic/packages'
-                  : `src/gz openwrt_${feed} https://downloads.openwrt.org/releases/24.10.8/packages/aarch64_cortex-a53/${feed}`,
-              )
-              .join('\n'),
-          }
-        : notFound('file.read'),
+    demoAddonFile(String(p.path)) !== null
+      ? { data: demoAddonFile(String(p.path)) }
+      : p.path === CRONTAB
+        ? { data: s.admin.crontab }
+        : p.path === '/etc/opkg/distfeeds.conf'
+          ? {
+              data: ['core', 'base', 'luci', 'packages']
+                .map((feed) =>
+                  feed === 'core'
+                    ? 'src/gz openwrt_core https://downloads.openwrt.org/releases/24.10.8/targets/mediatek/filogic/packages'
+                    : `src/gz openwrt_${feed} https://downloads.openwrt.org/releases/24.10.8/packages/aarch64_cortex-a53/${feed}`,
+                )
+                .join('\n'),
+            }
+          : notFound('file.read'),
   'file.write': (s, p) => {
     if (p.path === CRONTAB) {
       s.admin.crontab = String(p.data ?? '');
@@ -391,6 +396,7 @@ export const handlers: Record<string, Handler> = {
 
   ...agentHandlers,
   ...adminHandlers,
+  ...addonHandlers,
   'luci.getConntrackList': (s, _p, now) => demoConntrack(s, now),
   'network.rrdns.lookup': (s, p) => demoReverseDns(s, p.addrs),
   'luci.wireguard.getWgInstances': (s, _p, now) => demoWireGuard(s, now),
