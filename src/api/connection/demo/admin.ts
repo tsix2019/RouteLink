@@ -55,6 +55,10 @@ const PROCESSES: Row[] = [
 const CRONTAB = `# Weekly reboot (LuCI's suggestion: wait for the clock first)
 0 4 * * 1 sleep 70 && touch /etc/banner && reboot
 30 5 * * * wifi reload
+# RouteLink: wifi-schedule 1 off
+30 23 * * 0,1,2,3,4 /sbin/wifi down
+# RouteLink: wifi-schedule 1 on
+0 7 * * 1,2,3,4,5 /sbin/wifi up
 `;
 
 /** The flush entry that a parental-control schedule adds (services/parental.ts). */

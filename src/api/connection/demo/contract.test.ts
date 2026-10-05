@@ -44,6 +44,7 @@ import { installPackages, listAvailable, listInstalled, searchPackages } from '.
 import { detectPackageEnv, removePackages } from '../../services/packages';
 import { getParental, saveSchedule } from '../../services/parental';
 import { listProcesses, signalProcess } from '../../services/processes';
+import { getWifiSchedules, saveWifiSchedules } from '../../services/wifi-schedule';
 import { deleteStaticRoute, getRoutes, saveStaticRoute } from '../../services/routes';
 import { listServices, serviceAction } from '../../services/services';
 import { getSystem, getTemperature, loadRatio, reboot } from '../../services/system';
@@ -187,15 +188,17 @@ describe('demo router: system and network pages (M2)', () => {
   it('scheduled tasks: read, add one, read it back', async () => {
     const { conn } = demo();
     const tab = await readCrontab(conn);
-    // Two of the user's own and the parental-control flush, which the app manages.
+    // Two of the user's own; the Wi-Fi schedule and the parental-control flush are the app's.
     expect(tab.lines.filter((l) => l.kind === 'entry').map((l) => l.kind === 'entry' && l.managed)).toEqual([
       false,
       false,
       true,
+      true,
+      true,
     ]);
     const [added] = parseCrontab('0 3 * * * /etc/init.d/dnsmasq restart');
     await writeCrontab(conn, [...tab.lines, added], tab.original);
-    expect((await readCrontab(conn)).lines.filter((l) => l.kind === 'entry')).toHaveLength(4);
+    expect((await readCrontab(conn)).lines.filter((l) => l.kind === 'entry')).toHaveLength(6);
     await expect(writeCrontab(conn, tab.lines, tab.original)).rejects.toMatchObject({ code: 'cron-changed' });
   });
 
@@ -364,6 +367,21 @@ describe('demo router: M3 router features', () => {
     const removed = await getParental(conn);
     expect(removed.schedules.size).toBe(0);
     expect(removed.crontab.original).not.toContain('RouteLink: schedule');
+  });
+
+  it('Wi-Fi schedule: school nights for all radios; another one added, then all removed', async () => {
+    const { conn } = demo();
+    const before = await getWifiSchedules(conn);
+    expect(before.schedules).toEqual([{ radios: 'all', days: [0, 1, 2, 3, 4], off: '23:30', on: '07:00' }]);
+    const lunch = { radios: ['radio1'], days: [6 as const], off: '12:00', on: '13:00' };
+    await saveWifiSchedules(conn, [...before.schedules, lunch], before.crontab);
+    const after = await getWifiSchedules(conn);
+    expect(after.schedules).toHaveLength(2);
+    await saveWifiSchedules(conn, [], after.crontab);
+    const cleared = await getWifiSchedules(conn);
+    expect(cleared.schedules).toEqual([]);
+    // The parental-control entry is not the Wi-Fi schedule's to remove.
+    expect(cleared.crontab.original).toContain('# RouteLink: schedule ');
   });
 });
 

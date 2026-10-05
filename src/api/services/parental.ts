@@ -1,21 +1,27 @@
 import type { RouterConnection } from '../connection/types';
 import { stageAndApply, uci, type ApplyOptions, type ApplyOutcome, type UciSection, type UciValues } from '../uci';
 import type { UbusCall } from '../ubus/types';
+import {
+  activeWindow,
+  ALL_DAYS,
+  cronDays,
+  minutesOf,
+  nextDay,
+  sortDays,
+  TIME_RE,
+  type WeeklyWindow,
+  type Weekday,
+} from '@/utils/weekly';
+
 import { MANAGED_MARK, readCrontab, writeCrontab, type CronLine, type Crontab } from './cron';
 
 /** DV-8: one firewall rule per blocked period (two across midnight), named after the device and the period. */
 export const SCHEDULE_RULE_PREFIX = 'RouteLink: schedule ';
 const CRON_MARK = `${MANAGED_MARK} schedule `;
 
-/** 0 = Sunday … 6 = Saturday, as in crontab. */
-export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-export interface BlockPeriod {
-  days: Weekday[];
-  /** HH:MM, router time. */
-  from: string;
-  /** HH:MM; earlier than `from` means the next morning. */
-  to: string;
-}
+export type { Weekday };
+/** HH:MM in router time; `to` earlier than `from` ends the next morning. */
+export type BlockPeriod = WeeklyWindow;
 
 export interface ParentalSchedule {
   mac: string;
@@ -26,17 +32,11 @@ export interface ParentalSchedule {
 }
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
-const ALL_DAYS: Weekday[] = [0, 1, 2, 3, 4, 5, 6];
-const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const RULE_NAME = /^RouteLink: schedule ([0-9A-F:]{17}) (\d\d:\d\d)-(\d\d:\d\d)$/;
-
-const minutes = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
-const sortDays = (days: Iterable<Weekday>) => [...new Set(days)].sort((a, b) => a - b);
-const nextDay = (d: Weekday) => ((d + 1) % 7) as Weekday;
 
 export function validatePeriod(p: BlockPeriod): 'days' | 'time' | 'same' | null {
   if (!p.days.length) return 'days';
-  if (!TIME.test(p.from) || !TIME.test(p.to)) return 'time';
+  if (!TIME_RE.test(p.from) || !TIME_RE.test(p.to)) return 'time';
   return p.from === p.to ? 'same' : null;
 }
 
@@ -48,12 +48,12 @@ function normalize(periods: BlockPeriod[]): BlockPeriod[] {
     const seen = byTime.get(key);
     byTime.set(key, { from: p.from, to: p.to, days: sortDays([...(seen?.days ?? []), ...p.days]) });
   }
-  return [...byTime.values()].sort((a, b) => minutes(a.from) - minutes(b.from) || a.days[0] - b.days[0]);
+  return [...byTime.values()].sort((a, b) => minutesOf(a.from) - minutesOf(b.from) || a.days[0] - b.days[0]);
 }
 
 function parseWeekdays(v: unknown): Weekday[] {
   const text = Array.isArray(v) ? v.join(' ') : typeof v === 'string' ? v : '';
-  if (!text.trim()) return ALL_DAYS;
+  if (!text.trim()) return [...ALL_DAYS];
   const days = text
     .split(/\s+/)
     .map((w) => DAY_NAMES.findIndex((n) => n.toLowerCase() === w.slice(0, 3).toLowerCase()))
@@ -103,7 +103,10 @@ function ruleValues(mac: string, label: string, start: string, stop: string, day
     start_time: start,
     stop_time: stop,
   };
-  if (days.length < 7) values.weekdays = sortDays(days).map((d) => DAY_NAMES[d]).join(' ');
+  if (days.length < 7)
+    values.weekdays = sortDays(days)
+      .map((d) => DAY_NAMES[d])
+      .join(' ');
   if (!enabled) values.enabled = '0';
   return values;
 }
@@ -133,17 +136,8 @@ export function scheduleChanges(
 }
 
 /** The period blocking now (router time), or null. */
-export function activePeriod(periods: BlockPeriod[], weekday: number, minute: number): BlockPeriod | null {
-  const yesterday = ((weekday + 6) % 7) as Weekday;
-  return (
-    periods.find((p) => {
-      const from = minutes(p.from);
-      const to = minutes(p.to);
-      if (from < to) return p.days.includes(weekday as Weekday) && minute >= from && minute < to;
-      return (p.days.includes(weekday as Weekday) && minute >= from) || (p.days.includes(yesterday) && minute < to);
-    }) ?? null
-  );
-}
+export const activePeriod = (periods: BlockPeriod[], weekday: number, minute: number) =>
+  activeWindow(periods, weekday, minute);
 
 /**
  * fw4 accepts established connections before any rule, so the rules alone would not stop a running video:
@@ -168,11 +162,10 @@ export function scheduleCron(lines: CronLine[], mac: string, periods: BlockPerio
     kept.push(line);
   }
   for (const p of normalize(periods ?? [])) {
-    const days = p.days.length === 7 ? '*' : p.days.join(',');
     kept.push({ kind: 'other', text: mark });
     kept.push({
       kind: 'entry',
-      schedule: [String(Number(p.from.slice(3))), String(Number(p.from.slice(0, 2))), '*', '*', days],
+      schedule: [String(Number(p.from.slice(3))), String(Number(p.from.slice(0, 2))), '*', '*', cronDays(p.days)],
       command: flushCommand(mac),
       managed: true,
     });

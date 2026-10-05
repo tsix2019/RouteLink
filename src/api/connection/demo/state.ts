@@ -323,7 +323,12 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
         true,
       ),
       cfg_sched_eve: section('cfg_sched_eve', 'rule', schoolNight('21:30:00', '23:59:59', 'Sun Mon Tue Wed Thu'), true),
-      cfg_sched_morn: section('cfg_sched_morn', 'rule', schoolNight('00:00:00', '07:00:00', 'Mon Tue Wed Thu Fri'), true),
+      cfg_sched_morn: section(
+        'cfg_sched_morn',
+        'rule',
+        schoolNight('00:00:00', '07:00:00', 'Mon Tue Wed Thu Fri'),
+        true,
+      ),
       cfg_fwd: section(
         'cfg_fwd',
         'redirect',
