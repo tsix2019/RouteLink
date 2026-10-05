@@ -24,10 +24,13 @@ describe('wireless', () => {
     expect(['confirmed', 'applied']).toContain(outcome.status);
     expect((await getRadios(conn)).find((r) => r.name === radio.name)?.channel).toBe(channel);
 
-    // Radios only listed in the config (none running) would pass the checks above: CI wants them up.
-    const running = await waitFor(async () => (await getRadios(conn)).some((r) => r.up), 60_000, 3_000);
-    if (process.env.EXPECT_RADIOS === '1') expect(running).toBe(true);
-    const ifname = (await getRadios(conn)).flatMap((r) => r.networks).find((n) => n.ifname)?.ifname;
+    // Radios only listed in the config (no AP running) would pass the checks above: CI wants a
+    // running AP interface, and a scan that sees the neighbour AP.
+    const strict = process.env.EXPECT_RADIOS === '1';
+    const findIfname = async () => (await getRadios(conn)).flatMap((r) => r.networks).find((n) => n.ifname)?.ifname;
+    const running = await waitFor(async () => !!(await findIfname()), 60_000, 3_000);
+    if (strict) expect(running).toBe(true);
+    const ifname = await findIfname();
     if (!ifname) return;
     let results: Awaited<ReturnType<typeof scan>> = [];
     expect(

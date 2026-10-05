@@ -99,11 +99,13 @@ setup_radio radio1 5g 36 VHT80 RouteLink-5G || true
 setup_radio radio2 2g 11 HT20 Neighbor-Test || true
 uci commit wireless
 wifi up 2>/dev/null || wifi 2>/dev/null || true
+# Up means an AP interface exists, not just a radio marked up.
 for i in $(seq 1 30); do
-  ubus call network.wireless status 2>/dev/null | grep -q '"up": true' && break
+  ubus call network.wireless status 2>/dev/null | grep -q '"ifname"' && break
   sleep 2
 done
-if ! ubus call network.wireless status 2>/dev/null | grep -q '"up": true'; then
+echo "--- hostapd objects"; ubus list 'hostapd.*' 2>&1 | head
+if ! ubus call network.wireless status 2>/dev/null | grep -q '"ifname"'; then
   echo "warning: radios not up"
   echo "--- wireless status"; ubus call network.wireless status 2>&1 | head -80
   echo "--- iw dev"; iw dev 2>&1 | head -40
