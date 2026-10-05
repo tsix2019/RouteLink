@@ -46,6 +46,8 @@ const config: ExpoConfig = {
     'expo-localization',
     'expo-sqlite',
     'expo-secure-store',
+    'expo-sharing',
+    '@react-native-community/datetimepicker',
     ['expo-build-properties', { android: { usesCleartextTraffic: true } }],
     './plugins/with-release-signing',
   ],
