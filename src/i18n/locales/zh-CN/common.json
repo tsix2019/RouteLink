@@ -33,5 +33,15 @@
     "needsPackages": "在路由器上安装 {{packages}} 后就能使用（LuCI：系统 → 软件包）。",
     "unsupported": "这台路由器不支持。"
   },
-  "listSeparator": "、"
+  "listSeparator": "、",
+  "widget": {
+    "online": "在线",
+    "offline": "连不上",
+    "noRouter": "打开 App 添加路由器",
+    "devices_other": "{{count}} 台设备在线",
+    "devices_one": "{{count}} 台设备在线",
+    "updated": "更新于 {{time}}",
+    "name": "路由器状态",
+    "description": "当前路由器的在线状态、速率和在线设备数"
+  }
 }

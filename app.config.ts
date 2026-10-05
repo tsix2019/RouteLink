@@ -76,6 +76,42 @@ const config: ExpoConfig = {
       },
     ],
     './plugins/with-release-signing',
+    // M4 (design §19): home-screen widgets, the background check and its local notifications.
+    [
+      'expo-widgets',
+      {
+        widgets: [
+          {
+            name: 'RouterWidget',
+            displayName: 'RouteLink',
+            description: 'Router status, speed and devices online',
+            ios: { supportedFamilies: ['systemSmall', 'systemMedium'] },
+          },
+        ],
+      },
+    ],
+    [
+      'react-native-android-widget',
+      {
+        widgets: [
+          {
+            name: 'RouterWidget',
+            label: 'RouteLink',
+            description: 'Router status, speed and devices online',
+            minWidth: '110dp',
+            minHeight: '110dp',
+            targetCellWidth: 2,
+            targetCellHeight: 2,
+            resizeMode: 'horizontal|vertical',
+            // Android's minimum; the app and the background check push fresher data.
+            updatePeriodMillis: 1_800_000,
+          },
+        ],
+      },
+    ],
+    'expo-background-task',
+    'expo-notifications',
+    './plugins/without-push-entitlement',
   ],
   experiments: {
     typedRoutes: false,

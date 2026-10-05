@@ -177,6 +177,13 @@ export default function More() {
             testID="more-routers"
           />
           <ListRow
+            title={t('settings:notify.title')}
+            icon="bell"
+            chevron
+            onPress={() => nav.push('/more/notifications')}
+            testID="more-notifications"
+          />
+          <ListRow
             title={t('assistant:settings')}
             icon="assistant"
             chevron

@@ -41,6 +41,16 @@ jest.mock('routelink-native', () => {
   };
 });
 
+// Home-screen widgets (M4): createWidget hands back an object whose updates tests can check.
+jest.mock('expo-widgets', () => ({
+  createWidget: jest.fn((name: string) => ({
+    name,
+    updateSnapshot: jest.fn(),
+    updateTimeline: jest.fn(),
+    reload: jest.fn(),
+  })),
+}));
+
 jest.mock('expo-secure-store', () => {
   const store = new Map<string, string>();
   return {

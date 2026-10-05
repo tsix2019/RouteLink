@@ -1,6 +1,6 @@
 {
   "name": "routelink",
-  "main": "expo-router/entry",
+  "main": "index.ts",
   "version": "0.3.0",
   "private": true,
   "scripts": {
@@ -15,12 +15,14 @@
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
+    "@expo/ui": "~57.0.21",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-community/datetimepicker": "9.1.0",
     "@react-native-segmented-control/segmented-control": "2.5.7",
     "@tanstack/react-query": "^5.104.1",
     "expo": "~57.0.26",
     "expo-asset": "~57.0.18",
+    "expo-background-task": "~57.0.21",
     "expo-blur": "~57.0.3",
     "expo-build-properties": "~57.0.22",
     "expo-clipboard": "~57.0.2",
@@ -36,6 +38,7 @@
     "expo-linear-gradient": "~57.0.2",
     "expo-linking": "~57.0.11",
     "expo-localization": "~57.0.2",
+    "expo-notifications": "~57.0.21",
     "expo-router": "~57.0.24",
     "expo-secure-store": "~57.0.4",
     "expo-sharing": "~57.0.22",
@@ -44,13 +47,16 @@
     "expo-status-bar": "~57.0.1",
     "expo-symbols": "~57.0.3",
     "expo-system-ui": "~57.0.4",
+    "expo-task-manager": "~57.0.21",
     "expo-web-browser": "~57.0.3",
+    "expo-widgets": "~57.0.22",
     "i18next": "^26.4.2",
     "qrcode-generator": "^2.0.4",
     "react": "19.2.3",
     "react-dom": "^19.2.3",
     "react-i18next": "^17.0.15",
     "react-native": "0.86.3",
+    "react-native-android-widget": "^0.22.1",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
@@ -74,5 +80,14 @@
     "jest-expo": "~57.0.5",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3"
+  },
+  "expo": {
+    "autolinking": {
+      "android": {
+        "exclude": [
+          "expo-widgets"
+        ]
+      }
+    }
   }
 }

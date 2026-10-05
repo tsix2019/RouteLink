@@ -21,6 +21,7 @@ import {
 import { useT } from '@/i18n';
 import { useSettings } from '@/state/settings';
 import { useSnapshots } from '@/state/snapshots';
+import { updateWidgetFromApp } from '@/widgets/fromApp';
 import { GlassButton } from '@/ui/GlassButton';
 import { GlassCard } from '@/ui/GlassCard';
 import { Screen } from '@/ui/Screen';
@@ -55,6 +56,22 @@ export default function Overview() {
       clientsTotal: clients.data?.length,
     });
   }, [router, system.data, wan, clients.data, saveSnapshot]);
+
+  // The home-screen widget follows the router on screen (it throttles itself).
+  const online = !system.error && !!system.data;
+  const devicesOnline = clients.data?.filter((c) => c.online).length;
+  const latest = traffic.latest;
+  useEffect(() => {
+    if (!router || !system.data) return;
+    updateWidgetFromApp(t, {
+      name: router.isDemo ? t('demoRouter') : router.name,
+      online,
+      devicesOnline,
+      rxBps: latest?.rxBps,
+      txBps: latest?.txBps,
+      updatedAt: Date.now(),
+    });
+  }, [router, system.data, online, devicesOnline, latest, t]);
 
   const refresh = () => Promise.all([system.refetch(), interfaces.refetch(), clients.refetch()]);
 

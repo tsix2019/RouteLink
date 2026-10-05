@@ -30,6 +30,8 @@ interface SettingsData {
   dismissedAgentCard: string[];
   /** SSH terminal font size (points). */
   terminalFontSize: number;
+  /** Routers the background check watches (offline, back online, new devices). */
+  notifyRouters: string[];
 }
 
 interface SettingsState extends SettingsData {
@@ -53,6 +55,7 @@ export const DEFAULT_SETTINGS: SettingsData = {
   dismissedAgentCard: [],
   // OpenWrt's 53-column banner fits a phone at 12.
   terminalFontSize: 12,
+  notifyRouters: [],
 };
 
 export const useSettings = create<SettingsState>()(
@@ -93,6 +96,7 @@ export const useSettings = create<SettingsState>()(
         wanResetDay,
         dismissedAgentCard,
         terminalFontSize,
+        notifyRouters,
       }) => ({
         language,
         theme,
@@ -104,6 +108,7 @@ export const useSettings = create<SettingsState>()(
         wanResetDay,
         dismissedAgentCard,
         terminalFontSize,
+        notifyRouters,
       }),
       onRehydrateStorage: () => () => useSettings.setState({ hydrated: true }),
     },
