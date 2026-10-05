@@ -133,7 +133,10 @@ export async function readCrontab(conn: RouterConnection): Promise<Crontab> {
     const original = r.data ?? '';
     return { lines: parseCrontab(original), original };
   } catch (error) {
-    if (error instanceof UbusError && error.code === 'NOT_FOUND') return { lines: [], original: '' };
+    // No crontab yet (NOT_FOUND) or an empty one (rpcd answers NO_DATA for empty files).
+    if (error instanceof UbusError && (error.code === 'NOT_FOUND' || error.code === 'NO_DATA')) {
+      return { lines: [], original: '' };
+    }
     throw error;
   }
 }

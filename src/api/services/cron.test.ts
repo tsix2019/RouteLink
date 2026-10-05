@@ -77,6 +77,9 @@ describe('reading and writing', () => {
     expect((await readCrontab(conn)).original).toBe(text);
     const none = new FixtureConnection('none').override('file.read', fail('NOT_FOUND'));
     expect((await readCrontab(none)).lines).toEqual([]);
+    // rpcd answers NO_DATA for an empty file (seen on the Docker router).
+    const empty = new FixtureConnection('none').override('file.read', fail('NO_DATA'));
+    expect(await readCrontab(empty)).toEqual({ lines: [], original: '' });
   });
 
   it('writes the file and reloads cron, unless it changed meanwhile', async () => {

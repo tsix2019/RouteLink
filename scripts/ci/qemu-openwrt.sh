@@ -118,7 +118,8 @@ if ! ubus call network.wireless status 2>/dev/null | grep -q '"ifname"'; then
 fi
 printf 'routelink-test\nroutelink-test\n' | passwd root >/dev/null
 
-# M2 test data: a scheduled task, a port forward and a WireGuard interface with one peer.
+# M2 test data: a scheduled task, a port forward, a WireGuard interface with one peer, and a
+# process to stop.
 echo '*/30 * * * * logger routelink-test' > /etc/crontabs/root
 /etc/init.d/cron enable; /etc/init.d/cron restart || true
 uci -q delete firewall.test_https || true  # set -e: a missing section is not an error here
@@ -147,6 +148,8 @@ if command -v wg >/dev/null 2>&1; then
 fi
 /etc/init.d/firewall reload >/dev/null 2>&1 || true
 ifup wg0 2>/dev/null || true
+# A process for the processes page to stop; it must outlive this SSH session.
+( trap '' HUP; exec sleep 99999 ) </dev/null >/dev/null 2>&1 &
 REMOTE
 sleep 5
 echo "OpenWrt $V ready on http://127.0.0.1:18080 (root / routelink-test)"
