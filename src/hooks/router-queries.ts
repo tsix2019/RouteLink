@@ -7,6 +7,7 @@ import type { RouterConnection } from '@/api/connection/types';
 import { getClients } from '@/api/services/clients';
 import { kernelLog, systemLog } from '@/api/services/logs';
 import { getDeviceCounters, getInterfaces, pickWan } from '@/api/services/network';
+import { listProcesses } from '@/api/services/processes';
 import { listServices } from '@/api/services/services';
 import { getSystem, getTemperature } from '@/api/services/system';
 import { RateTracker, type RatePoint } from '@/api/services/traffic';
@@ -47,6 +48,7 @@ export const useDeviceCounters = () =>
   useRouterQuery(['device-counters'], getDeviceCounters, { refetchInterval: 10_000 });
 export const useRadios = () => useRouterQuery(['radios'], getRadios);
 export const useServices = () => useRouterQuery(['services'], listServices);
+export const useProcesses = () => useRouterQuery(['processes'], listProcesses, { refetchInterval: 5_000 });
 export const useSystemLog = () => useRouterQuery(['logs', 'system'], systemLog);
 export const useKernelLog = () => useRouterQuery(['logs', 'kernel'], kernelLog);
 export const useCapabilities = () => useRouterQuery(['capabilities'], detectCapabilities, { staleTime: Infinity });

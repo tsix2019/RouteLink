@@ -42,6 +42,14 @@ export default function More() {
             testID="more-services"
           />
           <ListRow
+            title={t('more:processes')}
+            icon="process"
+            chevron
+            disabled={!hasRouter}
+            onPress={() => nav.push('/more/processes')}
+            testID="more-processes"
+          />
+          <ListRow
             title={t('more:logs')}
             icon="logs"
             chevron

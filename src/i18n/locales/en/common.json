@@ -27,5 +27,10 @@
     "wireless": "Wi-Fi",
     "network": "Network",
     "more": "More"
+  },
+  "feature": {
+    "unavailable": "Not available on this router",
+    "needsPackages": "Install {{packages}} on the router to use this (LuCI: System → Software).",
+    "unsupported": "This router doesn't offer it."
   }
 }

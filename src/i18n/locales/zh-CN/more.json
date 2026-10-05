@@ -72,5 +72,22 @@
     "privacy": "隐私",
     "privacyText": "RouteLink 不收集任何数据，没有统计和广告。App 只和你添加的路由器通信；密码保存在系统钥匙串里。",
     "license": "开源许可：MIT"
+  },
+  "processes": "进程",
+  "processesScreen": {
+    "search": "搜索进程",
+    "cpu": "CPU",
+    "memory": "内存",
+    "kernel": "显示内核线程",
+    "detail": "PID {{pid}} · {{user}} · {{memory}}",
+    "empty": "没有找到进程",
+    "term": "结束",
+    "kill": "强制结束",
+    "hup": "重新加载（HUP）",
+    "protected": "内核线程和 init（PID 1）不能结束",
+    "confirmTitle": "{{action}} {{name}}？",
+    "termConsequence": "进程会退出；由系统管理的服务通常会自动重新启动",
+    "killConsequence": "进程会立即退出，来不及保存任何数据",
+    "done": "已发送给 {{name}}"
   }
 }

@@ -27,5 +27,10 @@
     "wireless": "无线",
     "network": "网络",
     "more": "更多"
+  },
+  "feature": {
+    "unavailable": "这台路由器用不了这个功能",
+    "needsPackages": "在路由器上安装 {{packages}} 后就能使用（LuCI：系统 → 软件包）。",
+    "unsupported": "这台路由器不支持。"
   }
 }

@@ -82,6 +82,18 @@ export const ICONS = {
   calendar: { sf: 'calendar', ion: 'calendar-outline' },
   pulse: { sf: 'waveform.path.ecg', ion: 'pulse-outline' },
   download: { sf: 'arrow.down.circle', ion: 'download-outline' },
+  qrcode: { sf: 'qrcode', ion: 'qr-code-outline' },
+  route: { sf: 'arrow.triangle.branch', ion: 'git-branch-outline' },
+  connections: { sf: 'arrow.left.arrow.right', ion: 'swap-horizontal-outline' },
+  firewall: { sf: 'shield.lefthalf.filled', ion: 'shield-half-outline' },
+  vpn: { sf: 'lock.shield', ion: 'shield-outline' },
+  process: { sf: 'list.bullet.rectangle', ion: 'list-outline' },
+  package: { sf: 'shippingbox', ion: 'cube-outline' },
+  schedule: { sf: 'clock.arrow.circlepath', ion: 'time-outline' },
+  light: { sf: 'lightbulb', ion: 'bulb-outline' },
+  key: { sf: 'key', ion: 'key-outline' },
+  guest: { sf: 'person.2', ion: 'people-outline' },
+  filter: { sf: 'line.3.horizontal.decrease.circle', ion: 'filter-outline' },
 } as const satisfies Record<string, { sf: string; ion: IonName } | { sf: string; mci: MciName }>;
 
 export type IconName = keyof typeof ICONS;

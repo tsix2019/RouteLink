@@ -72,5 +72,22 @@
     "privacy": "Privacy",
     "privacyText": "RouteLink collects nothing: no analytics, no ads. The app talks only to the routers you add; passwords stay in the system keychain.",
     "license": "Open source under the MIT License"
+  },
+  "processes": "Processes",
+  "processesScreen": {
+    "search": "Search processes",
+    "cpu": "CPU",
+    "memory": "Memory",
+    "kernel": "Show Kernel Threads",
+    "detail": "PID {{pid}} · {{user}} · {{memory}}",
+    "empty": "No processes found",
+    "term": "Stop",
+    "kill": "Force Stop",
+    "hup": "Reload (HUP)",
+    "protected": "The kernel and init (PID 1) cannot be stopped",
+    "confirmTitle": "{{action}} {{name}}?",
+    "termConsequence": "The process ends; services managed by the system usually start again by themselves",
+    "killConsequence": "The process ends immediately, without saving anything",
+    "done": "Sent to {{name}}"
   }
 }
