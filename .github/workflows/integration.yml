@@ -9,6 +9,7 @@ on:
       - 'src/api/**'
       - 'test/integration/**'
       - 'scripts/ci/qemu-openwrt.sh'
+      - 'scripts/record-fixtures.ts'
       - '.github/workflows/integration.yml'
       - 'jest.integration.config.js'
   workflow_dispatch:

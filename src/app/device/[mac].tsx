@@ -88,6 +88,7 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
             <AppText variant="subhead" tone="secondary">
               {`${client.online ? t('online') : t('offline')} · ${wifi ? `${wifi.ssid} ${wifi.band}` : t('devices:detail.wired')}`}
             </AppText>
+            {wifi && client.online ? <SignalBars dbm={wifi.signal} size={14} /> : null}
             {client.isStatic ? <Badge label={t('devices:badge.static')} tone="accent" /> : null}
             {client.isBlocked ? <Badge label={t('devices:badge.blocked')} tone="danger" /> : null}
           </View>
@@ -136,11 +137,6 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
             },
           ]}
         />
-        {wifi && client.online ? (
-          <View style={styles.signal}>
-            <SignalBars dbm={wifi.signal} size={18} />
-          </View>
-        ) : null}
       </GlassCard>
 
       <ListSection title={t('devices:actions.title')}>
@@ -338,5 +334,4 @@ const styles = StyleSheet.create({
     gap: 6,
     flexWrap: 'wrap',
   },
-  signal: { position: 'absolute', right: spacing.l, top: spacing.l },
 });

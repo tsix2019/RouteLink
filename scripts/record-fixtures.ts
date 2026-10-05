@@ -62,7 +62,22 @@ export const CALLS: UbusCall[] = [
   access('file', '/sbin/ifup', 'exec'),
   access('file', '/sbin/ifdown', 'exec'),
   access('file', '/sbin/reboot', 'exec'),
+  // OpenWrt 23.05 fallbacks (services through LuCI, syslog through logread).
+  { object: 'luci', method: 'getInitList' },
+  exec('/sbin/logread', ['-e', '^']),
+  access('ubus', 'luci', 'getInitList'),
+  access('ubus', 'luci', 'setInitAction'),
+  access('file', '/sbin/logread -e ^', 'exec'),
+  // Radio capabilities and stations (QEMU's hwsim radios; empty on routers without Wi-Fi).
+  { object: 'iwinfo', method: 'info', params: { device: 'radio0' } },
+  { object: 'iwinfo', method: 'freqlist', params: { device: 'radio0' } },
+  { object: 'iwinfo', method: 'txpowerlist', params: { device: 'radio0' } },
+  { object: 'iwinfo', method: 'assoclist', params: { device: 'phy0-ap0' } },
+  { object: 'iwinfo', method: 'scan', params: { device: 'phy0-ap0' } },
 ];
+
+/** Calls that take longer than the default timeout. */
+const SLOW: Record<string, number> = { 'iwinfo.scan': 25_000 };
 
 async function main() {
   const set = process.argv[2];
@@ -77,7 +92,7 @@ async function main() {
   mkdirSync(dir, { recursive: true });
 
   for (const call of CALLS) {
-    const [result] = await session.batch([call]);
+    const [result] = await session.batch([call], { timeoutMs: SLOW[`${call.object}.${call.method}`] });
     const name = fixtureName(call);
     const content = result.ok ? { ok: true, data: result.data } : { ok: false, error: result.error.code };
     writeFileSync(join(dir, `${name}.json`), JSON.stringify(content, null, 2) + '\n');
