@@ -5,6 +5,7 @@ import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 class RouteLinkNativeModule : Module() {
@@ -30,6 +31,11 @@ class RouteLinkNativeModule : Module() {
 
     AsyncFunction("sendWakeOnLan") Coroutine { mac: String, broadcast: String?, port: Int? ->
       withContext(Dispatchers.IO) { WakeOnLan.send(mac, broadcast, port) }
+    }
+
+    // JavaScript timers do not run in a headless start (background task), this does.
+    AsyncFunction("sleep") Coroutine { ms: Double ->
+      delay(ms.toLong())
     }
 
     AsyncFunction("sshGenerateKey") Coroutine { comment: String ->

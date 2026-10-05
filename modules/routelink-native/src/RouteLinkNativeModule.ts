@@ -18,6 +18,8 @@ declare class RouteLinkNativeModule extends NativeModule<RouteLinkNativeEvents> 
   getNetworkInfo(): Promise<NetworkInfo>;
   /** Android only; iOS rejects with ERR_UNSUPPORTED (broadcast needs Apple's multicast entitlement). */
   sendWakeOnLan(mac: string, broadcast?: string, port?: number): Promise<void>;
+  /** Resolves after `ms`. JavaScript timers do not run when Android starts the app headless for a background task. */
+  sleep(ms: number): Promise<void>;
 
   sshGenerateKey(comment: string): Promise<SshKeyPair>;
   sshPublicKey(seed: string, comment: string): Promise<string>;

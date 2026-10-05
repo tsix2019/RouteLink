@@ -1,12 +1,13 @@
 import Storage from 'expo-sqlite/kv-store';
+import RouteLinkNative from 'routelink-native';
 
 import { LiveConnection } from '@/api/connection/live';
+import type { RouterConnection } from '@/api/connection/types';
 import { isConnectivityError } from '@/api/http/errors';
 import { nativeHttpClient } from '@/api/http/native';
-import type { HttpClient } from '@/api/http/types';
 import { getClients } from '@/api/services/clients';
 import { i18n, initI18n, setLanguage } from '@/i18n';
-import { useRouters } from '@/state/routers';
+import { useRouters, type RouterProfile } from '@/state/routers';
 import { useSettings } from '@/state/settings';
 import { useSnapshots } from '@/state/snapshots';
 import { widgetProps } from '@/widgets/props';
@@ -17,9 +18,13 @@ import { compare, type Alert, type WatchMemory, type WatchReading } from './watc
 const MEMORY = 'routelink.watch';
 
 export interface CheckDeps {
-  http?: HttpClient;
+  /** How a watched router is reached: by default over HTTP with its saved password. */
+  connect?: (profile: RouterProfile, password: string) => RouterConnection;
   notify(title: string, body: string): Promise<void>;
-  /** Waits before the second try of an unreachable router. */
+  /**
+   * Waits before the second try of an unreachable router. JavaScript timers never fire when Android starts
+   * the app headless for this task, so by default it waits natively.
+   */
   sleep?: (ms: number) => Promise<void>;
   now?: () => number;
 }
@@ -33,7 +38,7 @@ async function loadMemory(): Promise<Record<string, WatchMemory>> {
 }
 
 /** Two tries ten seconds apart before calling a router unreachable: one lost packet is not an outage. */
-async function read(conn: LiveConnection, sleep: (ms: number) => Promise<void>): Promise<WatchReading> {
+async function read(conn: RouterConnection, sleep: (ms: number) => Promise<void>): Promise<WatchReading> {
   for (let attempt = 0; ; attempt++) {
     try {
       const clients = await getClients(conn);
@@ -81,23 +86,26 @@ export async function checkRouters(deps: CheckDeps): Promise<{ checked: number; 
   const { routers, activeId, getPassword } = useRouters.getState();
   const watched = useSettings.getState().notifyRouters;
   const now = deps.now ?? Date.now;
-  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const sleep = deps.sleep ?? ((ms: number) => RouteLinkNative.sleep(ms));
+  const connect =
+    deps.connect ??
+    ((profile: RouterProfile, password: string) =>
+      new LiveConnection({
+        routerId: profile.id,
+        baseUrl: profile.baseUrl,
+        username: profile.username,
+        password,
+        authMode: profile.authMode,
+        tlsSha256: profile.tlsSha256,
+        http: nativeHttpClient,
+      }));
   const memory = await loadMemory();
   let checked = 0;
   let sent = 0;
   for (const profile of routers.filter((r) => watched.includes(r.id))) {
     const password = await getPassword(profile.id);
     if (password === null) continue;
-    const conn = new LiveConnection({
-      routerId: profile.id,
-      baseUrl: profile.baseUrl,
-      username: profile.username,
-      password,
-      authMode: profile.authMode,
-      tlsSha256: profile.tlsSha256,
-      http: deps.http ?? nativeHttpClient,
-    });
-    const reading = await read(conn, sleep);
+    const reading = await read(connect(profile, password), sleep);
     const { alerts, next } = compare(memory[profile.id], reading, now());
     memory[profile.id] = next;
     checked++;

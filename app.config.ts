@@ -72,9 +72,11 @@ const config: ExpoConfig = {
           minSdkVersion: 26,
           // The same file in all three BouncyCastle jars (sshj).
           packagingOptions: { exclude: ['META-INF/versions/9/OSGI-INF/MANIFEST.MF'] },
-          // R8 keeps what is reached by name at run time: sshj's algorithm factories and BouncyCastle's
-          // provider classes; the rest are optional desktop dependencies.
+          // R8 keeps what is reached by name at run time: sshj's algorithm factories, BouncyCastle's
+          // provider classes and Expo's headless app loader (named in a manifest entry; background tasks
+          // start the app's JavaScript with it). The rest are optional desktop dependencies.
           extraProguardRules: [
+            '-keep class * implements expo.modules.apploader.HeadlessAppLoader { <init>(); }',
             '-keep class net.schmizz.sshj.** { *; }',
             '-keep class com.hierynomus.sshj.** { *; }',
             '-keep class org.bouncycastle.jcajce.provider.** { *; }',
@@ -125,7 +127,8 @@ const config: ExpoConfig = {
       },
     ],
     'expo-background-task',
-    'expo-notifications',
+    // A white glyph: Android draws notification icons as a silhouette, tinted with the colour.
+    ['expo-notifications', { icon: './assets/images/notification-icon.png', color: '#0A5BFF' }],
     './plugins/without-push-entitlement',
     // Until SDK 57 has React Native 0.87's fix: Citadel's Swift package could break Pods.xcodeproj.
     './plugins/with-unique-pods-uuids',

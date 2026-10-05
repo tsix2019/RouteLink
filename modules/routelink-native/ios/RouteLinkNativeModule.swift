@@ -39,6 +39,11 @@ public class RouteLinkNativeModule: Module {
       throw nativeError("ERR_UNSUPPORTED", "Wake-on-LAN broadcast is not available on iOS; the router sends it instead")
     }
 
+    // Matches Android, where JavaScript timers do not run in a headless start (background task).
+    AsyncFunction("sleep") { (ms: Double) async in
+      try? await Task.sleep(nanoseconds: UInt64(max(ms, 0) * 1_000_000))
+    }
+
     AsyncFunction("sshGenerateKey") { (comment: String) -> [String: String] in
       return SshKeys.generate(comment: comment)
     }

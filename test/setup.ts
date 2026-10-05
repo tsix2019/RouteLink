@@ -22,6 +22,7 @@ jest.mock('routelink-native', () => {
       fetchServerCertificate: notMocked('fetchServerCertificate'),
       getNetworkInfo: notMocked('getNetworkInfo'),
       sendWakeOnLan: notMocked('sendWakeOnLan'),
+      sleep: jest.fn(async () => undefined),
       sshGenerateKey: notMocked('sshGenerateKey'),
       sshPublicKey: notMocked('sshPublicKey'),
       sshHostKey: notMocked('sshHostKey'),
