@@ -93,7 +93,6 @@ export const CALLS: UbusCall[] = [
   { object: 'luci', method: 'getConntrackList' },
   { object: 'luci', method: 'getLEDs' },
   { object: 'luci', method: 'getTimezones' },
-  { object: 'luci', method: 'getLocaltime' },
   { object: 'luci.wireguard', method: 'getWgInstances' },
   exec('/sbin/ip', ['-4', 'route', 'show', 'table', 'all']),
   exec('/sbin/ip', ['-6', 'route', 'show', 'table', 'all']),

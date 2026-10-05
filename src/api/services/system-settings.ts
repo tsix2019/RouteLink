@@ -1,3 +1,5 @@
+import { posixOffsetAt } from '@/utils/posix-tz';
+
 import type { RouterConnection } from '../connection/types';
 import type { UbusCall, UbusResult } from '../ubus/types';
 import { uci, type UciSection } from '../uci';
@@ -22,27 +24,32 @@ export interface TimeSettings {
   /** The uci `system` section. */
   section: string;
   zonename: string;
-  /** Router clock, epoch seconds. */
+  /** Router clock, epoch seconds (UTC). */
   routerTime: number;
   /** Router minus phone, seconds. */
   offsetSec: number;
   ntp: boolean;
 }
 
+/**
+ * LuCI's ACLs grant no clock call besides `system info`, which reports local wall-clock seconds; the
+ * zone's POSIX string (uci system.timezone) turns them back into UTC.
+ */
 export async function getTimeSettings(
   conn: RouterConnection,
   phoneNowSec = Math.floor(Date.now() / 1000),
 ): Promise<TimeSettings> {
-  const [system, time] = (await conn.batch([
+  const [system, info] = (await conn.batch([
     { object: 'uci', method: 'get', params: { config: 'system' } },
-    { object: 'luci', method: 'getLocaltime' },
-  ])) as [UbusResult<{ values?: Record<string, UciSection> }>, UbusResult<{ result?: number }>];
+    { object: 'system', method: 'info' },
+  ])) as [UbusResult<{ values?: Record<string, UciSection> }>, UbusResult<{ localtime?: number }>];
   if (!system.ok) throw system.error;
-  if (!time.ok) throw time.error;
+  if (!info.ok) throw info.error;
   const sections = Object.values(system.data.values ?? {});
   const main = sections.find((s) => s['.type'] === 'system');
   const ntp = sections.find((s) => s['.type'] === 'timeserver');
-  const routerTime = Number(time.data.result) || 0;
+  const local = Number(info.data.localtime) || 0;
+  const routerTime = local - posixOffsetAt(String(main?.timezone ?? 'UTC'), phoneNowSec);
   return {
     section: main?.['.name'] ?? '@system[0]',
     zonename: String(main?.zonename ?? main?.timezone ?? 'UTC'),

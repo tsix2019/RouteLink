@@ -1,6 +1,6 @@
 import { UbusError } from '../../ubus/errors';
 import type { UciSection } from '../../uci';
-import { adminHandlers, demoKill } from './admin';
+import { adminHandlers, demoKill, demoLocaltime } from './admin';
 import { agentHandlers } from './agent';
 import { demoConntrack, demoReverseDns } from './connections';
 import { demoIpRoute, demoWireGuard } from './routing';
@@ -199,7 +199,7 @@ export const handlers: Record<string, Handler> = {
     },
   }),
   'system.info': (s, _p, now) => ({
-    localtime: Math.floor(now / 1000) + 8 * 3600,
+    localtime: demoLocaltime(s, now),
     uptime: uptime(s, now),
     load: s.load.map((l) => Math.round(l * 65536)),
     memory: {

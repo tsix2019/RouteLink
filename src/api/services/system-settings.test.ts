@@ -10,7 +10,13 @@ import {
 
 const system = {
   values: {
-    cfg01e48a: { '.name': 'cfg01e48a', '.type': 'system', hostname: 'OpenWrt', zonename: 'UTC', timezone: 'UTC' },
+    cfg01e48a: {
+      '.name': 'cfg01e48a',
+      '.type': 'system',
+      hostname: 'OpenWrt',
+      zonename: 'Asia/Shanghai',
+      timezone: 'CST-8',
+    },
     ntp: { '.name': 'ntp', '.type': 'timeserver', enabled: '1' },
   },
 };
@@ -32,13 +38,14 @@ describe('time zone and clock', () => {
     ]);
   });
 
-  it('reads the zone, the clock offset against the phone, and NTP', async () => {
+  it('reads the zone, the clock offset against the phone (from local time), and NTP', async () => {
     const conn = new FixtureConnection('none')
       .override('uci.get.system', ok(system))
-      .override('luci.getLocaltime', ok({ result: 1_000 }));
+      // `system info` reports local wall-clock time: UTC 1000 in Shanghai.
+      .override('system.info', ok({ localtime: 1_000 + 8 * 3600 }));
     expect(await getTimeSettings(conn, 1_090)).toEqual({
       section: 'cfg01e48a',
-      zonename: 'UTC',
+      zonename: 'Asia/Shanghai',
       routerTime: 1_000,
       offsetSec: -90,
       ntp: true,

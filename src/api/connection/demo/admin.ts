@@ -1,3 +1,5 @@
+import { posixOffsetAt } from '@/utils/posix-tz';
+
 import { UbusError } from '../../ubus/errors';
 import type { DemoState } from './state';
 
@@ -167,11 +169,17 @@ const ZONES: Record<string, string> = {
 
 const routerSeconds = (s: DemoState, now: number) => Math.floor(now / 1000) + s.admin.clockSkewSec;
 
+/** `system info` localtime: the router clock as wall-clock seconds in the configured zone. */
+export function demoLocaltime(s: DemoState, now: number): number {
+  const system = Object.values(s.uci.system ?? {}).find((x) => x['.type'] === 'system');
+  const utc = routerSeconds(s, now);
+  return utc + posixOffsetAt(String(system?.timezone ?? 'UTC'), utc);
+}
+
 export const adminHandlers: Record<string, (s: DemoState, p: Record<string, unknown>, now: number) => unknown> = {
   'luci.getProcessList': (s, _p, now) => processList(s, now),
   'luci.getLEDs': (s) => ledList(s),
   'luci.getTimezones': () => Object.fromEntries(Object.entries(ZONES).map(([zone, tzstring]) => [zone, { tzstring }])),
-  'luci.getLocaltime': (s, _p, now) => ({ result: routerSeconds(s, now) }),
   'luci.setLocaltime': (s, p, now) => {
     const t = Number(p.localtime);
     if (!Number.isFinite(t)) throw new UbusError('INVALID_ARGUMENT', 'luci.setLocaltime');
