@@ -60,6 +60,13 @@ export default function Network() {
           testID="network-routes"
         />
         <ListRow
+          title={t('network:firewall.title')}
+          icon="firewall"
+          chevron
+          onPress={() => nav.push('/network/firewall')}
+          testID="network-firewall"
+        />
+        <ListRow
           title={t('network:connections.title')}
           icon="connections"
           chevron
