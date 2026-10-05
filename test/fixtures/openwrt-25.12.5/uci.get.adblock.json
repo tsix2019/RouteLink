@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "data": {
+    "values": {
+      "global": {
+        ".anonymous": false,
+        ".type": "adblock",
+        ".name": "global",
+        ".index": 0,
+        "adb_enabled": "0",
+        "adb_debug": "0",
+        "adb_nftforce": "0",
+        "adb_dnsshift": "0",
+        "adb_safesearch": "0",
+        "adb_mail": "0",
+        "adb_report": "0",
+        "adb_feed": [
+          "adguard",
+          "adguard_tracking",
+          "certpl"
+        ],
+        "adb_dns": "dnsmasq",
+        "adb_fetchcmd": "curl"
+      }
+    }
+  }
+}

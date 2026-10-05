@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "data": {
+    "result": [
+      {
+        "role": "lan",
+        "device": "eth0"
+      },
+      {
+        "role": "wan",
+        "device": "eth1"
+      },
+      {
+        "role": "unknown",
+        "device": "eth2"
+      },
+      {
+        "role": "unknown",
+        "device": "eth3"
+      }
+    ]
+  }
+}

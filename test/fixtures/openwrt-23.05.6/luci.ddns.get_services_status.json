@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "data": {
+    "myddns_ipv4": {
+      "ip": null,
+      "last_update": null,
+      "next_update": "Stopped",
+      "pid": null
+    },
+    "myddns_ipv6": {
+      "ip": null,
+      "last_update": null,
+      "next_update": "Stopped",
+      "pid": null
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "data": {
+    "adblock-fast": {
+      "version": "1.2.4-r4",
+      "packageCompat": 17,
+      "enabled": false,
+      "running": false,
+      "outputFileExists": false,
+      "outputCacheExists": false,
+      "outputGzipExists": false,
+      "status": "statusStopped",
+      "message": "",
+      "stats": "",
+      "entries": 0,
+      "dns": "dnsmasq.servers",
+      "pause_timeout": "60",
+      "outputFile": "/var/run/adblock-fast/dnsmasq.servers",
+      "outputCache": "/var/run/adblock-fast/dnsmasq.servers.cache",
+      "outputGzip": "",
+      "force_dns_active": false,
+      "force_dns_ports": [],
+      "errors": [],
+      "warnings": [],
+      "platform": {
+        "ipset_installed": false,
+        "nft_installed": true,
+        "dnsmasq_installed": true,
+        "dnsmasq_ipset_support": false,
+        "dnsmasq_nftset_support": false,
+        "smartdns_installed": false,
+        "smartdns_ipset_support": false,
+        "smartdns_nftset_support": false,
+        "unbound_installed": false,
+        "leds": []
+      },
+      "file_url": [],
+      "rpcdCompat": 17
+    }
+  }
+}

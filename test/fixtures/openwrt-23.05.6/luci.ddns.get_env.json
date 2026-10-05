@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "data": {
+    "has_wget": true,
+    "has_curl": true,
+    "has_ssl": true,
+    "has_proxy": true,
+    "has_forceip": true,
+    "has_bindnet": true,
+    "has_bindhost": false,
+    "has_dnsserver": true,
+    "has_cacerts": true,
+    "has_ipv6": true
+  }
+}

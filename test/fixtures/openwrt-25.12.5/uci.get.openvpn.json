@@ -1,0 +1,59 @@
+{
+  "ok": true,
+  "data": {
+    "values": {
+      "custom_config": {
+        ".anonymous": false,
+        ".type": "openvpn",
+        ".name": "custom_config",
+        ".index": 0,
+        "enabled": "0",
+        "config": "/etc/openvpn/my-vpn.conf"
+      },
+      "sample_server": {
+        ".anonymous": false,
+        ".type": "openvpn",
+        ".name": "sample_server",
+        ".index": 1,
+        "enabled": "0",
+        "port": "1194",
+        "proto": "udp",
+        "dev": "tun",
+        "ca": "/etc/openvpn/ca.crt",
+        "cert": "/etc/openvpn/server.crt",
+        "key": "/etc/openvpn/server.key",
+        "dh": "/etc/openvpn/dh2048.pem",
+        "server": "10.8.0.0 255.255.255.0",
+        "ifconfig_pool_persist": "/tmp/ipp.txt",
+        "keepalive": "10 120",
+        "persist_key": "1",
+        "persist_tun": "1",
+        "user": "nobody",
+        "status": "/tmp/openvpn-status.log",
+        "verb": "3"
+      },
+      "sample_client": {
+        ".anonymous": false,
+        ".type": "openvpn",
+        ".name": "sample_client",
+        ".index": 2,
+        "enabled": "0",
+        "client": "1",
+        "dev": "tun",
+        "proto": "udp",
+        "remote": [
+          "my_server_1 1194"
+        ],
+        "resolv_retry": "infinite",
+        "nobind": "1",
+        "persist_key": "1",
+        "persist_tun": "1",
+        "user": "nobody",
+        "ca": "/etc/openvpn/ca.crt",
+        "cert": "/etc/openvpn/client.crt",
+        "key": "/etc/openvpn/client.key",
+        "verb": "3"
+      }
+    }
+  }
+}

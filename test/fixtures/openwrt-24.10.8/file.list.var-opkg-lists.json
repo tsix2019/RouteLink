@@ -1,6 +1,175 @@
 {
   "ok": true,
   "data": {
-    "entries": []
+    "entries": [
+      {
+        "name": "openwrt_telephony.sig",
+        "type": "file",
+        "size": 142,
+        "mode": 33188,
+        "atime": 1791196069,
+        "mtime": 1791196069,
+        "ctime": 1791196069,
+        "inode": 818,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_telephony",
+        "type": "file",
+        "size": 58265,
+        "mode": 33188,
+        "atime": 1791196069,
+        "mtime": 1791196069,
+        "ctime": 1791196069,
+        "inode": 817,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_routing.sig",
+        "type": "file",
+        "size": 142,
+        "mode": 33188,
+        "atime": 1791196068,
+        "mtime": 1791196068,
+        "ctime": 1791196068,
+        "inode": 816,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_routing",
+        "type": "file",
+        "size": 9938,
+        "mode": 33188,
+        "atime": 1791196068,
+        "mtime": 1791196068,
+        "ctime": 1791196068,
+        "inode": 815,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_packages.sig",
+        "type": "file",
+        "size": 142,
+        "mode": 33188,
+        "atime": 1791196068,
+        "mtime": 1791196068,
+        "ctime": 1791196068,
+        "inode": 814,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_packages",
+        "type": "file",
+        "size": 520331,
+        "mode": 33188,
+        "atime": 1791196067,
+        "mtime": 1791196068,
+        "ctime": 1791196068,
+        "inode": 813,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_luci.sig",
+        "type": "file",
+        "size": 142,
+        "mode": 33188,
+        "atime": 1791196067,
+        "mtime": 1791196067,
+        "ctime": 1791196067,
+        "inode": 812,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_luci",
+        "type": "file",
+        "size": 206554,
+        "mode": 33188,
+        "atime": 1791196067,
+        "mtime": 1791196067,
+        "ctime": 1791196067,
+        "inode": 811,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_kmods.sig",
+        "type": "file",
+        "size": 142,
+        "mode": 33188,
+        "atime": 1791196066,
+        "mtime": 1791196066,
+        "ctime": 1791196066,
+        "inode": 810,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_kmods",
+        "type": "file",
+        "size": 102635,
+        "mode": 33188,
+        "atime": 1791196066,
+        "mtime": 1791196066,
+        "ctime": 1791196066,
+        "inode": 809,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_base.sig",
+        "type": "file",
+        "size": 142,
+        "mode": 33188,
+        "atime": 1791196066,
+        "mtime": 1791196066,
+        "ctime": 1791196066,
+        "inode": 808,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_base",
+        "type": "file",
+        "size": 72961,
+        "mode": 33188,
+        "atime": 1791196066,
+        "mtime": 1791196066,
+        "ctime": 1791196066,
+        "inode": 807,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_core.sig",
+        "type": "file",
+        "size": 142,
+        "mode": 33188,
+        "atime": 1791196066,
+        "mtime": 1791196066,
+        "ctime": 1791196066,
+        "inode": 806,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "openwrt_core",
+        "type": "file",
+        "size": 10057,
+        "mode": 33188,
+        "atime": 1791196066,
+        "mtime": 1791196066,
+        "ctime": 1791196066,
+        "inode": 805,
+        "uid": 0,
+        "gid": 0
+      }
+    ]
   }
 }

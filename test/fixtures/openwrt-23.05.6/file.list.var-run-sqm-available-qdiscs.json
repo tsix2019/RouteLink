@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "data": {
+    "entries": [
+      {
+        "name": "cake",
+        "type": "file",
+        "size": 0,
+        "mode": 33188,
+        "atime": 1791195924,
+        "mtime": 1791195924,
+        "ctime": 1791195924,
+        "inode": 101,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "fq_codel",
+        "type": "file",
+        "size": 0,
+        "mode": 33188,
+        "atime": 1791195924,
+        "mtime": 1791195924,
+        "ctime": 1791195924,
+        "inode": 98,
+        "uid": 0,
+        "gid": 0
+      }
+    ]
+  }
+}

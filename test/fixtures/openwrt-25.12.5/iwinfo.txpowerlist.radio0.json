@@ -4,158 +4,99 @@
     "results": [
       {
         "dbm": 0,
-        "mw": 1,
-        "active": false
+        "mw": 1
       },
       {
         "dbm": 1,
-        "mw": 1,
-        "active": false
+        "mw": 1
       },
       {
         "dbm": 2,
-        "mw": 1,
-        "active": false
+        "mw": 1
       },
       {
         "dbm": 3,
-        "mw": 1,
-        "active": false
+        "mw": 1
       },
       {
         "dbm": 4,
-        "mw": 2,
-        "active": false
+        "mw": 2
       },
       {
         "dbm": 5,
-        "mw": 3,
-        "active": false
+        "mw": 3
       },
       {
         "dbm": 6,
-        "mw": 3,
-        "active": false
+        "mw": 3
       },
       {
         "dbm": 7,
-        "mw": 5,
-        "active": false
+        "mw": 5
       },
       {
         "dbm": 8,
-        "mw": 6,
-        "active": false
+        "mw": 6
       },
       {
         "dbm": 9,
-        "mw": 7,
-        "active": false
+        "mw": 7
       },
       {
         "dbm": 10,
-        "mw": 10,
-        "active": false
+        "mw": 10
       },
       {
         "dbm": 11,
-        "mw": 12,
-        "active": false
+        "mw": 12
       },
       {
         "dbm": 12,
-        "mw": 15,
-        "active": false
+        "mw": 15
       },
       {
         "dbm": 13,
-        "mw": 19,
-        "active": false
+        "mw": 19
       },
       {
         "dbm": 14,
-        "mw": 25,
-        "active": false
+        "mw": 25
       },
       {
         "dbm": 15,
-        "mw": 31,
-        "active": false
+        "mw": 31
       },
       {
         "dbm": 16,
-        "mw": 39,
-        "active": false
+        "mw": 39
       },
       {
         "dbm": 17,
-        "mw": 50,
-        "active": false
+        "mw": 50
       },
       {
         "dbm": 18,
-        "mw": 63,
-        "active": false
+        "mw": 63
       },
       {
         "dbm": 19,
-        "mw": 79,
-        "active": false
+        "mw": 79
       },
       {
         "dbm": 20,
-        "mw": 100,
-        "active": false
+        "mw": 100
       },
       {
         "dbm": 21,
-        "mw": 125,
-        "active": false
+        "mw": 125
       },
       {
         "dbm": 22,
-        "mw": 158,
-        "active": false
+        "mw": 158
       },
       {
         "dbm": 23,
-        "mw": 199,
-        "active": false
-      },
-      {
-        "dbm": 24,
-        "mw": 251,
-        "active": false
-      },
-      {
-        "dbm": 25,
-        "mw": 316,
-        "active": false
-      },
-      {
-        "dbm": 26,
-        "mw": 398,
-        "active": false
-      },
-      {
-        "dbm": 27,
-        "mw": 501,
-        "active": false
-      },
-      {
-        "dbm": 28,
-        "mw": 630,
-        "active": false
-      },
-      {
-        "dbm": 29,
-        "mw": 794,
-        "active": false
-      },
-      {
-        "dbm": 30,
-        "mw": 1000,
-        "active": true
+        "mw": 199
       }
     ]
   }

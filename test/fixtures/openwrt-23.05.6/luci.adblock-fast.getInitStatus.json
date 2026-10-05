@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "data": {
+    "adblock-fast": {
+      "enabled": false,
+      "status": "",
+      "running": false,
+      "version": "1.1.2-r20",
+      "errors": [],
+      "warnings": [],
+      "force_dns_active": false,
+      "entries": 0,
+      "dns": "dnsmasq.servers",
+      "outputFile": "/var/run/adblock-fast/dnsmasq.servers",
+      "outputCache": "/var/run/adblock-fast/dnsmasq.servers.cache",
+      "outputGzip": "/etc/adblock-fast.dnsmasq.servers.gz",
+      "outputFileExists": false,
+      "outputCacheExists": false,
+      "outputGzipExists": false,
+      "leds": [
+        "*"
+      ]
+    }
+  }
+}

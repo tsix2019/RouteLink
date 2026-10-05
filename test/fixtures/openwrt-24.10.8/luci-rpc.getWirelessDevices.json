@@ -24,6 +24,10 @@
             "ssid": "RouteLink",
             "encryption": "psk2",
             "key": "routelink-test",
+            "macfilter": "disable",
+            "maclist": [
+              "02:00:00:00:00:99"
+            ],
             "network": [
               "lan"
             ],

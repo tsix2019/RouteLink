@@ -1,0 +1,209 @@
+{
+  "ok": true,
+  "data": {
+    "values": {
+      "config": {
+        ".anonymous": false,
+        ".type": "adblock-fast",
+        ".name": "config",
+        ".index": 0,
+        "enabled": "0",
+        "allowed_domain": [
+          "cdn.jsdelivr.net"
+        ],
+        "allow_non_ascii": "0",
+        "canary_domains_icloud": "0",
+        "canary_domains_mozilla": "0",
+        "compressed_cache": "0",
+        "compressed_cache_dir": "/etc",
+        "config_update_enabled": "0",
+        "config_update_url": "https://cdn.jsdelivr.net/gh/openwrt/packages/net/adblock-fast/files/adblock-fast.config.update",
+        "curl_max_file_size": "30000000",
+        "curl_retry": "3",
+        "debug": "0",
+        "dns": "dnsmasq.servers",
+        "dnsmasq_instance": [
+          "*"
+        ],
+        "download_timeout": "10",
+        "force_dns": "1",
+        "force_dns_port": [
+          "53",
+          "853"
+        ],
+        "led": "none",
+        "parallel_downloads": "1",
+        "pause_timeout": "20",
+        "procd_trigger_wan6": "0",
+        "procd_boot_delay": "0",
+        "procd_boot_wan_timeout": "60",
+        "verbosity": "2"
+      },
+      "cfg02ee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg02ee77",
+        ".index": 1,
+        "name": "Hagezi - Pro",
+        "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/pro.txt",
+        "size": "12522070",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg03ee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg03ee77",
+        ".index": 2,
+        "name": "AdguardTeam - CNAME Trackers",
+        "url": "https://raw.githubusercontent.com/AdguardTeam/cname-trackers/master/data/combined_disguised_trackers_justdomains.txt",
+        "size": "6241707",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg04ee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg04ee77",
+        ".index": 3,
+        "name": "OISD - Big",
+        "url": "https://big.oisd.nl/",
+        "size": "6163363",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg05ee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg05ee77",
+        ".index": 4,
+        "name": "StevenBlack - Unified hosts",
+        "url": "https://cdn.jsdelivr.net/gh/StevenBlack/hosts/hosts",
+        "size": "4790642",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg06ee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg06ee77",
+        ".index": 5,
+        "name": "1Hosts - Lite",
+        "url": "https://o0.pages.dev/Lite/domains.txt",
+        "size": "2786010",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg07ee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg07ee77",
+        ".index": 6,
+        "name": "Bongochong - Combined Privacy Block Lists (TLD Optimized)",
+        "url": "https://cdn.jsdelivr.net/gh/bongochong/CombinedPrivacyBlockLists/NoFormatting/cpbl-ctld.txt",
+        "size": "2608152",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg08ee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg08ee77",
+        ".index": 7,
+        "name": "Kboghdady - YouTube Ads DNS",
+        "url": "https://cdn.jsdelivr.net/gh/kboghdady/youTube_ads_4_pi-hole/black.list",
+        "size": "553006",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg09ee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg09ee77",
+        ".index": 8,
+        "name": "AdguardTeam - CNAME Clickthroughs",
+        "url": "https://raw.githubusercontent.com/AdguardTeam/cname-trackers/master/data/combined_disguised_clickthroughs_justdomains.txt",
+        "size": "362170",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg0aee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg0aee77",
+        ".index": 9,
+        "name": "SomeoneWhoCares - Hosts",
+        "url": "https://someonewhocares.org/hosts/hosts",
+        "size": "347410",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg0bee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg0bee77",
+        ".index": 10,
+        "name": "WinHelp2002 MVPS - Hosts",
+        "url": "https://winhelp2002.mvps.org/hosts.txt",
+        "size": "334861",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg0cee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg0cee77",
+        ".index": 11,
+        "name": "AdAway - Hosts",
+        "url": "https://adaway.org/hosts.txt",
+        "size": "243454",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg0dee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg0dee77",
+        ".index": 12,
+        "name": "AdguardTeam - CNAME Ads",
+        "url": "https://raw.githubusercontent.com/AdguardTeam/cname-trackers/master/data/combined_disguised_ads_justdomains.txt",
+        "size": "222595",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg0eee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg0eee77",
+        ".index": 13,
+        "name": "AdguardTeam - CNAME Microsites",
+        "url": "https://raw.githubusercontent.com/AdguardTeam/cname-trackers/master/data/combined_disguised_microsites_justdomains.txt",
+        "size": "123275",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg0fee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg0fee77",
+        ".index": 14,
+        "name": "Yoyo.org - Hosts",
+        "url": "https://pgl.yoyo.org/as/serverlist.php?hostformat=hosts&showintro=1&mimetype=plaintext",
+        "size": "99588",
+        "action": "block",
+        "enabled": "0"
+      },
+      "cfg10ee77": {
+        ".anonymous": true,
+        ".type": "file_url",
+        ".name": "cfg10ee77",
+        ".index": 15,
+        "name": "Hoshsadiq - NoCoin Adblock List",
+        "url": "https://cdn.jsdelivr.net/gh/hoshsadiq/adblock-nocoin-list/hosts.txt",
+        "size": "11149",
+        "action": "block",
+        "enabled": "0"
+      }
+    }
+  }
+}

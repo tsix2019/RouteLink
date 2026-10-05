@@ -8,7 +8,7 @@
         ".name": "cfg01e48a",
         ".index": 0,
         "hostname": "OpenWrt",
-        "timezone": "GMT0",
+        "timezone": "UTC",
         "zonename": "UTC",
         "ttylogin": "0",
         "log_size": "128",

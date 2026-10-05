@@ -9,7 +9,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 51,
+        "uptime": 52,
         "l3_device": "br-lan",
         "proto": "static",
         "device": "br-lan",
@@ -30,10 +30,10 @@
         "ipv6-prefix": [],
         "ipv6-prefix-assignment": [
           {
-            "address": "fd8b:b00a:3082::",
+            "address": "fdaa:4645:e21a::",
             "mask": 60,
             "local-address": {
-              "address": "fd8b:b00a:3082::1",
+              "address": "fdaa:4645:e21a::1",
               "mask": 60
             }
           }
@@ -59,7 +59,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 144,
+        "uptime": 156,
         "l3_device": "lo",
         "proto": "static",
         "device": "lo",
@@ -99,7 +99,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 144,
+        "uptime": 156,
         "l3_device": "eth1",
         "proto": "dhcp",
         "device": "eth1",
@@ -153,10 +153,14 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 130,
+        "uptime": 142,
         "l3_device": "eth1",
         "proto": "dhcpv6",
         "device": "eth1",
+        "updated": [
+          "addresses",
+          "routes"
+        ],
         "metric": 0,
         "dns_metric": 0,
         "delegation": true,
@@ -165,8 +169,8 @@
           {
             "address": "fec0::5054:ff:fe12:3457",
             "mask": 64,
-            "preferred": 14375,
-            "valid": 86375
+            "preferred": 14248,
+            "valid": 86248
           }
         ],
         "ipv6-prefix": [],
@@ -177,7 +181,7 @@
             "mask": 64,
             "nexthop": "::",
             "metric": 256,
-            "valid": 86375,
+            "valid": 86248,
             "source": "::/0"
           },
           {
@@ -185,7 +189,7 @@
             "mask": 0,
             "nexthop": "fe80::2",
             "metric": 512,
-            "valid": 1775,
+            "valid": 1648,
             "source": "fec0::5054:ff:fe12:3457/64"
           }
         ],
@@ -209,7 +213,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 137,
+        "uptime": 149,
         "l3_device": "wg0",
         "proto": "wireguard",
         "updated": [

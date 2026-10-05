@@ -13,13 +13,13 @@
       "ip6addrs": [],
       "mac": "02:00:00:00:02:00",
       "type": 1,
-      "ifindex": 8,
+      "ifindex": 13,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 10644,
+        "tx_bytes": 12664,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 80,
+        "tx_packets": 100,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,
@@ -48,7 +48,9 @@
       "ports": [
         "eth0",
         "phy1-ap0",
+        "eth3",
         "phy2-ap0",
+        "eth2",
         "phy0-ap0"
       ],
       "id": "7fff.525400123456",
@@ -67,7 +69,7 @@
       ],
       "ip6addrs": [
         {
-          "address": "fd8b:b00a:3082::1",
+          "address": "fdaa:4645:e21a::1",
           "netmask": "ffff:ffff:ffff:fff0::"
         },
         {
@@ -77,15 +79,15 @@
       ],
       "mac": "52:54:00:12:34:56",
       "type": 1,
-      "ifindex": 11,
+      "ifindex": 23,
       "stats": {
-        "rx_bytes": 99049,
-        "tx_bytes": 646726,
+        "rx_bytes": 255991,
+        "tx_bytes": 6016402,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 902,
-        "rx_packets": 967,
-        "multicast": 1,
+        "tx_packets": 4693,
+        "rx_packets": 4748,
+        "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
         "tx_dropped": 0
@@ -136,12 +138,12 @@
       "type": 1,
       "ifindex": 3,
       "stats": {
-        "rx_bytes": 5993,
-        "tx_bytes": 7378,
+        "rx_bytes": 2536245,
+        "tx_bytes": 56971,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 68,
-        "rx_packets": 50,
+        "tx_packets": 687,
+        "rx_packets": 2065,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -177,13 +179,13 @@
       "ip6addrs": [],
       "mac": "02:00:00:00:00:00",
       "type": 1,
-      "ifindex": 12,
+      "ifindex": 24,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 936,
+        "tx_bytes": 748,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 10,
+        "tx_packets": 8,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,
@@ -206,6 +208,49 @@
         "down_count": 1
       }
     },
+    "eth2": {
+      "name": "eth2",
+      "master": "br-lan",
+      "wireless": false,
+      "up": true,
+      "mtu": 1500,
+      "qlen": 1000,
+      "devtype": "ethernet",
+      "ipaddrs": [],
+      "ip6addrs": [],
+      "mac": "52:54:00:12:34:58",
+      "type": 1,
+      "ifindex": 4,
+      "stats": {
+        "rx_bytes": 110,
+        "tx_bytes": 10338,
+        "tx_errors": 0,
+        "rx_errors": 0,
+        "tx_packets": 95,
+        "rx_packets": 1,
+        "multicast": 0,
+        "collisions": 0,
+        "rx_dropped": 0,
+        "tx_dropped": 0
+      },
+      "flags": {
+        "up": true,
+        "broadcast": true,
+        "promisc": false,
+        "loopback": false,
+        "noarp": false,
+        "multicast": true,
+        "pointtopoint": false
+      },
+      "link": {
+        "speed": -1,
+        "duplex": "unknown",
+        "carrier": true,
+        "changes": 2,
+        "up_count": 1,
+        "down_count": 1
+      }
+    },
     "hwsim0": {
       "name": "hwsim0",
       "wireless": false,
@@ -216,7 +261,7 @@
       "ipaddrs": [],
       "ip6addrs": [],
       "type": 803,
-      "ifindex": 4,
+      "ifindex": 6,
       "stats": {
         "rx_bytes": 0,
         "tx_bytes": 0,
@@ -259,12 +304,12 @@
       "type": 1,
       "ifindex": 2,
       "stats": {
-        "rx_bytes": 189862,
-        "tx_bytes": 871615,
+        "rx_bytes": 659694,
+        "tx_bytes": 11867823,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 1517,
-        "rx_packets": 1629,
+        "tx_packets": 9565,
+        "rx_packets": 9702,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -310,12 +355,12 @@
       "type": 772,
       "ifindex": 1,
       "stats": {
-        "rx_bytes": 10550,
-        "tx_bytes": 10550,
+        "rx_bytes": 45170,
+        "tx_bytes": 45170,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 131,
-        "rx_packets": 131,
+        "tx_packets": 420,
+        "rx_packets": 420,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -349,13 +394,13 @@
       "ip6addrs": [],
       "mac": "02:00:00:00:01:00",
       "type": 1,
-      "ifindex": 6,
+      "ifindex": 15,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 10752,
+        "tx_bytes": 12432,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 81,
+        "tx_packets": 98,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,
@@ -419,6 +464,49 @@
         "changes": 0,
         "up_count": 0,
         "down_count": 0
+      }
+    },
+    "eth3": {
+      "name": "eth3",
+      "master": "br-lan",
+      "wireless": false,
+      "up": true,
+      "mtu": 1500,
+      "qlen": 1000,
+      "devtype": "ethernet",
+      "ipaddrs": [],
+      "ip6addrs": [],
+      "mac": "52:54:00:12:34:59",
+      "type": 1,
+      "ifindex": 5,
+      "stats": {
+        "rx_bytes": 0,
+        "tx_bytes": 10448,
+        "tx_errors": 0,
+        "rx_errors": 0,
+        "tx_packets": 96,
+        "rx_packets": 0,
+        "multicast": 0,
+        "collisions": 0,
+        "rx_dropped": 0,
+        "tx_dropped": 0
+      },
+      "flags": {
+        "up": true,
+        "broadcast": true,
+        "promisc": false,
+        "loopback": false,
+        "noarp": false,
+        "multicast": true,
+        "pointtopoint": false
+      },
+      "link": {
+        "speed": -1,
+        "duplex": "unknown",
+        "carrier": true,
+        "changes": 2,
+        "up_count": 1,
+        "down_count": 1
       }
     }
   }

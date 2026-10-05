@@ -17,7 +17,7 @@
         ".type": "globals",
         ".name": "globals",
         ".index": 1,
-        "ula_prefix": "fda7:324a:db6a::/48"
+        "ula_prefix": "fda3:6886:8f75::/48"
       },
       "cfg030f15": {
         ".anonymous": true,
@@ -27,7 +27,9 @@
         "name": "br-lan",
         "type": "bridge",
         "ports": [
-          "eth0"
+          "eth0",
+          "eth2",
+          "eth3"
         ]
       },
       "lan": {
@@ -63,7 +65,7 @@
         ".name": "wg0",
         ".index": 6,
         "proto": "wireguard",
-        "private_key": "KL2/W+wM4pf6jAMCFu8Xy/bmoSX76or3giiALkUd/VA=",
+        "private_key": "YOjoaN5s6m1CbZ36XX00dV8cXDGFMZzMAmQByNA0yHc=",
         "listen_port": "51820",
         "addresses": [
           "10.9.0.1/24"
@@ -75,7 +77,7 @@
         ".name": "wg0_peer",
         ".index": 7,
         "description": "Test peer",
-        "public_key": "WH5QgEYeLo/ZTdsY2UuDoxUGJS7lXwB4wMOGLZ7zIw0=",
+        "public_key": "4XZXtV55IbCD5wdHx/ymsuZJBjf/XbJeUWvrYEpQlTA=",
         "allowed_ips": [
           "10.9.0.2/32"
         ]

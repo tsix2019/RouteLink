@@ -1,0 +1,6 @@
+{
+  "ok": true,
+  "data": {
+    "data": "{\n\t\"name\": \"duckdns.org\",\n\t\"ipv4\": {\n\t\t\"url\": \"http://www.duckdns.org/update?domains=[DOMAIN]&token=[PASSWORD]&ip=[IP]\",\n\t\t\"answer\": \"OK\"\n\t},\n\t\"ipv6\": {\n\t\t\"url\": \"http://www.duckdns.org/update?domains=[DOMAIN]&token=[PASSWORD]&ipv6=[IP]\",\n\t\t\"answer\": \"OK\"\n\t}\n}\n"
+  }
+}

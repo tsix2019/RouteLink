@@ -1,0 +1,7 @@
+{
+  "ok": true,
+  "data": {
+    "code": 0,
+    "stdout": "/etc/config/adblock\n/etc/config/adblock-fast\n/etc/config/attendedsysupgrade\n/etc/config/ddns\n/etc/config/dhcp\n/etc/config/dropbear\n/etc/config/etherwake\n/etc/config/firewall\n/etc/config/luci\n/etc/config/luci-wol\n/etc/config/network\n/etc/config/openvpn\n/etc/config/openvpn_recipes\n/etc/config/rpcd\n/etc/config/sqm\n/etc/config/system\n/etc/config/uhttpd\n/etc/config/wireless\n/etc/crontabs/root\n/etc/dropbear/dropbear_ed25519_host_key\n/etc/dropbear/dropbear_rsa_host_key\n/etc/group\n/etc/hosts\n/etc/inittab\n/etc/luci-uploads/.placeholder\n/etc/nftables.d/10-custom-filter-chains.nft\n/etc/nftables.d/README\n/etc/owut.d/pre-install.sh\n/etc/passwd\n/etc/profile\n/etc/profile.d/00-passwordless-root.sh\n/etc/profile.d/apk-cheatsheet.sh\n/etc/profile.d/busybox-history-file.sh\n/etc/rc.local\n/etc/shadow\n/etc/shells\n/etc/shinit\n/etc/sysctl.conf\n/etc/uhttpd.crt\n/etc/uhttpd.key\n"
+  }
+}

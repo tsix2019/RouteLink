@@ -1,32 +1,32 @@
 {
   "ok": true,
   "data": {
-    "localtime": 1791182092,
-    "uptime": 153,
+    "localtime": 1791196070,
+    "uptime": 167,
     "load": [
-      11456,
-      4416,
-      1440
+      12192,
+      6816,
+      2272
     ],
     "memory": {
       "total": 505262080,
-      "free": 408555520,
-      "shared": 389120,
-      "buffered": 8228864,
-      "available": 402870272,
-      "cached": 29560832
+      "free": 381644800,
+      "shared": 1474560,
+      "buffered": 16265216,
+      "available": 390754304,
+      "cached": 37937152
     },
     "root": {
       "total": 88645,
-      "free": 83730,
-      "used": 4915,
-      "avail": 76688
+      "free": 71717,
+      "used": 16928,
+      "avail": 64675
     },
     "tmp": {
       "total": 246708,
-      "free": 246328,
-      "used": 380,
-      "avail": 246328
+      "free": 245268,
+      "used": 1440,
+      "avail": 245268
     },
     "swap": {
       "total": 0,

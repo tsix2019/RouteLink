@@ -1,6 +1,119 @@
 {
   "ok": true,
   "data": {
-    "entries": []
+    "entries": [
+      {
+        "name": "APKINDEX.9cd7c43c.tar.gz",
+        "type": "file",
+        "size": 11687,
+        "mode": 33188,
+        "atime": 1791196046,
+        "mtime": 1791196046,
+        "ctime": 1791196046,
+        "inode": 731,
+        "uid": 0,
+        "gid": 0,
+        "user": "root",
+        "group": "root"
+      },
+      {
+        "name": "APKINDEX.eeca81cb.tar.gz",
+        "type": "file",
+        "size": 112619,
+        "mode": 33188,
+        "atime": 1791196046,
+        "mtime": 1791196046,
+        "ctime": 1791196046,
+        "inode": 730,
+        "uid": 0,
+        "gid": 0,
+        "user": "root",
+        "group": "root"
+      },
+      {
+        "name": "APKINDEX.8fc1eef3.tar.gz",
+        "type": "file",
+        "size": 11836,
+        "mode": 33188,
+        "atime": 1791196046,
+        "mtime": 1791196046,
+        "ctime": 1791196046,
+        "inode": 729,
+        "uid": 0,
+        "gid": 0,
+        "user": "root",
+        "group": "root"
+      },
+      {
+        "name": "APKINDEX.ebb84740.tar.gz",
+        "type": "file",
+        "size": 748122,
+        "mode": 33188,
+        "atime": 1791196046,
+        "mtime": 1791196046,
+        "ctime": 1791196046,
+        "inode": 728,
+        "uid": 0,
+        "gid": 0,
+        "user": "root",
+        "group": "root"
+      },
+      {
+        "name": "APKINDEX.bd150723.tar.gz",
+        "type": "file",
+        "size": 382528,
+        "mode": 33188,
+        "atime": 1791196046,
+        "mtime": 1791196046,
+        "ctime": 1791196046,
+        "inode": 727,
+        "uid": 0,
+        "gid": 0,
+        "user": "root",
+        "group": "root"
+      },
+      {
+        "name": "APKINDEX.de73b02b.tar.gz",
+        "type": "file",
+        "size": 161574,
+        "mode": 33188,
+        "atime": 1791196046,
+        "mtime": 1791196046,
+        "ctime": 1791196046,
+        "inode": 726,
+        "uid": 0,
+        "gid": 0,
+        "user": "root",
+        "group": "root"
+      },
+      {
+        "name": "APKINDEX.636f7ccd.tar.gz",
+        "type": "file",
+        "size": 110852,
+        "mode": 33188,
+        "atime": 1791196045,
+        "mtime": 1791196046,
+        "ctime": 1791196046,
+        "inode": 725,
+        "uid": 0,
+        "gid": 0,
+        "user": "root",
+        "group": "root"
+      },
+      {
+        "name": "APKINDEX.705e163f.tar.gz",
+        "type": "file",
+        "size": 14980,
+        "mode": 33188,
+        "atime": 1791196045,
+        "mtime": 1791196045,
+        "ctime": 1791196045,
+        "inode": 724,
+        "uid": 0,
+        "gid": 0,
+        "user": "root",
+        "group": "root"
+      }
+    ]
   }
 }

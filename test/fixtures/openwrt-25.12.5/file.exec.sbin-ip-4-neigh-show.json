@@ -2,6 +2,6 @@
   "ok": true,
   "data": {
     "code": 0,
-    "stdout": "192.168.1.5 dev br-lan FAILED \n192.168.1.2 dev br-lan lladdr 52:55:c0:a8:01:02 REACHABLE \n10.0.2.2 dev eth1 lladdr 52:55:0a:00:02:02 REACHABLE \n10.0.2.3 dev eth1 lladdr 52:55:0a:00:02:03 STALE \n"
+    "stdout": "10.0.2.2 dev eth1 lladdr 52:55:0a:00:02:02 REACHABLE \n192.168.1.2 dev br-lan lladdr 52:55:c0:a8:01:02 REACHABLE \n192.168.1.5 dev br-lan INCOMPLETE \n10.0.2.3 dev eth1 lladdr 52:55:0a:00:02:03 DELAY \n"
   }
 }

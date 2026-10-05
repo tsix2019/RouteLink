@@ -9,7 +9,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 39,
+        "uptime": 41,
         "l3_device": "br-lan",
         "proto": "static",
         "device": "br-lan",
@@ -30,10 +30,10 @@
         "ipv6-prefix": [],
         "ipv6-prefix-assignment": [
           {
-            "address": "fda7:324a:db6a::",
+            "address": "fda3:6886:8f75::",
             "mask": 60,
             "local-address": {
-              "address": "fda7:324a:db6a::1",
+              "address": "fda3:6886:8f75::1",
               "mask": 60
             }
           }
@@ -59,7 +59,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 133,
+        "uptime": 144,
         "l3_device": "lo",
         "proto": "static",
         "device": "lo",
@@ -99,7 +99,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 133,
+        "uptime": 144,
         "l3_device": "eth1",
         "proto": "dhcp",
         "device": "eth1",
@@ -153,7 +153,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 119,
+        "uptime": 130,
         "l3_device": "eth1",
         "proto": "dhcpv6",
         "device": "eth1",
@@ -165,8 +165,8 @@
           {
             "address": "fec0::5054:ff:fe12:3457",
             "mask": 64,
-            "preferred": 14353,
-            "valid": 86353
+            "preferred": 14354,
+            "valid": 86354
           }
         ],
         "ipv6-prefix": [],
@@ -177,7 +177,7 @@
             "mask": 64,
             "nexthop": "::",
             "metric": 256,
-            "valid": 86353,
+            "valid": 86354,
             "source": "::/0"
           },
           {
@@ -185,7 +185,7 @@
             "mask": 0,
             "nexthop": "fe80::2",
             "metric": 512,
-            "valid": 1753,
+            "valid": 1754,
             "source": "fec0::5054:ff:fe12:3457/64"
           }
         ],
@@ -209,7 +209,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 125,
+        "uptime": 136,
         "l3_device": "wg0",
         "proto": "wireguard",
         "updated": [

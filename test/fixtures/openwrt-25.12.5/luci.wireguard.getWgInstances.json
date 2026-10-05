@@ -3,13 +3,13 @@
   "data": {
     "wg0": {
       "name": "wg0",
-      "public_key": "dy702NbeOvfluHSjHgYU1Ijb5i2FvzPLo5bXYzQtdA4=",
+      "public_key": "KswlJyRQIzwjMAsrmDluZt+8g0apEZbZeNFRS5jsrD8=",
       "listen_port": "51820",
       "fwmark": "off",
       "peers": [
         {
           "name": "Test peer",
-          "public_key": "YF5zPLt+VVHJ3g7uVFK5CRsnl81YF6ZzdCRVDi7vSh4=",
+          "public_key": "8frXSlwF5rNo9GyL6EPKP39lqFW6wQ3+VIIKim2RgDk=",
           "endpoint": "(none)",
           "allowed_ips": [],
           "latest_handshake": "0",

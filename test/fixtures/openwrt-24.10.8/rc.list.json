@@ -112,6 +112,11 @@
       "enabled": true,
       "running": true
     },
+    "sqm": {
+      "start": 50,
+      "enabled": true,
+      "running": false
+    },
     "wpad": {
       "start": 19,
       "stop": 21,
@@ -120,6 +125,27 @@
     },
     "etherwake": {
       "start": 60,
+      "enabled": true
+    },
+    "openvpn": {
+      "start": 90,
+      "stop": 10,
+      "enabled": true,
+      "running": false
+    },
+    "adblock-fast": {
+      "start": 20,
+      "enabled": true,
+      "running": false
+    },
+    "adblock": {
+      "start": 30,
+      "enabled": true,
+      "running": false
+    },
+    "ddns": {
+      "start": 95,
+      "stop": 10,
       "enabled": true
     }
   }

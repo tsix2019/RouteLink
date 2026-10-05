@@ -26,7 +26,8 @@
         "localservice": "1",
         "ednspacket_max": "1232",
         "filter_aaaa": "0",
-        "filter_a": "0"
+        "filter_a": "0",
+        "confdir": "/tmp/dnsmasq.d"
       },
       "lan": {
         ".anonymous": false,
@@ -70,7 +71,7 @@
         ".name": "cfg05fe63",
         ".index": 4,
         "mac": "52:55:C0:A8:01:02",
-        "name": "rl-test-63371"
+        "name": "rl-test-37798"
       }
     }
   }

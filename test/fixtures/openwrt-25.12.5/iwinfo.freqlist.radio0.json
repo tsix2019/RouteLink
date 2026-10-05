@@ -11,8 +11,7 @@
           "no_ht40-",
           "no_80mhz",
           "no_160mhz"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 2,
@@ -23,8 +22,7 @@
           "no_ht40-",
           "no_80mhz",
           "no_160mhz"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 2,
@@ -35,8 +33,7 @@
           "no_ht40-",
           "no_80mhz",
           "no_160mhz"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 2,
@@ -47,8 +44,7 @@
           "no_ht40-",
           "no_80mhz",
           "no_160mhz"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 2,
@@ -58,8 +54,7 @@
         "flags": [
           "no_80mhz",
           "no_160mhz"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 2,
@@ -69,8 +64,7 @@
         "flags": [
           "no_80mhz",
           "no_160mhz"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 2,
@@ -80,8 +74,7 @@
         "flags": [
           "no_80mhz",
           "no_160mhz"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 2,
@@ -92,8 +85,7 @@
           "no_ht40+",
           "no_80mhz",
           "no_160mhz"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 2,
@@ -104,8 +96,7 @@
           "no_ht40+",
           "no_80mhz",
           "no_160mhz"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 2,
@@ -116,8 +107,7 @@
           "no_ht40+",
           "no_80mhz",
           "no_160mhz"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 2,
@@ -128,8 +118,7 @@
           "no_ht40+",
           "no_80mhz",
           "no_160mhz"
-        ],
-        "active": true
+        ]
       },
       {
         "band": 5,
@@ -138,56 +127,49 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
         "channel": 40,
         "mhz": 5200,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 44,
         "mhz": 5220,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 48,
         "mhz": 5240,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 52,
         "mhz": 5260,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 56,
         "mhz": 5280,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 60,
         "mhz": 5300,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
@@ -196,8 +178,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
@@ -206,80 +187,70 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
         "channel": 104,
         "mhz": 5520,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 108,
         "mhz": 5540,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 112,
         "mhz": 5560,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 116,
         "mhz": 5580,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 120,
         "mhz": 5600,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 124,
         "mhz": 5620,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 128,
         "mhz": 5640,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 132,
         "mhz": 5660,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 136,
         "mhz": 5680,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
@@ -288,8 +259,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
@@ -298,40 +268,35 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
         "channel": 153,
         "mhz": 5765,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 157,
         "mhz": 5785,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 161,
         "mhz": 5805,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
         "channel": 165,
         "mhz": 5825,
         "restricted": false,
-        "flags": [],
-        "active": false
+        "flags": []
       },
       {
         "band": 5,
@@ -341,8 +306,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
@@ -353,8 +317,7 @@
           "no_ht40-",
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
@@ -365,8 +328,7 @@
           "no_ht40-",
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
@@ -376,8 +338,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
@@ -389,8 +350,7 @@
           "no_ht40-",
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
@@ -401,8 +361,7 @@
           "no_ht40+",
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
@@ -413,8 +372,7 @@
           "no_ht40+",
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 5,
@@ -425,8 +383,7 @@
           "no_ht40+",
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -437,8 +394,7 @@
           "no_ht40-",
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -448,8 +404,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -459,8 +414,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -470,8 +424,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -481,8 +434,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -492,8 +444,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -503,8 +454,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -514,8 +464,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -525,8 +474,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -536,8 +484,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -547,8 +494,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -558,8 +504,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -569,8 +514,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -580,8 +524,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -591,8 +534,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -602,8 +544,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -613,8 +554,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -624,8 +564,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -635,8 +574,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -646,8 +584,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -657,8 +594,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -668,8 +604,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -679,8 +614,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -690,8 +624,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -701,8 +634,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -712,8 +644,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -723,8 +654,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -734,8 +664,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -745,8 +674,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -756,8 +684,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -767,8 +694,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -778,8 +704,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -789,8 +714,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -800,8 +724,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -811,8 +734,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -822,8 +744,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -833,8 +754,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -844,8 +764,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -855,8 +774,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -866,8 +784,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -877,8 +794,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -888,8 +804,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -899,8 +814,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -910,8 +824,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -921,8 +834,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -932,8 +844,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -943,8 +854,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -954,8 +864,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -965,8 +874,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -976,8 +884,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -987,8 +894,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -998,8 +904,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -1009,8 +914,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -1020,8 +924,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -1031,8 +934,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -1042,8 +944,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -1053,8 +954,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -1064,8 +964,7 @@
         "flags": [
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "band": 6,
@@ -1076,8 +975,7 @@
           "no_ht40+",
           "no_ir",
           "indoor_only"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 211,
@@ -1085,8 +983,7 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 212,
@@ -1094,8 +991,7 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 212,
@@ -1103,8 +999,7 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 212,
@@ -1112,8 +1007,7 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 212,
@@ -1121,8 +1015,7 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 212,
@@ -1130,8 +1023,7 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 212,
@@ -1139,8 +1031,7 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 212,
@@ -1148,8 +1039,7 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 212,
@@ -1157,8 +1047,7 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 212,
@@ -1166,8 +1055,7 @@
         "restricted": false,
         "flags": [
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 213,
@@ -1176,8 +1064,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 213,
@@ -1186,8 +1073,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 213,
@@ -1196,8 +1082,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 213,
@@ -1206,8 +1091,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 213,
@@ -1216,8 +1100,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 213,
@@ -1226,8 +1109,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 213,
@@ -1236,8 +1118,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 213,
@@ -1246,8 +1127,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 213,
@@ -1256,8 +1136,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 213,
@@ -1266,8 +1145,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 214,
@@ -1276,8 +1154,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 214,
@@ -1286,8 +1163,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 214,
@@ -1296,8 +1172,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 214,
@@ -1306,8 +1181,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 214,
@@ -1316,8 +1190,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 214,
@@ -1326,8 +1199,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 214,
@@ -1336,8 +1208,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 214,
@@ -1346,8 +1217,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 214,
@@ -1356,8 +1226,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 214,
@@ -1366,8 +1235,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 215,
@@ -1376,8 +1244,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 215,
@@ -1386,8 +1253,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 215,
@@ -1396,8 +1262,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 215,
@@ -1406,8 +1271,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 215,
@@ -1416,8 +1280,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 215,
@@ -1426,8 +1289,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 215,
@@ -1436,8 +1298,7 @@
         "flags": [
           "no_ht40+",
           "no_ht40-"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 215,
@@ -1445,8 +1306,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 215,
@@ -1454,8 +1314,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 216,
@@ -1463,8 +1322,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 216,
@@ -1472,8 +1330,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 216,
@@ -1481,8 +1338,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 216,
@@ -1490,8 +1346,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 216,
@@ -1499,8 +1354,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 216,
@@ -1508,8 +1362,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 216,
@@ -1517,8 +1370,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 216,
@@ -1526,8 +1378,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 216,
@@ -1535,8 +1386,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       },
       {
         "channel": 216,
@@ -1544,8 +1394,7 @@
         "restricted": false,
         "flags": [
           "no_ht40+"
-        ],
-        "active": false
+        ]
       }
     ]
   }

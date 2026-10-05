@@ -11,7 +11,8 @@
         "timezone": "UTC",
         "ttylogin": "0",
         "log_size": "64",
-        "urandom_seed": "0"
+        "urandom_seed": "0",
+        "zonename": "UTC"
       },
       "ntp": {
         ".anonymous": false,
