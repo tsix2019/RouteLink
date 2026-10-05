@@ -181,8 +181,10 @@ echo "ip neigh:"; ip neigh show 2>&1 | head -n3
 echo "openvpn init username option: $(grep -c 'config_get username' /etc/init.d/openvpn 2>/dev/null || echo 0)"
 echo "adblock ACL paths:"; grep -o '"/[^"]*adb[^"]*"' /usr/share/rpcd/acl.d/luci-app-adblock.json 2>/dev/null | sort -u
 echo "adblock LuCI reads:"; grep -oh "read_direct('[^']*')" /www/luci-static/resources/view/adblock/*.js 2>/dev/null | sort -u
-echo "adblock runtime file:"; ls -l /var/run/adb_runtime.json /tmp/adb_runtime.json 2>&1
-echo "adblock-fast rpcd:"; ls /usr/share/rpcd/ucode/luci.adblock-fast /usr/libexec/rpcd/luci.adblock-fast 2>&1
+echo "adblock runtime file:"
+ls -l /var/run/adb_runtime.json /tmp/adb_runtime.json /var/run/adblock/adblock.runtime.json 2>&1 || true
+echo "adblock-fast rpcd:"
+ls /usr/share/rpcd/ucode/luci.adblock-fast /usr/libexec/rpcd/luci.adblock-fast 2>&1 || true
 # A process for the processes page to stop; it must outlive this SSH session.
 ( trap '' HUP; exec sleep 99999 ) </dev/null >/dev/null 2>&1 &
 REMOTE

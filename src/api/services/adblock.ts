@@ -152,7 +152,8 @@ export function parseAdblockRuntime(
   return out;
 }
 
-const RUNTIME_FILES = ['/var/run/adb_runtime.json', '/tmp/adb_runtime.json'];
+/** Where adblock keeps its runtime state: 24.10, 23.05, 25.12 (each release's LuCI ACL allows its own). */
+const RUNTIME_FILES = ['/var/run/adb_runtime.json', '/tmp/adb_runtime.json', '/var/run/adblock/adblock.runtime.json'];
 
 async function readRuntime(conn: RouterConnection) {
   for (const path of RUNTIME_FILES) {
