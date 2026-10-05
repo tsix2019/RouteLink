@@ -51,6 +51,7 @@ import {
   syncRouterClock,
   timezoneChanges,
 } from '../../services/system-settings';
+import { getWireGuard, peerConnected } from '../../services/wireguard';
 import { getRadios, networkChanges, radioChanges, scan } from '../../services/wireless';
 import { stageAndApply } from '../../uci';
 import { DemoConnection } from './connection';
@@ -251,6 +252,17 @@ describe('demo router: system and network pages (M2)', () => {
     expect((await getFirewall(conn)).forwards.find((f) => f.name === 'Camera')?.enabled).toBe(false);
     await applyFirewallChanges(conn, deleteSectionChanges(camera.section), fast);
     expect((await getFirewall(conn)).forwards).toHaveLength(1);
+  });
+
+  it('WireGuard: one tunnel, one peer connected', async () => {
+    const { conn, clock } = demo();
+    const [wg0] = await getWireGuard(conn);
+    expect(wg0).toMatchObject({ name: 'wg0', listenPort: 51820 });
+    const now = Math.floor(clock.now() / 1000);
+    expect(wg0.peers.map((p) => [p.name, peerConnected(p, now)])).toEqual([
+      ['iPhone (mobile data)', true],
+      ['Office laptop', false],
+    ]);
   });
 
   it('routes: the static route is installed; new ones appear and can be deleted', async () => {

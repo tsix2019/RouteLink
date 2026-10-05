@@ -3,7 +3,7 @@ import type { UciSection } from '../../uci';
 import { adminHandlers, demoKill } from './admin';
 import { agentHandlers } from './agent';
 import { demoConntrack, demoReverseDns } from './connections';
-import { demoIpRoute } from './routing';
+import { demoIpRoute, demoWireGuard } from './routing';
 import type { DemoDevice, DemoState } from './state';
 
 type Params = Record<string, unknown>;
@@ -372,6 +372,7 @@ export const handlers: Record<string, Handler> = {
   ...adminHandlers,
   'luci.getConntrackList': (s, _p, now) => demoConntrack(s, now),
   'network.rrdns.lookup': (s, p) => demoReverseDns(s, p.addrs),
+  'luci.wireguard.getWgInstances': (s, _p, now) => demoWireGuard(s, now),
 
   'rc.list': (s) => s.services,
   'rc.init': (s, p) => {

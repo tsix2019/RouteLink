@@ -59,3 +59,39 @@ export function demoIpRoute(s: DemoState, family: 4 | 6): string {
       : [...IPV6_MAIN, ...staticLines(s, 6), ...IPV6_LOCAL];
   return `${lines.join(' \n')} \n`;
 }
+
+/** `luci.wireguard getWgInstances`: the demo's road-warrior tunnel with one phone on it right now. */
+export function demoWireGuard(s: DemoState, now: number) {
+  const t = Math.floor(now / 1000);
+  const wg = s.counters.wg0 ?? { rx: 0, tx: 0 };
+  return {
+    wg0: {
+      name: 'wg0',
+      public_key: 'nWhlfN3/0rR2NrHCVQ5Cty1AcDBV5XJ5j5Nf0Aaz9Wc=',
+      listen_port: '51820',
+      fwmark: 'off',
+      peers: [
+        {
+          name: 'iPhone (mobile data)',
+          public_key: 'GmV9qO7lc8XUb5Jbb2a1Q0a4H7mtw2C4mJx8Wn6K8Ug=',
+          endpoint: '198.51.100.7:40211',
+          allowed_ips: ['10.8.0.2/32'],
+          latest_handshake: String(t - 37 - (t % 120)),
+          transfer_rx: String(Math.round(wg.rx * 0.8)),
+          transfer_tx: String(Math.round(wg.tx * 0.8)),
+          persistent_keepalive: '25',
+        },
+        {
+          name: 'Office laptop',
+          public_key: 'x2Cq1v7d0Jc3bR1yQ6VQXr7w4k0D8Jx1m3T2tq4o2Ws=',
+          endpoint: '203.0.113.200:51820',
+          allowed_ips: ['10.8.0.3/32', '10.10.0.0/16'],
+          latest_handshake: String(t - 2 * 86_400 - 3_600),
+          transfer_rx: String(Math.round(wg.rx * 0.2)),
+          transfer_tx: String(Math.round(wg.tx * 0.2)),
+          persistent_keepalive: 'off',
+        },
+      ],
+    },
+  };
+}
