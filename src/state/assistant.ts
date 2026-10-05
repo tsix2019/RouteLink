@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { presetOf, type PresetId, type ProviderSettings } from '@/ai/presets';
+import { DEMO_ROUTER_ID } from '@/api/connection/demo/connection';
 import { DEFAULT_PRIVACY, type Privacy } from '@/ai/redact';
 import type { ChatMessage } from '@/ai/types';
 
@@ -90,12 +91,11 @@ export const useAssistant = create<AssistantState>()(
       name: 'routelink.assistant',
       version: 1,
       storage: kvStorage,
-      partialize: ({ provider, privacy, consented, conversations }) => ({
-        provider,
-        privacy,
-        consented,
-        conversations,
-      }),
+      partialize: ({ provider, privacy, consented, conversations }) => {
+        // The demo router's conversation resets with the app, like every other change in demo mode.
+        const { [DEMO_ROUTER_ID]: _demo, ...kept } = conversations;
+        return { provider, privacy, consented, conversations: kept };
+      },
       onRehydrateStorage: () => () => useAssistant.setState({ hydrated: true }),
     },
   ),
