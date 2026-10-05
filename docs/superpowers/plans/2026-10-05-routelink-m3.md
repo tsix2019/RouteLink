@@ -49,7 +49,7 @@
    - 新建对端时，可以让路由器生成密钥对（`luci.wireguard generateKeyPair`），私钥存在对端段的 `private_key` 里，和 LuCI 的做法相同，用来导出配置文件和二维码。对端的公钥由用户自己填的，没法导出。
    - 导出用的服务器地址依次取：DDNS 域名、WAN 的公网 IPv4，用户也可以改。
    - 客户端的地址自动取接口网段里下一个空闲地址（/32）。
-5. **OpenVPN 只导入客户端配置**。上传前在手机上改写 `.ovpn`：需要账号密码时，把 `auth-user-pass` 指向 `/etc/openvpn/<名称>.auth`，再把账号密码写进这个文件。启停就是改 `enabled` 后应用，procd 会按配置启停实例。状态读 `service list`。默认配置里的三个示例实例（`custom_config`、`sample_server`、`sample_client`）在没有启用时不显示。
+5. **OpenVPN 只导入客户端配置**。需要账号密码时，写进实例的 uci 选项 `username`、`password`：三个版本的 init 脚本都会把它们写成文件，并在 `--config` 之后加上 `--auth-user-pass`，覆盖 `.ovpn` 里的同名设置（T1 实测）。启停就是改 `enabled` 后应用，procd 会按配置启停实例。状态读 `service list`（23.05 没有授权，只显示是否启用）。默认配置里的三个示例实例（`custom_config`、`sample_server`、`sample_client`）在没有启用时不显示。
 6. **DDNS**：服务商列表从路由器上读，来自已装的 `/usr/share/ddns/default/*.json`。表单只做常用项：服务商、域名、账号、密码或令牌、IP 来源（WAN 接口或网页检测）、IPv6、启用。默认配置里的两个示例服务（`myddns_ipv4`、`myddns_ipv6`）在没有启用时不显示。
 7. **SQM 只做常用项**：接口（默认 WAN）、上下行（Mbit/s）、队列脚本（piece_of_cake、layer_cake、simple、simplest）、链路层（无、以太网、ADSL）和开销。是否生效，看有没有 `ifb4<接口>` 这个设备。
 8. **广告过滤**：两个包都装了时，用已启用的那个；都没启用时用 adblock-fast。
@@ -271,3 +271,4 @@
 
 | 项目 | 结论 |
 |---|---|
+| T1 QEMU 上的实测 | 三个版本一致的结论：① 往 `/proc/net/nf_conntrack` 写 IP 地址可以清掉这个地址的连接（OpenWrt 内核补丁），家长控制按 §0 第 1 条做。② `ip neigh show` 的第 5 列都是 MAC（23.05 是 busybox 版，行尾多几个字段）。③ openvpn 的 init 脚本都支持 `username`、`password`，§0 第 5 条改用它们，不再改写 `.ovpn`。④ 备份、恢复、恢复出厂、刷机、固件检查的 ACL 三个版本都有，命令行和 §1 表里一致。差异：⑤ `service list` 在 23.05 上没有授权。⑥ adblock 的 `/var/run/adb_runtime.json` 读不到：`/var/run` 是指向 `/tmp/run` 的链接，rpcd 按真实路径检查 ACL；23.05 和 25.12 的 ACL 里也没有它，T9 另找办法。⑦ 装了 M3 的包以后，`file exec` 列出已安装包的输出超过 ubus 的上限（App 本来就走 cgi-exec）；这类和录制时状态有关的样本（射频是否已启动、内存里的软件包列表）保留上一次的录制 |
