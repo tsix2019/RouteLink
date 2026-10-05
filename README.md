@@ -134,7 +134,7 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 
 ## 安装
 
-- **Android**：从 [Releases](https://github.com/tsix2019/RouteLink/releases) 下载 `RouteLink-<版本>.apk` 安装。
+- **Android**：从 [Releases](https://github.com/tsix2019/RouteLink/releases) 下载 `RouteLink-<版本>.apk` 安装。需要 Android 8.0 或更新版本、ARM 处理器（市面上的手机和平板都是）。
 - **iOS**：没有上架 App Store。Releases 里提供未签名的 `RouteLink-unsigned.ipa`，可以用 [AltStore](https://altstore.io)、[SideStore](https://sidestore.io)、Sideloadly 用自己的 Apple ID 签名安装；支持 TrollStore 的 iOS 版本也可以用 TrollStore 安装。
 
 ## 路由器要求

@@ -54,7 +54,21 @@ const config: ExpoConfig = {
     'expo-secure-store',
     'expo-sharing',
     '@react-native-community/datetimepicker',
-    ['expo-build-properties', { android: { usesCleartextTraffic: true } }],
+    [
+      'expo-build-properties',
+      {
+        android: {
+          usesCleartextTraffic: true,
+          // The APK is downloaded from GitHub Releases, so its size is what users wait for. Real
+          // phones are ARM; x86_64 emulators on Android 11+ run ARM code through translation.
+          buildArchs: ['arm64-v8a', 'armeabi-v7a'],
+          // Compressed native libraries: about a third of the download, extracted at install.
+          useLegacyPackaging: true,
+          enableMinifyInReleaseBuilds: true,
+          enableShrinkResourcesInReleaseBuilds: true,
+        },
+      },
+    ],
     './plugins/with-release-signing',
   ],
   experiments: {
