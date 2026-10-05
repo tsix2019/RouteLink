@@ -1,15 +1,20 @@
 import type { ExpoConfig } from 'expo/config';
 
+const VERSION = '0.3.0';
+/** 1.2.3 → 10203, so every release is an upgrade of the one before (v0.1.0 shipped with the default, 1). */
+const BUILD = VERSION.split('.').reduce((n, part) => n * 100 + Number(part), 0);
+
 const config: ExpoConfig = {
   name: 'RouteLink',
   slug: 'routelink',
   scheme: 'routelink',
-  version: '0.1.0',
+  version: VERSION,
   orientation: 'portrait',
   userInterfaceStyle: 'automatic',
   icon: './assets/images/icon.png',
   ios: {
     bundleIdentifier: 'io.github.tsix2019.routelink',
+    buildNumber: String(BUILD),
     icon: './assets/routelink.icon',
     supportsTablet: false,
     infoPlist: {
@@ -21,6 +26,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'io.github.tsix2019.routelink',
+    versionCode: BUILD,
     adaptiveIcon: {
       backgroundColor: '#0A5BFF',
       foregroundImage: './assets/images/android-icon-foreground.png',
