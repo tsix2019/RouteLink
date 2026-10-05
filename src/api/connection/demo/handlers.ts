@@ -2,6 +2,7 @@ import { UbusError } from '../../ubus/errors';
 import type { UciSection } from '../../uci';
 import { adminHandlers, demoKill } from './admin';
 import { agentHandlers } from './agent';
+import { demoConntrack, demoReverseDns } from './connections';
 import { demoIpRoute } from './routing';
 import type { DemoDevice, DemoState } from './state';
 
@@ -369,6 +370,8 @@ export const handlers: Record<string, Handler> = {
 
   ...agentHandlers,
   ...adminHandlers,
+  'luci.getConntrackList': (s, _p, now) => demoConntrack(s, now),
+  'network.rrdns.lookup': (s, p) => demoReverseDns(s, p.addrs),
 
   'rc.list': (s) => s.services,
   'rc.init': (s, p) => {

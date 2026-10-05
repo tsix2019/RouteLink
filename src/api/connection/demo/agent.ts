@@ -1,4 +1,5 @@
 import { UbusError } from '../../ubus/errors';
+import { hash01 } from './random';
 import type { DemoState } from './state';
 
 /**
@@ -65,17 +66,6 @@ const DAILY = [
 const SLEEPERS = new Set(['MacBook-Air', 'Desk-PC', 'ThinkPad', 'iPad']);
 /** The two devices the demo lists as offline went away this long ago. */
 const OFFLINE_FOR = 2 * HOUR + 53 * MINUTE;
-
-function hash01(...xs: number[]): number {
-  let h = 0x9e3779b9;
-  for (const x of xs) {
-    h = Math.imul(h ^ (x | 0), 0x85ebca6b);
-    h ^= h >>> 13;
-    h = Math.imul(h, 0xc2b2ae35);
-    h ^= h >>> 16;
-  }
-  return (h >>> 0) / 4294967296;
-}
 
 const localHour = (t: number) => Math.floor((t + TZ_OFFSET) / HOUR) % 24;
 const localDay = (t: number) => Math.floor((t + TZ_OFFSET) / DAY);

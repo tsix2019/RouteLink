@@ -27,6 +27,7 @@ import {
   type History,
 } from '../../services/agent';
 import { getClients } from '../../services/clients';
+import { getConnections, groupBySource, ReverseDns } from '../../services/conntrack';
 import { parseCrontab, readCrontab, writeCrontab } from '../../services/cron';
 import { getLeds, ledChanges } from '../../services/leds';
 import { kernelLog, systemLog } from '../../services/logs';
@@ -204,6 +205,17 @@ describe('demo router: system and network pages (M2)', () => {
     await syncRouterClock(conn, phone + 60);
     expect((await getTimeSettings(conn, phone)).offsetSec).toBe(60);
     await setAdminPassword(conn, 'root', 'correct horse');
+  });
+
+  it('connections: grouped by device, with names for remote addresses', async () => {
+    const { conn } = demo();
+    const groups = groupBySource(await getConnections(conn));
+    expect(groups.length).toBeGreaterThan(10);
+    expect(groups[0].address).toBe('192.168.8.106'); // the TV streaming
+    const remotes = [...new Set(groups.flatMap((g) => g.connections.map((c) => c.dst)))];
+    const names = await new ReverseDns().resolve(conn, remotes);
+    expect(names['45.57.90.1']).toContain('nflxvideo.net');
+    expect(Object.keys(names).length).toBeLessThan(remotes.length);
   });
 
   it('routes: the static route is installed; new ones appear and can be deleted', async () => {

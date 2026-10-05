@@ -23,3 +23,15 @@ export function createRandom(seed: number) {
 }
 
 export type Random = ReturnType<typeof createRandom>;
+
+/** A stable number in [0, 1) for a tuple of integers: the same inputs always give the same value. */
+export function hash01(...xs: number[]): number {
+  let h = 0x9e3779b9;
+  for (const x of xs) {
+    h = Math.imul(h ^ (x | 0), 0x85ebca6b);
+    h ^= h >>> 13;
+    h = Math.imul(h, 0xc2b2ae35);
+    h ^= h >>> 16;
+  }
+  return (h >>> 0) / 4294967296;
+}
