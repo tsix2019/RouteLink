@@ -443,6 +443,11 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
   - iOS 26 以下没有液态玻璃，改用毛玻璃。
   - Android 12 以下没有模糊效果，改用半透明。
 - **差异放在哪一层处理**：各版本之间的差异只在 `src/api/services/` 这一层处理。
+- **M1 实测到的版本差异**（详见实施计划的执行记录）：
+  - 23.05 不授权 `rc list/init`，服务管理走 LuCI 的 `luci getInitList/setInitAction`，拿不到运行状态。
+  - 23.05 没有 `/usr/libexec/syslog-wrapper`，系统日志用 `logread -e ^`。
+  - 25.12 的网络唤醒走 `luci.wol exec`（25.12.5 上这个接口有上游问题，App 退回由手机发送）。
+  - 三个版本都不允许 root 通过 ubus 执行 `uci revert`，所以每次修改都在独立会话里暂存和确认（第 11 节）。
 
 ## 15. 多语言
 

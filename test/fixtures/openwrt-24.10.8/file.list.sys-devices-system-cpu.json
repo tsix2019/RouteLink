@@ -1,0 +1,211 @@
+{
+  "ok": true,
+  "data": {
+    "entries": [
+      {
+        "name": "cpuidle",
+        "type": "directory",
+        "size": 0,
+        "mode": 16877,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 154,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "uevent",
+        "type": "file",
+        "size": 4096,
+        "mode": 33188,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 40,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "nohz_full",
+        "type": "file",
+        "size": 4096,
+        "mode": 33060,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 47,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "hotplug",
+        "type": "directory",
+        "size": 0,
+        "mode": 16877,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 3548,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "possible",
+        "type": "file",
+        "size": 4096,
+        "mode": 33060,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 42,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "offline",
+        "type": "file",
+        "size": 4096,
+        "mode": 33060,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 45,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "present",
+        "type": "file",
+        "size": 4096,
+        "mode": 33060,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 43,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "power",
+        "type": "directory",
+        "size": 0,
+        "mode": 16877,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 49,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "online",
+        "type": "file",
+        "size": 4096,
+        "mode": 33060,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 41,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "cpu1",
+        "type": "directory",
+        "size": 0,
+        "mode": 16877,
+        "atime": 1791163006,
+        "mtime": 1791163006,
+        "ctime": 1791163006,
+        "inode": 410,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "smt",
+        "type": "directory",
+        "size": 0,
+        "mode": 16877,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 3545,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "vulnerabilities",
+        "type": "directory",
+        "size": 0,
+        "mode": 16877,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 55,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "cpufreq",
+        "type": "directory",
+        "size": 0,
+        "mode": 16877,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 153,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "isolated",
+        "type": "file",
+        "size": 4096,
+        "mode": 33060,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 46,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "kernel_max",
+        "type": "file",
+        "size": 4096,
+        "mode": 33060,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 44,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "cpu0",
+        "type": "directory",
+        "size": 0,
+        "mode": 16877,
+        "atime": 1791163006,
+        "mtime": 1791163006,
+        "ctime": 1791163006,
+        "inode": 397,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "modalias",
+        "type": "file",
+        "size": 4096,
+        "mode": 33060,
+        "atime": 1791163127,
+        "mtime": 1791163127,
+        "ctime": 1791163127,
+        "inode": 48,
+        "uid": 0,
+        "gid": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "ok": true,
+  "data": {
+    "phy": "phy0",
+    "bssid": "02:00:00:00:00:00",
+    "country": "US",
+    "mode": "Master",
+    "channel": 11,
+    "center_chan1": 11,
+    "frequency": 2462,
+    "txpower": 30,
+    "quality_max": 70,
+    "noise": 0,
+    "htmodes": [
+      "HT20",
+      "HT40",
+      "VHT20",
+      "VHT40",
+      "VHT80",
+      "VHT80+80",
+      "VHT160",
+      "HE20",
+      "HE40",
+      "HE80",
+      "HE80+80",
+      "HE160",
+      "EHT20",
+      "EHT40",
+      "EHT80",
+      "EHT80+80",
+      "EHT160",
+      "EHT320"
+    ],
+    "hwmodes": [
+      "b",
+      "g",
+      "n",
+      "ac",
+      "ax",
+      "be"
+    ],
+    "hwmodes_text": "ac/ax/b/be/g/n",
+    "hwmode": "n",
+    "htmode": "HT20",
+    "hardware": {
+      "name": "Generic MAC80211"
+    }
+  }
+}

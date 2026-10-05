@@ -1,0 +1,162 @@
+{
+  "ok": true,
+  "data": {
+    "results": [
+      {
+        "dbm": 0,
+        "mw": 1,
+        "active": false
+      },
+      {
+        "dbm": 1,
+        "mw": 1,
+        "active": false
+      },
+      {
+        "dbm": 2,
+        "mw": 1,
+        "active": false
+      },
+      {
+        "dbm": 3,
+        "mw": 1,
+        "active": false
+      },
+      {
+        "dbm": 4,
+        "mw": 2,
+        "active": false
+      },
+      {
+        "dbm": 5,
+        "mw": 3,
+        "active": false
+      },
+      {
+        "dbm": 6,
+        "mw": 3,
+        "active": false
+      },
+      {
+        "dbm": 7,
+        "mw": 5,
+        "active": false
+      },
+      {
+        "dbm": 8,
+        "mw": 6,
+        "active": false
+      },
+      {
+        "dbm": 9,
+        "mw": 7,
+        "active": false
+      },
+      {
+        "dbm": 10,
+        "mw": 10,
+        "active": false
+      },
+      {
+        "dbm": 11,
+        "mw": 12,
+        "active": false
+      },
+      {
+        "dbm": 12,
+        "mw": 15,
+        "active": false
+      },
+      {
+        "dbm": 13,
+        "mw": 19,
+        "active": false
+      },
+      {
+        "dbm": 14,
+        "mw": 25,
+        "active": false
+      },
+      {
+        "dbm": 15,
+        "mw": 31,
+        "active": false
+      },
+      {
+        "dbm": 16,
+        "mw": 39,
+        "active": false
+      },
+      {
+        "dbm": 17,
+        "mw": 50,
+        "active": false
+      },
+      {
+        "dbm": 18,
+        "mw": 63,
+        "active": false
+      },
+      {
+        "dbm": 19,
+        "mw": 79,
+        "active": false
+      },
+      {
+        "dbm": 20,
+        "mw": 100,
+        "active": false
+      },
+      {
+        "dbm": 21,
+        "mw": 125,
+        "active": false
+      },
+      {
+        "dbm": 22,
+        "mw": 158,
+        "active": false
+      },
+      {
+        "dbm": 23,
+        "mw": 199,
+        "active": false
+      },
+      {
+        "dbm": 24,
+        "mw": 251,
+        "active": false
+      },
+      {
+        "dbm": 25,
+        "mw": 316,
+        "active": false
+      },
+      {
+        "dbm": 26,
+        "mw": 398,
+        "active": false
+      },
+      {
+        "dbm": 27,
+        "mw": 501,
+        "active": false
+      },
+      {
+        "dbm": 28,
+        "mw": 630,
+        "active": false
+      },
+      {
+        "dbm": 29,
+        "mw": 794,
+        "active": false
+      },
+      {
+        "dbm": 30,
+        "mw": 1000,
+        "active": true
+      }
+    ]
+  }
+}

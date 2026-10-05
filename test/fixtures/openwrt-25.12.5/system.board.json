@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "data": {
+    "kernel": "6.12.94",
+    "hostname": "OpenWrt",
+    "system": "AMD EPYC 9V74 80-Core Processor",
+    "model": "QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996)",
+    "board_name": "qemu-ubuntu-24-04-pc-v2-i440fx-piix-arch_caps-fix-1996",
+    "rootfs_type": "squashfs",
+    "release": {
+      "distribution": "OpenWrt",
+      "version": "25.12.5",
+      "firmware_url": "https://downloads.openwrt.org/",
+      "revision": "r33051-f5dae5ece4",
+      "target": "x86/64",
+      "description": "OpenWrt 25.12.5 r33051-f5dae5ece4",
+      "builddate": "1782737960"
+    }
+  }
+}

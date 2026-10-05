@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "data": {
+    "entries": [
+      {
+        "name": "cooling_device1",
+        "type": "directory",
+        "size": 0,
+        "mode": 16877,
+        "atime": 1791163018,
+        "mtime": 1791163018,
+        "ctime": 1791163018,
+        "inode": 9089,
+        "uid": 0,
+        "gid": 0
+      },
+      {
+        "name": "cooling_device0",
+        "type": "directory",
+        "size": 0,
+        "mode": 16877,
+        "atime": 1791163018,
+        "mtime": 1791163018,
+        "ctime": 1791163018,
+        "inode": 9072,
+        "uid": 0,
+        "gid": 0
+      }
+    ]
+  }
+}

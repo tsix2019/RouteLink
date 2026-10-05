@@ -1,0 +1,85 @@
+{
+  "ok": true,
+  "data": {
+    "values": {
+      "radio0": {
+        ".anonymous": false,
+        ".type": "wifi-device",
+        ".name": "radio0",
+        ".index": 0,
+        "type": "mac80211",
+        "path": "virtual/mac80211_hwsim/hwsim0",
+        "channel": "11",
+        "band": "2g",
+        "htmode": "HT20",
+        "disabled": "0",
+        "country": "US"
+      },
+      "default_radio0": {
+        ".anonymous": false,
+        ".type": "wifi-iface",
+        ".name": "default_radio0",
+        ".index": 1,
+        "device": "radio0",
+        "network": "lan",
+        "mode": "ap",
+        "ssid": "RouteLink",
+        "encryption": "psk2",
+        "disabled": "0",
+        "key": "routelink-test"
+      },
+      "radio1": {
+        ".anonymous": false,
+        ".type": "wifi-device",
+        ".name": "radio1",
+        ".index": 2,
+        "type": "mac80211",
+        "path": "virtual/mac80211_hwsim/hwsim1",
+        "channel": "36",
+        "band": "5g",
+        "htmode": "VHT80",
+        "disabled": "0",
+        "country": "US"
+      },
+      "default_radio1": {
+        ".anonymous": false,
+        ".type": "wifi-iface",
+        ".name": "default_radio1",
+        ".index": 3,
+        "device": "radio1",
+        "network": "lan",
+        "mode": "ap",
+        "ssid": "RouteLink-5G",
+        "encryption": "psk2",
+        "disabled": "0",
+        "key": "routelink-test"
+      },
+      "radio2": {
+        ".anonymous": false,
+        ".type": "wifi-device",
+        ".name": "radio2",
+        ".index": 4,
+        "type": "mac80211",
+        "path": "virtual/mac80211_hwsim/hwsim2",
+        "channel": "11",
+        "band": "2g",
+        "htmode": "HT20",
+        "disabled": "0",
+        "country": "US"
+      },
+      "default_radio2": {
+        ".anonymous": false,
+        ".type": "wifi-iface",
+        ".name": "default_radio2",
+        ".index": 5,
+        "device": "radio2",
+        "network": "lan",
+        "mode": "ap",
+        "ssid": "Neighbor-Test",
+        "encryption": "psk2",
+        "disabled": "0",
+        "key": "routelink-test"
+      }
+    }
+  }
+}

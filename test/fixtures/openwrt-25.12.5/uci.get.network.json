@@ -1,0 +1,65 @@
+{
+  "ok": true,
+  "data": {
+    "values": {
+      "loopback": {
+        ".anonymous": false,
+        ".type": "interface",
+        ".name": "loopback",
+        ".index": 0,
+        "device": "lo",
+        "proto": "static",
+        "ipaddr": [
+          "127.0.0.1/8"
+        ]
+      },
+      "globals": {
+        ".anonymous": false,
+        ".type": "globals",
+        ".name": "globals",
+        ".index": 1,
+        "dhcp_default_duid": "000415e59e72e54a4e03ba67ac710e73ebfc",
+        "ula_prefix": "fda5:b585:f6f9::/48"
+      },
+      "cfg030f15": {
+        ".anonymous": true,
+        ".type": "device",
+        ".name": "cfg030f15",
+        ".index": 2,
+        "name": "br-lan",
+        "type": "bridge",
+        "ports": [
+          "eth0"
+        ]
+      },
+      "lan": {
+        ".anonymous": false,
+        ".type": "interface",
+        ".name": "lan",
+        ".index": 3,
+        "device": "br-lan",
+        "proto": "static",
+        "ipaddr": [
+          "192.168.1.1/24"
+        ],
+        "ip6assign": "60"
+      },
+      "wan": {
+        ".anonymous": false,
+        ".type": "interface",
+        ".name": "wan",
+        ".index": 4,
+        "device": "eth1",
+        "proto": "dhcp"
+      },
+      "wan6": {
+        ".anonymous": false,
+        ".type": "interface",
+        ".name": "wan6",
+        ".index": 5,
+        "device": "eth1",
+        "proto": "dhcpv6"
+      }
+    }
+  }
+}

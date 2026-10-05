@@ -1,0 +1,7 @@
+{
+  "ok": true,
+  "data": {
+    "code": 0,
+    "stdout": "192.168.1.2 dev br-lan lladdr 52:55:c0:a8:01:02 ref 1 used 0/0/0 probes 4 REACHABLE\n10.0.2.2 dev eth1 lladdr 52:55:0a:00:02:02 ref 1 used 0/0/0 probes 1 DELAY\n10.0.2.3 dev eth1 lladdr 52:55:0a:00:02:03 used 0/0/0 probes 4 STALE\n"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "data": {
+    "path": "/usr/bin/etherwake",
+    "type": "file",
+    "size": 13507,
+    "mode": 33261,
+    "atime": 1791103546,
+    "mtime": 1791103546,
+    "ctime": 1791162986,
+    "inode": 233,
+    "uid": 0,
+    "gid": 0
+  }
+}

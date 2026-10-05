@@ -1,0 +1,1552 @@
+{
+  "ok": true,
+  "data": {
+    "results": [
+      {
+        "band": 2,
+        "channel": 1,
+        "mhz": 2412,
+        "restricted": false,
+        "flags": [
+          "no_ht40-",
+          "no_80mhz",
+          "no_160mhz"
+        ],
+        "active": false
+      },
+      {
+        "band": 2,
+        "channel": 2,
+        "mhz": 2417,
+        "restricted": false,
+        "flags": [
+          "no_ht40-",
+          "no_80mhz",
+          "no_160mhz"
+        ],
+        "active": false
+      },
+      {
+        "band": 2,
+        "channel": 3,
+        "mhz": 2422,
+        "restricted": false,
+        "flags": [
+          "no_ht40-",
+          "no_80mhz",
+          "no_160mhz"
+        ],
+        "active": false
+      },
+      {
+        "band": 2,
+        "channel": 4,
+        "mhz": 2427,
+        "restricted": false,
+        "flags": [
+          "no_ht40-",
+          "no_80mhz",
+          "no_160mhz"
+        ],
+        "active": false
+      },
+      {
+        "band": 2,
+        "channel": 5,
+        "mhz": 2432,
+        "restricted": false,
+        "flags": [
+          "no_80mhz",
+          "no_160mhz"
+        ],
+        "active": false
+      },
+      {
+        "band": 2,
+        "channel": 6,
+        "mhz": 2437,
+        "restricted": false,
+        "flags": [
+          "no_80mhz",
+          "no_160mhz"
+        ],
+        "active": false
+      },
+      {
+        "band": 2,
+        "channel": 7,
+        "mhz": 2442,
+        "restricted": false,
+        "flags": [
+          "no_80mhz",
+          "no_160mhz"
+        ],
+        "active": false
+      },
+      {
+        "band": 2,
+        "channel": 8,
+        "mhz": 2447,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_80mhz",
+          "no_160mhz"
+        ],
+        "active": false
+      },
+      {
+        "band": 2,
+        "channel": 9,
+        "mhz": 2452,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_80mhz",
+          "no_160mhz"
+        ],
+        "active": false
+      },
+      {
+        "band": 2,
+        "channel": 10,
+        "mhz": 2457,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_80mhz",
+          "no_160mhz"
+        ],
+        "active": false
+      },
+      {
+        "band": 2,
+        "channel": 11,
+        "mhz": 2462,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_80mhz",
+          "no_160mhz"
+        ],
+        "active": true
+      },
+      {
+        "band": 5,
+        "channel": 36,
+        "mhz": 5180,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 40,
+        "mhz": 5200,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 44,
+        "mhz": 5220,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 48,
+        "mhz": 5240,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 52,
+        "mhz": 5260,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 56,
+        "mhz": 5280,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 60,
+        "mhz": 5300,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 64,
+        "mhz": 5320,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 100,
+        "mhz": 5500,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 104,
+        "mhz": 5520,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 108,
+        "mhz": 5540,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 112,
+        "mhz": 5560,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 116,
+        "mhz": 5580,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 120,
+        "mhz": 5600,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 124,
+        "mhz": 5620,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 128,
+        "mhz": 5640,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 132,
+        "mhz": 5660,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 136,
+        "mhz": 5680,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 140,
+        "mhz": 5700,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 149,
+        "mhz": 5745,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 153,
+        "mhz": 5765,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 157,
+        "mhz": 5785,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 161,
+        "mhz": 5805,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 165,
+        "mhz": 5825,
+        "restricted": false,
+        "flags": [],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 169,
+        "mhz": 5845,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 171,
+        "mhz": 5855,
+        "restricted": true,
+        "flags": [
+          "no_ht40-",
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 172,
+        "mhz": 5860,
+        "restricted": true,
+        "flags": [
+          "no_ht40-",
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 173,
+        "mhz": 5865,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 174,
+        "mhz": 5870,
+        "restricted": true,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-",
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 175,
+        "mhz": 5875,
+        "restricted": true,
+        "flags": [
+          "no_ht40+",
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 176,
+        "mhz": 5880,
+        "restricted": true,
+        "flags": [
+          "no_ht40+",
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 5,
+        "channel": 177,
+        "mhz": 5885,
+        "restricted": true,
+        "flags": [
+          "no_ht40+",
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 1,
+        "mhz": 5955,
+        "restricted": true,
+        "flags": [
+          "no_ht40-",
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 5,
+        "mhz": 5975,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 9,
+        "mhz": 5995,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 13,
+        "mhz": 6015,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 17,
+        "mhz": 6035,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 21,
+        "mhz": 6055,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 25,
+        "mhz": 6075,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 29,
+        "mhz": 6095,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 33,
+        "mhz": 6115,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 37,
+        "mhz": 6135,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 41,
+        "mhz": 6155,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 45,
+        "mhz": 6175,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 49,
+        "mhz": 6195,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 53,
+        "mhz": 6215,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 57,
+        "mhz": 6235,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 61,
+        "mhz": 6255,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 65,
+        "mhz": 6275,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 69,
+        "mhz": 6295,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 73,
+        "mhz": 6315,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 77,
+        "mhz": 6335,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 81,
+        "mhz": 6355,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 85,
+        "mhz": 6375,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 89,
+        "mhz": 6395,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 93,
+        "mhz": 6415,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 97,
+        "mhz": 6435,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 101,
+        "mhz": 6455,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 105,
+        "mhz": 6475,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 109,
+        "mhz": 6495,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 113,
+        "mhz": 6515,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 117,
+        "mhz": 6535,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 121,
+        "mhz": 6555,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 125,
+        "mhz": 6575,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 129,
+        "mhz": 6595,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 133,
+        "mhz": 6615,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 137,
+        "mhz": 6635,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 141,
+        "mhz": 6655,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 145,
+        "mhz": 6675,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 149,
+        "mhz": 6695,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 153,
+        "mhz": 6715,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 157,
+        "mhz": 6735,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 161,
+        "mhz": 6755,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 165,
+        "mhz": 6775,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 169,
+        "mhz": 6795,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 173,
+        "mhz": 6815,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 177,
+        "mhz": 6835,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 181,
+        "mhz": 6855,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 185,
+        "mhz": 6875,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 189,
+        "mhz": 6895,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 193,
+        "mhz": 6915,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 197,
+        "mhz": 6935,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 201,
+        "mhz": 6955,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 205,
+        "mhz": 6975,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 209,
+        "mhz": 6995,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 213,
+        "mhz": 7015,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 217,
+        "mhz": 7035,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 221,
+        "mhz": 7055,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 225,
+        "mhz": 7075,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 229,
+        "mhz": 7095,
+        "restricted": true,
+        "flags": [
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "band": 6,
+        "channel": 233,
+        "mhz": 7115,
+        "restricted": true,
+        "flags": [
+          "no_ht40+",
+          "no_ir",
+          "indoor_only"
+        ],
+        "active": false
+      },
+      {
+        "channel": 211,
+        "mhz": 902,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 212,
+        "mhz": 903,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 212,
+        "mhz": 903,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 212,
+        "mhz": 904,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 212,
+        "mhz": 905,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 212,
+        "mhz": 905,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 212,
+        "mhz": 906,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 212,
+        "mhz": 906,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 212,
+        "mhz": 907,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 212,
+        "mhz": 907,
+        "restricted": false,
+        "flags": [
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 213,
+        "mhz": 908,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 213,
+        "mhz": 908,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 213,
+        "mhz": 909,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 213,
+        "mhz": 909,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 213,
+        "mhz": 910,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 213,
+        "mhz": 910,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 213,
+        "mhz": 911,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 213,
+        "mhz": 911,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 213,
+        "mhz": 912,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 213,
+        "mhz": 912,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 214,
+        "mhz": 913,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 214,
+        "mhz": 913,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 214,
+        "mhz": 914,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 214,
+        "mhz": 914,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 214,
+        "mhz": 915,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 214,
+        "mhz": 915,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 214,
+        "mhz": 916,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 214,
+        "mhz": 916,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 214,
+        "mhz": 917,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 214,
+        "mhz": 917,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 215,
+        "mhz": 918,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 215,
+        "mhz": 918,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 215,
+        "mhz": 919,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 215,
+        "mhz": 919,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 215,
+        "mhz": 920,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 215,
+        "mhz": 921,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 215,
+        "mhz": 921,
+        "restricted": false,
+        "flags": [
+          "no_ht40+",
+          "no_ht40-"
+        ],
+        "active": false
+      },
+      {
+        "channel": 215,
+        "mhz": 922,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "channel": 215,
+        "mhz": 922,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "channel": 216,
+        "mhz": 923,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "channel": 216,
+        "mhz": 923,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "channel": 216,
+        "mhz": 924,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "channel": 216,
+        "mhz": 924,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "channel": 216,
+        "mhz": 925,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "channel": 216,
+        "mhz": 925,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "channel": 216,
+        "mhz": 926,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "channel": 216,
+        "mhz": 926,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "channel": 216,
+        "mhz": 927,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      },
+      {
+        "channel": 216,
+        "mhz": 927,
+        "restricted": false,
+        "flags": [
+          "no_ht40+"
+        ],
+        "active": false
+      }
+    ]
+  }
+}
