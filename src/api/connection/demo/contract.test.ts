@@ -39,6 +39,7 @@ import { parseCrontab, readCrontab, writeCrontab } from '../../services/cron';
 import { getLeds, ledChanges } from '../../services/leds';
 import { kernelLog, systemLog } from '../../services/logs';
 import { getDeviceCounters, getInterfaces, pickWan, reconnectInterface } from '../../services/network';
+import { installPackages, listAvailable, listInstalled, searchPackages } from '../../services/package-list';
 import { detectPackageEnv, removePackages } from '../../services/packages';
 import { listProcesses, signalProcess } from '../../services/processes';
 import { deleteStaticRoute, getRoutes, saveStaticRoute } from '../../services/routes';
@@ -263,6 +264,24 @@ describe('demo router: system and network pages (M2)', () => {
       ['iPhone (mobile data)', true],
       ['Office laptop', false],
     ]);
+  });
+
+  it('packages: listed, searched, installed by name and removed', async () => {
+    const { conn } = demo();
+    const env = await detectPackageEnv(conn);
+    if ('unsupported' in env) throw new Error(env.unsupported);
+    const installed = await listInstalled(conn, env);
+    expect(installed.find((p) => p.name === 'luci-base')).toMatchObject({ auto: true });
+    expect(installed.some((p) => p.name === 'routelinkd')).toBe(true);
+    expect(searchPackages(await listAvailable(conn, env), 'adblock').map((p) => p.name)).toEqual([
+      'adblock',
+      'luci-app-adblock',
+    ]);
+    expect((await installPackages(conn, env, ['adblock', 'luci-app-adblock'])).ok).toBe(true);
+    expect((await listInstalled(conn, env)).some((p) => p.name === 'luci-app-adblock')).toBe(true);
+    await removePackages(conn, env, ['luci-app-adblock']);
+    expect((await listInstalled(conn, env)).some((p) => p.name === 'luci-app-adblock')).toBe(false);
+    expect((await installPackages(conn, env, ['no-such-thing'])).ok).toBe(false);
   });
 
   it('routes: the static route is installed; new ones appear and can be deleted', async () => {

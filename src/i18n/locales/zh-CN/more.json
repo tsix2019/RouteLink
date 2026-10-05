@@ -168,5 +168,35 @@
     "passwordConsequence": "LuCI 和 SSH 要用新密码登录；App 会为这台路由器保存新密码",
     "passwordDone": "密码已修改",
     "zoneDone": "时区已修改"
+  },
+  "packages": "软件包",
+  "packagesScreen": {
+    "installed": "已安装",
+    "available": "可安装",
+    "search": "搜索软件包",
+    "userOnly": "只看手动安装的",
+    "count": "{{count}} 个软件包",
+    "typeToSearch": "输入至少 2 个字符搜索软件源",
+    "noLists": "路由器启动后还没有下载过软件包列表。",
+    "update": "更新列表",
+    "updating": "正在更新列表…",
+    "updated": "列表已更新",
+    "empty": "没有找到软件包",
+    "dependency": "依赖",
+    "install": "安装",
+    "remove": "卸载",
+    "installTitle": "安装 {{name}}？",
+    "installConsequence": "路由器会从软件源下载它以及它需要的依赖",
+    "removeTitle": "卸载 {{name}}？",
+    "removeConsequence": "需要这个软件包的功能会停止工作",
+    "cutsOff": "App 通过 {{names}} 和路由器通信：卸载后 App（以及 LuCI）都连不上路由器",
+    "installed_ok": "已安装 {{name}}",
+    "removed_ok": "已卸载 {{name}}",
+    "failed": "软件包管理器报错",
+    "unsupported": {
+      "no-helper": "这台路由器没有 LuCI 的软件包管理（luci-app-package-manager 或 luci-app-opkg）。",
+      "not-openwrt": "这看起来不是 OpenWrt。",
+      "no-permission": "这个账号没有管理软件包的权限，请用 root 登录。"
+    }
   }
 }

@@ -3,7 +3,7 @@ import { UbusError } from '../../ubus/errors';
 import type { CallOptions } from '../../ubus/session';
 import { callKey, type UbusCall, type UbusResult } from '../../ubus/types';
 import type { RouterConnection } from '../types';
-import { demoPackageHelper } from './agent';
+import { demoPackageHelper } from './packages';
 import { handlers, hostapdHandler } from './handlers';
 import { createDemoState, tick, type DemoState } from './state';
 

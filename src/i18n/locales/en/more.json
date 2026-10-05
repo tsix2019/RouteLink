@@ -168,5 +168,35 @@
     "passwordConsequence": "LuCI and SSH need the new password; the app saves it for this router",
     "passwordDone": "Password changed",
     "zoneDone": "Time zone changed"
+  },
+  "packages": "Packages",
+  "packagesScreen": {
+    "installed": "Installed",
+    "available": "Available",
+    "search": "Search packages",
+    "userOnly": "Only Packages You Installed",
+    "count": "{{count}} packages",
+    "typeToSearch": "Type at least 2 letters to search the feeds",
+    "noLists": "The package lists haven't been downloaded since the router started.",
+    "update": "Update Lists",
+    "updating": "Updating lists…",
+    "updated": "Lists updated",
+    "empty": "No packages found",
+    "dependency": "Dependency",
+    "install": "Install",
+    "remove": "Remove",
+    "installTitle": "Install {{name}}?",
+    "installConsequence": "The router downloads it and what it needs from its package feeds",
+    "removeTitle": "Remove {{name}}?",
+    "removeConsequence": "Features that need this package stop working",
+    "cutsOff": "The app talks to the router through {{names}}: after removing it, the app (and LuCI) can no longer connect",
+    "installed_ok": "Installed {{name}}",
+    "removed_ok": "Removed {{name}}",
+    "failed": "The package manager reported an error",
+    "unsupported": {
+      "no-helper": "This router has no LuCI package manager (luci-app-package-manager or luci-app-opkg).",
+      "not-openwrt": "This doesn't look like OpenWrt.",
+      "no-permission": "This account isn't allowed to manage packages; sign in as root."
+    }
   }
 }

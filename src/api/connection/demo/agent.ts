@@ -462,22 +462,3 @@ export const agentHandlers: Record<string, Handler> = {
     return { ok: true };
   }),
 };
-
-/** LuCI's package helper on the demo router (24.10, opkg). Installing any package installs the plugin. */
-export function demoPackageHelper(state: DemoState, argv: string[]): string {
-  const [, action, ...args] = argv;
-  const out = (code: number, stdout = '', stderr = '') => JSON.stringify({ code, stdout, stderr });
-  switch (action) {
-    case 'update':
-      return out(0, 'Updated list of available packages in /var/opkg-lists/openwrt_base');
-    case 'install':
-      state.agent.installed = true;
-      state.agent.resetAt = 0;
-      return out(0, 'Installing routelinkd (0.1.0-r1) to root...\nConfiguring routelinkd.');
-    case 'remove':
-      if (args.includes('routelinkd')) state.agent.installed = false;
-      return out(0, args.map((a) => `Removing package ${a} from root...`).join('\n'));
-    default:
-      return out(1, '', `unsupported: ${action}`);
-  }
-}

@@ -1,6 +1,7 @@
 import type { UciSection } from '../../uci';
 import { createDemoAdmin, type DemoAdmin } from './admin';
 import { createDemoAgent, type DemoAgent } from './agent';
+import { createDemoPackages, type DemoPackages } from './packages';
 import { createRandom, type Random } from './random';
 
 export interface DemoDevice {
@@ -38,6 +39,7 @@ export interface DemoState {
   agent: DemoAgent;
   /** Processes, crontab and clock. */
   admin: DemoAdmin;
+  packages: DemoPackages;
 }
 
 /** Real vendor prefixes so the device list shows believable vendors. */
@@ -347,6 +349,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     kernel: buildKernel(),
     agent: createDemoAgent(now),
     admin: createDemoAdmin(),
+    packages: createDemoPackages(),
   };
 }
 
