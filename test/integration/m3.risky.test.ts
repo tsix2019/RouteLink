@@ -142,8 +142,21 @@ describe('M3 high risk: factory reset', () => {
   const { conn } = connect();
 
   it('comes back with OpenWrt defaults and no password', async () => {
+    const noPassword = () =>
+      new LiveConnection({
+        routerId: 'reset',
+        baseUrl: ROUTER_URL,
+        username: 'root',
+        password: '',
+        http: nodeHttpClient,
+      });
+    // The CI router has a password: an empty one is refused until the reset.
+    await expect(getSystem(noPassword())).rejects.toThrow();
     await factoryReset(conn);
-    const back = await waitForRestart(conn, 300_000);
+    // firstboot never answers, so the call only ends on its timeout, by when QEMU has often rebooted already:
+    // too quick to see it go down. The proof is the login: the old password no longer applies, an empty one does.
+    const fresh = noPassword();
+    const back = await waitFor(async () => (await getSystem(fresh)).hostname === 'OpenWrt', 300_000, 5_000);
     if (!back && SSH_PORT) {
       // Where did it end up? A reset router takes an empty SSH password.
       console.log(
@@ -153,15 +166,6 @@ describe('M3 high risk: factory reset', () => {
       );
     }
     expect(back).toBe(true);
-    // No password after a reset: the old one no longer applies, an empty one does.
-    const fresh = new LiveConnection({
-      routerId: 'reset',
-      baseUrl: ROUTER_URL,
-      username: 'root',
-      password: '',
-      http: nodeHttpClient,
-    });
-    expect(await waitFor(async () => (await getSystem(fresh)).hostname === 'OpenWrt', 120_000, 5_000)).toBe(true);
     expect(Object.values(await uci.get(fresh, 'network')).some((s) => s.proto === 'wireguard')).toBe(false);
   }, 600_000);
 });
