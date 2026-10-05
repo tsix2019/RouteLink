@@ -22,6 +22,12 @@ interface SettingsData {
   reduceTransparency: boolean;
   demoMode: boolean;
   wolList: WolEntry[];
+  /** Optional prefix for GitHub downloads when installing the router plugin. */
+  agentMirror: string;
+  /** Monthly reset day of the internet plan per router (WAN usage page). */
+  wanResetDay: Record<string, number>;
+  /** Routers whose "install the plugin" card on the overview was closed. */
+  dismissedAgentCard: string[];
 }
 
 interface SettingsState extends SettingsData {
@@ -29,6 +35,8 @@ interface SettingsState extends SettingsData {
   set(patch: Partial<SettingsData>): void;
   addWol(entry: WolEntry): void;
   removeWol(mac: string): void;
+  setWanResetDay(routerId: string, day: number | null): void;
+  dismissAgentCard(routerId: string): void;
 }
 
 export const DEFAULT_SETTINGS: SettingsData = {
@@ -38,6 +46,9 @@ export const DEFAULT_SETTINGS: SettingsData = {
   reduceTransparency: false,
   demoMode: false,
   wolList: [],
+  agentMirror: '',
+  wanResetDay: {},
+  dismissedAgentCard: [],
 };
 
 export const useSettings = create<SettingsState>()(
@@ -53,18 +64,40 @@ export const useSettings = create<SettingsState>()(
           return { wolList: [...s.wolList.filter((w) => w.mac !== mac), { name: entry.name.trim() || mac, mac }] };
         }),
       removeWol: (mac) => set((s) => ({ wolList: s.wolList.filter((w) => w.mac !== mac) })),
+      setWanResetDay: (routerId, day) =>
+        set((s) => {
+          const next = { ...s.wanResetDay };
+          if (day === null) delete next[routerId];
+          else next[routerId] = Math.min(31, Math.max(1, Math.round(day)));
+          return { wanResetDay: next };
+        }),
+      dismissAgentCard: (routerId) =>
+        set((s) => ({ dismissedAgentCard: [...new Set([...s.dismissedAgentCard, routerId])] })),
     }),
     {
       name: 'routelink.settings',
       version: 1,
       storage: kvStorage,
-      partialize: ({ language, theme, refreshIntervalSec, reduceTransparency, demoMode, wolList }) => ({
+      partialize: ({
         language,
         theme,
         refreshIntervalSec,
         reduceTransparency,
         demoMode,
         wolList,
+        agentMirror,
+        wanResetDay,
+        dismissedAgentCard,
+      }) => ({
+        language,
+        theme,
+        refreshIntervalSec,
+        reduceTransparency,
+        demoMode,
+        wolList,
+        agentMirror,
+        wanResetDay,
+        dismissedAgentCard,
       }),
       onRehydrateStorage: () => () => useSettings.setState({ hydrated: true }),
     },

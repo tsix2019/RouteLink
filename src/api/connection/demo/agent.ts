@@ -247,6 +247,8 @@ function history(ctx: Ctx, p: Record<string, unknown>) {
   if (maxPoints < 1 || maxPoints > 1000) throw invalid();
   const mask = hoursOf(p);
   const tier = tierFor(start, ctx.now);
+  // Like the plugin: hour-of-day filters need hourly data.
+  if (mask && (tier === 'day' || tier === 'month')) throw invalid();
 
   let step: number;
   let buckets: number[];
@@ -254,11 +256,13 @@ function history(ctx: Ctx, p: Record<string, unknown>) {
     step = 30 * DAY;
     buckets = monthStarts(start, end);
   } else {
+    // As the plugin does: the first bucket of the tier that holds `start`, then k tier buckets per point.
     const unit = TIER_SECONDS[tier];
-    step = unit * Math.max(1, Math.ceil((end - start) / unit / maxPoints));
     const align = tier === 'day' ? TZ_OFFSET : 0;
+    const first = Math.floor((start + align) / unit) * unit - align;
+    step = unit * Math.max(1, Math.ceil((end - first) / unit / maxPoints));
     buckets = [];
-    for (let t = Math.floor((start + align) / step) * step - align; t < end; t += step) buckets.push(t);
+    for (let t = first; t < end; t += step) buckets.push(t);
   }
   const points = buckets.map((b, k) => {
     const bEnd = tier === 'month' ? (buckets[k + 1] ?? end) : b + step;
