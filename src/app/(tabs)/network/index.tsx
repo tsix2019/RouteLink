@@ -60,6 +60,13 @@ export default function Network() {
           testID="network-routes"
         />
         <ListRow
+          title={t('network:vlan.title')}
+          icon="vlan"
+          chevron
+          onPress={() => nav.push('/network/vlan')}
+          testID="network-vlan"
+        />
+        <ListRow
           title={t('network:firewall.title')}
           icon="firewall"
           chevron
@@ -73,6 +80,8 @@ export default function Network() {
           onPress={() => nav.push('/network/connections')}
           testID="network-connections"
         />
+      </ListSection>
+      <ListSection title={t('network:services')}>
         {isAvailable(caps.data, 'network.wireguard') ? (
           <ListRow
             title={t('network:wireguard.title')}
@@ -82,6 +91,34 @@ export default function Network() {
             testID="network-wireguard"
           />
         ) : null}
+        <ListRow
+          title={t('network:openvpn.title')}
+          icon="lock"
+          chevron
+          onPress={() => nav.push('/network/openvpn')}
+          testID="network-openvpn"
+        />
+        <ListRow
+          title={t('network:ddns.title')}
+          icon="globe"
+          chevron
+          onPress={() => nav.push('/network/ddns')}
+          testID="network-ddns"
+        />
+        <ListRow
+          title={t('network:sqm.title')}
+          icon="speed"
+          chevron
+          onPress={() => nav.push('/network/sqm')}
+          testID="network-sqm"
+        />
+        <ListRow
+          title={t('network:adblock.title')}
+          icon="adblock"
+          chevron
+          onPress={() => nav.push('/network/adblock')}
+          testID="network-adblock"
+        />
       </ListSection>
       {interfaces.data ? (
         interfaces.data.length ? (

@@ -109,7 +109,7 @@ const fast = { sleep: async () => {} };
 function demo() {
   let now = 1_800_000_000_000;
   const clock = { now: () => now, advance: (ms: number) => (now += ms) };
-  return { conn: new DemoConnection(2026, clock.now), clock };
+  return { conn: new DemoConnection(2026, clock.now, 0), clock };
 }
 
 describe('demo router: read services', () => {

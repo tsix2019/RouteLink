@@ -144,6 +144,8 @@ export const CALLS: UbusCall[] = [
   access('uci', 'adblock', 'write'),
   access('uci', 'openvpn', 'write'),
   access('cgi-io', 'backup', 'read'),
+  access('uci', 'network', 'write'),
+  { object: 'file', method: 'read', params: { path: '/proc/mounts' } },
   access('file', '/etc/openvpn/routelink.ovpn', 'write'),
   access('file', '/etc/init.d/sqm enable', 'exec'),
   access('file', '/etc/init.d/adblock restart', 'exec'),
