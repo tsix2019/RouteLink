@@ -72,6 +72,19 @@ const config: ExpoConfig = {
           minSdkVersion: 26,
           // The same file in all three BouncyCastle jars (sshj).
           packagingOptions: { exclude: ['META-INF/versions/9/OSGI-INF/MANIFEST.MF'] },
+          // R8 keeps what is reached by name at run time: sshj's algorithm factories and BouncyCastle's
+          // provider classes; the rest are optional desktop dependencies.
+          extraProguardRules: [
+            '-keep class net.schmizz.sshj.** { *; }',
+            '-keep class com.hierynomus.sshj.** { *; }',
+            '-keep class org.bouncycastle.jcajce.provider.** { *; }',
+            '-keep class org.bouncycastle.jce.provider.** { *; }',
+            '-dontwarn org.bouncycastle.**',
+            '-dontwarn org.ietf.jgss.**',
+            '-dontwarn javax.naming.**',
+            '-dontwarn javax.security.auth.login.**',
+            '-dontwarn org.slf4j.**',
+          ].join('\n'),
         },
       },
     ],
