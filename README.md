@@ -23,7 +23,7 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - **演示模式**：没有路由器也能先试用，内置一台模拟的 OpenWrt 路由器。
 - **隐私**：不收集任何数据，App 只和你添加的路由器通信。
 
-> App 的前两个里程碑（M1、M2）和路由器插件的第一期（P1）已完成，后续功能见下面的功能清单。
+> App 的前三个里程碑（M1～M3）和路由器插件的第一期（P1）已完成，后续功能见下面的功能清单。
 
 ## 截图
 
@@ -61,6 +61,16 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 | 实时连接 | <img src="docs/screenshots/zh/ios-connections-dark.png" width="240"> | <img src="docs/screenshots/zh/android-connections-dark.png" width="240"> |
 | 软件包 | <img src="docs/screenshots/zh/ios-packages-light.png" width="240"> | <img src="docs/screenshots/zh/android-packages-light.png" width="240"> |
 
+**更多路由器功能**
+
+| | iOS | Android |
+|---|---|---|
+| 家长控制 | <img src="docs/screenshots/zh/ios-parental-light.png" width="240"> | <img src="docs/screenshots/zh/android-parental-light.png" width="240"> |
+| Wi-Fi 定时开关 | <img src="docs/screenshots/zh/ios-wifi-schedule-dark.png" width="240"> | <img src="docs/screenshots/zh/android-wifi-schedule-dark.png" width="240"> |
+| WireGuard | <img src="docs/screenshots/zh/ios-wireguard-dark.png" width="240"> | <img src="docs/screenshots/zh/android-wireguard-dark.png" width="240"> |
+| 广告过滤 | <img src="docs/screenshots/zh/ios-adblock-light.png" width="240"> | <img src="docs/screenshots/zh/android-adblock-light.png" width="240"> |
+| 固件升级 | <img src="docs/screenshots/zh/ios-firmware-light.png" width="240"> | <img src="docs/screenshots/zh/android-firmware-light.png" width="240"> |
+
 其余截图在 [docs/screenshots/zh](docs/screenshots/zh)。
 
 ## 功能
@@ -85,7 +95,8 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - ✅ 绑定静态 IP、拉黑（禁止上网）、踢下线
 - ✅ 网络唤醒（路由器装了 etherwake 时由路由器发送；否则 Android 手机直接发送）
 - ✅ 单台设备的流量：曲线、总量、峰值、上下线记录（需要插件）
-- 🚧 查蹭网、信任设备（P2），家长控制（M3）
+- ✅ 家长控制：按时段禁止某台设备上网（跨午夜的时段也可以），时段开始时连它正在进行的连接一起断开
+- 🚧 查蹭网、信任设备（P2）
 
 **无线**
 
@@ -94,7 +105,8 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - ✅ 扫描周边 Wi-Fi
 - ✅ 访客网络：一键创建（只能上网、访客之间隔离）、开关、二维码分享、删除；只在负责上网的路由器上提供
 - ✅ MAC 过滤：只允许或禁止列表里的设备，不会把正在用的手机挡在外面
-- 🚧 信号监测、信道扫描与优化、Wi-Fi 安全检查（P2），定时开关（M3）
+- ✅ Wi-Fi 定时开关：到点关闭、到点打开，可以只管某个射频；不改无线配置
+- 🚧 信号监测、信道扫描与优化、Wi-Fi 安全检查（P2）
 
 **网络**
 
@@ -104,7 +116,9 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - ✅ WAN 设置（DHCP、静态、PPPoE、DNS、MTU）和 LAN 设置（地址、DHCP 地址池；改地址时 App 在新地址确认，连不上会自动改回）
 - ✅ 路由表和静态路由、实时连接（路由器反查域名）、防火墙（端口转发、通信规则、区域）、WireGuard 状态
 - 🚧 一键诊断、ping/traceroute/nslookup、断网和延迟记录、测速（P3）
-- 🚧 VLAN、VPN 配置、DDNS、SQM、广告过滤（M3）
+- ✅ VLAN："端口 × VLAN"矩阵，支持新式 DSA 网桥和旧式 swconfig 交换机；高风险操作，改错了路由器会自动回滚
+- ✅ VPN：WireGuard 新建隧道和对端、导出配置文件和二维码；OpenVPN 导入 `.ovpn`、启停
+- ✅ DDNS、SQM 限速、广告过滤（adblock-fast 或 adblock）
 
 **更多**
 
@@ -114,7 +128,7 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - ✅ 管理路由器（排序、编辑、删除、证书）、语言、外观、刷新间隔、降低透明度、演示模式
 - ✅ 路由器插件：一键安装、检查更新、重启、清空数据、卸载
 - ✅ 进程（结束、重新加载）、软件包（搜索、安装、卸载）、计划任务、LED、系统（时区、同步手机时间、修改管理密码）
-- 🚧 备份与恢复、恢复出厂、固件升级（M3，均为高风险操作，需要多重确认）
+- ✅ 备份与恢复、固件升级（官方 OpenWrt 和 ImmortalWrt 可以在线升级，也可以用本地文件）、恢复出厂。这几项都是高风险操作：先提示备份，勾选并输入路由器名称才能继续，执行时全屏提示不要断电
 - 🚧 SSH 终端、AI 助手、桌面小组件、掉线通知（M4）
 - 🚧 限速和流量配额、访问去向和 DNS 记录、上下线推送、Android 实时监控（P4）
 
@@ -133,6 +147,11 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
   |---|---|
   | 由路由器发送网络唤醒包 | `luci-app-wol`（带 `etherwake`）。OpenWrt 25.12.5 上 LuCI 的唤醒接口有问题，Android 会自动改由手机发送 |
   | HTTPS 访问 | 较新的固件默认已带；旧版本安装 `luci-ssl` |
+  | WireGuard（状态、新建隧道和对端） | `luci-proto-wireguard` |
+  | OpenVPN | `openvpn-openssl`、`luci-app-openvpn` |
+  | DDNS | `ddns-scripts`、`luci-app-ddns`；部分服务商要另装脚本，比如 `ddns-scripts-cloudflare` |
+  | SQM 限速 | `sqm-scripts`、`luci-app-sqm` |
+  | 广告过滤 | `adblock-fast` 和 `luci-app-adblock-fast`，或者 `adblock` 和 `luci-app-adblock` |
 
 - **HTTPS 自签名证书**：第一次连接时，App 会显示证书指纹请你确认，确认后只信任这一张证书。之后证书如果变了，App 会拦下连接并提示（可能是重置了路由器，也可能有人冒充）。
 - **HTTP**：可以用，但密码会以明文在局域网里传输，App 会标注"未加密"。建议在路由器上开启 HTTPS。

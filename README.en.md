@@ -23,7 +23,7 @@ RouteLink is a phone app for managing OpenWrt routers, for iOS and Android, in E
 - **Demo mode**: try everything without a router, against a built-in simulated OpenWrt.
 - **Private**: no data collection; the app talks only to the routers you add.
 
-> The app's first two milestones (M1, M2) and the router plugin's first phase (P1) are complete; what comes next is in the feature list below.
+> The app's first three milestones (M1–M3) and the router plugin's first phase (P1) are complete; what comes next is in the feature list below.
 
 ## Screenshots
 
@@ -61,6 +61,16 @@ All screenshots use demo mode. The iOS ones are taken automatically by CI on an 
 | Connections | <img src="docs/screenshots/en/ios-connections-dark.png" width="240"> | <img src="docs/screenshots/en/android-connections-dark.png" width="240"> |
 | Packages | <img src="docs/screenshots/en/ios-packages-light.png" width="240"> | <img src="docs/screenshots/en/android-packages-light.png" width="240"> |
 
+**More router features**
+
+| | iOS | Android |
+|---|---|---|
+| Parental control | <img src="docs/screenshots/en/ios-parental-light.png" width="240"> | <img src="docs/screenshots/en/android-parental-light.png" width="240"> |
+| Wi-Fi schedule | <img src="docs/screenshots/en/ios-wifi-schedule-dark.png" width="240"> | <img src="docs/screenshots/en/android-wifi-schedule-dark.png" width="240"> |
+| WireGuard | <img src="docs/screenshots/en/ios-wireguard-dark.png" width="240"> | <img src="docs/screenshots/en/android-wireguard-dark.png" width="240"> |
+| Ad blocking | <img src="docs/screenshots/en/ios-adblock-light.png" width="240"> | <img src="docs/screenshots/en/android-adblock-light.png" width="240"> |
+| Firmware upgrade | <img src="docs/screenshots/en/ios-firmware-light.png" width="240"> | <img src="docs/screenshots/en/android-firmware-light.png" width="240"> |
+
 More screenshots in [docs/screenshots/en](docs/screenshots/en).
 
 ## Features
@@ -85,7 +95,8 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Reserve an IP, block internet access, disconnect from Wi-Fi
 - ✅ Wake-on-LAN (sent by the router when etherwake is installed, otherwise directly from Android phones)
 - ✅ Traffic of one device: curve, totals, peak, online/offline record (needs the plugin)
-- 🚧 Find unknown devices, trusted devices (P2), parental control (M3)
+- ✅ Parental control: block a device's internet by schedule (periods across midnight too); when a period starts, its open connections are cut as well
+- 🚧 Find unknown devices, trusted devices (P2)
 
 **Wi-Fi**
 
@@ -94,7 +105,8 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Scan nearby networks
 - ✅ Guest network: one-step setup (internet only, guests kept apart), on/off, QR code, delete; on routers that route to the internet themselves
 - ✅ MAC filter: allow or block the listed devices, without locking out the phone in use
-- 🚧 Signal monitor, channel scan and advice, Wi-Fi security check (P2), schedules (M3)
+- ✅ Wi-Fi schedule: off and on again at set times, for all radios or one; the wireless settings stay as they are
+- 🚧 Signal monitor, channel scan and advice, Wi-Fi security check (P2)
 
 **Network**
 
@@ -104,7 +116,9 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ WAN settings (DHCP, static, PPPoE, DNS, MTU) and LAN settings (address, DHCP pool; a new address is confirmed there, and undone if the app can't reach it)
 - ✅ Routing tables and static routes, live connections (names from the router's reverse DNS), firewall (port forwards, traffic rules, zones), WireGuard status
 - 🚧 One-tap diagnosis, ping/traceroute/nslookup, outage and latency records, speed test (P3)
-- 🚧 VLANs, VPN setup, DDNS, SQM, ad blocking (M3)
+- ✅ VLANs: a ports × VLANs matrix for DSA bridges and swconfig switches; high-risk, and the router rolls a bad change back by itself
+- ✅ VPN: WireGuard tunnels and peers with config files and QR codes to export; OpenVPN `.ovpn` import, start and stop
+- ✅ DDNS, SQM shaping, ad blocking (adblock-fast or adblock)
 
 **More**
 
@@ -114,7 +128,7 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Router management (order, edit, delete, certificate), language, appearance, refresh interval, reduce transparency, demo mode
 - ✅ Router plugin: one-tap install, update check, restart, clear data, remove
 - ✅ Processes (stop, reload), packages (search, install, remove), scheduled tasks, LEDs, system (time zone, set the router clock, admin password)
-- 🚧 Backup and restore, factory reset, firmware upgrade (M3 — high-risk, with multi-step confirmation)
+- ✅ Backup and restore, firmware upgrade (online for official OpenWrt and ImmortalWrt releases, or from a file), factory reset. All high-risk: a backup is offered first, a checkbox and the router's name confirm, and a full-screen page asks to keep the power on
 - 🚧 SSH terminal, AI assistant, home-screen widgets, offline alerts (M4)
 - 🚧 Rate limits and quotas, destinations and DNS log, online/offline push notifications, Android live monitor (P4)
 
@@ -133,6 +147,11 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
   |---|---|
   | Wake-on-LAN sent by the router | `luci-app-wol` (with `etherwake`). LuCI's wake helper is broken on OpenWrt 25.12.5; Android then sends the packet itself |
   | HTTPS | included in recent firmware; on older releases install `luci-ssl` |
+  | WireGuard (status, new tunnels and peers) | `luci-proto-wireguard` |
+  | OpenVPN | `openvpn-openssl`, `luci-app-openvpn` |
+  | DDNS | `ddns-scripts`, `luci-app-ddns`; some providers need their own script, e.g. `ddns-scripts-cloudflare` |
+  | SQM shaping | `sqm-scripts`, `luci-app-sqm` |
+  | Ad blocking | `adblock-fast` and `luci-app-adblock-fast`, or `adblock` and `luci-app-adblock` |
 
 - **Self-signed HTTPS certificates**: on first connection the app shows the certificate's fingerprint for you to confirm, then trusts only that certificate. If it ever changes, the app stops and tells you (a reset router — or someone impersonating it).
 - **HTTP** works, but the password crosses your network unencrypted; the app marks such routers as "Not encrypted". Turning on HTTPS is recommended.
