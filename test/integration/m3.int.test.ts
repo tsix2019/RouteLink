@@ -236,6 +236,13 @@ describe('M3: DDNS', () => {
       };
       expect(validateDdns(input, null)).toEqual({});
       await saveDdns(conn, ddnsChanges(input, state.sections));
+      // ddns-scripts first looks the name up and retries forever while it does not resolve (seen on the
+      // Docker router: BusyBox nslookup error 1, retry every 60 s); a real DDNS name exists at its provider.
+      // Point the lookup at a name that resolves, as LuCI's "lookup host" field allows.
+      await stageAndApply(conn, [uci.set('ddns', 'home_routelink_test', { lookup_host: 'localhost' })], {
+        mode: 'direct',
+      });
+      await saveDdns(conn, []);
       const updated = await waitFor(
         async () => hits.some((h) => h.includes('host=home.routelink.test')),
         120_000,

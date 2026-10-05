@@ -233,7 +233,7 @@ export async function getDdns(conn: RouterConnection): Promise<DdnsState> {
 
 /** DDNS does not touch the connection: applied directly, then the daemons restart with the new config. */
 export async function saveDdns(conn: RouterConnection, changes: UbusCall[]): Promise<void> {
-  await stageAndApply(conn, changes, { mode: 'direct' });
+  if (changes.length) await stageAndApply(conn, changes, { mode: 'direct' });
   await serviceAction(conn, 'ddns', 'enable');
   await serviceAction(conn, 'ddns', 'restart');
 }
