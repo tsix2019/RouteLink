@@ -93,7 +93,8 @@ export class LiveConnection implements RouterConnection {
 
   /** A text file through /cgi-bin/cgi-download: LuCI's own way to read files that `file read` refuses. */
   cgiRead(path: string, options: { timeoutMs?: number } = {}): Promise<string> {
-    const filename = path.slice(path.lastIndexOf('/') + 1) || 'file';
+    // Only labels the download, but cgi-io answers HTTP 400 to most punctuation in it, an underscore included.
+    const filename = (path.slice(path.lastIndexOf('/') + 1) || 'file').replace(/[^A-Za-z0-9.-]/g, '-');
     return this.cgiPost('cgi-download', { path, filename }, `cgi-download ${path}`, options.timeoutMs ?? 10_000);
   }
 

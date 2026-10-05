@@ -36,6 +36,8 @@ export interface AdblockState {
   /** adblock-fast: the first error, else the first warning. */
   message?: { code: string; info: string };
   sources: AdblockSource[];
+  /** adblock: the uci list holding the selected feeds (adb_sources up to 4.2, OpenWrt 23.05). */
+  feedOption?: 'adb_feed' | 'adb_sources';
 }
 
 export type AdblockResult = AdblockState | { package: null };
@@ -143,9 +145,10 @@ export function parseAdblockRuntime(
   };
   const out: { status: AdblockStatus; blocked: number; version?: string; lastRun?: string } = {
     status: states[String(r.adblock_status)] ?? 'unknown',
-    blocked: Number(r.blocked_domains) || 0,
+    // 4.5 groups the digits: "325 124".
+    blocked: Number(String(r.blocked_domains ?? '').replace(/\D/g, '')) || 0,
   };
-  const version = String(r.adblock_version ?? '');
+  const version = String(r.adblock_version ?? r.frontend_ver ?? '');
   const last = String(r.last_run ?? '');
   if (version && version !== '-') out.version = version;
   if (last && last !== '-') out.lastRun = last;
@@ -170,13 +173,48 @@ async function readRuntime(conn: RouterConnection) {
   return null;
 }
 
+type Catalogue = Record<string, { descr?: string }>;
+
+/**
+ * adblock 4.2 (OpenWrt 23.05) ships its catalogue gzipped; `/etc/init.d/adblock list` prints it, a line per feed:
+ * "  + adguard              x         L      general              https://…" (x: selected).
+ */
+export function parseAdblockList(text: string): Catalogue {
+  const out: Catalogue = {};
+  for (const line of text.split('\n')) {
+    const m = /^\s+\+\s(\w+)\s+(?:x\s+)?\S+\s+(\S+)/.exec(line);
+    if (m) out[m[1]] = { descr: m[2] };
+  }
+  return out;
+}
+
+/** The feed catalogue: a JSON file from 4.3 on, else the init script's list. Which one tells the uci option. */
+async function readCatalogue(
+  conn: RouterConnection,
+): Promise<{ feeds: Catalogue; option: 'adb_feed' | 'adb_sources' }> {
+  try {
+    const r = await conn.call<{ data?: string }>('file', 'read', { path: '/etc/adblock/adblock.feeds' });
+    return { feeds: JSON.parse(r.data ?? '{}') as Catalogue, option: 'adb_feed' };
+  } catch {
+    // 4.2 and older
+  }
+  try {
+    const r = await conn.call<{ stdout?: string }>('file', 'exec', {
+      command: '/etc/init.d/adblock',
+      params: ['list'],
+    });
+    return { feeds: parseAdblockList(r.stdout ?? ''), option: 'adb_sources' };
+  } catch {
+    return { feeds: {}, option: 'adb_feed' };
+  }
+}
+
 async function adblockState(conn: RouterConnection, values: Record<string, UciSection>): Promise<AdblockState> {
   const global = ofType(values, 'adblock')[0];
-  const selected = list(global?.adb_feed);
-  const catalogue = await conn
-    .call<{ data?: string }>('file', 'read', { path: '/etc/adblock/adblock.feeds' })
-    .then((r) => JSON.parse(r.data ?? '{}') as Record<string, { descr?: string }>)
-    .catch(() => ({}) as Record<string, { descr?: string }>);
+  const { feeds: catalogue, option: listed } = await readCatalogue(conn);
+  const option =
+    global?.adb_sources !== undefined ? 'adb_sources' : global?.adb_feed !== undefined ? 'adb_feed' : listed;
+  const selected = list(global?.[option]);
   const sources: AdblockSource[] = Object.entries(catalogue).map(([id, f]) => {
     const src: AdblockSource = { id, name: id, enabled: selected.includes(id) };
     if (f.descr) src.description = f.descr;
@@ -191,6 +229,7 @@ async function adblockState(conn: RouterConnection, values: Record<string, UciSe
     status: runtime?.status ?? 'unknown',
     blocked: runtime?.blocked ?? 0,
     sources,
+    feedOption: option,
   };
   if (runtime?.version) state.version = runtime.version;
   if (runtime?.lastRun) state.lastRun = runtime.lastRun;
@@ -229,7 +268,7 @@ export function sourceChanges(state: AdblockState, toggles: Record<string, boole
       .map((s) => uci.set('adblock-fast', s.id, { enabled: toggles[s.id] ? '1' : '0' }));
   }
   const feeds = state.sources.filter((s) => toggles[s.id] ?? s.enabled).map((s) => s.id);
-  return [uci.set('adblock', 'global', { adb_feed: feeds })];
+  return [uci.set('adblock', 'global', { [state.feedOption ?? 'adb_feed']: feeds })];
 }
 
 export type AdblockAction = 'on' | 'off' | 'refresh';

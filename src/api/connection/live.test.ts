@@ -144,7 +144,8 @@ describe('cgiExec', () => {
     expect([form.get('sessionid'), form.get('path'), form.get('filename')]).toEqual([
       'S1',
       '/var/run/adb_runtime.json',
-      'adb_runtime.json',
+      // cgi-io refuses an underscore in the name (HTTP 400)
+      'adb-runtime.json',
     ]);
     await expect(conn.cgiRead('/tmp/none')).rejects.toMatchObject({ code: 'NOT_FOUND' });
     await expect(conn.cgiRead('/etc/shadow')).rejects.toMatchObject({ code: 'PERMISSION_DENIED' });

@@ -5,6 +5,7 @@ import {
   chooseAdblock,
   getAdblock,
   parseAdblockFast,
+  parseAdblockList,
   parseAdblockRuntime,
   pickDefaultSource,
   sourceChanges,
@@ -142,6 +143,64 @@ describe('adblock', () => {
       },
     ]);
     expect(reads).toEqual(['/var/run/adb_runtime.json']);
+  });
+
+  it('reads 4.5 runtime files: grouped digits, a frontend version', () => {
+    expect(
+      parseAdblockRuntime('{"adblock_status":"enabled","frontend_ver":"4.5.8-r3","blocked_domains":"325 124"}'),
+    ).toEqual({ status: 'running', blocked: 325124, version: '4.5.8-r3' });
+  });
+
+  it('reads 4.2 (OpenWrt 23.05): feeds in adb_sources, the catalogue from the init script', async () => {
+    const listing = [
+      '::: Available adblock sources',
+      ':::',
+      '    Name                 Enabled   Size   Focus                Info URL',
+      '    -------------------------------------------------------------------',
+      '  + adaway               x         S      mobile               https://github.com/AdAway/adaway.github.io',
+      '  + adguard              x         L      general              https://adguard.com',
+      '  + certpl                         L      phishing             https://cert.pl',
+      '    ---------------------------------------------------------------------------',
+      '  * Configured utcapitole categories: -',
+      '  - retired',
+    ].join('\n');
+    expect(parseAdblockList(listing)).toEqual({
+      adaway: { descr: 'mobile' },
+      adguard: { descr: 'general' },
+      certpl: { descr: 'phishing' },
+    });
+
+    const values = (
+      loadFixture('openwrt-23.05.6', 'uci.get.adblock') as { data: { values: Record<string, UciSection> } }
+    ).data.values;
+    const global = { ...values.global, adb_enabled: '1', adb_sources: ['adaway', 'adguard'] };
+    const conn = new FixtureConnection('openwrt-23.05.6')
+      .override('uci.get.adblock-fast', fail('NOT_FOUND'))
+      .override('luci.adblock-fast.getInitStatus', fail('NOT_FOUND'))
+      .override('uci.get.adblock', ok({ values: { global } }))
+      .override('file.read.etc-adblock-adblock-feeds', fail('NOT_FOUND'))
+      .override('file.exec', ok({ code: 0, stdout: listing }));
+    Object.assign(conn, {
+      cgiRead: async () => '{"adblock_status":"enabled","adblock_version":"4.2.3-r1","blocked_domains":"123456"}',
+    });
+    const s = (await getAdblock(conn)) as AdblockState;
+    expect(s).toMatchObject({ package: 'adblock', feedOption: 'adb_sources', status: 'running', blocked: 123456 });
+    expect(s.sources.map((x) => [x.id, x.enabled, x.description])).toEqual([
+      ['adaway', true, 'mobile'],
+      ['adguard', true, 'general'],
+      ['certpl', false, 'phishing'],
+    ]);
+    expect(conn.calls.find((c) => c.method === 'exec')!.params).toEqual({
+      command: '/etc/init.d/adblock',
+      params: ['list'],
+    });
+    expect(sourceChanges(s, { adaway: false, certpl: true })).toEqual([
+      {
+        object: 'uci',
+        method: 'set',
+        params: { config: 'adblock', section: 'global', values: { adb_sources: ['adguard', 'certpl'] } },
+      },
+    ]);
   });
 });
 
