@@ -34,6 +34,15 @@ export default function DemoLink() {
       });
       return;
     }
+    if (target === '/device-schedule') {
+      void getClients(getDemoConnection()).then((clients) => {
+        const device = clients.find((c) => c.name === 'Nintendo-Switch') ?? clients[0];
+        router.replace(device ? `/devices/schedule?mac=${encodeURIComponent(device.mac)}` : '/devices', {
+          withAnchor: true,
+        });
+      });
+      return;
+    }
     if (target === '/traffic-live') {
       router.replace('/network/traffic?tab=live', { withAnchor: true });
       return;

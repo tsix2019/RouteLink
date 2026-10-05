@@ -10,7 +10,9 @@ PKG=io.github.tsix2019.routelink
 # name:route — the route is what routelink://demo opens (see src/features/demo/route.ts).
 PAGES=(overview devices device wireless network more traffic:network/traffic traffic-live:traffic-live
   traffic-device:traffic-device wan:network/traffic/wan agent:more/agent guest:wireless/guest
-  firewall:network/firewall connections:network/connections packages:more/packages processes:more/processes)
+  firewall:network/firewall connections:network/connections packages:more/packages processes:more/processes
+  parental:device-schedule wifi-schedule:wireless/schedule vlan:network/vlan wireguard:network/wireguard
+  adblock:network/adblock ddns:network/ddns firmware:more/firmware backup:more/backup)
 
 demo() { "${ADB[@]}" shell am broadcast -a com.android.systemui.demo -e command "$@" >/dev/null; }
 
