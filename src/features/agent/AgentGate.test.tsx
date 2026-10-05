@@ -47,7 +47,8 @@ describe('AgentGate', () => {
     await render(<AgentGate>{child}</AgentGate>);
     expect(screen.getByText('Needs the RouteLink plugin')).toBeTruthy();
     await fireEvent.press(screen.getByText('Install Plugin'));
-    expect(mockPush).toHaveBeenCalledWith('/more/agent');
+    // The plugin page is in another tab: withAnchor keeps More's root underneath for the back button.
+    expect(mockPush).toHaveBeenCalledWith('/more/agent', { withAnchor: true });
   });
 
   it('offers a restart when it is not running', async () => {
@@ -61,6 +62,8 @@ describe('AgentGate', () => {
     mockStatus = { data: { state: 'too-old', info: info({ api: 0 }) } };
     await render(<AgentGate>{child}</AgentGate>);
     expect(screen.getByText('Upgrade Plugin')).toBeTruthy();
+    await fireEvent.press(screen.getByText('Upgrade Plugin'));
+    expect(mockPush).toHaveBeenCalledWith('/more/agent', { withAnchor: true });
 
     mockStatus = { data: { state: 'too-new', info: info({ api: 9 }) } };
     await render(<AgentGate>{child}</AgentGate>);
