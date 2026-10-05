@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
+import { StyleSheet } from 'react-native';
 
 import { isAvailable } from '@/api/capabilities';
 import { pickWan } from '@/api/services/network';
@@ -23,6 +24,7 @@ import { useSnapshots } from '@/state/snapshots';
 import { GlassButton } from '@/ui/GlassButton';
 import { GlassCard } from '@/ui/GlassCard';
 import { Screen } from '@/ui/Screen';
+import { spacing } from '@/ui/theme/tokens';
 
 export default function Overview() {
   const t = useT();
@@ -74,7 +76,7 @@ export default function Overview() {
       <WanCard wan={wan} loading={!interfaces.data} />
       <ResourcesCard system={system.data} temperature={temperature.data} />
       <SystemCard system={system.data} />
-      <GlassCard title={t('overview:actions.title')} icon="bolt">
+      <GlassCard title={t('overview:actions.title')} icon="bolt" contentStyle={styles.actions}>
         {isAvailable(caps.data, 'wireless') ? (
           <GlassButton
             label={t('overview:actions.wifiQr')}
@@ -95,3 +97,7 @@ export default function Overview() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  actions: { gap: spacing.s },
+});
