@@ -31,5 +31,45 @@
     "pppoe": "PPPoE dials again, so your public IP may change",
     "done": "Reconnect requested"
   },
-  "statistics": "Statistics"
+  "statistics": "Statistics",
+  "tools": "Routing & Security",
+  "routes": {
+    "title": "Routes",
+    "static": "Static Routes",
+    "staticHint": "Routes you add here go into the router's network configuration and survive reboots.",
+    "kernel": "Routing Table",
+    "table": "Table {{table}}",
+    "showLocal": "Show Local Table",
+    "via": "via {{gateway}}",
+    "device": "dev {{device}}",
+    "metric": "metric {{metric}}",
+    "disabled": "Off",
+    "add": "Add Route",
+    "edit": "Edit Route",
+    "delete": "Delete Route",
+    "interface": "Interface",
+    "target": "Destination",
+    "targetHint": "Network with prefix, e.g. 10.10.0.0/16",
+    "gateway": "Gateway",
+    "gatewayHint": "Empty: send straight out of the interface",
+    "metricLabel": "Metric",
+    "tableLabel": "Table",
+    "optional": "Optional",
+    "empty": "No static routes",
+    "error": {
+      "interface-missing": "Choose an interface",
+      "target-invalid": "Not a network of this address family",
+      "gateway-invalid": "Not an address of this family",
+      "gateway-outside": "The gateway isn't on this interface's network",
+      "metric-invalid": "A whole number from 0",
+      "table-invalid": "Letters, digits, - and _ only"
+    },
+    "saveTitle": "Save this route?",
+    "deleteTitle": "Delete the route to {{target}}?",
+    "consequence": "A wrong route can cut off devices or this phone; the router undoes the change after 90 seconds if the app loses contact"
+  },
+  "result": {
+    "applied": "Applied",
+    "rolledBack": "The change was reverted: the router didn't get a confirmation in time"
+  }
 }

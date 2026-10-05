@@ -31,5 +31,45 @@
     "pppoe": "拨号上网会重新拨号，公网 IP 可能会变",
     "done": "已发出重连命令"
   },
-  "statistics": "统计"
+  "statistics": "统计",
+  "tools": "路由与安全",
+  "routes": {
+    "title": "路由",
+    "static": "静态路由",
+    "staticHint": "在这里添加的路由会写进路由器的网络配置，重启后仍然有效。",
+    "kernel": "路由表",
+    "table": "表 {{table}}",
+    "showLocal": "显示 local 表",
+    "via": "经 {{gateway}}",
+    "device": "接口 {{device}}",
+    "metric": "跃点 {{metric}}",
+    "disabled": "已停用",
+    "add": "添加路由",
+    "edit": "编辑路由",
+    "delete": "删除路由",
+    "interface": "接口",
+    "target": "目标网络",
+    "targetHint": "带前缀长度的网段，例如 10.10.0.0/16",
+    "gateway": "网关",
+    "gatewayHint": "留空：直接从接口发出",
+    "metricLabel": "跃点数",
+    "tableLabel": "路由表",
+    "optional": "可选",
+    "empty": "没有静态路由",
+    "error": {
+      "interface-missing": "请选择接口",
+      "target-invalid": "不是这个地址类型的网段",
+      "gateway-invalid": "不是这个地址类型的地址",
+      "gateway-outside": "网关不在这个接口的网段里",
+      "metric-invalid": "请填 0 或正整数",
+      "table-invalid": "只能用字母、数字、- 和 _"
+    },
+    "saveTitle": "保存这条路由？",
+    "deleteTitle": "删除到 {{target}} 的路由？",
+    "consequence": "路由写错可能让设备或这台手机连不上；App 和路由器失去联系时，路由器会在 90 秒后自动撤销"
+  },
+  "result": {
+    "applied": "已应用",
+    "rolledBack": "改动已撤销：路由器没有及时收到确认"
+  }
 }

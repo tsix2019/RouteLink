@@ -49,6 +49,15 @@ export default function Network() {
           testID="network-wan-history"
         />
       </ListSection>
+      <ListSection title={t('network:tools')}>
+        <ListRow
+          title={t('network:routes.title')}
+          icon="route"
+          chevron
+          onPress={() => nav.push('/network/routes')}
+          testID="network-routes"
+        />
+      </ListSection>
       {interfaces.data ? (
         interfaces.data.length ? (
           <ListSection title={t('network:interfaces')}>
