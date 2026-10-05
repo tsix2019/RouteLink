@@ -122,5 +122,25 @@
     "deleteConsequence": "这条命令以后不再运行",
     "changed": "路由器上的计划任务刚被别处改过，已重新读取，请再操作一次",
     "saved": "已保存"
+  },
+  "leds": "LED 灯",
+  "ledsScreen": {
+    "empty": "这台路由器没有可以由系统控制的 LED",
+    "on": "亮",
+    "off": "灭",
+    "mode": "亮法",
+    "trigger": {
+      "off": "常灭",
+      "on": "常亮",
+      "default-on": "常亮（默认）",
+      "heartbeat": "心跳闪烁",
+      "timer": "闪烁",
+      "netdev": "跟随网口活动",
+      "other": "{{trigger}}"
+    },
+    "device": "接口",
+    "chooseDevice": "显示哪个接口的活动",
+    "hint": "改动立即生效，重启后也保持。",
+    "saved": "已保存"
   }
 }

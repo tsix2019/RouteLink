@@ -122,5 +122,25 @@
     "deleteConsequence": "The command no longer runs",
     "changed": "The task list was changed on the router meanwhile; reloaded, please try again",
     "saved": "Saved"
+  },
+  "leds": "LEDs",
+  "ledsScreen": {
+    "empty": "This router has no LEDs the system can control",
+    "on": "On",
+    "off": "Off",
+    "mode": "Behaviour",
+    "trigger": {
+      "off": "Always Off",
+      "on": "Always On",
+      "default-on": "On (default)",
+      "heartbeat": "Heartbeat",
+      "timer": "Blink",
+      "netdev": "Network Activity",
+      "other": "{{trigger}}"
+    },
+    "device": "Interface",
+    "chooseDevice": "Show Activity Of",
+    "hint": "Changes apply right away and stay after a reboot.",
+    "saved": "Saved"
   }
 }

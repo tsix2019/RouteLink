@@ -2,9 +2,11 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Platform } from 'react-native';
 
+import { getLeds } from '@/api/services/leds';
 import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
 import { useRebootConfirm } from '@/features/routers/useRebootConfirm';
+import { useRouterQuery } from '@/hooks/router-queries';
 import { useT, type LanguagePreference } from '@/i18n';
 import { useRouters } from '@/state/routers';
 import { useSettings, type RefreshInterval, type ThemePreference } from '@/state/settings';
@@ -28,6 +30,8 @@ export default function More() {
   const reboot = useRebootConfirm();
   const [picker, setPicker] = useState<Picker>(null);
   const hasRouter = !!router;
+  // Most x86 routers have no LEDs: the row only shows when there is something to set.
+  const hasLeds = !!useRouterQuery(['leds'], getLeds).data?.length;
 
   return (
     <>
@@ -57,6 +61,15 @@ export default function More() {
             onPress={() => nav.push('/more/cron')}
             testID="more-cron"
           />
+          {hasLeds ? (
+            <ListRow
+              title={t('more:leds')}
+              icon="light"
+              chevron
+              onPress={() => nav.push('/more/leds')}
+              testID="more-leds"
+            />
+          ) : null}
           <ListRow
             title={t('more:logs')}
             icon="logs"
