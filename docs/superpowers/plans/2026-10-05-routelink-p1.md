@@ -1645,7 +1645,11 @@ export function installAgent(deps: InstallDeps, mirror?: string): Promise<Instal
 | T25 非 root 账号的 LuCI 访问 | 没有测。页面验证改用 Docker 里的无头 Chrome（`scripts/luci-screenshots.sh`）：LuCI 用 `requestAnimationFrame` 合并发送请求，浏览器面板隐藏时请求永远发不出去；完整版无头 Chrome 会拒绝访问内网地址，要用 `headless: 'shell'`。三个页面中英文都能加载，截图在 `docs/screenshots/luci/` |
 | T27 预发布的检查结果 | 没有执行：需要先把私钥存进 GitHub Secrets（`OPENWRT_USIGN_KEY`、`OPENWRT_APK_KEY`）、开启 GitHub Pages（来源选 GitHub Actions，`github-pages` 环境允许 `agent-v*` 标签），再推送标签。这几步要等你确认。工作流已经通过 actionlint 检查，`agent-manifest.ts` 有单元测试 |
 | T28 三个版本的包管理器：辅助程序、上传路径、`file write` 的 base64 和 append、依赖补装、超时、能否添加软件源 | 见下方的表 |
-| T35 新依赖和 SDK 57 的兼容性 | |
+| T29/T30 插件接口客户端与状态判断 | 用 Docker 24.10.8 加实验环境录制了 `test/fixtures/agent-24.10/`（`record-fixtures.ts --agent`）。实测两点和计划不同：① 没装插件时，rpcd 里没有任何 ACL 授权 `routelink` 对象，调用直接被拒（PERMISSION_DENIED），不是"找不到"，所以"没装"和"没权限"要靠 `/usr/sbin/routelinkd` 是否存在来区分；② 守护进程停止时，uhttpd 返回 JSON-RPC -32000（Object not found），原来被当成未知错误，现在统一映射为 NOT_FOUND。另外确认：插件装好、rpcd 重载后，已经登录的会话不用重新登录就能访问新的 ACL |
+| T33 一键安装 | 在 Docker 24.10.8 上用 App 的状态机走完整流程：卸载 → 识别为没装 → 上传 3 个包 → 通过 cgi-exec 安装 → 确认运行，全程约 1 秒。cgi-exec 在会话过期时返回 403"Exec permission denied"，被 ACL 拒绝时返回 403"Access to command denied by ACL"，App 只对前者重新登录一次。非 root 账号连 `file stat` 都没有权限，原来被误判成"没有 LuCI 软件包管理页"，改为提示"需要 root 账号"。QEMU 上录制的 23.05.6、24.10.8、25.12.5 样本验证了三种包管理器的识别（`versions.test.ts`） |
+| T34 演示模式 | 用确定性的模型代替存储：每台设备每小时一个速率（每天的作息曲线乘以按种子生成的系数），小时内再叠加一个整周期的正弦波，所以一小时内各分钟之和不变。任意时间段都能算出稳定的结果，汇总和曲线之和只差取整误差。演示路由器上可以卸载插件再一键安装，整个流程约 6 秒 |
+| T35 新依赖和 SDK 57 的兼容性 | 用 `npx expo install` 安装 expo-file-system、expo-sharing、expo-crypto、@react-native-community/datetimepicker 9.1.0，expo-doctor 21 项检查全部通过。下载安装包改用 `expo/fetch` 读取字节，不经过文件系统；文件系统只用于导出 CSV。发现一个 M1 遗留问题：Hermes 的 `toLocaleString(locale)` 只按手机系统语言格式化，中文界面在英文系统的手机上会显示"Oct 5"，改为 App 自己按中英文格式化日期（`utils/dates`）。本机编译时空闲内存只有约 2 GB，16 个线程并行编译 C++ 会内存不足，改为先关模拟器，再用 `--max-workers=2` 编译 |
+| T36～T43 界面 | 在模拟器上用演示路由器和 Docker 路由器逐页走查。插件的月层只用于两年前的数据，所以 WAN 口历史改为在手机上把小时数据按天汇总、把天数据按月汇总；"每天时段"筛选只对小时数据（90 天）有效，更早的时间段自动去掉这个筛选并提示；实时页在实验环境 2 MB/s 下载时显示 17.1 Mbps，和实际一致；插件清单还没发布时，安装失败并提示"下载失败" |
 | T45 真实路由器的联调结果 | |
 
 **T28 实测结果**（`scripts/pm-check.mjs`、`scripts/pm-cgi-exec.mjs`，root 会话，经由 HTTP）
