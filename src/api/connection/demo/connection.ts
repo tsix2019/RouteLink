@@ -50,7 +50,8 @@ export class DemoConnection implements RouterConnection {
   async cgiExec(argv: string[]): Promise<string> {
     if (this.cgiLatencyMs) await new Promise((resolve) => setTimeout(resolve, this.cgiLatencyMs));
     this.checkReboot(this.clock());
-    if (argv[0] !== '/usr/libexec/package-manager-call') throw new UbusError('PERMISSION_DENIED', `cgi-exec ${argv[0]}`);
+    if (argv[0] !== '/usr/libexec/package-manager-call')
+      throw new UbusError('PERMISSION_DENIED', `cgi-exec ${argv[0]}`);
     return demoPackageHelper(this.state, argv);
   }
 

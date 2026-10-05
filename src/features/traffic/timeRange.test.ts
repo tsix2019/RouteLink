@@ -1,6 +1,14 @@
 import { initI18n, i18n } from '@/i18n';
 
-import { hoursMask, parseRange, rangeLabel, resolveRange, serializeRange, validateCustom, type TimeRange } from './timeRange';
+import {
+  hoursMask,
+  parseRange,
+  rangeLabel,
+  resolveRange,
+  serializeRange,
+  validateCustom,
+  type TimeRange,
+} from './timeRange';
 
 jest.mock('expo-localization', () => ({ getLocales: () => [{ languageCode: 'en' }] }));
 
@@ -49,7 +57,11 @@ describe('resolveRange', () => {
   });
 
   it('cuts custom ranges at now', () => {
-    const r: TimeRange = { kind: 'custom', start: sec('2026-10-05T08:00:00+08:00'), end: sec('2026-10-06T08:00:00+08:00') };
+    const r: TimeRange = {
+      kind: 'custom',
+      start: sec('2026-10-05T08:00:00+08:00'),
+      end: sec('2026-10-06T08:00:00+08:00'),
+    };
     expect(resolveRange(r, now)).toEqual({ start: r.start, end: sec('2026-10-05T13:47:20+08:00') });
   });
 });

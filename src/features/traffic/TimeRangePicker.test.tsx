@@ -42,7 +42,11 @@ describe('CustomRangeSheet', () => {
 
   it('accepts a valid range', async () => {
     const onDone = jest.fn();
-    const initial: TimeRange = { kind: 'custom', start: sec('2026-10-01T08:00:00+08:00'), end: sec('2026-10-03T08:00:00+08:00') };
+    const initial: TimeRange = {
+      kind: 'custom',
+      start: sec('2026-10-01T08:00:00+08:00'),
+      end: sec('2026-10-03T08:00:00+08:00'),
+    };
     await render(<CustomRangeSheet initial={initial} now={now} onCancel={jest.fn()} onDone={onDone} />);
     await fireEvent.press(screen.getByTestId('custom-done'));
     expect(onDone).toHaveBeenCalledWith({ ...initial, hours: undefined });
@@ -50,7 +54,11 @@ describe('CustomRangeSheet', () => {
 
   it('disables Done when the end is before the start', async () => {
     const onDone = jest.fn();
-    const initial: TimeRange = { kind: 'custom', start: sec('2026-10-03T08:00:00+08:00'), end: sec('2026-10-01T08:00:00+08:00') };
+    const initial: TimeRange = {
+      kind: 'custom',
+      start: sec('2026-10-03T08:00:00+08:00'),
+      end: sec('2026-10-01T08:00:00+08:00'),
+    };
     await render(<CustomRangeSheet initial={initial} now={now} onCancel={jest.fn()} onDone={onDone} />);
     expect(screen.getByTestId('custom-error')).toHaveTextContent('The end must be after the start.');
     await fireEvent.press(screen.getByTestId('custom-done'));
@@ -59,7 +67,11 @@ describe('CustomRangeSheet', () => {
 
   it('adds an hour window with the toggle', async () => {
     const onDone = jest.fn();
-    const initial: TimeRange = { kind: 'custom', start: sec('2026-10-01T08:00:00+08:00'), end: sec('2026-10-03T08:00:00+08:00') };
+    const initial: TimeRange = {
+      kind: 'custom',
+      start: sec('2026-10-01T08:00:00+08:00'),
+      end: sec('2026-10-03T08:00:00+08:00'),
+    };
     await render(<CustomRangeSheet initial={initial} now={now} onCancel={jest.fn()} onDone={onDone} />);
     await fireEvent(screen.getByLabelText('Only some hours of each day'), 'valueChange', true);
     await fireEvent.press(screen.getByLabelText('From 21:00'));

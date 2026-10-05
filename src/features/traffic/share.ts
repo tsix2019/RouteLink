@@ -10,9 +10,6 @@ export async function shareCsv(fileName: string, content: string, dialogTitle: s
   await Sharing.shareAsync(file.uri, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text', dialogTitle });
 }
 
-/** The phone's IANA time zone, for CSV timestamps. */
-export const phoneTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-
 /** "routelink-traffic-2026-10-05.csv" (the range's start, in the phone's time zone). */
 export function csvFileName(kind: 'devices' | 'curve', start: number): string {
   const d = new Date(start * 1000);

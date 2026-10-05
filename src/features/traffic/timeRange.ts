@@ -1,4 +1,5 @@
 import type { AppLanguage, AppT } from '@/i18n';
+import { formatClock, formatDayTime } from '@/utils/dates';
 
 export type PresetId = 'lastHour' | 'today' | 'yesterday' | 'last7d' | 'thisMonth' | 'lastMonth' | 'last30d';
 export const PRESETS: readonly PresetId[] = [
@@ -91,17 +92,13 @@ export function parseRange(s: string | undefined): TimeRange | null {
   return c && +c[1] < +c[2] ? { kind: 'custom', start: +c[1], end: +c[2], hours } : null;
 }
 
-const clock = { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' } as const;
-
 /** "Oct 5, 00:00 – 13:47 · daily 20:00–23:00" / "10月5日 00:00 – 13:47 · 每天 20–23 点". */
 export function rangeLabel(t: AppT, r: TimeRange, lang: AppLanguage, now = new Date()): string {
   const { start, end } = resolveRange(r, now);
   const a = new Date(start * 1000);
   const b = new Date(end * 1000);
-  const withYear = a.getFullYear() !== now.getFullYear() || b.getFullYear() !== now.getFullYear();
-  const dated: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', ...clock };
-  if (withYear) dated.year = 'numeric';
+  const year = a.getFullYear() !== now.getFullYear() || b.getFullYear() !== now.getFullYear();
   const sameDay = a.toDateString() === b.toDateString();
-  const text = `${a.toLocaleString(lang, dated)} – ${b.toLocaleString(lang, sameDay ? clock : dated)}`;
+  const text = `${formatDayTime(start, lang, { year })} – ${sameDay ? formatClock(end) : formatDayTime(end, lang, { year })}`;
   return r.hours ? `${text} · ${t('traffic:range.hours', { from: r.hours.from, to: r.hours.to })}` : text;
 }

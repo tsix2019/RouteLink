@@ -28,6 +28,7 @@ import { TextField } from '@/ui/TextField';
 import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
 import { formatBytes } from '@/utils/format';
+import { formatDayTime } from '@/utils/dates';
 
 /** README section with manual installation (download, or add the signed feed). */
 export const MANUAL_URL = {
@@ -129,14 +130,7 @@ function AgentContent({ status }: { status: AgentStatus }) {
     nav.push('/more/agent/install');
   };
 
-  const fmt = (sec: number) =>
-    new Date(sec * 1000).toLocaleString(lang, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23',
-    });
+  const fmt = (sec: number) => formatDayTime(sec, lang);
 
   return (
     <>

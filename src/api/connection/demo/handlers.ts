@@ -138,7 +138,12 @@ export const handlers: Record<string, Handler> = {
     p.path === '/sys/devices/system/cpu'
       ? { entries: ['cpu0', 'cpu1', 'cpu2', 'cpu3', 'cpufreq'].map((name) => ({ name, type: 'directory' })) }
       : p.path === '/var/opkg-lists'
-        ? { entries: ['openwrt_base', 'openwrt_core', 'openwrt_luci', 'openwrt_packages'].map((name) => ({ name, type: 'file' })) }
+        ? {
+            entries: ['openwrt_base', 'openwrt_core', 'openwrt_luci', 'openwrt_packages'].map((name) => ({
+              name,
+              type: 'file',
+            })),
+          }
         : { entries: [] },
   'file.read': (_s, p) =>
     p.path === '/etc/opkg/distfeeds.conf'

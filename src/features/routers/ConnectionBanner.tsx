@@ -9,6 +9,7 @@ import { useRouters } from '@/state/routers';
 import { describeError } from '@/ui/errorText';
 import { Banner } from '@/ui/Feedback';
 import { PromptSheet } from '@/ui/PromptSheet';
+import { formatClock } from '@/utils/dates';
 
 import { useActiveRouter } from './ActiveRouterProvider';
 
@@ -82,7 +83,9 @@ export function ConnectionBanner({
   }
   const title =
     kind === 'offline' && router ? t('errors:offlineNamed', { name: router.name }) : describeError(t, error).title;
-  const stale = updatedAt ? ` · ${t('lastUpdated', { time: new Date(updatedAt).toLocaleTimeString() })}` : '';
+  const stale = updatedAt
+    ? ` · ${t('lastUpdated', { time: formatClock(Math.floor(updatedAt / 1000), { seconds: true }) })}`
+    : '';
   return (
     <Banner
       tone="error"

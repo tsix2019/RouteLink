@@ -103,7 +103,13 @@ describe('plugin client on recorded responses', () => {
 
 describe('parsing odd responses', () => {
   it('falls back to safe defaults for missing fields', () => {
-    expect(parseInfo({})).toMatchObject({ version: '?', api: 0, roles: [], offload: 'none', conntrackAccounting: true });
+    expect(parseInfo({})).toMatchObject({
+      version: '?',
+      api: 0,
+      roles: [],
+      offload: 'none',
+      conntrackAccounting: true,
+    });
     expect(parseDevices({ devices: [{ mac: 'aa-bb-cc-00-11-22' }, null] })).toEqual([
       expect.objectContaining({ mac: 'AA:BB:CC:00:11:22', ipv4: [], online: false, rate: { rxBps: 0, txBps: 0 } }),
       expect.objectContaining({ mac: '', today: { rx: 0, tx: 0 } }),

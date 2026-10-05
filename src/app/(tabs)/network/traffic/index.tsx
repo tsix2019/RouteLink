@@ -11,7 +11,7 @@ import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { historyCsv, summaryCsv } from '@/features/traffic/csv';
 import { DeviceTrafficRow, LiveTrafficRow } from '@/features/traffic/DeviceTrafficRow';
 import { useDeviceLabels } from '@/features/traffic/labels';
-import { csvFileName, phoneTimeZone, shareCsv } from '@/features/traffic/share';
+import { csvFileName, shareCsv } from '@/features/traffic/share';
 import { TimeRangePicker } from '@/features/traffic/TimeRangePicker';
 import {
   DEFAULT_RANGE,
@@ -37,6 +37,7 @@ import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
 import { formatBitRate, formatBytes } from '@/utils/format';
+import { formatDayTime } from '@/utils/dates';
 
 type Tab = 'ranking' | 'live';
 type Sort = 'total' | 'rx' | 'tx';
@@ -141,27 +142,16 @@ function TrafficContent({
         if (!connection) return;
         const all = await agentSummary(connection, { start, end, cls, hoursMask: mask, sort, limit: 500 });
         const names = new Map(all.devices.map((d) => [d.mac, label(d.mac).name]));
-        await shareCsv(
-          csvFileName('devices', start),
-          summaryCsv(t, all, names, { start, end }, phoneTimeZone()),
-          title,
-        );
+        await shareCsv(csvFileName('devices', start), summaryCsv(t, all, names, { start, end }), title);
       } else if (history.data) {
-        await shareCsv(csvFileName('curve', start), historyCsv(t, history.data, phoneTimeZone()), title);
+        await shareCsv(csvFileName('curve', start), historyCsv(t, history.data), title);
       }
     } catch (error) {
       toast(t('traffic:overview.exportFailed', { reason: describeError(t, error).title }), 'error');
     }
   };
 
-  const fmtTime = (sec: number) =>
-    new Date(sec * 1000).toLocaleString(lang, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23',
-    });
+  const fmtTime = (sec: number) => formatDayTime(sec, lang);
 
   return (
     <>

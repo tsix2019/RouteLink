@@ -104,7 +104,12 @@ function InstallInvite() {
       <AppText variant="subhead" tone="secondary">
         {t('traffic:card.install')}
       </AppText>
-      <GlassButton label={t('traffic:card.installAction')} icon="download" compact onPress={() => nav.push(AGENT_PAGE)} />
+      <GlassButton
+        label={t('traffic:card.installAction')}
+        icon="download"
+        compact
+        onPress={() => nav.push(AGENT_PAGE)}
+      />
     </GlassCard>
   );
 }

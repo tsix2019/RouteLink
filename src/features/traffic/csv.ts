@@ -14,19 +14,11 @@ export function csvField(value: string | number | null | undefined): string {
 
 const row = (fields: (string | number | null | undefined)[]) => fields.map(csvField).join(',') + EOL;
 
-/** "2026-10-05 13:47" in the given IANA time zone (the phone's). */
-export function formatCsvTime(epochSec: number, timeZone: string): string {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(new Date(epochSec * 1000));
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
-  return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}`;
+/** "2026-10-05 13:47" in the phone's time zone. */
+export function formatCsvTime(epochSec: number): string {
+  const d = new Date(epochSec * 1000);
+  const two = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}`;
 }
 
 /** One row per device: name (or MAC), MAC, bytes down, up and total, and the period it covers. */
@@ -35,10 +27,9 @@ export function summaryCsv(
   s: Summary,
   names: Map<string, string>,
   range: { start: number; end: number },
-  timeZone: string,
 ): string {
-  const from = formatCsvTime(Math.max(range.start, s.startExact), timeZone);
-  const to = formatCsvTime(range.end, timeZone);
+  const from = formatCsvTime(Math.max(range.start, s.startExact));
+  const to = formatCsvTime(range.end);
   let out =
     BOM +
     row([
@@ -55,8 +46,8 @@ export function summaryCsv(
 }
 
 /** One row per point; steps without data stay empty rather than reading as zero. */
-export function historyCsv(t: AppT, h: History, timeZone: string): string {
+export function historyCsv(t: AppT, h: History): string {
   let out = BOM + row([t('traffic:csv.time'), t('traffic:csv.rx'), t('traffic:csv.tx')]);
-  for (const p of h.points) out += row([formatCsvTime(p.t, timeZone), p.rx, p.tx]);
+  for (const p of h.points) out += row([formatCsvTime(p.t), p.rx, p.tx]);
   return out;
 }

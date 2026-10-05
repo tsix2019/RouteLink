@@ -1,9 +1,12 @@
-import DateTimePicker, { DateTimePickerAndroid, type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker, {
+  DateTimePickerAndroid,
+  type DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
 import { useState } from 'react';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useLang, useT } from '@/i18n';
+import { useLang, useT, type AppLanguage } from '@/i18n';
 import { AppText } from '@/ui/AppText';
 import { GlassButton } from '@/ui/GlassButton';
 import { NoBlurTarget } from '@/ui/glass/BlurTarget';
@@ -12,6 +15,7 @@ import { Icon } from '@/ui/Icon';
 import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
 import { Toggle } from '@/ui/Toggle';
+import { formatDayTime } from '@/utils/dates';
 
 import { PRESETS, rangeLabel, resolveRange, validateCustom, type HourWindow, type TimeRange } from './timeRange';
 
@@ -36,7 +40,10 @@ export function TimeRangePicker({ value, onChange }: { value: TimeRange; onChang
         testID={`range-${id}`}
         style={({ pressed }) => [
           styles.chip,
-          { backgroundColor: active ? colors.accent : pressed ? colors.fill : colors.card, borderColor: colors.separator },
+          {
+            backgroundColor: active ? colors.accent : pressed ? colors.fill : colors.card,
+            borderColor: colors.separator,
+          },
         ]}>
         <AppText variant="subhead" weight={active ? '600' : '400'} style={active ? styles.chipActive : undefined}>
           {label}
@@ -111,7 +118,13 @@ export function CustomRangeSheet({
             <AppText variant="headline" align="center">
               {t('traffic:picker.title')}
             </AppText>
-            <DateRow label={t('traffic:picker.start')} value={start} onChange={setStart} lang={lang} testID="custom-start" />
+            <DateRow
+              label={t('traffic:picker.start')}
+              value={start}
+              onChange={setStart}
+              lang={lang}
+              testID="custom-start"
+            />
             <DateRow label={t('traffic:picker.end')} value={end} onChange={setEnd} lang={lang} testID="custom-end" />
             <View style={styles.row}>
               <AppText variant="body" style={styles.rowLabel}>
@@ -130,7 +143,11 @@ export function CustomRangeSheet({
                   value={hours.from}
                   onChange={(from) => setHours({ ...hours, from })}
                 />
-                <HourStepper label={t('traffic:picker.to')} value={hours.to} onChange={(to) => setHours({ ...hours, to })} />
+                <HourStepper
+                  label={t('traffic:picker.to')}
+                  value={hours.to}
+                  onChange={(to) => setHours({ ...hours, to })}
+                />
               </View>
             ) : null}
             {verdict !== 'ok' ? (
@@ -167,7 +184,7 @@ function DateRow({
   label: string;
   value: Date;
   onChange(d: Date): void;
-  lang: string;
+  lang: AppLanguage;
   testID: string;
 }) {
   const { colors } = useTheme();
@@ -207,12 +224,16 @@ function DateRow({
       accessibilityRole="button"
       onPress={pick}
       testID={testID}
-      style={({ pressed }) => [styles.row, styles.rowButton, { backgroundColor: pressed ? colors.fill : 'transparent' }]}>
+      style={({ pressed }) => [
+        styles.row,
+        styles.rowButton,
+        { backgroundColor: pressed ? colors.fill : 'transparent' },
+      ]}>
       <AppText variant="body" style={styles.rowLabel}>
         {label}
       </AppText>
       <AppText variant="body" tone="accent">
-        {value.toLocaleString(lang, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })}
+        {formatDayTime(Math.floor(value.getTime() / 1000), lang)}
       </AppText>
     </Pressable>
   );

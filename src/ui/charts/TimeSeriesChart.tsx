@@ -7,6 +7,7 @@ import Svg, { Defs, Line, LinearGradient, Path, Rect, Stop } from 'react-native-
 import type { HistoryPoint } from '@/api/services/agent';
 import { useLang, useT } from '@/i18n';
 import { formatBitRate, formatBytes } from '@/utils/format';
+import { formatDayTime } from '@/utils/dates';
 
 import { AppText } from '../AppText';
 import { useTheme } from '../theme/ThemeProvider';
@@ -86,14 +87,7 @@ export function TimeSeriesChart({ points, step, start, end, height = 168, testID
     .onFinalize(() => setActive(null));
 
   const point = active !== null ? rates[active] : null;
-  const timeLabel = (time: number) =>
-    new Date(time * 1000).toLocaleString(lang, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23',
-    });
+  const timeLabel = (time: number) => formatDayTime(time, lang);
 
   return (
     <View testID={testID} accessibilityRole="image">

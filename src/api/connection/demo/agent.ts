@@ -54,8 +54,8 @@ const PROFILES: Record<string, { rx: number; up: number; lan?: number }> = {
 
 /** Relative activity per local hour: quiet at night, a peak from 20:00 to 23:00. */
 const DAILY = [
-  0.2, 0.13, 0.09, 0.07, 0.06, 0.07, 0.14, 0.3, 0.42, 0.46, 0.5, 0.55, 0.6, 0.55, 0.52, 0.52, 0.58, 0.68, 0.8, 0.9,
-  1, 1, 0.86, 0.45,
+  0.2, 0.13, 0.09, 0.07, 0.06, 0.07, 0.14, 0.3, 0.42, 0.46, 0.5, 0.55, 0.6, 0.55, 0.52, 0.52, 0.58, 0.68, 0.8, 0.9, 1,
+  1, 0.86, 0.45,
 ];
 
 /** Laptops and computers sleep at night: offline from about 00:30 to 08:30 local time. */
@@ -161,7 +161,8 @@ function bytesFor(ctx: Ctx, target: Target, cls: Cls, a: number, b: number): Byt
   const to = Math.min(b, ctx.now);
   if (to <= from) return null;
   const devices = typeof target === 'number' ? [target] : ctx.state.devices.map((_, i) => i);
-  const kinds: Kind[] = target === 'wan' ? ['internet'] : cls === 'lan' ? ['lan'] : cls === 'all' ? ['internet', 'lan'] : ['internet'];
+  const kinds: Kind[] =
+    target === 'wan' ? ['internet'] : cls === 'lan' ? ['lan'] : cls === 'all' ? ['internet', 'lan'] : ['internet'];
   let rx = 0;
   let tx = 0;
   for (const i of devices) {
@@ -179,7 +180,7 @@ function bytesFor(ctx: Ctx, target: Target, cls: Cls, a: number, b: number): Byt
 function maskedBytes(ctx: Ctx, target: Target, cls: Cls, a: number, b: number, mask: number): Bytes | null {
   if (!mask || mask === 0xffffff) return bytesFor(ctx, target, cls, a, b);
   let total: Bytes | null = null;
-  for (let t = a; t < b; ) {
+  for (let t = a; t < b;) {
     const next = Math.min(b, (Math.floor(t / HOUR) + 1) * HOUR);
     if (mask & (1 << localHour(t))) {
       const part = bytesFor(ctx, target, cls, t, next);
@@ -332,7 +333,15 @@ function eventList(ctx: Ctx, start: number, end: number): Ev[] {
   return out.filter((e) => e.ts >= from && e.ts < to).sort((a, b) => b.ts - a.ts);
 }
 
-const EVENT_TYPES = ['device_new', 'device_online', 'device_offline', 'daemon_start', 'time_jump', 'commit_failed', 'data_recovered'];
+const EVENT_TYPES = [
+  'device_new',
+  'device_online',
+  'device_offline',
+  'daemon_start',
+  'time_jump',
+  'commit_failed',
+  'data_recovered',
+];
 
 function events(ctx: Ctx, p: Record<string, unknown>) {
   const start = num(p.start) ?? 0;

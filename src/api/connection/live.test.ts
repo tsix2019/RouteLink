@@ -104,7 +104,9 @@ describe('cgiExec', () => {
       .on('POST http://r/cgi-bin/cgi-exec', text(403, 'Exec permission denied\n'), 1)
       .on('POST http://r/cgi-bin/cgi-exec', text(200, 'ok'));
     await expect(make(http).cgiExec(['/bin/true'])).resolves.toBe('ok');
-    const sids = http.requests.filter((r) => r.url.endsWith('/cgi-exec')).map((r) => new URLSearchParams(r.body).get('sessionid'));
+    const sids = http.requests
+      .filter((r) => r.url.endsWith('/cgi-exec'))
+      .map((r) => new URLSearchParams(r.body).get('sessionid'));
     expect(sids).toEqual(['S1', 'S2']);
   });
 

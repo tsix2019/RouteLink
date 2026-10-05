@@ -57,7 +57,10 @@ export function DeviceTrafficRow({
         </View>
         <View style={[styles.track, { backgroundColor: colors.fill }]}>
           <View
-            style={[styles.bar, { width: `${Math.max(1, Math.min(100, share * 100))}%`, backgroundColor: colors.chartDown }]}
+            style={[
+              styles.bar,
+              { width: `${Math.max(1, Math.min(100, share * 100))}%`, backgroundColor: colors.chartDown },
+            ]}
           />
         </View>
       </View>

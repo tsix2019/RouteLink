@@ -1,4 +1,5 @@
 import type { AppLanguage } from '@/i18n';
+import { formatClock, formatMonth, formatNumericDay } from '@/utils/dates';
 
 export interface Tick {
   /** Epoch seconds. */
@@ -49,7 +50,7 @@ export function timeTicks(start: number, end: number, width: number, lang: AppLa
     }
   } else if (step >= DAY) {
     const days = step / DAY;
-    for (let t = localMidnight(start + DAY - 1); t <= end; ) {
+    for (let t = localMidnight(start + DAY - 1); t <= end;) {
       times.push(t);
       const d = new Date(t * 1000);
       d.setDate(d.getDate() + days);
@@ -61,13 +62,9 @@ export function timeTicks(start: number, end: number, width: number, lang: AppLa
     for (let t = base + Math.ceil((start - base) / step) * step; t <= end; t += step) times.push(t);
   }
 
-  const format: Intl.DateTimeFormatOptions =
-    step === 'month'
-      ? { month: 'short' }
-      : step >= DAY
-        ? { month: 'numeric', day: 'numeric' }
-        : { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' };
-  return times.map((t) => ({ t, label: new Date(t * 1000).toLocaleString(lang, format) }));
+  const label = (t: number) =>
+    step === 'month' ? formatMonth(t, lang) : step >= DAY ? formatNumericDay(t) : formatClock(t);
+  return times.map((t) => ({ t, label: label(t) }));
 }
 
 /** Consecutive runs of present and missing points, so charts break their lines at gaps. */

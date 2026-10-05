@@ -17,18 +17,11 @@ import { InfoGrid } from '@/ui/InfoGrid';
 import { StatusDot } from '@/ui/Status';
 import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
+import { formatDayTime } from '@/utils/dates';
 import { formatBitRate, formatBytes, formatDuration, formatPercent, protoLabel } from '@/utils/format';
 
-const routerClock = (epochSec: number, lang: 'zh-CN' | 'en') =>
-  // localtime is already shifted to the router's zone; format it as UTC to keep that wall time.
-  new Date(epochSec * 1000).toLocaleString(lang, {
-    timeZone: 'UTC',
-    hour12: false,
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+// localtime is already shifted to the router's zone; read it as UTC to keep that wall time.
+const routerClock = (epochSec: number, lang: 'zh-CN' | 'en') => formatDayTime(epochSec, lang, { utc: true });
 
 function CardSkeleton({ lines = 3 }: { lines?: number }) {
   return (

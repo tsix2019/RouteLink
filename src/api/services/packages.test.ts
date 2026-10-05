@@ -27,7 +27,9 @@ describe('detectPackageEnv', () => {
   });
 
   it('reads OpenWrt 23.05: opkg-call, whose ACL only allows "update" with an argument', async () => {
-    await expect(detectPackageEnv(router({ release: '23.05.6', helper: OPKG_CALL, arch: 'mipsel_24kc' }))).resolves.toMatchObject({
+    await expect(
+      detectPackageEnv(router({ release: '23.05.6', helper: OPKG_CALL, arch: 'mipsel_24kc' })),
+    ).resolves.toMatchObject({
       release: '23.05',
       arch: 'mipsel_24kc',
       helper: OPKG_CALL,
@@ -36,7 +38,9 @@ describe('detectPackageEnv', () => {
   });
 
   it('reads OpenWrt 25.12: apk with its own feed list and upload path', async () => {
-    await expect(detectPackageEnv(router({ release: '25.12.5', apk: true, arch: 'aarch64_cortex-a53' }))).resolves.toMatchObject({
+    await expect(
+      detectPackageEnv(router({ release: '25.12.5', apk: true, arch: 'aarch64_cortex-a53' })),
+    ).resolves.toMatchObject({
       release: '25.12',
       arch: 'aarch64_cortex-a53',
       manager: 'apk',

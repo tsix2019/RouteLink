@@ -19,7 +19,11 @@ export interface DeviceLabel {
  * Names for MACs: the app's device list first (names set in the app, DHCP hostnames, vendors), then what
  * the plugin knows (devices that have left the network since), then the MAC itself.
  */
-export function labelFor(mac: string, clients: readonly Client[] = [], agent: readonly AgentDevice[] = []): DeviceLabel {
+export function labelFor(
+  mac: string,
+  clients: readonly Client[] = [],
+  agent: readonly AgentDevice[] = [],
+): DeviceLabel {
   const client = clients.find((c) => c.mac === mac);
   const known = agent.find((d) => d.mac === mac);
   const name = client?.name || known?.name || known?.hostname || mac;

@@ -49,7 +49,11 @@ const APK_KEY_PATH = '/etc/apk/keys/routelink.pem';
 /** 48 KB would exceed uhttpd's 64 KB request limit once base64-encoded. */
 export const UPLOAD_CHUNK = 32 * 1024;
 
-const call = (object: string, method: string, params?: Record<string, unknown>): UbusCall => ({ object, method, params });
+const call = (object: string, method: string, params?: Record<string, unknown>): UbusCall => ({
+  object,
+  method,
+  params,
+});
 const data = <T>(r: UbusResult | undefined): T | undefined => (r?.ok ? (r.data as T) : undefined);
 const installCommand = (helper: string, upload: string) => `${helper} install ${upload}`;
 
@@ -152,7 +156,10 @@ export async function updateLists(conn: RouterConnection, env: PackageEnv): Prom
 }
 
 /** Installs the file at `env.uploadPath`; dependencies come from the official feeds. */
-export async function installUploaded(conn: RouterConnection, env: PackageEnv): Promise<{ ok: boolean; output: string }> {
+export async function installUploaded(
+  conn: RouterConnection,
+  env: PackageEnv,
+): Promise<{ ok: boolean; output: string }> {
   const out = await runHelper(conn, [env.helper, 'install', env.uploadPath]);
   return { ok: out.code === 0, output: outputOf(out) };
 }

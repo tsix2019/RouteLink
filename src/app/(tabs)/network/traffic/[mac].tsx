@@ -21,6 +21,7 @@ import { StatusDot } from '@/ui/Status';
 import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
 import { formatBitRate, formatBytes, formatDuration } from '@/utils/format';
+import { formatDayTime } from '@/utils/dates';
 
 const EVENT_TYPES = ['device_new', 'device_online', 'device_offline'] as const;
 
@@ -88,14 +89,7 @@ function Content({
   const s = history.data ? stats(history.data) : null;
   const step = history.data?.step ?? 0;
 
-  const fmt = (sec: number) =>
-    new Date(sec * 1000).toLocaleString(lang, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23',
-    });
+  const fmt = (sec: number) => formatDayTime(sec, lang);
   const list = events.data?.events ?? [];
   /** Newest first: an event lasts until the next (newer) one, the newest until now. */
   const lasted = (i: number) => (i === 0 ? Math.floor(now.getTime() / 1000) : list[i - 1].ts) - list[i].ts;

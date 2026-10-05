@@ -14,6 +14,7 @@ import { ListRow, ListSection } from '@/ui/ListSection';
 import { Screen } from '@/ui/Screen';
 import { SelectSheet } from '@/ui/SelectSheet';
 import { formatBytes } from '@/utils/format';
+import { formatDay, formatMonth, formatMonthYear, formatNumericDay } from '@/utils/dates';
 
 type Mode = 'daily' | 'monthly';
 const MODES: Mode[] = ['daily', 'monthly'];
@@ -57,18 +58,12 @@ function WanContent({ now }: { now: Date }) {
 
   const source = mode === 'daily' ? daily.data : monthly.data;
   const points = source ? (mode === 'daily' ? byLocalDay(source.points) : byLocalMonth(source.points)) : null;
-  const bars: Bar[] = (points ?? []).map((p) => {
-    const d = new Date(p.t * 1000);
-    return {
-      label: d.toLocaleDateString(lang, mode === 'daily' ? { month: 'numeric', day: 'numeric' } : { month: 'short' }),
-      title: d.toLocaleDateString(
-        lang,
-        mode === 'daily' ? { month: 'short', day: 'numeric', weekday: 'short' } : { year: 'numeric', month: 'long' },
-      ),
-      rx: p.rx,
-      tx: p.tx,
-    };
-  });
+  const bars: Bar[] = (points ?? []).map((p) => ({
+    label: mode === 'daily' ? formatNumericDay(p.t) : formatMonth(p.t, lang),
+    title: mode === 'daily' ? formatDay(p.t, lang, { weekday: true }) : formatMonthYear(p.t, lang),
+    rx: p.rx,
+    tx: p.tx,
+  }));
 
   return (
     <>
@@ -96,7 +91,7 @@ function WanContent({ now }: { now: Date }) {
           <ListRow
             title={t('traffic:wan.period')}
             subtitle={t('traffic:wan.periodSince', {
-              date: new Date(period * 1000).toLocaleDateString(lang, { month: 'short', day: 'numeric' }),
+              date: formatDay(period, lang),
             })}
             value={periodSummary.data ? formatBytes(periodSummary.data.wanRx + periodSummary.data.wanTx) : '…'}
           />

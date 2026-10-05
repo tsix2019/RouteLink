@@ -2,22 +2,28 @@ import { useCallback, useState, type ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useT } from '@/i18n';
+import { useLang, useT } from '@/i18n';
 import { AppText } from '@/ui/AppText';
 import { GlassButton } from '@/ui/GlassButton';
 import { GlassSurface } from '@/ui/glass/GlassSurface';
 import { Icon } from '@/ui/Icon';
 import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
+import type { Lang } from '@/utils/format';
+import { formatDate } from '@/utils/dates';
 
 import { formatFingerprint, type TrustRequest } from './trust';
 import { NoBlurTarget } from '@/ui/glass/BlurTarget';
 
-const date = (iso: string) => (iso ? new Date(iso).toLocaleDateString() : '—');
+const date = (iso: string, lang: Lang) => {
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) ? formatDate(Math.floor(ms / 1000), lang) : '—';
+};
 
 /** Certificate facts the user compares against the router before trusting it. */
 export function CertificateDetails({ request }: { request: TrustRequest }) {
   const t = useT();
+  const lang = useLang();
   const { colors } = useTheme();
   const changed = request.kind === 'changed';
   const c = request.certificate;
@@ -37,7 +43,7 @@ export function CertificateDetails({ request }: { request: TrustRequest }) {
       </AppText>
       <Fact label={t('routers:trust.subject')}>{c.subject || '—'}</Fact>
       <Fact label={t('routers:trust.issuer')}>{c.issuer || '—'}</Fact>
-      <Fact label={t('routers:trust.validity')}>{`${date(c.notBefore)} – ${date(c.notAfter)}`}</Fact>
+      <Fact label={t('routers:trust.validity')}>{`${date(c.notBefore, lang)} – ${date(c.notAfter, lang)}`}</Fact>
       {changed ? (
         <>
           <Fact label={t('routers:trust.previous')} mono>

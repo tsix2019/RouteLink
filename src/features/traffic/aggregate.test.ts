@@ -24,7 +24,11 @@ describe('byLocalDay', () => {
 describe('byLocalMonth', () => {
   it('sums daily points into calendar months', () => {
     expect(
-      byLocalMonth([pt('2026-09-30T00:00:00+08:00', 1), pt('2026-10-01T00:00:00+08:00', 2), pt('2026-10-31T00:00:00+08:00', 3)]),
+      byLocalMonth([
+        pt('2026-09-30T00:00:00+08:00', 1),
+        pt('2026-10-01T00:00:00+08:00', 2),
+        pt('2026-10-31T00:00:00+08:00', 3),
+      ]),
     ).toEqual([
       { t: sec('2026-09-01T00:00:00+08:00'), rx: 1, tx: 1 },
       { t: sec('2026-10-01T00:00:00+08:00'), rx: 5, tx: 5 },

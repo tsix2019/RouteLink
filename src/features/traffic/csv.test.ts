@@ -6,7 +6,6 @@ import { csvField, formatCsvTime, historyCsv, summaryCsv } from './csv';
 jest.mock('expo-localization', () => ({ getLocales: () => [{ languageCode: 'en' }] }));
 
 const t = () => i18n.t as unknown as AppT;
-const TZ = 'Asia/Shanghai';
 const sec = (iso: string) => Math.floor(new Date(iso).getTime() / 1000);
 
 const summary: Summary = {
@@ -54,9 +53,8 @@ describe('csvField', () => {
 });
 
 describe('formatCsvTime', () => {
-  it('writes YYYY-MM-DD HH:mm in the given zone', () => {
-    expect(formatCsvTime(sec('2026-10-05T00:05:00+08:00'), TZ)).toBe('2026-10-05 00:05');
-    expect(formatCsvTime(sec('2026-10-05T00:05:00+08:00'), 'UTC')).toBe('2026-10-04 16:05');
+  it('writes YYYY-MM-DD HH:mm in the phone’s zone (tests run in Asia/Shanghai)', () => {
+    expect(formatCsvTime(sec('2026-10-05T00:05:00+08:00'))).toBe('2026-10-05 00:05');
   });
 });
 
@@ -65,23 +63,23 @@ describe('summaryCsv', () => {
   const range = { start: summary.startExact, end: summary.end };
 
   it('starts with a byte order mark so Excel reads UTF-8', () => {
-    expect(summaryCsv(t(), summary, names, range, TZ).startsWith('\uFEFF')).toBe(true);
+    expect(summaryCsv(t(), summary, names, range).startsWith('\uFEFF')).toBe(true);
   });
 
   it('escapes names and falls back to the MAC', () => {
-    const rows = summaryCsv(t(), summary, names, range, TZ).slice(1).split('\r\n');
+    const rows = summaryCsv(t(), summary, names, range).slice(1).split('\r\n');
     expect(rows[1].startsWith('"Kitchen, ""Echo""",AA:BB:CC:00:11:22,2000,200,2200,')).toBe(true);
     expect(rows[2].startsWith('AA:BB:CC:00:11:33,AA:BB:CC:00:11:33,1000,100,1100,')).toBe(true);
   });
 
   it('matches the full output', () => {
-    expect(summaryCsv(t(), summary, names, range, TZ)).toMatchSnapshot();
+    expect(summaryCsv(t(), summary, names, range)).toMatchSnapshot();
   });
 });
 
 describe('historyCsv', () => {
   it('leaves missing data empty', () => {
-    const rows = historyCsv(t(), history, TZ).slice(1).split('\r\n');
+    const rows = historyCsv(t(), history).slice(1).split('\r\n');
     expect(rows).toEqual([
       'Time,Download (bytes),Upload (bytes)',
       '2026-10-05 12:00,10,1',
@@ -93,7 +91,7 @@ describe('historyCsv', () => {
 
   it('uses the language of the app for headers', async () => {
     await i18n.changeLanguage('zh-CN');
-    expect(historyCsv(t(), history, TZ)).toMatchSnapshot();
+    expect(historyCsv(t(), history)).toMatchSnapshot();
     await i18n.changeLanguage('en');
   });
 });

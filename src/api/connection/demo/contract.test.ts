@@ -164,14 +164,19 @@ describe('demo router: the routelink plugin', () => {
   };
 
   it('is installed and running', async () => {
-    await expect(getAgentStatus(conn)).resolves.toMatchObject({ state: 'ok', info: { api: 1, zonename: 'Asia/Shanghai' } });
+    await expect(getAgentStatus(conn)).resolves.toMatchObject({
+      state: 'ok',
+      info: { api: 1, zonename: 'Asia/Shanghai' },
+    });
   });
 
   it('knows every device, with today’s usage and current rates', async () => {
     const devices = await getAgentDevices(conn);
     expect(devices).toHaveLength(15);
     expect(devices.filter((d) => d.today.rx > 0).length).toBeGreaterThan(10);
-    expect(devices.filter((d) => !d.online).map((d) => d.hostname)).toEqual(expect.arrayContaining(['ThinkPad', 'iPad']));
+    expect(devices.filter((d) => !d.online).map((d) => d.hostname)).toEqual(
+      expect.arrayContaining(['ThinkPad', 'iPad']),
+    );
   });
 
   it('splits the live WAN rate across the devices', async () => {

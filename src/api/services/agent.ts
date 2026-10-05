@@ -118,13 +118,7 @@ export interface Live {
 }
 
 export type AgentEventType =
-  | 'device_new'
-  | 'device_online'
-  | 'device_offline'
-  | 'daemon_start'
-  | 'time_jump'
-  | 'commit_failed'
-  | 'data_recovered';
+  'device_new' | 'device_online' | 'device_offline' | 'daemon_start' | 'time_jump' | 'commit_failed' | 'data_recovered';
 
 export interface AgentEvent {
   ts: number;
@@ -369,7 +363,8 @@ export async function getAgentStatus(conn: RouterConnection): Promise<AgentStatu
     return { state: 'ok', info: parsed };
   }
   const missing = !stat.ok && stat.error.code === 'NOT_FOUND';
-  if (isCode(info.error, 'NOT_FOUND', 'METHOD_NOT_FOUND')) return missing ? { state: 'not-installed' } : { state: 'not-running' };
+  if (isCode(info.error, 'NOT_FOUND', 'METHOD_NOT_FOUND'))
+    return missing ? { state: 'not-installed' } : { state: 'not-running' };
   if (isCode(info.error, 'PERMISSION_DENIED', 'ACCESS_DENIED')) {
     return missing ? { state: 'not-installed' } : { state: 'no-permission' };
   }
