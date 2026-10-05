@@ -15,6 +15,8 @@ export interface HttpRequestOptions {
   timeoutMs?: number;
   /** Defaults to { mode: 'system' }. */
   tls?: TlsOptions;
+  /** 'base64' returns a binary body base64-encoded (backups); defaults to text. */
+  responseEncoding?: 'utf8' | 'base64';
 }
 
 /** Redirects are never followed and no cookie jar is used. Header names are lower-case. */

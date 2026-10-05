@@ -1,5 +1,6 @@
 package expo.modules.routelinknative
 
+import android.util.Base64
 import expo.modules.kotlin.records.Field
 import expo.modules.kotlin.records.Record
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,8 @@ class HttpRequestRecord : Record {
   @Field val body: String? = null
   @Field val timeoutMs: Double = 10_000.0
   @Field val tls: TlsRecord? = null
+  /** "base64" for binary answers (backups); text otherwise. */
+  @Field val responseEncoding: String = "utf8"
 }
 
 private val SHA256_HEX = Regex("^[0-9a-fA-F]{64}$")
@@ -102,7 +105,12 @@ internal class HttpEngine {
       client.newCall(request).execute().use { res ->
         val headers = LinkedHashMap<String, MutableList<String>>()
         for ((name, value) in res.headers) headers.getOrPut(name.lowercase(Locale.US)) { mutableListOf() }.add(value)
-        mapOf("status" to res.code, "headers" to headers, "body" to (res.body?.string() ?: ""))
+        val body = if (req.responseEncoding == "base64") {
+          Base64.encodeToString(res.body?.bytes() ?: ByteArray(0), Base64.NO_WRAP)
+        } else {
+          res.body?.string() ?: ""
+        }
+        mapOf("status" to res.code, "headers" to headers, "body" to body)
       }
     } catch (e: NativeError) {
       throw e

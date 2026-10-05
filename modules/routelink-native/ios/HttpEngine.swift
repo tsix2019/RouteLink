@@ -15,6 +15,8 @@ struct HttpRequestOptions: Record {
   @Field var body: String?
   @Field var timeoutMs: Double = 10_000
   @Field var tls: TlsOptions?
+  /// "base64" for binary answers (backups); text otherwise.
+  @Field var responseEncoding: String = "utf8"
 }
 
 func sha256Hex(_ data: Data) -> String {
@@ -115,7 +117,8 @@ final class HttpEngine {
       return [
         "status": http.statusCode,
         "headers": headers(of: http),
-        "body": String(decoding: data, as: UTF8.self),
+        "body": options.responseEncoding == "base64"
+          ? data.base64EncodedString() : String(decoding: data, as: UTF8.self),
       ]
     } catch let error as Exception {
       throw error

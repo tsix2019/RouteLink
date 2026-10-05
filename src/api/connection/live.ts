@@ -1,3 +1,4 @@
+import { base64ToBytes } from '@/utils/base64';
 import { normalizeBaseUrl } from '@/utils/url';
 
 import { NativeError } from '../http/errors';
@@ -96,7 +97,18 @@ export class LiveConnection implements RouterConnection {
     return this.cgiPost('cgi-download', { path, filename }, `cgi-download ${path}`, options.timeoutMs ?? 10_000);
   }
 
-  private async cgiPost(endpoint: string, fields: Record<string, string>, label: string, timeoutMs: number) {
+  /** sysupgrade's backup archive; binary, so the body travels base64-encoded. */
+  async downloadBackup(): Promise<Uint8Array> {
+    return base64ToBytes(await this.cgiPost('cgi-backup', {}, 'cgi-backup', 60_000, 'base64'));
+  }
+
+  private async cgiPost(
+    endpoint: string,
+    fields: Record<string, string>,
+    label: string,
+    timeoutMs: number,
+    responseEncoding: 'utf8' | 'base64' = 'utf8',
+  ) {
     const run = (s: Session) => {
       const headers: Record<string, string> = { 'Content-Type': 'application/x-www-form-urlencoded' };
       if (s.cookie) headers.Cookie = s.cookie;
@@ -110,14 +122,20 @@ export class LiveConnection implements RouterConnection {
           .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
           .join('&'),
         timeoutMs,
+        ...(responseEncoding === 'base64' ? { responseEncoding } : {}),
       });
     };
+    // Error pages are short ASCII text, also when the body was asked for in base64.
+    const errorText = (body: string) =>
+      responseEncoding === 'base64' ? String.fromCharCode(...base64ToBytes(body).subarray(0, 512)) : body;
     const first = await this.session.ensureSession();
     let res = await run(first);
     // cgi-io answers 403 both for an expired session and for an ACL denial; only the first is worth a login.
-    if (res.status === 403 && !/ACL/.test(res.body)) res = await run(await this.session.renewSession(first));
-    if (res.status === 403) throw new UbusError('PERMISSION_DENIED', label, res.body.trim());
-    if (res.status === 404) throw new UbusError('NOT_FOUND', label, res.body.trim());
+    if (res.status === 403 && !/ACL/.test(errorText(res.body))) {
+      res = await run(await this.session.renewSession(first));
+    }
+    if (res.status === 403) throw new UbusError('PERMISSION_DENIED', label, errorText(res.body).trim());
+    if (res.status === 404) throw new UbusError('NOT_FOUND', label, errorText(res.body).trim());
     if (res.status !== 200) throw new ProtocolError(res.status, `HTTP ${res.status} from ${endpoint}`);
     return res.body;
   }

@@ -43,7 +43,23 @@ import { getDeviceCounters, getInterfaces, pickWan, reconnectInterface } from '.
 import { installPackages, listAvailable, listInstalled, searchPackages } from '../../services/package-list';
 import { detectPackageEnv, removePackages } from '../../services/packages';
 import { adblockAction, enableAdblock, getAdblock, saveSources, type AdblockState } from '../../services/adblock';
+import {
+  backupContents,
+  backupFileList,
+  downloadBackup,
+  isGzip,
+  restoreBackup,
+  uploadBackup,
+} from '../../services/backup';
 import { ddnsChanges, deleteDdnsChanges, getDdns, readProvider, saveDdns, validateDdns } from '../../services/ddns';
+import {
+  flashFirmware,
+  getFirmwareInfo,
+  onlineSupport,
+  uploadFirmware,
+  validateFirmware,
+} from '../../services/firmware';
+import { factoryReset } from '../../services/maintenance';
 import { deleteInstance, getOpenvpn, importOvpn, setInstanceEnabled, validateImport } from '../../services/openvpn';
 import { getParental, saveSchedule } from '../../services/parental';
 import { getSqm, queueChanges, saveSqm, validateQueue } from '../../services/sqm';
@@ -554,6 +570,47 @@ describe('demo router: ad blocking', () => {
     expect(off).toMatchObject({ enabled: false, status: 'stopped', blocked: 0 });
     await enableAdblock(conn, off);
     expect(((await getAdblock(conn)) as AdblockState).status).toBe('running');
+  });
+});
+
+describe('demo router: maintenance', () => {
+  it('backup: downloaded, uploaded, checked and restored with a reboot', async () => {
+    const { conn, clock } = demo();
+    const bytes = await downloadBackup(conn);
+    expect(isGzip(bytes)).toBe(true);
+    expect(await backupFileList(conn)).toContain('/etc/config/network');
+    await uploadBackup(conn, bytes);
+    expect(await backupContents(conn)).toContain('etc/config/system');
+    await restoreBackup(conn);
+    expect(await conn.ping()).toBe(false);
+    clock.advance(10_000);
+    expect(await conn.ping()).toBe(true);
+  });
+
+  it('firmware: the device is found online, the image checked and flashed', async () => {
+    const { conn, clock } = demo();
+    const info = await getFirmwareInfo(conn);
+    expect(info).toMatchObject({
+      distribution: 'OpenWrt',
+      board: 'openwrt,one',
+      target: 'mediatek/filogic',
+      efi: false,
+    });
+    expect(onlineSupport(info)).toEqual({ ok: true, site: 'https://downloads.openwrt.org' });
+    await uploadFirmware(conn, new Uint8Array(200_000), info.tmpFreeKb);
+    expect(await validateFirmware(conn)).toMatchObject({ valid: true, allowBackup: true, failed: [] });
+    await flashFirmware(conn, true, false);
+    expect(await conn.ping()).toBe(false);
+    clock.advance(21_000);
+    expect(await conn.ping()).toBe(true);
+  });
+
+  it('factory reset: an animation only', async () => {
+    const { conn, clock } = demo();
+    await factoryReset(conn);
+    expect(await conn.ping()).toBe(false);
+    clock.advance(13_000);
+    expect((await getSystem(conn)).hostname).toBe('RouteLink-Demo');
   });
 });
 

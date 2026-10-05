@@ -3,6 +3,7 @@ import { UbusError } from '../../ubus/errors';
 import type { CallOptions } from '../../ubus/session';
 import { callKey, type UbusCall, type UbusResult } from '../../ubus/types';
 import type { RouterConnection } from '../types';
+import { demoBackup } from './maintenance';
 import { demoPackageHelper } from './packages';
 import { handlers, hostapdHandler } from './handlers';
 import { createDemoState, tick, type DemoState } from './state';
@@ -53,6 +54,11 @@ export class DemoConnection implements RouterConnection {
     if (argv[0] !== '/usr/libexec/package-manager-call')
       throw new UbusError('PERMISSION_DENIED', `cgi-exec ${argv[0]}`);
     return demoPackageHelper(this.state, argv);
+  }
+
+  async downloadBackup(): Promise<Uint8Array> {
+    this.checkReboot(this.clock());
+    return demoBackup();
   }
 
   async ping(): Promise<boolean> {

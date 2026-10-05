@@ -9,6 +9,8 @@ export interface HttpRequest {
   body?: string;
   timeoutMs?: number;
   tls?: TlsOptions;
+  /** 'base64' for binary answers: the body comes back base64-encoded. */
+  responseEncoding?: 'utf8' | 'base64';
 }
 
 /** Header names are lower-case; values keep repeated headers (Set-Cookie) separate. */

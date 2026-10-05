@@ -30,6 +30,8 @@ export interface RouterConnection {
    * resolved path, so files behind /var/run (a link to /tmp/run) can only be read this way.
    */
   cgiRead?(path: string, options?: { timeoutMs?: number }): Promise<string>;
+  /** A configuration backup (tar.gz) from LuCI's /cgi-bin/cgi-backup. */
+  downloadBackup?(): Promise<Uint8Array>;
 }
 
 export type ConnectionFailure =

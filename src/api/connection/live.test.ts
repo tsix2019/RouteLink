@@ -149,6 +149,28 @@ describe('cgiExec', () => {
     await expect(conn.cgiRead('/tmp/none')).rejects.toMatchObject({ code: 'NOT_FOUND' });
     await expect(conn.cgiRead('/etc/shadow')).rejects.toMatchObject({ code: 'PERMISSION_DENIED' });
   });
+
+  it('downloads the backup as bytes, asking for a base64 body', async () => {
+    const archive = new Uint8Array([0x1f, 0x8b, 8, 0, 0, 255]);
+    const http = new FakeHttpClient()
+      .on('POST http://r/ubus', login)
+      .on('POST http://r/cgi-bin/cgi-backup', text(200, Buffer.from(archive).toString('base64')));
+    expect(await make(http).downloadBackup()).toEqual(archive);
+    const req = http.requests.find((r) => r.url.endsWith('/cgi-backup'))!;
+    expect(req.responseEncoding).toBe('base64');
+    expect(new URLSearchParams(req.body).get('sessionid')).toBe('S1');
+  });
+
+  it('reads an ACL denial from a base64 error page', async () => {
+    const http = new FakeHttpClient()
+      .on('POST http://r/ubus', login)
+      .on(
+        'POST http://r/cgi-bin/cgi-backup',
+        text(403, Buffer.from('Access to path denied by ACL').toString('base64')),
+      );
+    await expect(make(http).downloadBackup()).rejects.toMatchObject({ code: 'PERMISSION_DENIED' });
+    expect(logins).toBe(1);
+  });
 });
 
 describe('classifyError', () => {

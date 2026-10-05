@@ -67,7 +67,8 @@ describe('detectPackageEnv', () => {
 
   it('reports missing permission when the account cannot even look for the helper', async () => {
     const conn = router().override('file.stat', fail('PERMISSION_DENIED'));
-    for (const h of [PMC, OPKG_CALL]) conn.override(`file.stat.${h.slice(1).replace(/[^a-zA-Z0-9]+/g, '-')}`, fail('PERMISSION_DENIED'));
+    for (const h of [PMC, OPKG_CALL])
+      conn.override(`file.stat.${h.slice(1).replace(/[^a-zA-Z0-9]+/g, '-')}`, fail('PERMISSION_DENIED'));
     await expect(detectPackageEnv(conn)).resolves.toEqual({ unsupported: 'no-permission' });
   });
 

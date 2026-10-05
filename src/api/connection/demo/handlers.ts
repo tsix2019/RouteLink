@@ -4,6 +4,7 @@ import { adminHandlers, demoKill, demoLocaltime } from './admin';
 import { agentHandlers } from './agent';
 import { demoConntrack, demoReverseDns } from './connections';
 import { addonHandlers, demoAddonFile, demoAddonList, demoSqmDevices } from './addons';
+import { DEMO_MOUNTS, demoMaintenanceWrite, demoValidateFirmware, maintenanceCommands } from './maintenance';
 import { demoIpRoute, demoKey, demoPublicKey, demoWireGuard } from './routing';
 import type { DemoDevice, DemoState } from './state';
 
@@ -122,6 +123,7 @@ const files: Record<
     return { code: 0 };
   },
   '/bin/kill': (s, args) => demoKill(s, args),
+  ...maintenanceCommands,
   '/etc/init.d/cron': (_s, args) => (args[0] === 'reload' ? { code: 0 } : { code: 1, stderr: 'unsupported' }),
   '/etc/init.d/sqm': (s, args) => {
     if (!s.services.sqm || !['enable', 'start'].includes(args[0])) return { code: 1, stderr: 'unsupported' };
@@ -164,26 +166,30 @@ export const handlers: Record<string, Handler> = {
             }
           : { entries: [] },
   'file.read': (s, p) =>
-    demoAddonFile(String(p.path)) !== null
-      ? { data: demoAddonFile(String(p.path)) }
-      : p.path === CRONTAB
-        ? { data: s.admin.crontab }
-        : p.path === '/etc/opkg/distfeeds.conf'
-          ? {
-              data: ['core', 'base', 'luci', 'packages']
-                .map((feed) =>
-                  feed === 'core'
-                    ? 'src/gz openwrt_core https://downloads.openwrt.org/releases/24.10.8/targets/mediatek/filogic/packages'
-                    : `src/gz openwrt_${feed} https://downloads.openwrt.org/releases/24.10.8/packages/aarch64_cortex-a53/${feed}`,
-                )
-                .join('\n'),
-            }
-          : notFound('file.read'),
+    p.path === '/proc/mounts'
+      ? { data: DEMO_MOUNTS }
+      : demoAddonFile(String(p.path)) !== null
+        ? { data: demoAddonFile(String(p.path)) }
+        : p.path === CRONTAB
+          ? { data: s.admin.crontab }
+          : p.path === '/etc/opkg/distfeeds.conf'
+            ? {
+                data: ['core', 'base', 'luci', 'packages']
+                  .map((feed) =>
+                    feed === 'core'
+                      ? 'src/gz openwrt_core https://downloads.openwrt.org/releases/24.10.8/targets/mediatek/filogic/packages'
+                      : `src/gz openwrt_${feed} https://downloads.openwrt.org/releases/24.10.8/packages/aarch64_cortex-a53/${feed}`,
+                  )
+                  .join('\n'),
+              }
+            : notFound('file.read'),
   'file.write': (s, p) => {
     if (p.path === CRONTAB) {
       s.admin.crontab = String(p.data ?? '');
       return {};
     }
+    const size = typeof p.data === 'string' ? Math.floor((p.data.length * 3) / 4) : 0;
+    if (demoMaintenanceWrite(s, String(p.path), p.append === true, size)) return {};
     if (String(p.path).startsWith('/etc/openvpn/')) {
       s.vpn.files[String(p.path)] = String(p.data ?? '');
       return {};
@@ -243,6 +249,7 @@ export const handlers: Record<string, Handler> = {
     swap: { total: 0, free: 0 },
   }),
   'luci.getTempInfo': (s) => ({ cpu: 46_500 + Math.round(s.load[0] * 4_000) }),
+  'system.validate_firmware_image': (s) => demoValidateFirmware(s) ?? notFound('system.validate_firmware_image'),
   'luci-rpc.getBoardJSON': () => ({
     model: { id: 'openwrt,one', name: 'OpenWrt One' },
     network: { lan: { device: 'eth1', protocol: 'static' }, wan: { device: 'eth0', protocol: 'pppoe' } },

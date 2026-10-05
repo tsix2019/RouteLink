@@ -42,7 +42,9 @@ export const nodeHttpClient: HttpClient = {
       });
       const cookies = res.headers.getSetCookie();
       if (cookies.length) headers['set-cookie'] = cookies;
-      return { status: res.status, headers, body: await res.text() };
+      const body =
+        req.responseEncoding === 'base64' ? Buffer.from(await res.arrayBuffer()).toString('base64') : await res.text();
+      return { status: res.status, headers, body };
     } catch (error) {
       throw mapNodeError(error);
     } finally {

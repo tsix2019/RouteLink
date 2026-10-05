@@ -41,6 +41,8 @@ export interface DemoState {
   /** Processes, crontab and clock. */
   admin: DemoAdmin;
   packages: DemoPackages;
+  /** Bytes uploaded to /tmp/backup.tar.gz and /tmp/firmware.bin. */
+  uploads: Record<string, number>;
   /** Counter behind the demo's WireGuard keys; OpenVPN profiles under /etc/openvpn. */
   vpn: { keys: number; files: Record<string, string> };
 }
@@ -438,6 +440,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     admin: createDemoAdmin(scheduledDev.mac),
     packages: createDemoPackages(),
     vpn: { keys: 0, files: { '/etc/openvpn/office.ovpn': OFFICE_OVPN } },
+    uploads: {},
   };
 }
 
