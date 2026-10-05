@@ -125,6 +125,8 @@ const config: ExpoConfig = {
     'expo-background-task',
     'expo-notifications',
     './plugins/without-push-entitlement',
+    // Until SDK 57 has React Native 0.87's fix: Citadel's Swift package could break Pods.xcodeproj.
+    './plugins/with-unique-pods-uuids',
   ],
   experiments: {
     typedRoutes: false,
