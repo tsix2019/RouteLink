@@ -41,6 +41,8 @@ for lang in zh en; do
       MSYS_NO_PATHCONV=1 "${ADB[@]}" shell am start -W -a android.intent.action.VIEW \
         -d "'routelink://demo?lang=$lang&theme=$theme&route=/$route'" "$PKG" >/dev/null
       sleep 6
+      # Live rates draw their little curves as samples arrive (one every 2 s): give them time to grow.
+      if [ "$page" = traffic-live ]; then sleep 40; fi
       "${ADB[@]}" exec-out screencap -p > "docs/screenshots/$lang/android-$page-$theme.png"
       echo "docs/screenshots/$lang/android-$page-$theme.png"
     done

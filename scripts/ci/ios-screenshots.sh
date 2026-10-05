@@ -29,6 +29,8 @@ for lang in zh en; do
         xcrun simctl launch --terminate-running-process "$UDID" io.github.tsix2019.routelink \
           -RouteLinkLaunchURL "routelink://demo?lang=$lang&theme=$theme&route=/$route" >/dev/null
         sleep "$wait"
+        # Live rates draw their little curves as samples arrive (one every 2 s): give them time to grow.
+        if [ "$page" = traffic-live ]; then sleep 40; fi
         xcrun simctl io "$UDID" screenshot "$shot" >/dev/null
         [ "$(wc -c <"$shot")" -gt 150000 ] && break
         echo "$shot looks blank, retrying" >&2
