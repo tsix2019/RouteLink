@@ -53,6 +53,14 @@ All screenshots use demo mode. The iOS ones are taken automatically by CI on an 
 | Device traffic | <img src="docs/screenshots/en/ios-traffic-device-light.png" width="240"> | <img src="docs/screenshots/en/android-traffic-device-light.png" width="240"> |
 | WAN usage | <img src="docs/screenshots/en/ios-wan-dark.png" width="240"> | <img src="docs/screenshots/en/android-wan-dark.png" width="240"> |
 
+**Network and system tools**
+
+| | iOS | Android |
+|---|---|---|
+| Firewall | <img src="docs/screenshots/en/ios-firewall-light.png" width="240"> | <img src="docs/screenshots/en/android-firewall-light.png" width="240"> |
+| Connections | <img src="docs/screenshots/en/ios-connections-dark.png" width="240"> | <img src="docs/screenshots/en/android-connections-dark.png" width="240"> |
+| Packages | <img src="docs/screenshots/en/ios-packages-light.png" width="240"> | <img src="docs/screenshots/en/android-packages-light.png" width="240"> |
+
 More screenshots in [docs/screenshots/en](docs/screenshots/en).
 
 ## Features

@@ -53,6 +53,14 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 | 设备流量 | <img src="docs/screenshots/zh/ios-traffic-device-light.png" width="240"> | <img src="docs/screenshots/zh/android-traffic-device-light.png" width="240"> |
 | WAN 口历史 | <img src="docs/screenshots/zh/ios-wan-dark.png" width="240"> | <img src="docs/screenshots/zh/android-wan-dark.png" width="240"> |
 
+**网络与系统工具**
+
+| | iOS | Android |
+|---|---|---|
+| 防火墙 | <img src="docs/screenshots/zh/ios-firewall-light.png" width="240"> | <img src="docs/screenshots/zh/android-firewall-light.png" width="240"> |
+| 实时连接 | <img src="docs/screenshots/zh/ios-connections-dark.png" width="240"> | <img src="docs/screenshots/zh/android-connections-dark.png" width="240"> |
+| 软件包 | <img src="docs/screenshots/zh/ios-packages-light.png" width="240"> | <img src="docs/screenshots/zh/android-packages-light.png" width="240"> |
+
 其余截图在 [docs/screenshots/zh](docs/screenshots/zh)。
 
 ## 功能
