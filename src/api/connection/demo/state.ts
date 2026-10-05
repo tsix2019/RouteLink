@@ -195,6 +195,8 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
         ipaddr: '127.0.0.1',
         netmask: '255.0.0.0',
       }),
+      // OpenWrt One: the 1G port is the LAN, the 2.5G port the WAN.
+      cfg_brlan: section('cfg_brlan', 'device', { name: 'br-lan', type: 'bridge', ports: ['eth1'] }, true),
       lan: section('lan', 'interface', {
         device: 'br-lan',
         proto: 'static',

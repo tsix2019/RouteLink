@@ -44,6 +44,17 @@ import { installPackages, listAvailable, listInstalled, searchPackages } from '.
 import { detectPackageEnv, removePackages } from '../../services/packages';
 import { getParental, saveSchedule } from '../../services/parental';
 import { listProcesses, signalProcess } from '../../services/processes';
+import {
+  applyVlanChanges,
+  canDisableFiltering,
+  disableFilteringChanges,
+  enableFilteringChanges,
+  getVlans,
+  validateVlans,
+  vlanChanges,
+  type DsaVlans,
+  type Vlan,
+} from '../../services/vlan';
 import { getWifiSchedules, saveWifiSchedules } from '../../services/wifi-schedule';
 import { deleteStaticRoute, getRoutes, saveStaticRoute } from '../../services/routes';
 import { listServices, serviceAction } from '../../services/services';
@@ -382,6 +393,29 @@ describe('demo router: M3 router features', () => {
     expect(cleared.schedules).toEqual([]);
     // The parental-control entry is not the Wi-Fi schedule's to remove.
     expect(cleared.crontab.original).toContain('# RouteLink: schedule ');
+  });
+});
+
+describe('demo router: VLANs', () => {
+  it('filtering switched on, a VLAN added to the LAN port and removed, filtering off again', async () => {
+    const { conn } = demo();
+    const before = (await getVlans(conn)) as DsaVlans;
+    expect(before).toMatchObject({ kind: 'dsa', bridge: 'br-lan', filtering: false, bridgeUsers: ['lan'] });
+    expect(before.ports.map((p) => p.id)).toEqual(['eth1']);
+    await applyVlanChanges(conn, enableFilteringChanges(before), fast);
+    const on = (await getVlans(conn)) as DsaVlans;
+    expect(on.filtering).toBe(true);
+    expect(on.vlans.map((v) => [v.id, v.usedBy])).toEqual([[1, ['lan']]]);
+    const iot: Vlan = { id: 20, members: { eth1: { mode: 'tagged', pvid: false } }, usedBy: [] };
+    expect(validateVlans(on, [...on.vlans, iot])).toEqual([]);
+    await applyVlanChanges(conn, vlanChanges(on, [...on.vlans, iot]), fast);
+    const two = (await getVlans(conn)) as DsaVlans;
+    expect(two.vlans.map((v) => v.id)).toEqual([1, 20]);
+    expect(canDisableFiltering(two)).toBe(false);
+    await applyVlanChanges(conn, vlanChanges(two, two.vlans.slice(0, 1)), fast);
+    const one = (await getVlans(conn)) as DsaVlans;
+    await applyVlanChanges(conn, disableFilteringChanges(one), fast);
+    expect(await getVlans(conn)).toMatchObject({ filtering: false, vlans: [], bridgeUsers: ['lan'] });
   });
 });
 

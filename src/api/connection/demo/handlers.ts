@@ -215,6 +215,10 @@ export const handlers: Record<string, Handler> = {
     swap: { total: 0, free: 0 },
   }),
   'luci.getTempInfo': (s) => ({ cpu: 46_500 + Math.round(s.load[0] * 4_000) }),
+  'luci-rpc.getBoardJSON': () => ({
+    model: { id: 'openwrt,one', name: 'OpenWrt One' },
+    network: { lan: { device: 'eth1', protocol: 'static' }, wan: { device: 'eth0', protocol: 'pppoe' } },
+  }),
 
   'network.interface.dump': (s, _p, now) => {
     const up = uptime(s, now) - 12;
