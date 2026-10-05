@@ -57,10 +57,11 @@ ssh_root 'sh -s' <<'REMOTE'
 set -e
 # The WAN may take a moment to get its DHCP lease.
 for i in $(seq 1 30); do ping -c1 -W2 downloads.openwrt.org >/dev/null 2>&1 && break; sleep 2; done
+PKGS="kmod-mac80211-hwsim wpad-basic-mbedtls luci-app-wol luci-proto-wireguard"
 if command -v apk >/dev/null 2>&1; then
-  apk update && apk add kmod-mac80211-hwsim wpad-basic-mbedtls luci-app-wol
+  apk update && apk add $PKGS
 else
-  opkg update && opkg install kmod-mac80211-hwsim wpad-basic-mbedtls luci-app-wol
+  opkg update && opkg install $PKGS
 fi
 found=0
 for f in /etc/modules.d/*hwsim*; do
@@ -115,6 +116,36 @@ if ! ubus call network.wireless status 2>/dev/null | grep -q '"ifname"'; then
   echo "--- log"; logread | grep -iE 'hostapd|netifd|wifi|mac80211|hwsim|wpa' | tail -60
 fi
 printf 'routelink-test\nroutelink-test\n' | passwd root >/dev/null
+
+# M2 test data: a scheduled task, a port forward and a WireGuard interface with one peer.
+echo '*/30 * * * * logger routelink-test' > /etc/crontabs/root
+/etc/init.d/cron enable; /etc/init.d/cron restart
+uci -q delete firewall.test_https
+uci set firewall.test_https=redirect
+uci set firewall.test_https.name='Test-HTTPS'
+uci set firewall.test_https.src='wan'
+uci set firewall.test_https.src_dport='8443'
+uci set firewall.test_https.dest='lan'
+uci set firewall.test_https.dest_ip='192.168.1.100'
+uci set firewall.test_https.dest_port='443'
+uci set firewall.test_https.proto='tcp'
+uci set firewall.test_https.target='DNAT'
+uci commit firewall
+if command -v wg >/dev/null 2>&1; then
+  uci -q delete network.wg0
+  uci set network.wg0=interface
+  uci set network.wg0.proto='wireguard'
+  uci set network.wg0.private_key="$(wg genkey)"
+  uci set network.wg0.listen_port='51820'
+  uci add_list network.wg0.addresses='10.9.0.1/24'
+  uci set network.wg0_peer=wireguard_wg0
+  uci set network.wg0_peer.description='Test peer'
+  uci set network.wg0_peer.public_key="$(wg genkey | wg pubkey)"
+  uci add_list network.wg0_peer.allowed_ips='10.9.0.2/32'
+  uci commit network
+fi
+/etc/init.d/firewall reload >/dev/null 2>&1 || true
+ifup wg0 2>/dev/null || true
 REMOTE
 sleep 5
 echo "OpenWrt $V ready on http://127.0.0.1:18080 (root / routelink-test)"

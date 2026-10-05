@@ -10,6 +10,10 @@ on:
       - 'test/integration/**'
       - '.github/workflows/android.yml'
       - '.github/workflows/integration.yml'
+      # Router-side test setup and recordings don't change the app build
+      - 'scripts/ci/qemu-openwrt.sh'
+      - 'scripts/record-fixtures.ts'
+      - 'test/fixtures/**'
       # The router plugin has its own workflow (openwrt.yml)
       - 'openwrt/**'
       - 'test/agent/**'
