@@ -93,5 +93,37 @@
     "choose": "Choose a Network",
     "none": "No Wi-Fi networks to share",
     "share": "Share"
+  },
+  "macfilter": {
+    "title": "MAC Filter",
+    "row": "MAC Filter",
+    "modes": {
+      "disable": "Off",
+      "allow": "Only Listed",
+      "deny": "Block Listed"
+    },
+    "modeHint": {
+      "disable": "Every device with the password can join.",
+      "allow": "Only the devices below can join this network.",
+      "deny": "The devices below can't join this network."
+    },
+    "list": "Devices",
+    "empty": "No devices in the list",
+    "addDevice": "Add from Devices",
+    "addMac": "Enter a MAC Address",
+    "mac": "MAC Address",
+    "macInvalid": "Not a valid MAC address",
+    "remove": "Remove from List",
+    "thisPhone": "This phone",
+    "randomHint": "Phones often use a random address per network: add them while they are connected.",
+    "save": "Save",
+    "error": {
+      "mac-invalid": "The list has an invalid MAC address",
+      "allow-empty": "An empty list would let nobody join",
+      "locks-out-phone": "This would disconnect this phone from the network (and the app from the router)"
+    },
+    "confirmTitle": "Save the MAC filter of {{ssid}}?",
+    "consequence": "Devices that aren't allowed are disconnected and can't join again",
+    "phoneConsequence": "This phone is on this network: Wi-Fi restarts and the change is applied without the automatic undo"
   }
 }

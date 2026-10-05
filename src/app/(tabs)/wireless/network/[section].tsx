@@ -165,6 +165,17 @@ function NetworkForm({ network, band }: { network: WifiNetwork; band: Parameters
           <ListRow title={t('wireless:network.enabled')} icon="power" switchValue={enabled} onSwitch={setEnabled} />
           <ListRow title={t('wireless:network.hidden')} icon="eyeOff" switchValue={hidden} onSwitch={setHidden} />
         </ListSection>
+        {network.mode === 'ap' ? (
+          <ListSection>
+            <ListRow
+              title={t('wireless:macfilter.row')}
+              icon="filter"
+              chevron
+              onPress={() => nav.push(`/wireless/macfilter/${encodeURIComponent(network.section)}`)}
+              testID="wifi-macfilter"
+            />
+          </ListSection>
+        ) : null}
         <GlassButton
           label={t('wireless:radio.save')}
           variant="primary"

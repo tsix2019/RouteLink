@@ -93,5 +93,37 @@
     "choose": "选择网络",
     "none": "没有可以分享的 Wi-Fi",
     "share": "分享"
+  },
+  "macfilter": {
+    "title": "MAC 过滤",
+    "row": "MAC 过滤",
+    "modes": {
+      "disable": "关闭",
+      "allow": "只允许列表里的",
+      "deny": "禁止列表里的"
+    },
+    "modeHint": {
+      "disable": "知道密码的设备都能连接。",
+      "allow": "只有下面的设备能连接这个网络。",
+      "deny": "下面的设备不能连接这个网络。"
+    },
+    "list": "设备",
+    "empty": "列表里还没有设备",
+    "addDevice": "从设备列表添加",
+    "addMac": "输入 MAC 地址",
+    "mac": "MAC 地址",
+    "macInvalid": "不是有效的 MAC 地址",
+    "remove": "从列表移除",
+    "thisPhone": "这台手机",
+    "randomHint": "手机连不同网络时常用随机地址：请在它连着这个网络时添加。",
+    "save": "保存",
+    "error": {
+      "mac-invalid": "列表里有无效的 MAC 地址",
+      "allow-empty": "列表为空时谁都连不上",
+      "locks-out-phone": "这样会把这台手机断开（App 也会连不上路由器）"
+    },
+    "confirmTitle": "保存 {{ssid}} 的 MAC 过滤？",
+    "consequence": "不被允许的设备会被断开，之后也连不上",
+    "phoneConsequence": "这台手机正连着这个网络：Wi-Fi 会重启，改动不会自动撤销"
   }
 }
