@@ -12,7 +12,16 @@ export type Feature =
   | 'services'
   | 'logs.system'
   | 'logs.kernel'
-  | 'interfaces.control';
+  | 'interfaces.control'
+  | 'network.routes'
+  | 'network.connections'
+  | 'network.firewall'
+  | 'network.wireguard'
+  | 'system.processes'
+  | 'system.cron'
+  | 'system.leds'
+  | 'system.time'
+  | 'system.password';
 
 export type CapabilityState =
   | { status: 'ok' }
@@ -24,7 +33,7 @@ export type CapabilityState =
 export type Capabilities = Record<Feature, CapabilityState>;
 
 interface Access {
-  scope: 'ubus' | 'file';
+  scope: 'ubus' | 'file' | 'uci';
   object: string;
   fn: string;
 }
@@ -42,6 +51,7 @@ interface Requirement {
 
 const ubus = (object: string, fn: string): Access => ({ scope: 'ubus', object, fn });
 const file = (object: string, fn = 'exec'): Access => ({ scope: 'file', object, fn });
+const uciConfig = (object: string, fn: 'read' | 'write'): Access => ({ scope: 'uci', object, fn });
 
 const REQUIREMENTS: Record<Exclude<Feature, 'wireless'>, Requirement> = {
   'clients.leases': { access: [ubus('luci-rpc', 'getDHCPLeases')], packages: ['rpcd-mod-luci'] },
@@ -70,6 +80,22 @@ const REQUIREMENTS: Record<Exclude<Feature, 'wireless'>, Requirement> = {
   },
   'logs.kernel': { access: [file('/bin/dmesg -r')], packages: ['luci-mod-status'] },
   'interfaces.control': { access: [file('/sbin/ifup'), file('/sbin/ifdown')], packages: ['luci-mod-network'] },
+  // M2: what LuCI's status, system, firewall and WireGuard pages are granted (checked on 23.05–25.12).
+  'network.routes': { access: [file('/sbin/ip -4 route show table all')], packages: ['luci-mod-status'] },
+  'network.connections': { access: [ubus('luci', 'getConntrackList')], packages: ['luci-mod-status'] },
+  'network.firewall': { access: [uciConfig('firewall', 'write')], packages: ['luci-app-firewall'] },
+  'network.wireguard': { access: [ubus('luci.wireguard', 'getWgInstances')], packages: ['luci-proto-wireguard'] },
+  'system.processes': { access: [ubus('luci', 'getProcessList'), file('/bin/kill')], packages: ['luci-mod-status'] },
+  'system.cron': {
+    access: [file('/etc/crontabs/root', 'write'), file('/etc/init.d/cron reload')],
+    packages: ['luci-mod-system'],
+  },
+  'system.leds': { access: [ubus('luci', 'getLEDs')], packages: ['luci-mod-system'] },
+  'system.time': {
+    access: [ubus('luci', 'getTimezones'), ubus('luci', 'setLocaltime')],
+    packages: ['luci-mod-system'],
+  },
+  'system.password': { access: [ubus('luci', 'setPassword')], packages: ['luci-mod-system'] },
 };
 
 const accessKey = (a: Access) => `${a.scope}|${a.object}|${a.fn}`;

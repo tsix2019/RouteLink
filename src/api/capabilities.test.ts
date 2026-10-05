@@ -40,3 +40,35 @@ describe('detectCapabilities (OpenWrt 24.10, no Wi-Fi, no etherwake)', () => {
     expect(caps.services).toEqual({ status: 'missing-package', packages: ['rpcd'] });
   });
 });
+
+describe.each(['openwrt-23.05.6', 'openwrt-24.10.8', 'openwrt-25.12.5'])('M2 pages on %s (QEMU recordings)', (set) => {
+  it('grants what LuCI’s own pages use', async () => {
+    const conn = new FixtureConnection(set)
+      // Recorded from the next run on; LuCI's firewall page has this grant on every release.
+      .override('session.access.uci-firewall-write', ok({ access: true }));
+    const caps = await detectCapabilities(conn);
+    for (const feature of [
+      'network.routes',
+      'network.connections',
+      'network.firewall',
+      'network.wireguard',
+      'system.processes',
+      'system.cron',
+      'system.leds',
+      'system.password',
+    ] as const) {
+      expect([feature, caps[feature]]).toEqual([feature, { status: 'ok' }]);
+    }
+  });
+
+  it('names the package when LuCI’s WireGuard support is missing', async () => {
+    const conn = new FixtureConnection(set).override(
+      'session.access.ubus-luci-wireguard-getwginstances',
+      ok({ access: false }),
+    );
+    expect((await detectCapabilities(conn))['network.wireguard']).toEqual({
+      status: 'missing-package',
+      packages: ['luci-proto-wireguard'],
+    });
+  });
+});

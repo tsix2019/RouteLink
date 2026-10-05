@@ -10,7 +10,7 @@ import { UbusSession } from '../src/api/ubus/session';
 import type { UbusCall } from '../src/api/ubus/types';
 import { fixtureName } from '../test/fixture-names';
 
-const access = (scope: 'ubus' | 'file', object: string, fn: string): UbusCall => ({
+const access = (scope: 'ubus' | 'file' | 'uci', object: string, fn: string): UbusCall => ({
   object: 'session',
   method: 'access',
   params: { scope, object, function: fn },
@@ -108,6 +108,10 @@ export const CALLS: UbusCall[] = [
   access('ubus', 'luci.wireguard', 'getWgInstances'),
   access('file', '/bin/kill', 'exec'),
   access('file', '/sbin/ip -4 route show table all', 'exec'),
+  access('uci', 'firewall', 'write'),
+  access('ubus', 'luci', 'getTimezones'),
+  access('file', '/usr/libexec/package-manager-call list-installed', 'exec'),
+  access('file', '/usr/libexec/opkg-call list-installed', 'exec'),
   access('file', '/etc/crontabs/root', 'write'),
   access('file', '/etc/init.d/cron reload', 'exec'),
 ];
