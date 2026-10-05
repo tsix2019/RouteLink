@@ -76,6 +76,7 @@ jobs:
             docs/screenshots/**/ios-*.png
             ${{ runner.temp }}/selftest/selftest-report.json
             ${{ runner.temp }}/selftest/selftest.png
+            ${{ runner.temp }}/selftest/ssh.log
           if-no-files-found: ignore
       - name: Upload build log on failure
         if: failure()
