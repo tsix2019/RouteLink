@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Demo-mode screenshots on an Android emulator (plan T62, P1 T44): zh/en x light/dark x the screens below.
-# Usage: scripts/screenshots-android.sh [adb serial]
+# Usage: scripts/screenshots-android.sh [adb serial]   (PAGES_ONLY="traffic wan" limits the screens)
 # Install a release build first (no developer overlays); the app opens itself via routelink://demo.
 set -euo pipefail
 SERIAL="${1:-${ANDROID_SERIAL:-}}"
@@ -35,6 +35,7 @@ for lang in zh en; do
     for entry in "${PAGES[@]}"; do
       page="${entry%%:*}"
       route="${entry#*:}"
+      if [ -n "${PAGES_ONLY:-}" ] && [[ " $PAGES_ONLY " != *" $page "* ]]; then continue; fi
       # Fresh start for every shot: clean navigation and a warmed-up demo router.
       "${ADB[@]}" shell am force-stop "$PKG"
       MSYS_NO_PATHCONV=1 "${ADB[@]}" shell am start -W -a android.intent.action.VIEW \

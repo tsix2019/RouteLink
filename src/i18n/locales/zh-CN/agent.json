@@ -46,7 +46,7 @@
     "status": "状态",
     "version": "版本",
     "role": "角色",
-    "roleGateway": "主路由（统计流量）",
+    "roleGateway": "主路由",
     "roleOther": "不是主路由",
     "offload": "流量卸载（加速）",
     "offloadNames": {

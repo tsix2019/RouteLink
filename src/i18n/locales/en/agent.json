@@ -46,7 +46,7 @@
     "status": "Status",
     "version": "Version",
     "role": "Role",
-    "roleGateway": "Gateway (counts traffic)",
+    "roleGateway": "Gateway",
     "roleOther": "Not a gateway",
     "offload": "Flow offloading",
     "offloadNames": {
