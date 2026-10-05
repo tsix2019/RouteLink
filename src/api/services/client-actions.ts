@@ -2,6 +2,7 @@ import { isIPv4 } from '@/utils/net';
 
 import type { RouterConnection } from '../connection/types';
 import { stageAndApply, uci, type ApplyOptions, type ApplyOutcome, type UciValues } from '../uci';
+import { UbusError } from '../ubus/errors';
 import type { UbusCall } from '../ubus/types';
 import { ActionError } from './action-error';
 import { ALIAS_OPTION, BLOCK_RULE_PREFIX, type Client } from './clients';
@@ -99,12 +100,26 @@ export interface WolOptions {
   sendFromPhone?: (mac: string) => Promise<void>;
 }
 
+type ExecResult = { code?: number; stderr?: string };
+
+/**
+ * Runs etherwake as LuCI does: through `file exec` up to 24.10, through LuCI's own `luci.wol`
+ * object from 25.12 on (its ACL no longer grants etherwake to `file exec`).
+ */
+async function etherwake(conn: RouterConnection, args: string[]): Promise<ExecResult> {
+  try {
+    return await conn.call<ExecResult>('file', 'exec', { command: '/usr/bin/etherwake', params: args });
+  } catch (error) {
+    if (!(error instanceof UbusError && ['PERMISSION_DENIED', 'ACCESS_DENIED', 'NOT_FOUND'].includes(error.code))) {
+      throw error;
+    }
+    return conn.call<ExecResult>('luci.wol', 'exec', { name: '/usr/bin/etherwake', args });
+  }
+}
+
 export async function wakeOnLan(conn: RouterConnection, mac: string, o: WolOptions): Promise<'router' | 'phone'> {
   if (o.routerSide) {
-    const r = await conn.call<{ code?: number; stderr?: string }>('file', 'exec', {
-      command: '/usr/bin/etherwake',
-      params: ['-D', '-i', o.lanDevice ?? 'br-lan', mac],
-    });
+    const r = await etherwake(conn, ['-D', '-i', o.lanDevice ?? 'br-lan', mac]);
     if (r.code !== 0) throw new ActionError('wol-failed', r.stderr || `etherwake exited with ${r.code}`);
     return 'router';
   }

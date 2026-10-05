@@ -68,6 +68,8 @@ export const CALLS: UbusCall[] = [
   access('ubus', 'luci', 'getInitList'),
   access('ubus', 'luci', 'setInitAction'),
   access('file', '/sbin/logread -e ^', 'exec'),
+  // 25.12: Wake-on-LAN through LuCI's own object.
+  access('ubus', 'luci.wol', 'exec'),
   // Radio capabilities and stations (QEMU's hwsim radios; empty on routers without Wi-Fi).
   { object: 'iwinfo', method: 'info', params: { device: 'radio0' } },
   { object: 'iwinfo', method: 'freqlist', params: { device: 'radio0' } },

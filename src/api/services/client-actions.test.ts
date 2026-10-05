@@ -1,4 +1,4 @@
-import { FixtureConnection, ok } from '../../../test/fixture-connection';
+import { fail, FixtureConnection, ok } from '../../../test/fixture-connection';
 import {
   blockChanges,
   isDnsSafeName,
@@ -154,6 +154,18 @@ describe('wakeOnLan', () => {
       ok({ code: 0 }),
     );
     await expect(wakeOnLan(conn, 'AA:BB:CC:00:11:22', { routerSide: true })).resolves.toBe('router');
+  });
+
+  it("goes through LuCI's luci.wol object where file exec is not granted (25.12)", async () => {
+    const conn = new FixtureConnection()
+      .override('file.exec.usr-bin-etherwake-d-i-br-lan-aa-bb-cc-00-11-22', fail('PERMISSION_DENIED', 'file.exec'))
+      .override('luci.wol.exec', ok({ code: 0, stdout: '', stderr: '' }));
+    await expect(wakeOnLan(conn, 'AA:BB:CC:00:11:22', { routerSide: true })).resolves.toBe('router');
+    expect(conn.calls.at(-1)).toEqual({
+      object: 'luci.wol',
+      method: 'exec',
+      params: { name: '/usr/bin/etherwake', args: ['-D', '-i', 'br-lan', 'AA:BB:CC:00:11:22'] },
+    });
   });
 
   it('reports etherwake failures', async () => {

@@ -47,8 +47,10 @@ const REQUIREMENTS: Record<Exclude<Feature, 'wireless'>, Requirement> = {
   'clients.leases': { access: [ubus('luci-rpc', 'getDHCPLeases')], packages: ['rpcd-mod-luci'] },
   'clients.neighbors': { access: [file('/sbin/ip -4 neigh show')], packages: ['luci-mod-status'] },
   'clients.kick': { access: [ubus('hostapd.*', 'del_client')], packages: ['luci-mod-status'] },
+  // Up to 24.10 through `file exec`; from 25.12 through LuCI's `luci.wol` object.
   'clients.wol.router': {
     access: [file('/usr/bin/etherwake')],
+    orAccess: [[ubus('luci.wol', 'exec')]],
     files: ['/usr/bin/etherwake'],
     packages: ['etherwake', 'luci-app-wol'],
   },
