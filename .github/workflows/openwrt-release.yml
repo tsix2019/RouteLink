@@ -3,9 +3,19 @@ name: OpenWrt release
 # Tag agent-vX.Y.Z (or agent-vX.Y.Z-rc.N for a pre-release) on a commit that passed openwrt.yml.
 # Needs the repository secrets OPENWRT_USIGN_KEY and OPENWRT_APK_KEY, and GitHub Pages set to
 # "GitHub Actions". Pre-releases get a GitHub release but do not replace the feed on Pages.
+# A tag can be published again by hand (workflow_dispatch), reusing a finished run's packages.
 on:
   push:
     tags: ['agent-v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to publish, e.g. agent-v0.1.0
+        required: true
+      run_id:
+        description: Run whose package artifacts to reuse (skips the build)
+        required: false
+        default: ''
 
 concurrency:
   group: openwrt-release
@@ -13,6 +23,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name == 'push' || inputs.run_id == ''
     uses: ./.github/workflows/openwrt-build.yml
     with:
       sign: true
@@ -22,39 +33,64 @@ jobs:
 
   publish:
     needs: build
+    if: ${{ !cancelled() && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pages: write
       id-token: write
+      actions: read
     environment:
       name: github-pages
+    env:
+      TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'push' && github.ref || format('refs/tags/{0}', inputs.tag) }}
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Classify
+        id: classify
+        # Only the version counts: the "agent-v" prefix has a hyphen of its own.
+        run: |
+          case "${TAG#agent-v}" in *-*) echo "pre=true" ;; *) echo "pre=false" ;; esac >> "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@v8
+        if: inputs.run_id == ''
         with:
           pattern: pkg-*
           path: artifacts
+      - uses: actions/download-artifact@v8
+        if: inputs.run_id != ''
+        with:
+          pattern: pkg-*
+          path: artifacts
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
       - name: Assemble release and feed
-        run: npx tsx scripts/agent-manifest.ts artifacts "$GITHUB_REF_NAME" release
+        run: npx tsx scripts/agent-manifest.ts artifacts "$TAG" release
       - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          PRE: ${{ steps.classify.outputs.pre }}
         run: |
-          pre=""
-          case "$GITHUB_REF_NAME" in *-*) pre="--prerelease" ;; esac
           # --latest=false: "Latest release" stays with the app (tags v*)
-          gh release create "$GITHUB_REF_NAME" release/assets/* $pre --latest=false \
-            --title "RouteLink router plugin ${GITHUB_REF_NAME#agent-v}" \
-            --notes-file openwrt/RELEASE_NOTES.md
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --prerelease="$PRE" --latest=false
+            gh release upload "$TAG" release/assets/* --clobber
+          else
+            flag=""
+            if [ "$PRE" = true ]; then flag="--prerelease"; fi
+            gh release create "$TAG" release/assets/* $flag --latest=false \
+              --title "RouteLink router plugin ${TAG#agent-v}" \
+              --notes-file openwrt/RELEASE_NOTES.md
+          fi
       - uses: actions/upload-pages-artifact@v5
-        if: ${{ !contains(github.ref_name, '-') }}
+        if: steps.classify.outputs.pre == 'false'
         with:
           path: release/pages
       - uses: actions/deploy-pages@v5
-        if: ${{ !contains(github.ref_name, '-') }}
+        if: steps.classify.outputs.pre == 'false'
