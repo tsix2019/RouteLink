@@ -48,6 +48,8 @@ describe('decodeCallResponse', () => {
 
   it.each([
     [-32002, 'ACCESS_DENIED'],
+    // uhttpd-mod-ubus: the object is not registered (e.g. a daemon that is not running)
+    [-32000, 'NOT_FOUND'],
     [-32700, 'PARSE_ERROR'],
     [-32600, 'INVALID_REQUEST'],
     [-32601, 'METHOD_NOT_FOUND'],

@@ -1,0 +1,44 @@
+{
+  "ok": true,
+  "data": {
+    "count": 8,
+    "events": [
+      {
+        "ts": 1791171729,
+        "type": "daemon_start"
+      },
+      {
+        "ts": 1791171454,
+        "type": "daemon_start"
+      },
+      {
+        "ts": 1791158023,
+        "type": "device_offline",
+        "mac": "AA:47:47:32:F4:D2"
+      },
+      {
+        "ts": 1791157993,
+        "type": "device_offline",
+        "mac": "D2:48:00:9D:D2:46"
+      },
+      {
+        "ts": 1791157783,
+        "type": "daemon_start"
+      },
+      {
+        "ts": 1791157734,
+        "type": "device_new",
+        "mac": "D2:48:00:9D:D2:46"
+      },
+      {
+        "ts": 1791157704,
+        "type": "device_new",
+        "mac": "AA:47:47:32:F4:D2"
+      },
+      {
+        "ts": 1791157704,
+        "type": "daemon_start"
+      }
+    ]
+  }
+}

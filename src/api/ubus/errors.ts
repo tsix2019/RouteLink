@@ -35,6 +35,8 @@ const RPC: Record<number, UbusErrorCode> = {
   [-32601]: 'METHOD_NOT_FOUND',
   [-32602]: 'INVALID_PARAMS',
   [-32002]: 'ACCESS_DENIED',
+  // "Object not found": nothing registered under that name (e.g. its daemon is not running).
+  [-32000]: 'NOT_FOUND',
 };
 
 export class UbusError extends Error {

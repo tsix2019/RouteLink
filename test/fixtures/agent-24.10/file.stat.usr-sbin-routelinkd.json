@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "data": {
+    "path": "/usr/sbin/routelinkd",
+    "type": "file",
+    "size": 73923,
+    "mode": 33261,
+    "atime": 1791171454,
+    "mtime": 1784877710,
+    "ctime": 1791171454,
+    "inode": 610433,
+    "uid": 0,
+    "gid": 0
+  }
+}

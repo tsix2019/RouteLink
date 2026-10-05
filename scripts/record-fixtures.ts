@@ -1,5 +1,6 @@
 // Records real ubus responses as JSON fixtures for unit tests.
 // Usage: ROUTER_URL=http://127.0.0.1:18080 ROUTER_PASSWORD=routelink-test npx tsx scripts/record-fixtures.ts <set>
+//   --agent records the router plugin's calls instead (scripts/agent-router.sh with scripts/traffic-lab.sh).
 // Only run against disposable routers (Docker/QEMU): fixtures are committed to a public repository.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -81,10 +82,37 @@ export const CALLS: UbusCall[] = [
 /** Calls that take longer than the default timeout. */
 const SLOW: Record<string, number> = { 'iwinfo.scan': 25_000 };
 
+/**
+ * The router plugin (`routelink` ubus object, `--agent`): fixed windows relative to now — the last hour and
+ * today — and one device, the one with the most traffic today.
+ */
+export function agentCalls(now: number, mac?: string): UbusCall[] {
+  const end = Math.floor(now / 1000);
+  const hour = { start: end - 3600, end };
+  const midnight = new Date(now);
+  midnight.setHours(0, 0, 0, 0);
+  const today = { start: Math.floor(midnight.getTime() / 1000), end };
+  const rl = (method: string, params?: Record<string, unknown>): UbusCall => ({ object: 'routelink', method, params });
+  return [
+    { object: 'file', method: 'stat', params: { path: '/usr/sbin/routelinkd' } },
+    rl('info'),
+    rl('devices'),
+    rl('live'),
+    rl('history', hour),
+    rl('history', { ...today, class: 'wan' }),
+    rl('summary', today),
+    rl('summary', { ...today, class: 'lan' }),
+    rl('events', { start: end - 86400, end }),
+    ...(mac ? [rl('history', { ...hour, mac }), rl('events', { start: end - 86400, end, mac })] : []),
+  ];
+}
+
 async function main() {
-  const set = process.argv[2];
+  const args = process.argv.slice(2);
+  const agent = args.includes('--agent');
+  const set = args.find((a) => !a.startsWith('--'));
   const url = process.env.ROUTER_URL;
-  if (!set || !url) throw new Error('usage: ROUTER_URL=... ROUTER_PASSWORD=... record-fixtures.ts <set>');
+  if (!set || !url) throw new Error('usage: ROUTER_URL=... ROUTER_PASSWORD=... record-fixtures.ts <set> [--agent]');
 
   const session = new UbusSession(
     { http: nodeHttpClient, baseUrl: url },
@@ -93,7 +121,16 @@ async function main() {
   const dir = join(__dirname, '..', 'test', 'fixtures', set);
   mkdirSync(dir, { recursive: true });
 
-  for (const call of CALLS) {
+  let calls = CALLS;
+  if (agent) {
+    const devices = await session.call<{ devices: { mac: string; today_rx: number; today_tx: number }[] }>(
+      'routelink',
+      'devices',
+    );
+    const busiest = [...devices.devices].sort((a, b) => b.today_rx + b.today_tx - (a.today_rx + a.today_tx))[0];
+    calls = agentCalls(Date.now(), busiest?.mac);
+  }
+  for (const call of calls) {
     const [result] = await session.batch([call], { timeoutMs: SLOW[`${call.object}.${call.method}`] });
     const name = fixtureName(call);
     const content = result.ok ? { ok: true, data: result.data } : { ok: false, error: result.error.code };

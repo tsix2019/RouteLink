@@ -19,5 +19,7 @@ export function fixtureName(call: UbusCall): string {
   } else if (call.object === 'session' && call.method === 'access') tag = slug(`${p.scope}-${p.object}-${p.function}`);
   else if (call.object === 'luci' && call.method === 'getRealtimeStats') tag = String(p.mode);
   else if (call.object === 'iwinfo' && p.device) tag = slug(String(p.device));
+  // Plugin queries: one recording per traffic class and per "one device or all", whatever the time window.
+  else if (call.object === 'routelink') tag = [p.class, p.mac ? 'device' : ''].filter(Boolean).join('-');
   return tag ? `${base}.${tag}` : base;
 }

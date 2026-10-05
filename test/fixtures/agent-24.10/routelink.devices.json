@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "data": {
+    "devices": [
+      {
+        "mac": "AA:47:47:32:F4:D2",
+        "name": "",
+        "hostname": "",
+        "ipv4": [
+          "172.40.0.1"
+        ],
+        "ipv6": [],
+        "first_seen": 1791157704,
+        "last_seen": 1791171759,
+        "online": true,
+        "random_mac": true,
+        "trusted": false,
+        "today_rx": 1232,
+        "today_tx": 1020,
+        "rx_rate": 0,
+        "tx_rate": 0
+      },
+      {
+        "mac": "D2:48:00:9D:D2:46",
+        "name": "",
+        "hostname": "",
+        "ipv4": [
+          "172.40.0.10"
+        ],
+        "ipv6": [
+          "fd40::d048:ff:fe9d:d246"
+        ],
+        "first_seen": 1791157734,
+        "last_seen": 1791171939,
+        "online": true,
+        "random_mac": true,
+        "trusted": false,
+        "today_rx": 151829621,
+        "today_tx": 5388881,
+        "rx_rate": 1540328,
+        "tx_rate": 672
+      }
+    ]
+  }
+}

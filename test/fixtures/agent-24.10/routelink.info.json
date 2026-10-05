@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "data": {
+    "version": "0.1.0",
+    "api": 1,
+    "roles": [
+      "gateway"
+    ],
+    "modules": [
+      "traffic"
+    ],
+    "offload": "none",
+    "offload_warning": false,
+    "nlbwmon_running": false,
+    "conntrack_accounting": true,
+    "time_synced": true,
+    "zonename": "",
+    "data_dir": "/etc/routelink",
+    "storage_used": 8416,
+    "storage_limit": 33554432,
+    "commit_interval": 600,
+    "last_commit": 0,
+    "sample_interval": 30,
+    "live_interval": 2,
+    "live_until": 0,
+    "started": 1791171729,
+    "events_lost": 0,
+    "retention": {
+      "minute_hours": 48,
+      "hour_days": 90,
+      "day_days": 730,
+      "event_days": 90
+    }
+  }
+}

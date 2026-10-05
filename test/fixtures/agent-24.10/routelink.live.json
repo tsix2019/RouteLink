@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "data": {
+    "ts": 1791171948,
+    "lease_until": 1791171978,
+    "interval": 2,
+    "wan": {
+      "rx_rate": 1526310,
+      "tx_rate": 838
+    },
+    "online": 2,
+    "devices": [
+      {
+        "mac": "D2:48:00:9D:D2:46",
+        "rx_rate": 1525577,
+        "tx_rate": 656
+      },
+      {
+        "mac": "AA:47:47:32:F4:D2",
+        "rx_rate": 1171,
+        "tx_rate": 448
+      }
+    ]
+  }
+}

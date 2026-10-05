@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "data": {
+    "start_exact": 1791118800,
+    "end": 1791171948,
+    "granularity": "minute",
+    "rx": 52856,
+    "tx": 38750,
+    "wan_rx": 326459425,
+    "wan_tx": 27235247,
+    "count": 1,
+    "devices": [
+      {
+        "mac": "AA:47:47:32:F4:D2",
+        "rx": 52856,
+        "tx": 38750
+      }
+    ]
+  }
+}
