@@ -333,7 +333,7 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 | MO-1 | 服务管理：启动、停止、重启、开机自启 | `rc list`、`rc init` | — | 中 | M1 |
 | MO-2 | 系统日志、内核日志（支持搜索） | logread、dmesg | — | 低 | M1 |
 | MO-3 | 重启路由器 | `system reboot` | — | 中 | M1 |
-| MO-4 | 进程列表，可结束进程 | 解析 `top -bn1` 的输出，用 `kill` 结束进程（借用 LuCI 进程页的权限） | — | 中 | M2 |
+| MO-4 | 进程列表，可结束进程 | `luci getProcessList`，用 `kill` 结束进程（借用 LuCI 进程页的权限） | — | 中 | M2 |
 | MO-5 | 软件包：已安装列表、搜索、安装、卸载、更新软件源（同时支持 opkg 和 apk） | `opkg-call` 或 `package-manager-call` | luci-app-opkg 或 luci-app-package-manager | 中 | M2 |
 | MO-6 | 计划任务编辑 | 读写 `/etc/crontabs/root`，然后重启 cron | — | 中 | M2 |
 | MO-7 | LED 灯：开关、触发方式 | uci system 的 `led` 段 | — | 低 | M2 |
@@ -593,6 +593,8 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 每个里程碑单独写实施计划，按"计划 → 实现 → 测试 → 推送"推进。
 
 M1 之后插入插件设计的 P1～P4 四期（插件设计 §22）。DV-7、NW-12 移到 P1，NW-13、MO-13 移到 P3，所以从 M2、M4 里去掉了。
+
+**进度（2026-10-05）**：M1 完成，发布 v0.1.0。P1 的 App 部分完成，插件 0.1.0 已发布（Releases 和 Pages 上的软件源）；和用户路由器的联调暂停，见 P1 执行记录的 T45。M2 完成：功能在演示路由器、Docker 和 QEMU（23.05、24.10、25.12）上验证，结论见 M2 执行记录；发布 v0.2.0 要先征得同意。
 
 ## 25. 风险与应对
 

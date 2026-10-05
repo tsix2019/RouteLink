@@ -215,5 +215,6 @@
 |---|---|
 | T1 各版本接口差异 | 三个版本都录到了。差异：① 23.05 的 `ip` 是 busybox 版，输出没有 `proto`，字段之间有双空格；24.10 和 25.12 是 iproute2 格式。解析按"关键字 值"读，两种都支持。② **`luci getLocaltime` 谁都调不了**（root 也是 Access denied，三个版本的 ACL 里都没有它）。LuCI 自己的系统页用的是 `system info` 的 `localtime`（本地时间秒数），App 改成同样的做法，再用 uci 的 POSIX 时区串（含夏令时规则）换算回 UTC。③ x86 上 `getLEDs` 是空的。④ WireGuard 对端还没握手时，`getWgInstances` 的 `endpoint` 是 `(none)`，`allowed_ips` 是空数组（LuCI 只在有端点时才填）。⑤ QEMU 初始化脚本里 `uci -q delete` 在 `set -e` 下对不存在的段返回 1，导致第一次录制失败，已修 |
 | T11 A6：改 LAN IP 后会话是否有效 | **有效**，23.05、24.10、25.12 都一样：用回滚方式把 LAN 从 192.168.1.1 改到 192.168.1.5，原会话在新地址上 `uci confirm` 成功（中间几秒连不上），再用同样的方法改回去也成功。rpcd 的会话在网络重载后仍然有效。所以按设计 §11 做：App 临时用新地址连接并确认；确认不了时路由器 60～90 秒后自动改回 |
-| T12 访客网络在 QEMU 上的实测 | |
+| T12 访客网络在 QEMU 上的实测 | 三个版本都通过：在 3 个 hwsim 射频上创建（网桥、接口、每个射频一个 AP、DHCP 地址池、防火墙区域和两条放行规则，带回滚应用并确认），读回，再整组删除。同一轮里 MAC 黑名单的设置和关闭、结束进程、计划任务、时区、WireGuard、软件包（更新列表、安装并卸载 tcpdump-mini）也都通过（`test/integration/m2.int.test.ts`）。Docker 路由器上发现：crontab 是空文件时 rpcd 的 `file read` 返回 NO_DATA，已按"空"处理 |
+| T15～T27 界面 | 页面都已完成，演示路由器上都能完整操作。Android 的分段控件原来跟随系统深浅色，App 选深色而系统是浅色时会画成白色，已统一改为跟随 App 主题。另外在第三方固件（Kwrt）上发现它的 uhttpd 出错时不带请求编号，App 已改为按位置对应（见 P1 执行记录 T45） |
 | T14 opkg 和 apk 的已安装列表格式 | 23.05、24.10：`list-installed` 输出 opkg 的 status 文件（`Package:` 块，带 `Auto-Installed: yes` 标记依赖安装的包）；`list-available` 是各软件源列表解压后的同样格式。25.12：输出 apk 的 JSON 数组（`name`、`version`、`description`、`installed-size`、`depends`……，没有"是否手动安装"的信息）。列表走 cgi-exec（可用列表有几 MB）。可用列表在 Docker 24.10 上实测超过 1000 个包 |

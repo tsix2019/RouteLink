@@ -23,7 +23,7 @@ RouteLink is a phone app for managing OpenWrt routers, for iOS and Android, in E
 - **Demo mode**: try everything without a router, against a built-in simulated OpenWrt.
 - **Private**: no data collection; the app talks only to the routers you add.
 
-> The app's first milestone (M1) and the router plugin's first phase (P1) are complete; what comes next is in the feature list below.
+> The app's first two milestones (M1, M2) and the router plugin's first phase (P1) are complete; what comes next is in the feature list below.
 
 ## Screenshots
 
@@ -67,7 +67,8 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Live traffic chart, devices online
 - ✅ Reboot, with progress and a check that the router is back
 - ✅ Today's traffic card: today's download and upload and the busiest devices (needs the plugin)
-- 🚧 Wi-Fi QR code (M2), ask AI (M4)
+- ✅ Wi-Fi QR codes (from the overview and each network's page)
+- 🚧 Ask AI (M4)
 
 **Devices**
 
@@ -83,14 +84,17 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Radios: on/off, channel, channel width, transmit power, country code
 - ✅ Networks: name, password, security, hidden, enabled. If your phone is on that network, the app warns you and walks you through rejoining
 - ✅ Scan nearby networks
-- 🚧 Guest network, MAC filter (M2), signal monitor, channel scan and advice, Wi-Fi security check (P2), schedules (M3)
+- ✅ Guest network: one-step setup (internet only, guests kept apart), on/off, QR code, delete; on routers that route to the internet themselves
+- ✅ MAC filter: allow or block the listed devices, without locking out the phone in use
+- 🚧 Signal monitor, channel scan and advice, Wi-Fi security check (P2), schedules (M3)
 
 **Network**
 
 - ✅ Interfaces with details, reconnect
 - ✅ Traffic (needs the plugin): totals and curve for any period (optionally only some hours of each day), ranking by device (internet or LAN), live rates, CSV export
 - ✅ WAN usage (needs the plugin): per day and per month, and this billing period from a monthly reset day
-- 🚧 WAN/LAN settings, routes, live connections, firewall, WireGuard status (M2)
+- ✅ WAN settings (DHCP, static, PPPoE, DNS, MTU) and LAN settings (address, DHCP pool; a new address is confirmed there, and undone if the app can't reach it)
+- ✅ Routing tables and static routes, live connections (names from the router's reverse DNS), firewall (port forwards, traffic rules, zones), WireGuard status
 - 🚧 One-tap diagnosis, ping/traceroute/nslookup, outage and latency records, speed test (P3)
 - 🚧 VLANs, VPN setup, DDNS, SQM, ad blocking (M3)
 
@@ -101,7 +105,7 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Saved Wake-on-LAN devices
 - ✅ Router management (order, edit, delete, certificate), language, appearance, refresh interval, reduce transparency, demo mode
 - ✅ Router plugin: one-tap install, update check, restart, clear data, remove
-- 🚧 Processes, packages, scheduled tasks, LEDs, admin password (M2)
+- ✅ Processes (stop, reload), packages (search, install, remove), scheduled tasks, LEDs, system (time zone, set the router clock, admin password)
 - 🚧 Backup and restore, factory reset, firmware upgrade (M3 — high-risk, with multi-step confirmation)
 - 🚧 SSH terminal, AI assistant, home-screen widgets, offline alerts (M4)
 - 🚧 Rate limits and quotas, destinations and DNS log, online/offline push notifications, Android live monitor (P4)
