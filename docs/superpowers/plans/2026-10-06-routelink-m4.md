@@ -333,3 +333,10 @@
 
 | 项目 | 结论 |
 |---|---|
+| T1～T4 SSH | 按 §0 第 1、2 条实现。Android：sshj 加完整版 BouncyCastle，最低 Android 8.0；开启 R8 后，按名字加载的算法类要加保留规则（aacea4e）。iOS：Citadel 0.12.1，最低 iOS 17，加 `AES128CTR` 才能连 dropbear；单次命令结束时 Citadel 关闭通道会报 "Already closed"，输出已经收完时忽略（77f641b）。iOS 自检 16 项全部通过，包括 PTY、密钥登录、主机指纹不符、退出码 |
+| T5～T6 终端 | xterm.js 6 跑在 WebView 里，输出每 16 ms 批量写一次。开启 R8 的 Android 版本连 Docker 路由器的 dropbear 正常（登录、输入、快捷键栏在键盘上方） |
+| T7～T11 AI 助手 | 两种协议都按 §1 实现；用演示服务商和本机模拟服务（`scripts/mock-llm.ts`）走完只读工具、确认后执行、拒绝、停止。走查时发现：确认卡片出现时点停止，写操作仍会执行，改为确认后再检查一次是否已停止。演示路由器的对话原来会保存，每次用深链接截图都多一轮问答；改为不保存，和演示模式的其他改动一样，重启 App 就还原 |
+| T12～T15 小组件与后台通知 | 都在 Android 模拟器上实测过，发现并修了这些问题：① iOS 编译失败，报 "no such module Expo"。真正的原因是 Pods.xcodeproj 损坏：CocoaPods 重新编号 target 后，UUID 计数器会从头开始，post_install 里 React Native 给 Citadel 加的 Swift 包对象占用了工程根对象的 UUID（expo/expo#50794，React Native 0.87 修复）。加了小组件扩展后，对象数正好落在会撞车的值上。`plugins/with-unique-pods-uuids.js` 在 post_install 开头改成随机 UUID，CI 在 pod install 后检查根对象。② Android 小组件一直显示"打开 App 添加路由器"：Metro 按扩展名逐个试，每个扩展名先试平台文件、再试通用文件，所以 `update.ts` 比 `update.android.tsx` 先被选中。改成同一个扩展名，并加了检查这类问题的测试。③ R8 删掉了 Expo 用来在后台启动 JS 的类（只在 manifest 里按名字引用），App 被杀后后台检查起不来，加了保留规则。④ 后台启动时 JS 定时器不运行，"10 秒后再试一次"永远等不到，任务 5 分钟后被系统杀掉；原生模块加了 `sleep`。⑤ 小组件第一次重画时速率还没到，10 分钟的节流又挡住了下一次，改为速率第一次到达也算新消息。⑥ 补上通知小图标、小组件预览图，Android 加"添加到桌面"。⑦ CI 检查生成的 entitlements 里没有 `aps-environment`。验证方法：App 进程被杀后用 jobscheduler 强制运行。暂停 Docker 路由器后收到"连不上了"，恢复后收到"恢复了"，加一条 DHCP 租约后收到"有新设备接入"。§0 第 6 条的自检项（`widgetsDirectory`）没有做：CI 里的模拟器版本不签名，结果说明不了自己签名后的情况 |
+| T16 截图、README | iOS 截图由 CI 截取，新增终端、AI 对话、AI 设置、通知与小组件；Android 截图在模拟器上截取，小组件截的是桌面。README：M4 的功能改成 ✅，系统要求改为 iOS 17、Android 8.0，说明了 AI 助手会发送哪些数据、自己签名时小组件的 App Group 和 App ID 数量 |
+| T17 走查 | 见上面各行，Android 在模拟器上（x86_64 的 release 版本，开启 R8），iOS 看 CI 的自检和截图 |
+| T18 在你的路由器上走查 | 需要你在场，还没有做 |
