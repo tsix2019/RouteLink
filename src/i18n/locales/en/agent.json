@@ -1,3 +1,141 @@
 {
-  "title": "Router plugin"
+  "title": "Router plugin",
+  "gate": {
+    "notInstalled": {
+      "title": "Needs the RouteLink plugin",
+      "message": "Install the plugin on this router to see how much each device uses, live and over time.",
+      "action": "Install Plugin"
+    },
+    "notRunning": {
+      "title": "The plugin is not running",
+      "message": "It is installed but its service is stopped.",
+      "action": "Restart Plugin"
+    },
+    "tooOld": {
+      "title": "The plugin is too old",
+      "message": "This app needs a newer version of the plugin.",
+      "action": "Upgrade Plugin"
+    },
+    "tooNew": {
+      "title": "Please update the app",
+      "message": "The plugin on this router is newer than this app understands."
+    },
+    "noPermission": {
+      "title": "This account can't use the plugin",
+      "message": "Sign in as root, or grant this account “luci-app-routelink” in LuCI under System → Administration."
+    }
+  },
+  "banner": {
+    "accounting": "Connection accounting (nf_conntrack_acct) is off: device traffic reads 0.",
+    "offload": "Hardware offloading is on: offloaded traffic may not be counted.",
+    "time": "The router's clock is not synchronised yet; data stays in memory until it is.",
+    "nlbwmon": "nlbwmon is running and resets the connection counters this plugin reads.",
+    "nlbwmonAction": "Stop It"
+  },
+  "nlbwmon": {
+    "title": "Stop and disable nlbwmon?",
+    "consequences": {
+      "stops": "nlbwmon stops and won't start at boot; its own statistics stop growing.",
+      "undo": "Turn it back on any time under More → Services."
+    },
+    "confirm": "Stop and Disable"
+  },
+  "restarted": "Plugin restarted",
+  "page": {
+    "about": "Counts what every device uploads and downloads on this router and keeps the history, so the app can show traffic by device, day and month.",
+    "status": "Status",
+    "version": "Version",
+    "role": "Role",
+    "roleGateway": "Gateway (counts traffic)",
+    "roleOther": "Not a gateway",
+    "offload": "Flow offloading",
+    "offloadNames": {
+      "none": "Off",
+      "software": "Software",
+      "hardware": "Hardware",
+      "sfe": "SFE"
+    },
+    "clock": "Clock",
+    "synced": "Synchronised",
+    "notSynced": "Not synchronised",
+    "storage": "Storage",
+    "lastCommit": "Last write to flash",
+    "never": "Not yet",
+    "actions": "Actions",
+    "checkUpdate": "Check for Updates",
+    "checking": "Checking…",
+    "upToDate": "Up to date ({{version}})",
+    "upgrade": "Upgrade to {{version}}",
+    "updateFailed": "Couldn't check: {{reason}}",
+    "restart": "Restart Plugin",
+    "commit": "Write Data to Flash Now",
+    "committed": "Written to flash",
+    "clear": "Clear Traffic Data",
+    "openLuci": "Open in LuCI",
+    "uninstall": "Remove Plugin",
+    "install": "Install Plugin",
+    "requirements": "Needs about {{size}} of free space, the root account, and a router that can reach the official OpenWrt package servers (for dependencies).",
+    "mirror": "Download mirror",
+    "mirrorHint": "Optional. A prefix put in front of GitHub download links, for networks where GitHub is slow.",
+    "manual": "Manual installation"
+  },
+  "clear": {
+    "title": "Clear all traffic data?",
+    "consequences": {
+      "deleted": "The plugin's history of every device is deleted from the router.",
+      "permanent": "This can't be undone."
+    },
+    "confirm": "Clear"
+  },
+  "uninstall": {
+    "title": "Remove the plugin from {{name}}?",
+    "consequences": {
+      "packages": "The plugin's packages are removed; traffic pages show the install button again.",
+      "luci": "Its LuCI pages disappear."
+    },
+    "deleteData": "Also delete the traffic data",
+    "confirm": "Remove",
+    "done": "Plugin removed",
+    "failed": "Couldn't remove the plugin: {{reason}}"
+  },
+  "install": {
+    "title": "Install the plugin on {{name}}?",
+    "consequences": {
+      "packages": "Three packages are installed on the router: the service, its LuCI pages and their Chinese translation.",
+      "dependencies": "The router downloads missing dependencies from the official OpenWrt servers.",
+      "rpcd": "rpcd reloads while installing; an open LuCI page may need a refresh."
+    },
+    "confirm": "Install",
+    "screen": "Install Plugin",
+    "steps": {
+      "detect": "Check the router",
+      "manifest": "Find the right packages",
+      "download": "Download packages",
+      "lists": "Update package lists",
+      "upload": "Upload to the router",
+      "install": "Install",
+      "verify": "Start the plugin"
+    },
+    "progress": "{{index}} of {{total}}",
+    "done": "Installed {{version}}",
+    "doneMessage": "Traffic statistics start now; history builds up from here.",
+    "finish": "Done",
+    "retry": "Try Again",
+    "manual": "Manual Installation",
+    "failed": {
+      "router": "Couldn't reach the router.",
+      "not-root": "Installing needs the root account. Sign in as root and try again.",
+      "no-helper": "This router has no LuCI package manager. Install luci-app-package-manager (or luci-app-opkg) first.",
+      "unsupported-release": "There is no plugin build for this OpenWrt release yet.",
+      "unsupported-arch": "There is no plugin build for this router's processor yet.",
+      "no-space": "Not enough free space: about {{need}} needed, {{free}} left.",
+      "download": "The download failed. Check the phone's internet connection, or set a download mirror.",
+      "checksum": "A downloaded file was damaged. Try again, or use another mirror.",
+      "upload": "Couldn't copy the packages to the router.",
+      "lists": "The router couldn't update its package lists. It needs internet access.",
+      "dependencies": "The router couldn't install what the plugin needs: {{detail}}. It needs internet access.",
+      "install": "The package manager reported an error.",
+      "verify": "The packages are installed, but the plugin didn't start."
+    }
+  }
 }

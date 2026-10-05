@@ -77,6 +77,11 @@ export const ICONS = {
   pin: { sf: 'pin', ion: 'pin-outline' },
   close: { sf: 'xmark', ion: 'close' },
   stop: { sf: 'stop.fill', ion: 'stop' },
+  plugin: { sf: 'puzzlepiece.extension', ion: 'extension-puzzle-outline' },
+  chart: { sf: 'chart.bar.xaxis', ion: 'bar-chart-outline' },
+  calendar: { sf: 'calendar', ion: 'calendar-outline' },
+  pulse: { sf: 'waveform.path.ecg', ion: 'pulse-outline' },
+  download: { sf: 'arrow.down.circle', ion: 'download-outline' },
 } as const satisfies Record<string, { sf: string; ion: IonName } | { sf: string; mci: MciName }>;
 
 export type IconName = keyof typeof ICONS;

@@ -1,3 +1,141 @@
 {
-  "title": "路由器插件"
+  "title": "路由器插件",
+  "gate": {
+    "notInstalled": {
+      "title": "需要 RouteLink 插件",
+      "message": "在这台路由器上安装插件后，就能看到每台设备的实时速率和历史用量。",
+      "action": "安装插件"
+    },
+    "notRunning": {
+      "title": "插件未运行",
+      "message": "插件已经安装，但服务没有运行。",
+      "action": "重启插件"
+    },
+    "tooOld": {
+      "title": "插件版本太旧",
+      "message": "这个版本的 App 需要更新的插件。",
+      "action": "升级插件"
+    },
+    "tooNew": {
+      "title": "请升级 App",
+      "message": "这台路由器上的插件比 App 新，App 读不懂它的数据。"
+    },
+    "noPermission": {
+      "title": "当前账号没有访问插件的权限",
+      "message": "请用 root 账号登录，或者在 LuCI 的“系统 → 管理权”里给这个账号授权“luci-app-routelink”。"
+    }
+  },
+  "banner": {
+    "accounting": "连接跟踪计数（nf_conntrack_acct）已关闭，设备流量会显示为 0。",
+    "offload": "已开启硬件加速，走加速通道的流量可能统计不到。",
+    "time": "路由器时间还没有同步，同步之前数据只保存在内存里。",
+    "nlbwmon": "nlbwmon 正在运行，它会把本插件读取的连接计数清零。",
+    "nlbwmonAction": "停用"
+  },
+  "nlbwmon": {
+    "title": "停止并禁用 nlbwmon？",
+    "consequences": {
+      "stops": "nlbwmon 会停止运行，开机也不再启动，它自己的统计不再增长。",
+      "undo": "随时可以在“更多 → 服务”里重新打开。"
+    },
+    "confirm": "停止并禁用"
+  },
+  "restarted": "插件已重启",
+  "page": {
+    "about": "在路由器上统计每台设备的上传和下载并保存历史，App 据此按设备、按天、按月显示流量。",
+    "status": "状态",
+    "version": "版本",
+    "role": "角色",
+    "roleGateway": "主路由（统计流量）",
+    "roleOther": "不是主路由",
+    "offload": "流量卸载（加速）",
+    "offloadNames": {
+      "none": "关闭",
+      "software": "软件加速",
+      "hardware": "硬件加速",
+      "sfe": "SFE"
+    },
+    "clock": "时钟",
+    "synced": "已同步",
+    "notSynced": "未同步",
+    "storage": "存储",
+    "lastCommit": "上次写入闪存",
+    "never": "还没有",
+    "actions": "操作",
+    "checkUpdate": "检查更新",
+    "checking": "正在检查…",
+    "upToDate": "已是最新版本（{{version}}）",
+    "upgrade": "升级到 {{version}}",
+    "updateFailed": "检查失败：{{reason}}",
+    "restart": "重启插件",
+    "commit": "立即写入闪存",
+    "committed": "已写入闪存",
+    "clear": "清空流量数据",
+    "openLuci": "在 LuCI 中打开",
+    "uninstall": "卸载插件",
+    "install": "安装插件",
+    "requirements": "需要约 {{size}} 的剩余空间、root 账号，并且路由器要能连上 OpenWrt 官方软件源（用来补装依赖）。",
+    "mirror": "下载镜像",
+    "mirrorHint": "可以不填。填写后会加在 GitHub 下载地址前面，适合访问 GitHub 慢的网络。",
+    "manual": "手动安装说明"
+  },
+  "clear": {
+    "title": "清空全部流量数据？",
+    "consequences": {
+      "deleted": "路由器上所有设备的流量历史都会被删除。",
+      "permanent": "删除后无法恢复。"
+    },
+    "confirm": "清空"
+  },
+  "uninstall": {
+    "title": "从 {{name}} 卸载插件？",
+    "consequences": {
+      "packages": "会删除插件的软件包，流量页面重新显示安装按钮。",
+      "luci": "插件的 LuCI 页面也会一起删除。"
+    },
+    "deleteData": "同时删除流量数据",
+    "confirm": "卸载",
+    "done": "插件已卸载",
+    "failed": "卸载失败：{{reason}}"
+  },
+  "install": {
+    "title": "在 {{name}} 上安装插件？",
+    "consequences": {
+      "packages": "会在路由器上安装 3 个软件包：插件服务、LuCI 页面和中文翻译。",
+      "dependencies": "路由器会从 OpenWrt 官方软件源补装缺少的依赖。",
+      "rpcd": "安装时 rpcd 会重新加载，已打开的 LuCI 页面可能需要刷新。"
+    },
+    "confirm": "安装",
+    "screen": "安装插件",
+    "steps": {
+      "detect": "检查路由器",
+      "manifest": "查找匹配的安装包",
+      "download": "下载安装包",
+      "lists": "更新软件包列表",
+      "upload": "上传到路由器",
+      "install": "安装",
+      "verify": "启动插件"
+    },
+    "progress": "第 {{index}} 个，共 {{total}} 个",
+    "done": "已安装 {{version}}",
+    "doneMessage": "从现在开始统计流量，历史数据会逐渐积累。",
+    "finish": "完成",
+    "retry": "重试",
+    "manual": "手动安装说明",
+    "failed": {
+      "router": "连不上路由器。",
+      "not-root": "安装需要 root 账号，请改用 root 登录后重试。",
+      "no-helper": "这台路由器没有 LuCI 的软件包管理页，请先安装 luci-app-package-manager（或 luci-app-opkg）。",
+      "unsupported-release": "这个 OpenWrt 版本暂时还没有插件的安装包。",
+      "unsupported-arch": "这台路由器的处理器架构暂时还没有插件的安装包。",
+      "no-space": "剩余空间不够：大约需要 {{need}}，还剩 {{free}}。",
+      "download": "下载失败。请检查手机的网络，或者填写下载镜像。",
+      "checksum": "下载的文件已损坏，请重试，或者换一个镜像。",
+      "upload": "没能把安装包传到路由器上。",
+      "lists": "路由器更新软件包列表失败，需要路由器能上网。",
+      "dependencies": "路由器装不上插件需要的依赖：{{detail}}。需要路由器能上网。",
+      "install": "软件包管理器报错。",
+      "verify": "软件包已经装好，但插件没有启动。"
+    }
+  }
 }
