@@ -22,5 +22,21 @@
     "from": "From",
     "to": "To",
     "time": "Time"
+  },
+  "chart": {
+    "missing": "No data"
+  },
+  "picker": {
+    "title": "Custom range",
+    "start": "Start",
+    "end": "End",
+    "hours": "Only some hours of each day",
+    "from": "From",
+    "to": "To",
+    "errors": {
+      "empty": "The end must be after the start.",
+      "future": "The range starts in the future.",
+      "too-long": "Choose ten years at most."
+    }
   }
 }
