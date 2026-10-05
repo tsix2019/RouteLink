@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -30,6 +29,7 @@ import { Screen } from '@/ui/Screen';
 import { Badge } from '@/ui/Status';
 import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
+import { Segmented } from '@/ui/Segmented';
 
 type Tab = 'forwards' | 'rules' | 'zones';
 const TABS: Tab[] = ['forwards', 'rules', 'zones'];
@@ -89,7 +89,7 @@ export default function Firewall() {
         onRefresh={() => fw.refetch()}
         top={data ? <ConnectionBanner error={fw.error} onRetry={() => void fw.refetch()} /> : null}>
         <FeatureGate feature="network.firewall" icon="firewall">
-          <SegmentedControl
+          <Segmented
             values={TABS.map((x) => t(`network:firewall.${x}`))}
             selectedIndex={TABS.indexOf(tab)}
             onChange={(e) => setTab(TABS[e.nativeEvent.selectedSegmentIndex])}

@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -36,6 +35,7 @@ import { HeaderButton, Screen } from '@/ui/Screen';
 import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
+import { Segmented } from '@/ui/Segmented';
 import { formatBitRate, formatBytes } from '@/utils/format';
 import { formatDayTime } from '@/utils/dates';
 
@@ -212,7 +212,7 @@ function TrafficContent({
         ) : null}
       </GlassCard>
 
-      <SegmentedControl
+      <Segmented
         values={TABS.map((v) => t(`traffic:overview.${v}`))}
         selectedIndex={TABS.indexOf(tab)}
         onChange={(e) => setTab(TABS[e.nativeEvent.selectedSegmentIndex])}
@@ -221,7 +221,7 @@ function TrafficContent({
       {tab === 'ranking' ? (
         <>
           <View style={styles.filters}>
-            <SegmentedControl
+            <Segmented
               values={CLASSES.map((v) => t(`traffic:overview.${v}`))}
               selectedIndex={CLASSES.indexOf(cls)}
               onChange={(e) => {
@@ -229,7 +229,7 @@ function TrafficContent({
                 setCls(CLASSES[e.nativeEvent.selectedSegmentIndex]);
               }}
             />
-            <SegmentedControl
+            <Segmented
               values={SORTS.map((v) => t(`traffic:overview.sort.${v}`))}
               selectedIndex={SORTS.indexOf(sort)}
               onChange={(e) => setSort(SORTS[e.nativeEvent.selectedSegmentIndex])}

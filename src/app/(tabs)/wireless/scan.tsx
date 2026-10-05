@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -15,6 +14,7 @@ import { SignalBars } from '@/ui/Status';
 import { describeError } from '@/ui/errorText';
 import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
+import { Segmented } from '@/ui/Segmented';
 
 /** Nearby networks as seen by one of the router's radios (iwinfo scan), strongest first. */
 export default function WirelessScan() {
@@ -39,7 +39,7 @@ export default function WirelessScan() {
   return (
     <Screen title={t('wireless:scanTitle')} inTabs>
       {radios.length > 1 ? (
-        <SegmentedControl
+        <Segmented
           values={radios.map((r) => bandLabel(t, r.band))}
           selectedIndex={Math.min(index, radios.length - 1)}
           onChange={(e) => setIndex(e.nativeEvent.selectedSegmentIndex)}

@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from 'expo-router';
 import { useState } from 'react';
@@ -24,6 +23,7 @@ import { Screen } from '@/ui/Screen';
 import { TextField } from '@/ui/TextField';
 import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
+import { Segmented } from '@/ui/Segmented';
 import { isHttps } from '@/utils/url';
 
 type EntryStatus =
@@ -232,7 +232,7 @@ export default function AddRouterLogin() {
             <AppText variant="subhead" tone="secondary">
               {t('routers:login.samePassword')}
             </AppText>
-            <SegmentedControl
+            <Segmented
               values={[t('routers:login.same'), t('routers:login.different')]}
               selectedIndex={same ? 0 : 1}
               onChange={(ev) => setSame(ev.nativeEvent.selectedSegmentIndex === 0)}

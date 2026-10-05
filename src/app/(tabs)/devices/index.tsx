@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { Stack } from 'expo-router';
 import { useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
@@ -15,6 +14,7 @@ import { ListSection } from '@/ui/ListSection';
 import { Screen } from '@/ui/Screen';
 import { TextField } from '@/ui/TextField';
 import { spacing } from '@/ui/theme/tokens';
+import { Segmented } from '@/ui/Segmented';
 
 export default function Devices() {
   const t = useT();
@@ -49,12 +49,12 @@ export default function Devices() {
           <TextField placeholder={t('devices:search')} value={query} onChangeText={setQuery} />
         ) : null}
         <View style={styles.filters}>
-          <SegmentedControl
+          <Segmented
             values={statusValues.map((v) => t(`devices:filter.${v}`))}
             selectedIndex={statusValues.indexOf(status)}
             onChange={(e) => setStatus(statusValues[e.nativeEvent.selectedSegmentIndex])}
           />
-          <SegmentedControl
+          <Segmented
             values={linkValues.map((v) => t(`devices:filter.${v}`))}
             selectedIndex={linkValues.indexOf(link)}
             onChange={(e) => setLink(linkValues[e.nativeEvent.selectedSegmentIndex])}

@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useEffect, useRef, useState } from 'react';
 import { Share, StyleSheet, View, type ScrollView } from 'react-native';
 
@@ -12,6 +11,7 @@ import { HeaderButton, Screen } from '@/ui/Screen';
 import { TextField } from '@/ui/TextField';
 import { useTheme } from '@/ui/theme/ThemeProvider';
 import { MONO_FONT, spacing } from '@/ui/theme/tokens';
+import { Segmented } from '@/ui/Segmented';
 
 /** At most this many lines are drawn; the full log is still shared. */
 const MAX_LINES = 600;
@@ -66,7 +66,7 @@ export default function Logs() {
           onPress={() => void Share.share({ message: matching.map(lineText).join('\n') })}
         />
       }>
-      <SegmentedControl
+      <Segmented
         values={[t('more:logsScreen.system'), t('more:logsScreen.kernel')]}
         selectedIndex={kind === 'system' ? 0 : 1}
         onChange={(e) => setKind(e.nativeEvent.selectedSegmentIndex === 0 ? 'system' : 'kernel')}

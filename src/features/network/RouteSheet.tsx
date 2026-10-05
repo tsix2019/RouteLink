@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,6 +13,7 @@ import { ListRow, ListSection } from '@/ui/ListSection';
 import { SelectSheet } from '@/ui/SelectSheet';
 import { TextField } from '@/ui/TextField';
 import { spacing } from '@/ui/theme/tokens';
+import { Segmented } from '@/ui/Segmented';
 
 /** Add or edit one static route; the family is fixed when editing. */
 export function RouteSheet({
@@ -66,7 +66,7 @@ export function RouteSheet({
             <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
               <AppText variant="title">{route ? t('network:routes.edit') : t('network:routes.add')}</AppText>
               {route ? null : (
-                <SegmentedControl
+                <Segmented
                   values={['IPv4', 'IPv6']}
                   selectedIndex={input.family === 4 ? 0 : 1}
                   onChange={(e) => set({ family: e.nativeEvent.selectedSegmentIndex === 0 ? 4 : 6 })}

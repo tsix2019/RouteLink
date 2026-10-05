@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -27,6 +26,7 @@ import { Screen } from '@/ui/Screen';
 import { Badge } from '@/ui/Status';
 import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
+import { Segmented } from '@/ui/Segmented';
 
 type Pending = { kind: 'save'; input: StaticRouteInput; route?: StaticRoute } | { kind: 'delete'; route: StaticRoute };
 
@@ -77,7 +77,7 @@ export default function Routes() {
         onRefresh={() => routes.refetch()}
         top={routes.data ? <ConnectionBanner error={routes.error} onRetry={() => void routes.refetch()} /> : null}>
         <FeatureGate feature="network.routes" icon="route">
-          <SegmentedControl
+          <Segmented
             values={['IPv4', 'IPv6']}
             selectedIndex={family === 4 ? 0 : 1}
             onChange={(e) => setFamily(e.nativeEvent.selectedSegmentIndex === 0 ? 4 : 6)}

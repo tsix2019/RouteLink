@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +17,7 @@ import { ListRow, ListSection } from '@/ui/ListSection';
 import { SelectSheet } from '@/ui/SelectSheet';
 import { TextField } from '@/ui/TextField';
 import { spacing } from '@/ui/theme/tokens';
+import { Segmented } from '@/ui/Segmented';
 
 const PROTOCOLS = ['tcp udp', 'tcp', 'udp', 'icmp', 'all'] as const;
 const TARGETS: TrafficRuleInput['target'][] = ['ACCEPT', 'REJECT', 'DROP'];
@@ -158,7 +158,7 @@ export function RuleSheet({
               <AppText variant="footnote" tone="secondary">
                 {t('network:firewall.action')}
               </AppText>
-              <SegmentedControl
+              <Segmented
                 values={TARGETS.map((x) => t(`network:firewall.target.${x}`))}
                 selectedIndex={TARGETS.indexOf(input.target)}
                 onChange={(e) => set({ target: TARGETS[e.nativeEvent.selectedSegmentIndex] })}
@@ -166,7 +166,7 @@ export function RuleSheet({
               <AppText variant="footnote" tone="secondary">
                 {t('network:firewall.family')}
               </AppText>
-              <SegmentedControl
+              <Segmented
                 values={[t('network:firewall.familyBoth'), 'IPv4', 'IPv6']}
                 selectedIndex={FAMILIES.indexOf(input.family)}
                 onChange={(e) => set({ family: FAMILIES[e.nativeEvent.selectedSegmentIndex] })}

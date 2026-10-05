@@ -13,6 +13,8 @@ class FakeRouter {
   readonly valid = new Set<string>();
   readonly denied = new Set<string>(['file.exec']);
   reverseBatches = false;
+  /** Some uhttpd builds (seen on Kwrt) answer errors with "id": null instead of the request's id. */
+  nullErrorIds = false;
 
   readonly http = new FakeHttpClient().on(`POST ${BASE}/ubus`, (req) => this.handle(req));
 
@@ -35,7 +37,14 @@ class FakeRouter {
         return { jsonrpc: '2.0', id, result: [0, { ubus_rpc_session: s, expires: 300 }] };
       }
       if (!this.valid.has(sid) || this.denied.has(key)) {
-        return { jsonrpc: '2.0', id, error: { code: -32002, message: 'Access denied' } };
+        return { jsonrpc: '2.0', id: this.nullErrorIds ? null : id, error: { code: -32002, message: 'Access denied' } };
+      }
+      if (key === 'routelink.info') {
+        return {
+          jsonrpc: '2.0',
+          id: this.nullErrorIds ? null : id,
+          error: { code: -32000, message: 'Object not found' },
+        };
       }
       if (key === 'system.fail') return { jsonrpc: '2.0', id, result: [4] };
       return { jsonrpc: '2.0', id, result: [0, { key, sid }] };
@@ -142,4 +151,19 @@ it('surfaces bad credentials', async () => {
   const router = new FakeRouter();
   const s = new UbusSession({ http: router.http, baseUrl: BASE }, { username: 'root', password: 'bad' });
   await expect(s.call('system', 'board')).rejects.toMatchObject({ code: 'BAD_CREDENTIALS' });
+});
+
+it('matches error replies without an id by position (uhttpd builds that answer "id": null)', async () => {
+  const router = new FakeRouter();
+  router.nullErrorIds = true;
+  const s = session(router);
+  const [missing, board, denied] = await s.batch([
+    { object: 'routelink', method: 'info' },
+    { object: 'system', method: 'board' },
+    { object: 'file', method: 'exec' },
+  ]);
+  expect(missing).toMatchObject({ ok: false, error: { code: 'NOT_FOUND' } });
+  expect(board).toEqual({ ok: true, data: { key: 'system.board', sid: 's1' } });
+  expect(denied).toMatchObject({ ok: false, error: { code: 'PERMISSION_DENIED' } });
+  await expect(s.call('routelink', 'info')).rejects.toMatchObject({ code: 'NOT_FOUND' });
 });

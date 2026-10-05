@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +19,7 @@ import { ListRow, ListSection } from '@/ui/ListSection';
 import { SelectSheet } from '@/ui/SelectSheet';
 import { TextField } from '@/ui/TextField';
 import { spacing } from '@/ui/theme/tokens';
+import { Segmented } from '@/ui/Segmented';
 
 const PROTOCOLS: PortForwardInput['protocols'][] = [['tcp'], ['udp'], ['tcp', 'udp']];
 
@@ -90,7 +90,7 @@ export function ForwardSheet({
                 placeholder="NAS-HTTPS"
                 error={err('name')}
               />
-              <SegmentedControl
+              <Segmented
                 values={['TCP', 'UDP', 'TCP + UDP']}
                 selectedIndex={protoIndex}
                 onChange={(e) => set({ protocols: PROTOCOLS[e.nativeEvent.selectedSegmentIndex] })}

@@ -119,10 +119,12 @@ export class UbusSession {
     if (res.status !== 200) throw new ProtocolError(res.status, `HTTP ${res.status} from ${s.endpoint}`);
 
     const body = parseJson(res.body);
-    const replies = (Array.isArray(body) ? body : [body]) as { id?: number }[];
-    const byId = new Map(replies.map((r) => [r?.id, r]));
+    const replies = (Array.isArray(body) ? body : [body]) as ({ id?: number | null } | null)[];
+    const byId = new Map(replies.filter((r) => r?.id != null).map((r) => [r!.id, r]));
     return calls.map((c, i) => {
-      const reply = byId.get(ids[i]);
+      // Some uhttpd builds (seen on Kwrt) answer errors with "id": null; they keep the request order.
+      const positional = replies[i] && replies[i]!.id == null ? replies[i] : undefined;
+      const reply = byId.get(ids[i]) ?? positional;
       return reply
         ? decodeCallResponse(reply, callKey(c))
         : { ok: false as const, error: new UbusError('UNKNOWN', callKey(c), 'missing response') };

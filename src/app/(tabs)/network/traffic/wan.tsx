@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useState } from 'react';
 
 import { AgentGate } from '@/features/agent/AgentGate';
@@ -13,6 +12,7 @@ import { GlassCard } from '@/ui/GlassCard';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { Screen } from '@/ui/Screen';
 import { SelectSheet } from '@/ui/SelectSheet';
+import { Segmented } from '@/ui/Segmented';
 import { formatBytes } from '@/utils/format';
 import { formatDay, formatMonth, formatMonthYear, formatNumericDay } from '@/utils/dates';
 
@@ -67,7 +67,7 @@ function WanContent({ now }: { now: Date }) {
 
   return (
     <>
-      <SegmentedControl
+      <Segmented
         values={MODES.map((m) => t(`traffic:wan.${m}`))}
         selectedIndex={MODES.indexOf(mode)}
         onChange={(e) => setMode(MODES[e.nativeEvent.selectedSegmentIndex])}

@@ -1,4 +1,3 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -17,6 +16,7 @@ import { Screen } from '@/ui/Screen';
 import { TextField } from '@/ui/TextField';
 import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
+import { Segmented } from '@/ui/Segmented';
 import { formatBytes } from '@/utils/format';
 
 type Sort = 'cpu' | 'memory';
@@ -74,7 +74,7 @@ export default function Processes() {
           processes.data ? <ConnectionBanner error={processes.error} onRetry={() => void processes.refetch()} /> : null
         }>
         <FeatureGate feature="system.processes" icon="process">
-          <SegmentedControl
+          <Segmented
             values={[t('more:processesScreen.cpu'), t('more:processesScreen.memory')]}
             selectedIndex={sort === 'cpu' ? 0 : 1}
             onChange={(e) => setSort(e.nativeEvent.selectedSegmentIndex === 0 ? 'cpu' : 'memory')}
