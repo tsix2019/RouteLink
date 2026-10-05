@@ -142,5 +142,31 @@
     "chooseDevice": "显示哪个接口的活动",
     "hint": "改动立即生效，重启后也保持。",
     "saved": "已保存"
+  },
+  "system": "系统",
+  "systemScreen": {
+    "time": "时间",
+    "routerTime": "路由器时间",
+    "offsetOk": "和手机一致",
+    "ahead": "比手机快 {{time}}",
+    "behind": "比手机慢 {{time}}",
+    "zone": "时区",
+    "ntp": "网络对时（NTP）",
+    "sync": "设成手机的时间",
+    "synced": "已设置路由器时间",
+    "password": "管理密码",
+    "changePassword": "修改密码",
+    "passwordHint": "LuCI、SSH 和这个 App 用的密码（账号 {{user}}）。",
+    "newPassword": "新密码",
+    "repeat": "再输一次",
+    "passwordError": {
+      "empty": "请输入密码",
+      "mismatch": "两次输入的密码不一样",
+      "weak": "至少 8 个字符"
+    },
+    "passwordTitle": "修改 {{user}} 的密码？",
+    "passwordConsequence": "LuCI 和 SSH 要用新密码登录；App 会为这台路由器保存新密码",
+    "passwordDone": "密码已修改",
+    "zoneDone": "时区已修改"
   }
 }

@@ -95,6 +95,14 @@ export default function More() {
             testID="more-wol"
           />
           <ListRow
+            title={t('more:system')}
+            icon="settings"
+            chevron
+            disabled={!hasRouter}
+            onPress={() => nav.push('/more/system')}
+            testID="more-system"
+          />
+          <ListRow
             title={t('more:reboot')}
             icon="power"
             destructive

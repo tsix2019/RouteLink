@@ -142,5 +142,31 @@
     "chooseDevice": "Show Activity Of",
     "hint": "Changes apply right away and stay after a reboot.",
     "saved": "Saved"
+  },
+  "system": "System",
+  "systemScreen": {
+    "time": "Time",
+    "routerTime": "Router Time",
+    "offsetOk": "Same as this phone",
+    "ahead": "{{time}} ahead of this phone",
+    "behind": "{{time}} behind this phone",
+    "zone": "Time Zone",
+    "ntp": "Network Time (NTP)",
+    "sync": "Set to This Phone's Time",
+    "synced": "Router time set",
+    "password": "Admin Password",
+    "changePassword": "Change Password",
+    "passwordHint": "The password for LuCI, SSH and this app (account {{user}}).",
+    "newPassword": "New Password",
+    "repeat": "Repeat",
+    "passwordError": {
+      "empty": "Enter a password",
+      "mismatch": "The passwords don't match",
+      "weak": "Use at least 8 characters"
+    },
+    "passwordTitle": "Change the password of {{user}}?",
+    "passwordConsequence": "LuCI and SSH need the new password; the app saves it for this router",
+    "passwordDone": "Password changed",
+    "zoneDone": "Time zone changed"
   }
 }

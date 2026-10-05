@@ -26,6 +26,8 @@ export interface TimeSettings {
   zonename: string;
   /** Router clock, epoch seconds (UTC). */
   routerTime: number;
+  /** The router's wall clock in its own zone, as seconds (format as UTC to show it). */
+  localTime: number;
   /** Router minus phone, seconds. */
   offsetSec: number;
   ntp: boolean;
@@ -54,6 +56,7 @@ export async function getTimeSettings(
     section: main?.['.name'] ?? '@system[0]',
     zonename: String(main?.zonename ?? main?.timezone ?? 'UTC'),
     routerTime,
+    localTime: local,
     offsetSec: routerTime - phoneNowSec,
     ntp: ntp?.enabled !== '0',
   };

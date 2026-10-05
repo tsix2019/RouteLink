@@ -47,6 +47,7 @@ describe('time zone and clock', () => {
       section: 'cfg01e48a',
       zonename: 'Asia/Shanghai',
       routerTime: 1_000,
+      localTime: 1_000 + 8 * 3600,
       offsetSec: -90,
       ntp: true,
     });
