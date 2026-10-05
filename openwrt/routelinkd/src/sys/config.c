@@ -79,17 +79,10 @@ void rl_config_load(rl_config *c)
 void rl_config_timezone(char *tz, int tz_len, char *zonename, int zone_len)
 {
 	tz[0] = zonename[0] = '\0';
-	FILE *f = fopen("/etc/TZ", "r");
-	if (f) {
-		if (fgets(tz, tz_len, f))
-			tz[strcspn(tz, "\r\n")] = '\0';
-		fclose(f);
-	}
+	/* UCI first: after a time zone change this reload may run before /etc/init.d/system rewrites /etc/TZ */
 	struct uci_context *ctx = uci_alloc_context();
 	struct uci_package *pkg = NULL;
-	if (!ctx)
-		return;
-	if (uci_load(ctx, "system", &pkg) == UCI_OK && pkg) {
+	if (ctx && uci_load(ctx, "system", &pkg) == UCI_OK && pkg) {
 		struct uci_element *e;
 		uci_foreach_element(&pkg->sections, e) {
 			struct uci_section *s = uci_to_section(e);
@@ -99,12 +92,21 @@ void rl_config_timezone(char *tz, int tz_len, char *zonename, int zone_len)
 			const char *t = uci_lookup_option_string(ctx, s, "timezone");
 			if (z)
 				snprintf(zonename, zone_len, "%s", z);
-			if (!tz[0] && t)
+			if (t)
 				snprintf(tz, tz_len, "%s", t);
 			break;
 		}
 	}
-	uci_free_context(ctx);
+	if (ctx)
+		uci_free_context(ctx);
+	if (tz[0])
+		return;
+	FILE *f = fopen("/etc/TZ", "r");
+	if (f) {
+		if (fgets(tz, tz_len, f))
+			tz[strcspn(tz, "\r\n")] = '\0';
+		fclose(f);
+	}
 }
 
 bool rl_config_ntp_enabled(void)

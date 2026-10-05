@@ -4,7 +4,22 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-    paths-ignore: ['docs/**', '**/*.md', 'test/integration/**', '.github/workflows/ios.yml', '.github/workflows/integration.yml']
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - 'test/integration/**'
+      - '.github/workflows/ios.yml'
+      - '.github/workflows/integration.yml'
+      # The router plugin has its own workflow (openwrt.yml)
+      - 'openwrt/**'
+      - 'test/agent/**'
+      - 'scripts/agent-*'
+      - 'scripts/lab-*'
+      - 'scripts/pm-*'
+      - 'scripts/luci-*'
+      - 'scripts/traffic-lab.sh'
+      - 'jest.agent.config.js'
+      - '.github/workflows/openwrt*.yml'
   workflow_dispatch:
 
 concurrency:

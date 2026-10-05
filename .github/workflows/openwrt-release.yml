@@ -48,7 +48,8 @@ jobs:
         run: |
           pre=""
           case "$GITHUB_REF_NAME" in *-*) pre="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" release/assets/* $pre \
+          # --latest=false: "Latest release" stays with the app (tags v*)
+          gh release create "$GITHUB_REF_NAME" release/assets/* $pre --latest=false \
             --title "RouteLink router plugin ${GITHUB_REF_NAME#agent-v}" \
             --notes-file openwrt/RELEASE_NOTES.md
       - uses: actions/upload-pages-artifact@v5

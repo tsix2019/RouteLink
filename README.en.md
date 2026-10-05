@@ -9,7 +9,7 @@
   <a href="https://github.com/tsix2019/RouteLink/actions/workflows/ios.yml"><img src="https://github.com/tsix2019/RouteLink/actions/workflows/ios.yml/badge.svg" alt="iOS"></a>
   <a href="https://github.com/tsix2019/RouteLink/actions/workflows/android.yml"><img src="https://github.com/tsix2019/RouteLink/actions/workflows/android.yml/badge.svg" alt="Android"></a>
   <a href="https://github.com/tsix2019/RouteLink/actions/workflows/integration.yml"><img src="https://github.com/tsix2019/RouteLink/actions/workflows/integration.yml/badge.svg" alt="OpenWrt"></a>
-  <a href="https://github.com/tsix2019/RouteLink/releases"><img src="https://img.shields.io/github/v/release/tsix2019/RouteLink?include_prereleases" alt="Release"></a>
+  <a href="https://github.com/tsix2019/RouteLink/releases"><img src="https://img.shields.io/github/v/release/tsix2019/RouteLink?include_prereleases&amp;filter=v%2A" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/tsix2019/RouteLink" alt="MIT"></a>
 </p>
 

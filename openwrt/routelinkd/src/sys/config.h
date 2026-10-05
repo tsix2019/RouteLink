@@ -22,7 +22,7 @@ void rl_config_defaults(rl_config *c);
 /* Reads UCI over the defaults; values out of range are clamped. */
 void rl_config_load(rl_config *c);
 
-/* POSIX TZ string from /etc/TZ (empty if missing) and system.@system[0].zonename. */
+/* POSIX TZ string from system.@system[0].timezone (else /etc/TZ, else empty) and its zonename. */
 void rl_config_timezone(char *tz, int tz_len, char *zonename, int zone_len);
 /* system.ntp.enabled (true when unset). */
 bool rl_config_ntp_enabled(void);

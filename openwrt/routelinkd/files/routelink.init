@@ -18,7 +18,8 @@ start_service() {
 }
 
 service_triggers() {
-	procd_add_reload_trigger routelink
+	# system: the daemon buckets days and months in the router's time zone
+	procd_add_reload_trigger routelink system
 }
 
 reload_service() {

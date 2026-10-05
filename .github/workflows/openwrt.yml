@@ -10,10 +10,15 @@ on:
       - 'test/agent/**'
       - 'jest.agent.config.js'
       - '.github/workflows/openwrt*.yml'
+      # test/agent talks to the router through the app's HTTP and ubus layers
+      - 'src/api/http/**'
+      - 'src/api/ubus/**'
   pull_request:
     paths:
       - 'openwrt/**'
       - '.github/workflows/openwrt*.yml'
+      - 'src/api/http/**'
+      - 'src/api/ubus/**'
 
 concurrency:
   group: openwrt-${{ github.ref }}
