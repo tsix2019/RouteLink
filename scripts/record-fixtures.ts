@@ -10,7 +10,7 @@ import { UbusSession } from '../src/api/ubus/session';
 import type { UbusCall } from '../src/api/ubus/types';
 import { fixtureName } from '../test/fixture-names';
 
-const access = (scope: 'ubus' | 'file' | 'uci', object: string, fn: string): UbusCall => ({
+const access = (scope: 'ubus' | 'file' | 'uci' | 'cgi-io', object: string, fn: string): UbusCall => ({
   object: 'session',
   method: 'access',
   params: { scope, object, function: fn },
@@ -114,7 +114,56 @@ export const CALLS: UbusCall[] = [
   access('file', '/usr/libexec/opkg-call list-installed', 'exec'),
   access('file', '/etc/crontabs/root', 'write'),
   access('file', '/etc/init.d/cron reload', 'exec'),
+  // M3: VLAN, VPN, DDNS, SQM, ad blocking, backup, factory reset and firmware.
+  { object: 'luci-rpc', method: 'getBoardJSON' },
+  { object: 'luci', method: 'getBuiltinEthernetPorts' },
+  { object: 'uci', method: 'get', params: { config: 'ddns' } },
+  { object: 'uci', method: 'get', params: { config: 'sqm' } },
+  { object: 'uci', method: 'get', params: { config: 'adblock-fast' } },
+  { object: 'uci', method: 'get', params: { config: 'adblock' } },
+  { object: 'uci', method: 'get', params: { config: 'openvpn' } },
+  { object: 'luci.ddns', method: 'get_services_status' },
+  { object: 'luci.ddns', method: 'get_env' },
+  { object: 'luci.adblock-fast', method: 'getInitStatus', params: { name: 'adblock-fast' } },
+  { object: 'service', method: 'list' },
+  { object: 'file', method: 'read', params: { path: '/var/run/adb_runtime.json' } },
+  { object: 'file', method: 'list', params: { path: '/usr/share/ddns/default' } },
+  { object: 'file', method: 'read', params: { path: '/usr/share/ddns/default/duckdns.org.json' } },
+  { object: 'file', method: 'list', params: { path: '/var/run/sqm/available_qdiscs' } },
+  exec('/sbin/sysupgrade', ['--list-backup']),
+  access('ubus', 'luci.wireguard', 'generateKeyPair'),
+  access('ubus', 'luci.wireguard', 'generatePsk'),
+  access('ubus', 'luci.ddns', 'get_services_status'),
+  access('ubus', 'luci.adblock-fast', 'getInitStatus'),
+  access('ubus', 'luci.adblock-fast', 'setInitAction'),
+  access('ubus', 'service', 'list'),
+  access('ubus', 'system', 'validate_firmware_image'),
+  access('uci', 'ddns', 'write'),
+  access('uci', 'sqm', 'write'),
+  access('uci', 'adblock-fast', 'write'),
+  access('uci', 'adblock', 'write'),
+  access('uci', 'openvpn', 'write'),
+  access('cgi-io', 'backup', 'read'),
+  access('file', '/etc/openvpn/routelink.ovpn', 'write'),
+  access('file', '/etc/init.d/sqm enable', 'exec'),
+  access('file', '/etc/init.d/adblock restart', 'exec'),
+  access('file', '/var/run/adb_runtime.json', 'read'),
+  access('file', '/tmp/backup.tar.gz', 'write'),
+  access('file', '/tmp/firmware.bin', 'write'),
+  access('file', '/bin/tar -tzf /tmp/backup.tar.gz', 'exec'),
+  access('file', '/sbin/sysupgrade --restore-backup /tmp/backup.tar.gz', 'exec'),
+  access('file', '/sbin/sysupgrade /tmp/firmware.bin', 'exec'),
+  access('file', '/sbin/sysupgrade -n /tmp/firmware.bin', 'exec'),
+  access('file', '/sbin/firstboot -r -y', 'exec'),
 ];
+
+/** Secrets that a recording must not carry even from a disposable router. */
+function redact(name: string, data: unknown): unknown {
+  if (name !== 'uci.get.adblock-fast') return data;
+  const values = (data as { values?: Record<string, Record<string, unknown>> }).values ?? {};
+  for (const section of Object.values(values)) if ('rpcd_token' in section) section.rpcd_token = 'REDACTED';
+  return data;
+}
 
 /** Calls that take longer than the default timeout. */
 const SLOW: Record<string, number> = { 'iwinfo.scan': 25_000 };
@@ -170,7 +219,7 @@ async function main() {
   for (const call of calls) {
     const [result] = await session.batch([call], { timeoutMs: SLOW[`${call.object}.${call.method}`] });
     const name = fixtureName(call);
-    const content = result.ok ? { ok: true, data: result.data } : { ok: false, error: result.error.code };
+    const content = result.ok ? { ok: true, data: redact(name, result.data) } : { ok: false, error: result.error.code };
     writeFileSync(join(dir, `${name}.json`), JSON.stringify(content, null, 2) + '\n');
     console.log(`${result.ok ? 'ok  ' : 'FAIL'} ${name}${result.ok ? '' : ` (${result.error.code})`}`);
   }

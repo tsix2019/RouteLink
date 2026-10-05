@@ -4,8 +4,10 @@
 #   LAN (eth0) 192.168.1.1, forwarded to 127.0.0.1:18080 (http), :18443 (https), :18022 (ssh);
 #   :18081 reaches 192.168.1.5, where the LAN address test (A6) moves the router for a moment
 #   WAN (eth1) user-mode NAT with internet access for the package manager
+#   eth2 and eth3: isolated ports in br-lan for the VLAN tests
 # Afterwards: three mac80211_hwsim radios — RouteLink (2.4 GHz), RouteLink-5G (5 GHz) and a
-# "Neighbor-Test" AP for scans — luci-app-wol, and root password routelink-test.
+# "Neighbor-Test" AP for scans — luci-app-wol, the M3 packages (DDNS, SQM, adblock-fast, adblock
+# (off), OpenVPN) and root password routelink-test.
 set -euo pipefail
 V="$1"
 WORK="${2:-$PWD/.qemu}"
@@ -25,7 +27,7 @@ qemu-system-x86_64 -enable-kvm -cpu host -m 512 -smp 2 -display none -daemonize 
   -drive "file=$WORK/run.img,format=raw,if=virtio" \
   -netdev "user,id=lan,net=192.168.1.0/24,host=192.168.1.2,hostfwd=tcp:127.0.0.1:18080-192.168.1.1:80,hostfwd=tcp:127.0.0.1:18443-192.168.1.1:443,hostfwd=tcp:127.0.0.1:18022-192.168.1.1:22,hostfwd=tcp:127.0.0.1:18081-192.168.1.5:80" \
   -device virtio-net-pci,netdev=lan \
-  -netdev user,id=wan -device virtio-net-pci,netdev=wan \
+  -netdev user,id=wan -device virtio-net-pci,netdev=wan   -netdev user,id=port2,restrict=on -device virtio-net-pci,netdev=port2   -netdev user,id=port3,restrict=on -device virtio-net-pci,netdev=port3 \
   -serial "file:$WORK/serial.log"
 
 wait_for_luci() {
@@ -61,8 +63,19 @@ for i in $(seq 1 30); do ping -c1 -W2 downloads.openwrt.org >/dev/null 2>&1 && b
 PKGS="kmod-mac80211-hwsim wpad-basic-mbedtls luci-app-wol luci-proto-wireguard"
 if command -v apk >/dev/null 2>&1; then
   apk update && apk add $PKGS
+  add_pkg() { apk add "$1"; }
 else
   opkg update && opkg install $PKGS
+  add_pkg() { opkg install "$1"; }
+fi
+# M3 packages one by one: a package missing from one release must not stop the setup.
+for p in ddns-scripts luci-app-ddns sqm-scripts luci-app-sqm adblock-fast luci-app-adblock-fast   adblock luci-app-adblock openvpn-openssl luci-app-openvpn; do
+  add_pkg "$p" >/dev/null 2>&1 || echo "warning: $p is not available"
+done
+# adblock starts enabled; the tests switch it on when they need it.
+if [ -f /etc/config/adblock ]; then
+  uci set adblock.global.adb_enabled=0 && uci commit adblock
+  /etc/init.d/adblock stop >/dev/null 2>&1 || true
 fi
 found=0
 for f in /etc/modules.d/*hwsim*; do
@@ -148,6 +161,24 @@ if command -v wg >/dev/null 2>&1; then
 fi
 /etc/init.d/firewall reload >/dev/null 2>&1 || true
 ifup wg0 2>/dev/null || true
+
+# M3: two more LAN ports for the VLAN tests.
+br=$(uci show network | sed -n "s/^network\.\([^.]*\)\.name='br-lan'$/\1/p" | head -n1)
+if [ -n "$br" ]; then
+  uci add_list "network.$br.ports=eth2"
+  uci add_list "network.$br.ports=eth3"
+  uci commit network
+  ubus call network reload || true
+fi
+# Facts the M3 plan depends on (T1), printed for the log.
+echo "--- M3 checks"
+if echo 192.168.1.250 > /proc/net/nf_conntrack 2>/dev/null; then
+  echo "conntrack flush by address: yes"
+else
+  echo "conntrack flush by address: no"
+fi
+echo "ip neigh:"; ip neigh show 2>&1 | head -n3
+echo "openvpn init username option: $(grep -c 'config_get username' /etc/init.d/openvpn 2>/dev/null || echo 0)"
 # A process for the processes page to stop; it must outlive this SSH session.
 ( trap '' HUP; exec sleep 99999 ) </dev/null >/dev/null 2>&1 &
 REMOTE
