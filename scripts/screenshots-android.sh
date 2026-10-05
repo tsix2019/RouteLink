@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Demo-mode screenshots on an Android emulator (plan T62): zh/en x light/dark x six screens.
+# Demo-mode screenshots on an Android emulator (plan T62, P1 T44): zh/en x light/dark x the screens below.
 # Usage: scripts/screenshots-android.sh [adb serial]
 # Install a release build first (no developer overlays); the app opens itself via routelink://demo.
 set -euo pipefail
@@ -7,7 +7,9 @@ SERIAL="${1:-${ANDROID_SERIAL:-}}"
 ADB=(adb)
 [ -n "$SERIAL" ] && ADB=(adb -s "$SERIAL")
 PKG=io.github.tsix2019.routelink
-PAGES=(overview devices device wireless network more)
+# name:route — the route is what routelink://demo opens (see src/features/demo/route.ts).
+PAGES=(overview devices device wireless network more traffic:network/traffic traffic-live:traffic-live
+  traffic-device:traffic-device wan:network/traffic/wan agent:more/agent)
 
 demo() { "${ADB[@]}" shell am broadcast -a com.android.systemui.demo -e command "$@" >/dev/null; }
 
@@ -30,11 +32,13 @@ for lang in zh en; do
   mkdir -p "docs/screenshots/$lang"
   for theme in light dark; do
     if [ "$theme" = dark ]; then "${ADB[@]}" shell cmd uimode night yes >/dev/null; else "${ADB[@]}" shell cmd uimode night no >/dev/null; fi
-    for page in "${PAGES[@]}"; do
+    for entry in "${PAGES[@]}"; do
+      page="${entry%%:*}"
+      route="${entry#*:}"
       # Fresh start for every shot: clean navigation and a warmed-up demo router.
       "${ADB[@]}" shell am force-stop "$PKG"
       MSYS_NO_PATHCONV=1 "${ADB[@]}" shell am start -W -a android.intent.action.VIEW \
-        -d "'routelink://demo?lang=$lang&theme=$theme&route=/$page'" "$PKG" >/dev/null
+        -d "'routelink://demo?lang=$lang&theme=$theme&route=/$route'" "$PKG" >/dev/null
       sleep 6
       "${ADB[@]}" exec-out screencap -p > "docs/screenshots/$lang/android-$page-$theme.png"
       echo "docs/screenshots/$lang/android-$page-$theme.png"

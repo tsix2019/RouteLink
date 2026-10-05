@@ -50,7 +50,7 @@ const PAGE = 50;
 export default function Traffic() {
   const t = useT();
   const nav = useRouter();
-  const params = useLocalSearchParams<{ range?: string }>();
+  const params = useLocalSearchParams<{ range?: string; tab?: string }>();
   const status = useAgentStatus();
   const [range, setRange] = useState<TimeRange>(() => parseRange(params.range) ?? DEFAULT_RANGE);
   // Presets resolve against this moment; it moves on when the range changes or on pull-to-refresh.
@@ -77,6 +77,7 @@ export default function Traffic() {
         {(info) => (
           <TrafficContent
             info={info}
+            initialTab={params.tab === 'live' ? 'live' : 'ranking'}
             range={range}
             now={now}
             onRange={(r) => {
@@ -97,6 +98,7 @@ export default function Traffic() {
 
 function TrafficContent({
   info,
+  initialTab,
   range,
   now,
   onRange,
@@ -105,6 +107,7 @@ function TrafficContent({
   onDevice,
 }: {
   info: AgentInfo;
+  initialTab: Tab;
   range: TimeRange;
   now: Date;
   onRange(r: TimeRange): void;
@@ -118,7 +121,7 @@ function TrafficContent({
   const toast = useToast();
   const { colors } = useTheme();
   const { connection } = useActiveRouter();
-  const [tab, setTab] = useState<Tab>('ranking');
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [cls, setCls] = useState<(typeof CLASSES)[number]>('internet');
   const [sort, setSort] = useState<Sort>('total');
   const [pages, setPages] = useState(1);
