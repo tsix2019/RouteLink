@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, BackHandler, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { reboot } from '@/api/services/system';
@@ -75,6 +75,14 @@ export default function Reboot() {
   }, [connection, nav, queryClient]);
 
   const finished = phase === 'done' || phase === 'timeout' || phase === 'failed';
+
+  // iOS blocks the swipe back (gestureEnabled: false); Android's back button must wait for the end too.
+  useEffect(() => {
+    if (finished) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+    return () => sub.remove();
+  }, [finished]);
+
   const message = {
     down: t('overview:reboot.waitingDown'),
     up: t('overview:reboot.waitingUp'),

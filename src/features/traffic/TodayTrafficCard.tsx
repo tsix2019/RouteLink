@@ -108,7 +108,7 @@ function InstallInvite() {
         label={t('traffic:card.installAction')}
         icon="download"
         compact
-        onPress={() => nav.push(AGENT_PAGE)}
+        onPress={() => nav.push(AGENT_PAGE, { withAnchor: true })}
       />
     </GlassCard>
   );

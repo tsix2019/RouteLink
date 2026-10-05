@@ -1,5 +1,5 @@
-import { useRouter } from 'expo-router';
-import { useEffect, type ReactNode } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, type ReactNode } from 'react';
 import { BackHandler, Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
@@ -37,14 +37,23 @@ function AndroidSheet({ children, detent }: { children: ReactNode; detent: numbe
   useEffect(() => {
     offset.set(withSpring(0, SPRING));
     backdrop.set(withTiming(1, { duration: 220 }));
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      dismiss();
-      return true;
-    });
-    return () => sub.remove();
     // run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Only while the sheet is on top: a screen it opened (add router from the switcher) handles its own
+  // back press. A listener that stayed on would slide this sheet away underneath and leave its
+  // invisible backdrop swallowing the next tap.
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+        dismiss();
+        return true;
+      });
+      return () => sub.remove();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   const drag = Gesture.Pan()
     .activeOffsetY(8)

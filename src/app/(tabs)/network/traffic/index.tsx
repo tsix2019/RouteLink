@@ -64,7 +64,7 @@ export default function Traffic() {
         <HeaderButton
           icon="more"
           // Without a working plugin the only useful destination is the plugin page.
-          onPress={() => (status.data?.state === 'ok' ? setMenu(true) : nav.push(AGENT_PAGE))}
+          onPress={() => (status.data?.state === 'ok' ? setMenu(true) : nav.push(AGENT_PAGE, { withAnchor: true }))}
           accessibilityLabel={t('traffic:overview.settings')}
           testID="traffic-menu"
         />
@@ -310,7 +310,7 @@ function TrafficContent({
             icon: 'plugin',
             onPress: () => {
               onMenuClose();
-              nav.push(AGENT_PAGE);
+              nav.push(AGENT_PAGE, { withAnchor: true });
             },
           },
         ]}

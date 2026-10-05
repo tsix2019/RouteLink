@@ -145,6 +145,8 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
 
       <DeviceTrafficEntry mac={client.mac} />
 
+      {/* Rows opening a tab's page use dismissTo: it closes this sheet, while navigate would stack a
+          second copy of the tabs above it. */}
       <ListSection title={t('devices:actions.title')}>
         {client.online && client.ipv4 ? (
           <ListRow
@@ -152,7 +154,7 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
             title={t('network:connections.title')}
             chevron
             onPress={() =>
-              nav.navigate(`/network/connections?ip=${encodeURIComponent(client.ipv4!)}`, { withAnchor: true })
+              nav.dismissTo(`/network/connections?ip=${encodeURIComponent(client.ipv4!)}`, { withAnchor: true })
             }
             testID="device-connections"
           />
@@ -166,7 +168,7 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
             return s.enabled ? t('devices:parental.count', { count: s.periods.length }) : t('devices:parental.paused');
           })()}
           chevron
-          onPress={() => nav.navigate(`/devices/schedule?mac=${encodeURIComponent(client.mac)}`, { withAnchor: true })}
+          onPress={() => nav.dismissTo(`/devices/schedule?mac=${encodeURIComponent(client.mac)}`, { withAnchor: true })}
           testID="device-parental"
         />
         <ListRow

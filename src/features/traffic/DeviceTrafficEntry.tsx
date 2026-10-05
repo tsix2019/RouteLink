@@ -6,7 +6,10 @@ import { useT } from '@/i18n';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { formatBytes } from '@/utils/format';
 
-/** "Traffic" row in the device sheet: today's usage, opening the device's traffic page. */
+/**
+ * "Traffic" row in the device sheet: today's usage, opening the device's traffic page. dismissTo
+ * closes the sheet on the way: navigate would push a second copy of the tabs above it.
+ */
 export function DeviceTrafficEntry({ mac }: { mac: string }) {
   const t = useT();
   const nav = useRouter();
@@ -26,7 +29,7 @@ export function DeviceTrafficEntry({ mac }: { mac: string }) {
               : undefined
           }
           chevron
-          onPress={() => nav.navigate(`/network/traffic/${encodeURIComponent(mac)}`, { withAnchor: true })}
+          onPress={() => nav.dismissTo(`/network/traffic/${encodeURIComponent(mac)}`, { withAnchor: true })}
           testID="device-traffic"
         />
       ) : (
@@ -35,7 +38,7 @@ export function DeviceTrafficEntry({ mac }: { mac: string }) {
           title={t('traffic:device.row')}
           subtitle={t('traffic:device.needsPlugin')}
           chevron
-          onPress={() => nav.navigate(AGENT_PAGE, { withAnchor: true })}
+          onPress={() => nav.dismissTo(AGENT_PAGE, { withAnchor: true })}
           testID="device-traffic"
         />
       )}

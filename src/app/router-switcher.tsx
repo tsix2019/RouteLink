@@ -92,7 +92,12 @@ export default function RouterSwitcher() {
         </ListSection>
         <View style={styles.actions}>
           <GlassButton label={t('routers:add')} icon="plus" variant="primary" onPress={() => nav.push('/add-router')} />
-          <GlassButton label={t('routers:manage')} icon="settings" onPress={() => nav.push('/more/routers')} />
+          {/* Close the sheet on the way: a push would stack a second copy of the tabs above it. */}
+          <GlassButton
+            label={t('routers:manage')}
+            icon="settings"
+            onPress={() => nav.dismissTo('/more/routers', { withAnchor: true })}
+          />
         </View>
       </Screen>
     </SheetScreen>

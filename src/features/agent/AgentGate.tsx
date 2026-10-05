@@ -12,6 +12,10 @@ import { EmptyState, ErrorState, Skeleton } from '@/ui/Feedback';
 import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
 
+/**
+ * The plugin page lives in the More tab. Open it from other tabs with { withAnchor: true }: without
+ * it, a More tab that was never opened gets the plugin page alone, with no back button.
+ */
 export const AGENT_PAGE = '/more/agent';
 
 /** Restarts the plugin's service (rc init, or LuCI's init helper on 23.05). */
@@ -41,7 +45,10 @@ export function AgentPlaceholder({ status }: { status: Exclude<AgentStatus, { st
           icon="plugin"
           title={t('agent:gate.notInstalled.title')}
           message={t('agent:gate.notInstalled.message')}
-          action={{ label: t('agent:gate.notInstalled.action'), onPress: () => nav.push(AGENT_PAGE) }}
+          action={{
+            label: t('agent:gate.notInstalled.action'),
+            onPress: () => nav.push(AGENT_PAGE, { withAnchor: true }),
+          }}
         />
       );
     case 'not-running':
@@ -59,7 +66,7 @@ export function AgentPlaceholder({ status }: { status: Exclude<AgentStatus, { st
           icon="plugin"
           title={t('agent:gate.tooOld.title')}
           message={t('agent:gate.tooOld.message')}
-          action={{ label: t('agent:gate.tooOld.action'), onPress: () => nav.push(AGENT_PAGE) }}
+          action={{ label: t('agent:gate.tooOld.action'), onPress: () => nav.push(AGENT_PAGE, { withAnchor: true }) }}
         />
       );
     case 'too-new':
