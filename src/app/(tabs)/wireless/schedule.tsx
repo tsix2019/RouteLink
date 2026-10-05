@@ -46,19 +46,20 @@ export default function WifiScheduleScreen() {
   const [draft, setDraft] = useState<WifiSchedule[] | null>(null);
   const [editing, setEditing] = useState<{ index: number | null; schedule: WifiSchedule } | null>(null);
   const [confirming, setConfirming] = useState(false);
-  const schedules = draft ?? state.data?.schedules ?? [];
+  // Plain locals, not state.data.x inside closures: the compiler would read those before data loads.
+  const saved = state.data?.schedules;
+  const crontab = state.data?.crontab;
+  const schedules = draft ?? saved ?? [];
   const save = useRouterMutation(
-    (conn, list: WifiSchedule[]) => saveWifiSchedules(conn, list, state.data!.crontab),
+    (conn, list: WifiSchedule[]) => saveWifiSchedules(conn, list, crontab ?? { lines: [], original: '' }),
     [['wifi-schedule'], ['cron']],
   );
 
   const now = localTime ? new Date(localTime * 1000) : null;
   const offNow =
-    now && state.data
-      ? radios.some((r) =>
-          wifiOffNow(state.data.schedules, r.name, now.getUTCDay(), now.getUTCHours() * 60 + now.getUTCMinutes()),
-        )
-      : false;
+    !!now &&
+    !!saved &&
+    radios.some((r) => wifiOffNow(saved, r.name, now.getUTCDay(), now.getUTCHours() * 60 + now.getUTCMinutes()));
 
   const summary = (s: WifiSchedule) =>
     t('wireless:schedule.summary', {

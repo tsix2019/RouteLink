@@ -43,8 +43,9 @@ function statusLine(t: AppT, s: DdnsService): string {
   const next = s.status.next;
   if (next === 'verify' || next === 'once' || next === 'disabled' || next === 'stopped') {
     parts.push(t(`network:ddns.next.${next}`));
-  } else if (next) parts.push(t('network:ddns.nextAt', { time: next }));
-  return parts.join('\n');
+  } else if (next && !s.status.lastUpdate) parts.push(t('network:ddns.nextAt', { time: next }));
+  // One line: the row shows two (provider, then this).
+  return parts.join(' · ');
 }
 
 /** NW-9: ddns-scripts services with their state; saved directly, then ddns restarts. */

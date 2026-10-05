@@ -190,7 +190,8 @@ export default function Backup() {
       <RiskConfirm
         visible={!!checked}
         level="high"
-        title={t('more:backupScreen.restoreTitle', { name: checked?.name ?? '' })}
+        title={t('more:backupScreen.restoreTitle')}
+        subtitle={checked?.name}
         consequences={[
           t('more:backupScreen.restoreRisks.replace'),
           t('more:backupScreen.restoreRisks.reboot'),

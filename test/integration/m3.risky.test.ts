@@ -24,17 +24,20 @@ import {
   type DsaVlans,
 } from '../../src/api/services/vlan';
 import { stageAndApply, uci } from '../../src/api/uci';
-import { connect, ROUTER_URL, sleep, waitFor } from './router';
+import { connect, ROUTER_URL, routerShell, sleep, SSH_PORT, waitFor } from './router';
 
 const dsa = async (conn: LiveConnection) => (await getVlans(conn)) as DsaVlans;
 
-/** Down first (or a while passed), then answering again. */
+/** Down first, then answering again; logs every change for the CI log. */
 async function waitForRestart(conn: LiveConnection, ms: number): Promise<boolean> {
-  const deadline = Date.now() + ms;
+  const start = Date.now();
   let sawDown = false;
-  while (Date.now() < deadline) {
+  let last: boolean | null = null;
+  while (Date.now() - start < ms) {
     await sleep(3_000);
     const up = await conn.ping();
+    if (up !== last) console.log(`${Math.round((Date.now() - start) / 1000)} s: ${up ? 'up' : 'down'}`);
+    last = up;
     if (!up) sawDown = true;
     else if (sawDown) return true;
   }
@@ -140,7 +143,16 @@ describe('M3 high risk: factory reset', () => {
 
   it('comes back with OpenWrt defaults and no password', async () => {
     await factoryReset(conn);
-    expect(await waitForRestart(conn, 300_000)).toBe(true);
+    const back = await waitForRestart(conn, 300_000);
+    if (!back && SSH_PORT) {
+      // Where did it end up? A reset router takes an empty SSH password.
+      console.log(
+        await Promise.resolve()
+          .then(() => routerShell('uptime; ip -4 addr; logread | tail -n 40', ''))
+          .catch(String),
+      );
+    }
+    expect(back).toBe(true);
     // No password after a reset: the old one no longer applies, an empty one does.
     const fresh = new LiveConnection({
       routerId: 'reset',

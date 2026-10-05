@@ -225,7 +225,8 @@ export default function Firmware() {
       <RiskConfirm
         visible={confirming}
         level="high"
-        title={t('more:firmwareScreen.confirmTitle', { name: checked?.name ?? '' })}
+        title={t('more:firmwareScreen.confirmTitle')}
+        subtitle={checked?.name}
         consequences={[
           t('more:firmwareScreen.risks.brick'),
           t('more:firmwareScreen.risks.time'),

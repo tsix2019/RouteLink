@@ -221,7 +221,7 @@
     "sensitive": "Backups contain Wi-Fi and admin passwords; take care when sharing them.",
     "uploading": "Uploading the backup {{progress}}",
     "checking": "Checking the backup…",
-    "restoreTitle": "Restore {{name}}?",
+    "restoreTitle": "Restore this backup?",
     "restoreRisks": {
       "replace": "The router's current configuration is replaced by the backup's; changes made since the backup are lost.",
       "reboot": "The router restarts afterwards; every device is offline for 1–2 minutes.",
@@ -267,7 +267,7 @@
     "forceHint": "Flashes an image that failed the checks; the router may not start again.",
     "flash": "Flash Firmware",
     "packages": "Packages you installed yourself (the RouteLink plugin, SQM, DDNS…) have to be installed again afterwards.",
-    "confirmTitle": "Flash {{name}}?",
+    "confirmTitle": "Flash this firmware?",
     "risks": {
       "brick": "A wrong image or a power cut while flashing can brick the router; recovering then takes a serial console or recovery mode.",
       "time": "Flashing and restarting take a few minutes; every device is offline meanwhile.",

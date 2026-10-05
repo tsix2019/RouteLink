@@ -221,7 +221,7 @@
     "sensitive": "备份里有 Wi-Fi 密码、管理密码等敏感信息，分享时请注意。",
     "uploading": "正在上传备份 {{progress}}",
     "checking": "正在检查备份…",
-    "restoreTitle": "用 {{name}} 恢复配置？",
+    "restoreTitle": "用这个备份恢复配置？",
     "restoreRisks": {
       "replace": "路由器现在的配置会被备份里的配置替换，备份之后做的修改都会丢失。",
       "reboot": "恢复后路由器会重启，所有设备断网 1～2 分钟。",
@@ -267,7 +267,7 @@
     "forceHint": "固件检查不通过时强行刷入，可能导致路由器无法启动。",
     "flash": "刷入固件",
     "packages": "升级后，自己装的软件包（比如 RouteLink 插件、SQM、DDNS）需要重新安装。",
-    "confirmTitle": "刷入 {{name}}？",
+    "confirmTitle": "刷入这个固件？",
     "risks": {
       "brick": "刷错固件或刷写中断电，路由器可能变砖，需要拆机或用救援模式恢复。",
       "time": "刷写和重启要几分钟，期间所有设备断网。",

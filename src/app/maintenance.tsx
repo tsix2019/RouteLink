@@ -159,7 +159,7 @@ export default function Maintenance() {
           <ActivityIndicator size="large" color={colors.accent} />
         )}
         <AppText variant="title" align="center">
-          {t(`more:progress.${mode}`)}
+          {phase === 'done' ? message : t(`more:progress.${mode}`)}
         </AppText>
         {!finished ? (
           <View style={[styles.power, { backgroundColor: colors.danger }]}>
@@ -169,10 +169,12 @@ export default function Maintenance() {
             </AppText>
           </View>
         ) : null}
-        <AppText variant="body" tone="secondary" align="center">
-          {message}
-        </AppText>
-        {phase === 'done' && version ? (
+        {phase === 'done' ? null : (
+          <AppText variant="body" tone="secondary" align="center">
+            {message}
+          </AppText>
+        )}
+        {phase === 'done' && version && connection?.kind === 'live' ? (
           <AppText variant="body" align="center">
             {t('more:progress.doneVersion', { version })}
           </AppText>

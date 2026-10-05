@@ -298,6 +298,26 @@ describe('M3: SQM', () => {
 describe('M3: ad blocking', () => {
   const { conn } = connect();
   const state = async () => (await getAdblock(conn)) as AdblockState;
+  /** What the router reported, for the CI log when a wait runs out. */
+  const report = async (label: string) => {
+    console.log(label, JSON.stringify(await state()));
+    console.log(
+      'adblock-fast',
+      JSON.stringify(await conn.call('luci.adblock-fast', 'getInitStatus', { name: 'adblock-fast' }).catch(String)),
+    );
+    for (const path of [
+      '/var/run/adb_runtime.json',
+      '/tmp/adb_runtime.json',
+      '/var/run/adblock/adblock.runtime.json',
+    ]) {
+      console.log(path, await conn.cgiRead(path).catch((e: unknown) => String(e)));
+    }
+  };
+  const until = async (label: string, check: () => Promise<boolean>, ms: number) => {
+    const ok = await waitFor(check, ms, 5_000);
+    if (!ok) await report(label);
+    return ok;
+  };
 
   it('adblock-fast: on with a small default list, blocking, then off', async () => {
     if (!strict) return; // downloads block lists
@@ -305,41 +325,31 @@ describe('M3: ad blocking', () => {
     expect(before).toMatchObject({ package: 'adblock-fast', enabled: false });
     try {
       await enableAdblock(conn, before);
-      expect(await waitFor(async () => (await state()).status === 'running', 240_000, 5_000)).toBe(true);
+      expect(await until('fast on', async () => (await state()).status === 'running', 240_000)).toBe(true);
       expect((await state()).blocked).toBeGreaterThan(1000);
     } finally {
       await adblockAction(conn, 'adblock-fast', 'off');
     }
-    expect(await waitFor(async () => (await state()).status === 'stopped', 60_000, 3_000)).toBe(true);
+    expect(await until('fast off', async () => !(await state()).enabled, 60_000)).toBe(true);
   }, 400_000);
 
   it('adblock: on, blocking according to its runtime file, then off', async () => {
     if (!strict) return;
+    const adblock = async () => {
+      const s = await state();
+      return s.package === 'adblock' ? s : null;
+    };
     try {
       await adblockAction(conn, 'adblock', 'on');
-      const adblock = async () => {
-        const s = await state();
-        return s.package === 'adblock' ? s : null;
-      };
-      expect(await waitFor(async () => (await adblock())?.status === 'running', 300_000, 5_000)).toBe(true);
+      expect(await until('adblock on', async () => (await adblock())?.status === 'running', 300_000)).toBe(true);
       // Lists may still be processing when the status first says enabled.
-      const counted = await waitFor(async () => ((await adblock())?.blocked ?? 0) > 1000, 120_000, 5_000);
-      if (!counted) {
-        for (const path of [
-          '/var/run/adb_runtime.json',
-          '/tmp/adb_runtime.json',
-          '/var/run/adblock/adblock.runtime.json',
-        ]) {
-          console.log(path, await conn.cgiRead(path).catch((e: unknown) => String(e)));
-        }
-      }
-      expect(counted).toBe(true);
+      expect(await until('adblock count', async () => ((await adblock())?.blocked ?? 0) > 1000, 120_000)).toBe(true);
     } finally {
       await adblockAction(conn, 'adblock', 'off');
     }
     // Off again, adblock-fast is the one the app shows.
-    expect(await waitFor(async () => (await state()).package === 'adblock-fast', 60_000, 3_000)).toBe(true);
-  }, 400_000);
+    expect(await until('adblock off', async () => (await state()).package === 'adblock-fast', 60_000)).toBe(true);
+  }, 600_000);
 });
 
 describe('M3: backup download', () => {

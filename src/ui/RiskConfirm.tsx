@@ -19,6 +19,8 @@ export interface RiskConfirmProps {
   /** medium: confirmation sheet. high: full-screen warning that needs a checkbox and a typed phrase. */
   level: 'medium' | 'high';
   title: string;
+  /** high only: a line under the title, e.g. the file about to be flashed. */
+  subtitle?: string;
   consequences: string[];
   confirmLabel: string;
   /** Use the warning colour for changes that may drop the connection. */
@@ -79,7 +81,15 @@ function MediumRisk({ title, consequences, confirmLabel, disruptive, option, onC
   );
 }
 
-function HighRisk({ title, consequences, confirmLabel, confirmPhrase = '', onConfirm, onCancel }: RiskConfirmProps) {
+function HighRisk({
+  title,
+  subtitle,
+  consequences,
+  confirmLabel,
+  confirmPhrase = '',
+  onConfirm,
+  onCancel,
+}: RiskConfirmProps) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -100,6 +110,11 @@ function HighRisk({ title, consequences, confirmLabel, confirmPhrase = '', onCon
             <AppText variant="largeTitle" align="center">
               {title}
             </AppText>
+            {subtitle ? (
+              <AppText variant="footnote" tone="secondary" align="center" selectable>
+                {subtitle}
+              </AppText>
+            ) : null}
             <AppText variant="headline" tone="danger" align="center">
               {t('risk:highTitle')}
             </AppText>
