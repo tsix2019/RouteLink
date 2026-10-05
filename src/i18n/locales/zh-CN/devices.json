@@ -82,7 +82,7 @@
     "overnightHint": "结束时间早于开始时间，表示到第二天这个时间结束。",
     "deletePeriod": "删除这个时段",
     "save": "保存并应用",
-    "blockedNow": "现在是禁止上网时段（{{window}}）",
+    "blockedNow": "现在是禁止上网时段：{{window}}",
     "allowedNow": "现在可以上网",
     "routerTime": "路由器时间 {{time}}",
     "confirmTitle": "更新「{{name}}」的上网时间？",

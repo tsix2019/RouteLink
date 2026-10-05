@@ -82,7 +82,7 @@
     "overnightHint": "An end earlier than the start means that time on the next day.",
     "deletePeriod": "Delete This Period",
     "save": "Save and Apply",
-    "blockedNow": "Blocked right now ({{window}})",
+    "blockedNow": "Blocked right now: {{window}}",
     "allowedNow": "Internet allowed right now",
     "routerTime": "Router time {{time}}",
     "confirmTitle": "Update internet time for “{{name}}”?",
