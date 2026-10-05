@@ -2,7 +2,13 @@
   "title": "Wi-Fi",
   "noRadios": "This router has no wireless hardware",
   "noRadiosHint": "No wireless card was found, or its driver isn't loaded.",
-  "band": { "2g": "2.4 GHz", "5g": "5 GHz", "6g": "6 GHz", "60g": "60 GHz", "unknown": "Wireless" },
+  "band": {
+    "2g": "2.4 GHz",
+    "5g": "5 GHz",
+    "6g": "6 GHz",
+    "60g": "60 GHz",
+    "unknown": "Wireless"
+  },
   "radioSettings": "Radio Settings",
   "channelValue": "Channel {{channel}}",
   "auto": "Auto",
@@ -76,5 +82,16 @@
   "scanHint": "Devices on this radio may stutter briefly while it scans.",
   "hiddenNetwork": "Hidden network",
   "scanEmpty": "No networks found",
-  "scanCount": "{{count}} networks"
+  "scanCount": "{{count}} networks",
+  "qr": {
+    "title": "Share Wi-Fi",
+    "hint": "Point a phone camera at the code to join.",
+    "open": "Open network: no password",
+    "password": "Password",
+    "show": "Show Password",
+    "hidden": "Hidden network",
+    "choose": "Choose a Network",
+    "none": "No Wi-Fi networks to share",
+    "share": "Share"
+  }
 }

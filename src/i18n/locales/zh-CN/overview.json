@@ -45,7 +45,8 @@
   },
   "actions": {
     "title": "快捷操作",
-    "reboot": "重启路由器"
+    "reboot": "重启路由器",
+    "wifiQr": "Wi-Fi 二维码"
   },
   "reboot": {
     "confirmTitle": "重启路由器？",

@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 
 import { isAvailable } from '@/api/capabilities';
@@ -35,6 +36,7 @@ export default function Overview() {
   const intervalSec = useSettings((s) => s.refreshIntervalSec);
   const saveSnapshot = useSnapshots((s) => s.save);
   const reboot = useRebootConfirm();
+  const nav = useRouter();
   const wan = pickWan(interfaces.data ?? []);
 
   // Keep the last good overview for cold starts, the router switcher and widgets.
@@ -73,6 +75,14 @@ export default function Overview() {
       <ResourcesCard system={system.data} temperature={temperature.data} />
       <SystemCard system={system.data} />
       <GlassCard title={t('overview:actions.title')} icon="bolt">
+        {isAvailable(caps.data, 'wireless') ? (
+          <GlassButton
+            label={t('overview:actions.wifiQr')}
+            icon="qrcode"
+            onPress={() => nav.push('/wifi-qr')}
+            testID="action-wifi-qr"
+          />
+        ) : null}
         <GlassButton
           label={t('overview:actions.reboot')}
           icon="power"

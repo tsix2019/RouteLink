@@ -22,7 +22,7 @@ import { GlassButton } from '@/ui/GlassButton';
 import { GlassCard } from '@/ui/GlassCard';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { RiskConfirm } from '@/ui/RiskConfirm';
-import { Screen } from '@/ui/Screen';
+import { HeaderButton, Screen } from '@/ui/Screen';
 import { SelectSheet } from '@/ui/SelectSheet';
 import { TextField } from '@/ui/TextField';
 import { spacing } from '@/ui/theme/tokens';
@@ -114,7 +114,19 @@ function NetworkForm({ network, band }: { network: WifiNetwork; band: Parameters
 
   return (
     <>
-      <Screen title={network.ssid || network.section} inTabs>
+      <Screen
+        title={network.ssid || network.section}
+        inTabs
+        headerRight={
+          network.mode === 'ap' ? (
+            <HeaderButton
+              icon="qrcode"
+              accessibilityLabel={t('wireless:qr.title')}
+              onPress={() => nav.push(`/wifi-qr?section=${encodeURIComponent(network.section)}`)}
+              testID="network-share"
+            />
+          ) : undefined
+        }>
         <GlassCard title={bandLabel(t, band)} subtitle={network.section} icon="wifi">
           <TextField
             label={t('wireless:network.ssid')}

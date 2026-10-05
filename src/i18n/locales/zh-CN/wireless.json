@@ -2,7 +2,13 @@
   "title": "无线",
   "noRadios": "这台路由器没有无线设备",
   "noRadiosHint": "没有找到无线网卡，或者无线驱动没有加载。",
-  "band": { "2g": "2.4 GHz", "5g": "5 GHz", "6g": "6 GHz", "60g": "60 GHz", "unknown": "无线" },
+  "band": {
+    "2g": "2.4 GHz",
+    "5g": "5 GHz",
+    "6g": "6 GHz",
+    "60g": "60 GHz",
+    "unknown": "无线"
+  },
   "radioSettings": "射频设置",
   "channelValue": "信道 {{channel}}",
   "auto": "自动",
@@ -76,5 +82,16 @@
   "scanHint": "扫描期间，这个射频上的设备可能会短暂卡顿。",
   "hiddenNetwork": "隐藏网络",
   "scanEmpty": "没有扫描到网络",
-  "scanCount": "共 {{count}} 个网络"
+  "scanCount": "共 {{count}} 个网络",
+  "qr": {
+    "title": "分享 Wi-Fi",
+    "hint": "用手机相机扫这个码就能连上。",
+    "open": "开放网络：不需要密码",
+    "password": "密码",
+    "show": "显示密码",
+    "hidden": "隐藏的网络",
+    "choose": "选择网络",
+    "none": "没有可以分享的 Wi-Fi",
+    "share": "分享"
+  }
 }

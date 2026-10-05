@@ -45,7 +45,8 @@
   },
   "actions": {
     "title": "Quick Actions",
-    "reboot": "Reboot Router"
+    "reboot": "Reboot Router",
+    "wifiQr": "Share Wi-Fi (QR Code)"
   },
   "reboot": {
     "confirmTitle": "Reboot the router?",

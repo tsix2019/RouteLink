@@ -89,6 +89,7 @@ function RootStack() {
         <Stack.Screen name="router-switcher" options={sheetOptions([0.55, 1])} />
         <Stack.Screen name="trust-certificate" options={sheetOptions([0.8, 1])} />
         <Stack.Screen name="device/[mac]" options={sheetOptions([0.68, 1])} />
+        <Stack.Screen name="wifi-qr" options={sheetOptions([0.85, 1])} />
         <Stack.Screen name="reboot" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
       </Stack>
     </View>
