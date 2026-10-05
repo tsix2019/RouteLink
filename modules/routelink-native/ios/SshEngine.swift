@@ -57,7 +57,11 @@ private final class ExecOutput: @unchecked Sendable {
   private var stdout = Data()
   private var stderr = Data()
   private var exitCode: Int? = 0
+  private var ended = false
   private static let limit = 1 << 20
+
+  /// The command's output stream ended (with or without an exit status).
+  var done: Bool { lock.withLock { ended } }
 
   func append(_ buffer: ByteBuffer, error: Bool) {
     lock.withLock {
@@ -70,7 +74,12 @@ private final class ExecOutput: @unchecked Sendable {
     }
   }
 
-  func finish(code: Int?) { lock.withLock { exitCode = code } }
+  func finish(code: Int?) {
+    lock.withLock {
+      exitCode = code
+      ended = true
+    }
+  }
 
   var result: [String: Any] {
     lock.withLock {
@@ -203,17 +212,24 @@ actor SshEngine {
     do {
       try await withThrowingTaskGroup(of: Void.self) { group in
         group.addTask {
-          try await client.withExec(command) { inbound, _ in
-            do {
-              for try await chunk in inbound {
-                switch chunk {
-                case .stdout(let buffer): output.append(buffer, error: false)
-                case .stderr(let buffer): output.append(buffer, error: true)
+          do {
+            try await client.withExec(command) { inbound, _ in
+              do {
+                for try await chunk in inbound {
+                  switch chunk {
+                  case .stdout(let buffer): output.append(buffer, error: false)
+                  case .stderr(let buffer): output.append(buffer, error: true)
+                  }
                 }
+                output.finish(code: 0)
+              } catch let failed as SSHClient.CommandFailed {
+                output.finish(code: failed.exitCode)
               }
-            } catch let failed as SSHClient.CommandFailed {
-              output.finish(code: failed.exitCode)
             }
+          } catch {
+            // withExec closes the channel when the closure returns; dropbear has usually closed it already
+            // after sending the exit status ("Already closed"). The command itself finished.
+            if !output.done { throw error }
           }
         }
         group.addTask {

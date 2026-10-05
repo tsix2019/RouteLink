@@ -58,6 +58,8 @@ def run_command(command):
 async def handle(process):
     try:
         await serve(process)
+    except (asyncssh.ConnectionLost, BrokenPipeError):
+        pass  # the client closed the session
     except Exception:  # shown in the CI log, else asyncssh drops it silently
         traceback.print_exc()
         process.exit(1)
