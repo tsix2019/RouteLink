@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "data": {
+    "path": "/usr/bin/apk",
+    "type": "file",
+    "size": 231731,
+    "mode": 33261,
+    "atime": 1782737960,
+    "mtime": 1782737960,
+    "ctime": 1782737960,
+    "inode": 860,
+    "uid": 0,
+    "gid": 0,
+    "user": "root",
+    "group": "root"
+  }
+}

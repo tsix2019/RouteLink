@@ -1,0 +1,6 @@
+{
+  "ok": true,
+  "data": {
+    "data": "src/gz openwrt_core https://downloads.openwrt.org/releases/23.05.6/targets/x86/64/packages\nsrc/gz openwrt_base https://downloads.openwrt.org/releases/23.05.6/packages/x86_64/base\nsrc/gz openwrt_kmods https://downloads.openwrt.org/releases/23.05.6/targets/x86/64/kmods/5.15.189-1-2754d960da6d6f582d53be94c2d49b0e\nsrc/gz openwrt_luci https://downloads.openwrt.org/releases/23.05.6/packages/x86_64/luci\nsrc/gz openwrt_packages https://downloads.openwrt.org/releases/23.05.6/packages/x86_64/packages\nsrc/gz openwrt_routing https://downloads.openwrt.org/releases/23.05.6/packages/x86_64/routing\nsrc/gz openwrt_telephony https://downloads.openwrt.org/releases/23.05.6/packages/x86_64/telephony\n"
+  }
+}

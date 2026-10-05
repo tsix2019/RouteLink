@@ -18,8 +18,8 @@
         ".type": "globals",
         ".name": "globals",
         ".index": 1,
-        "dhcp_default_duid": "000415e59e72e54a4e03ba67ac710e73ebfc",
-        "ula_prefix": "fda5:b585:f6f9::/48"
+        "dhcp_default_duid": "000436a2b166fe7843a88973cfa596ad1e7e",
+        "ula_prefix": "fd2c:6ad6:3acd::/48"
       },
       "cfg030f15": {
         ".anonymous": true,

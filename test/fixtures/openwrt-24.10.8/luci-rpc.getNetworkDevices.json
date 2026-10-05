@@ -13,7 +13,7 @@
       "ip6addrs": [],
       "mac": "02:00:00:00:02:00",
       "type": 1,
-      "ifindex": 6,
+      "ifindex": 8,
       "stats": {
         "rx_bytes": 0,
         "tx_bytes": 4352,
@@ -67,7 +67,7 @@
       ],
       "ip6addrs": [
         {
-          "address": "fde6:5aa8:529b::1",
+          "address": "fda0:5510:285b::1",
           "netmask": "ffff:ffff:ffff:fff0::"
         },
         {
@@ -80,10 +80,10 @@
       "ifindex": 5,
       "stats": {
         "rx_bytes": 124812,
-        "tx_bytes": 650994,
+        "tx_bytes": 652434,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 1109,
+        "tx_packets": 1108,
         "rx_packets": 1212,
         "multicast": 0,
         "collisions": 0,
@@ -136,12 +136,12 @@
       "type": 1,
       "ifindex": 3,
       "stats": {
-        "rx_bytes": 5569,
-        "tx_bytes": 6648,
+        "rx_bytes": 5787,
+        "tx_bytes": 6822,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 61,
-        "rx_packets": 45,
+        "tx_packets": 64,
+        "rx_packets": 48,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -259,12 +259,12 @@
       "type": 1,
       "ifindex": 2,
       "stats": {
-        "rx_bytes": 142622,
-        "tx_bytes": 656026,
+        "rx_bytes": 142734,
+        "tx_bytes": 657520,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 1125,
-        "rx_packets": 1226,
+        "tx_packets": 1126,
+        "rx_packets": 1229,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -349,7 +349,7 @@
       "ip6addrs": [],
       "mac": "02:00:00:00:01:00",
       "type": 1,
-      "ifindex": 8,
+      "ifindex": 6,
       "stats": {
         "rx_bytes": 0,
         "tx_bytes": 4352,

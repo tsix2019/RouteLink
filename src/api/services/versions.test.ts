@@ -8,6 +8,7 @@ import { detectCapabilities } from '../capabilities';
 import { getClients } from './clients';
 import { systemLog } from './logs';
 import { getDeviceCounters, getInterfaces, pickWan } from './network';
+import { detectPackageEnv } from './packages';
 import { listServices } from './services';
 import { getSystem } from './system';
 import { getRadioCapabilities, getRadios, scan } from './wireless';
@@ -69,6 +70,26 @@ describe.each(VERSIONS)('OpenWrt %s', (version) => {
     // 23.05 lists init scripts through LuCI, which doesn't report whether they run.
     expect(dropbear?.running).toBe(version.startsWith('23.') ? undefined : true);
     expect((await systemLog(conn())).length).toBeGreaterThan(10);
+  });
+
+  it("finds LuCI's package helper for the plugin install", async () => {
+    const env = await detectPackageEnv(conn());
+    const pmc = '/usr/libexec/package-manager-call';
+    expect(env).toMatchObject(
+      version.startsWith('23.')
+        ? {
+            helper: '/usr/libexec/opkg-call',
+            manager: 'opkg',
+            uploadPath: '/tmp/upload.ipk',
+            updateArgs: ['update', '-q'],
+          }
+        : version.startsWith('25.')
+          ? { helper: pmc, manager: 'apk', uploadPath: '/tmp/upload.apk', updateArgs: ['update'] }
+          : { helper: pmc, manager: 'opkg', uploadPath: '/tmp/upload.ipk', updateArgs: ['update'] },
+    );
+    // Recorded after a reboot: the package lists live in RAM and are gone.
+    expect(env).toMatchObject({ release: version.split('.').slice(0, 2).join('.'), arch: 'x86_64', hasLists: false });
+    expect('freeKb' in env && env.freeKb).toBeGreaterThan(1000);
   });
 
   it('detects services and logs as available', async () => {

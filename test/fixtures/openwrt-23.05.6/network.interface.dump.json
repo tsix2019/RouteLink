@@ -9,7 +9,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 108,
+        "uptime": 109,
         "l3_device": "br-lan",
         "proto": "static",
         "device": "br-lan",
@@ -29,10 +29,10 @@
         "ipv6-prefix": [],
         "ipv6-prefix-assignment": [
           {
-            "address": "fdfb:294a:e4a9::",
+            "address": "fdef:e064:9b12::",
             "mask": 60,
             "local-address": {
-              "address": "fdfb:294a:e4a9::1",
+              "address": "fdef:e064:9b12::1",
               "mask": 60
             }
           }
@@ -58,7 +58,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 108,
+        "uptime": 109,
         "l3_device": "lo",
         "proto": "static",
         "device": "lo",
@@ -152,7 +152,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 94,
+        "uptime": 95,
         "l3_device": "eth1",
         "proto": "dhcpv6",
         "device": "eth1",
@@ -168,8 +168,8 @@
           {
             "address": "fec0::5054:ff:fe12:3457",
             "mask": 64,
-            "preferred": 14296,
-            "valid": 86296
+            "preferred": 14295,
+            "valid": 86295
           }
         ],
         "ipv6-prefix": [],
@@ -180,7 +180,7 @@
             "mask": 64,
             "nexthop": "::",
             "metric": 256,
-            "valid": 86296,
+            "valid": 86295,
             "source": "::/0"
           },
           {
@@ -188,7 +188,7 @@
             "mask": 0,
             "nexthop": "fe80::2",
             "metric": 512,
-            "valid": 1696,
+            "valid": 1695,
             "source": "fec0::5054:ff:fe12:3457/64"
           }
         ],

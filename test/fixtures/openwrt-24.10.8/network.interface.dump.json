@@ -9,7 +9,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 119,
+        "uptime": 122,
         "l3_device": "br-lan",
         "proto": "static",
         "device": "br-lan",
@@ -29,10 +29,10 @@
         "ipv6-prefix": [],
         "ipv6-prefix-assignment": [
           {
-            "address": "fde6:5aa8:529b::",
+            "address": "fda0:5510:285b::",
             "mask": 60,
             "local-address": {
-              "address": "fde6:5aa8:529b::1",
+              "address": "fda0:5510:285b::1",
               "mask": 60
             }
           }
@@ -58,7 +58,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 119,
+        "uptime": 122,
         "l3_device": "lo",
         "proto": "static",
         "device": "lo",
@@ -98,7 +98,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 118,
+        "uptime": 122,
         "l3_device": "eth1",
         "proto": "dhcp",
         "device": "eth1",
@@ -152,7 +152,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 105,
+        "uptime": 108,
         "l3_device": "eth1",
         "proto": "dhcpv6",
         "device": "eth1",
@@ -164,8 +164,8 @@
           {
             "address": "fec0::5054:ff:fe12:3457",
             "mask": 64,
-            "preferred": 14317,
-            "valid": 86317
+            "preferred": 14374,
+            "valid": 86374
           }
         ],
         "ipv6-prefix": [],
@@ -176,7 +176,7 @@
             "mask": 64,
             "nexthop": "::",
             "metric": 256,
-            "valid": 86317,
+            "valid": 86374,
             "source": "::/0"
           },
           {
@@ -184,7 +184,7 @@
             "mask": 0,
             "nexthop": "fe80::2",
             "metric": 512,
-            "valid": 1717,
+            "valid": 1774,
             "source": "fec0::5054:ff:fe12:3457/64"
           }
         ],
