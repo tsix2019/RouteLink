@@ -157,6 +157,9 @@ export const CALLS: UbusCall[] = [
   access('file', '/sbin/sysupgrade /tmp/firmware.bin', 'exec'),
   access('file', '/sbin/sysupgrade -n /tmp/firmware.bin', 'exec'),
   access('file', '/sbin/firstboot -r -y', 'exec'),
+  // M4: the app's SSH key in dropbear's authorized_keys (LuCI's SSH keys page has the same grant).
+  access('file', '/etc/dropbear/authorized_keys', 'read'),
+  access('file', '/etc/dropbear/authorized_keys', 'write'),
 ];
 
 /** Secrets that a recording must not carry even from a disposable router. */

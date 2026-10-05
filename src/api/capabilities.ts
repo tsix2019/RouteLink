@@ -29,7 +29,8 @@ export type Feature =
   | 'network.adblock'
   | 'system.backup'
   | 'system.firmware'
-  | 'system.reset';
+  | 'system.reset'
+  | 'system.sshkeys';
 
 export type CapabilityState =
   | { status: 'ok' }
@@ -144,6 +145,12 @@ const REQUIREMENTS: Record<Exclude<Feature, 'wireless'>, Requirement> = {
     packages: ['luci-mod-system'],
   },
   'system.reset': { access: [file('/sbin/firstboot -r -y')], packages: ['luci-mod-system'] },
+  // M4: installing the app's SSH key. Routers running OpenSSH instead of dropbear do not get the option.
+  'system.sshkeys': {
+    access: [file('/etc/dropbear/authorized_keys', 'read'), file('/etc/dropbear/authorized_keys', 'write')],
+    files: ['/usr/sbin/dropbear'],
+    packages: ['dropbear', 'luci-mod-system'],
+  },
 };
 
 const accessKey = (a: Access) => `${a.scope}|${a.object}|${a.fn}`;
