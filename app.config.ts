@@ -1,6 +1,6 @@
 import type { ExpoConfig } from 'expo/config';
 
-const VERSION = '0.3.0';
+const VERSION = '0.3.1';
 /** 1.2.3 → 10203, so every release is an upgrade of the one before (v0.1.0 shipped with the default, 1). */
 const BUILD = VERSION.split('.').reduce((n, part) => n * 100 + Number(part), 0);
 

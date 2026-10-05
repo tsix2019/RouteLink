@@ -134,7 +134,7 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 
 ## Install
 
-- **Android**: download `RouteLink-<version>.apk` from [Releases](https://github.com/tsix2019/RouteLink/releases). Needs Android 8.0 or later on an ARM processor (every phone and tablet on the market).
+- **Android**: download `RouteLink-<version>.apk` from [Releases](https://github.com/tsix2019/RouteLink/releases). Needs Android 7.0 or later on an ARM processor (every phone and tablet on the market).
 - **iOS**: not on the App Store. Releases include an unsigned `RouteLink-unsigned.ipa`; sign and install it with your own Apple ID using [AltStore](https://altstore.io), [SideStore](https://sidestore.io) or Sideloadly, or with TrollStore on iOS versions it supports.
 
 ## Router requirements
