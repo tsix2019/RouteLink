@@ -7,6 +7,7 @@ import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
 import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
 import { useRebootConfirm } from '@/features/routers/useRebootConfirm';
+import { TodayTrafficCard } from '@/features/traffic/TodayTrafficCard';
 import {
   useCapabilities,
   useClients,
@@ -66,6 +67,7 @@ export default function Overview() {
         />
       }>
       <TrafficCard series={traffic.series} latest={traffic.latest} intervalSec={intervalSec} />
+      <TodayTrafficCard />
       <DevicesCard clients={clients.data} />
       <WanCard wan={wan} loading={!interfaces.data} />
       <ResourcesCard system={system.data} temperature={temperature.data} />

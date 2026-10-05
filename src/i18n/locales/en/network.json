@@ -30,5 +30,6 @@
     "appConsequence": "The app reaches the router through this interface: it will lose the connection for a few seconds",
     "pppoe": "PPPoE dials again, so your public IP may change",
     "done": "Reconnect requested"
-  }
+  },
+  "statistics": "Statistics"
 }

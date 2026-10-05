@@ -33,6 +33,22 @@ export default function Network() {
           />
         ) : null
       }>
+      <ListSection title={t('network:statistics')}>
+        <ListRow
+          title={t('traffic:title')}
+          icon="chart"
+          chevron
+          onPress={() => nav.push('/network/traffic')}
+          testID="network-traffic"
+        />
+        <ListRow
+          title={t('traffic:wan.title')}
+          icon="calendar"
+          chevron
+          onPress={() => nav.push('/network/traffic/wan')}
+          testID="network-wan-history"
+        />
+      </ListSection>
       {interfaces.data ? (
         interfaces.data.length ? (
           <ListSection title={t('network:interfaces')}>
