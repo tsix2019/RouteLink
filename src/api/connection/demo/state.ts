@@ -64,6 +64,8 @@ const DEVICES: [hostname: string, oui: string, kind: 'wifi' | 'wired', radio?: '
 const OFFLINE = new Set(['ThinkPad', 'iPad']);
 const STATIC_HOST = 'NAS';
 const BLOCKED_HOST = 'Smart-Plug';
+/** Has a parental-control schedule (DV-8): school nights. */
+const SCHEDULED_HOST = 'Nintendo-Switch';
 
 function section(name: string, type: string, values: Record<string, string | string[]>, anonymous = false): UciSection {
   return { '.name': name, '.type': type, '.anonymous': anonymous, ...values } as UciSection;
@@ -152,6 +154,18 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
   }));
   const staticDev = devices.find((d) => d.hostname === STATIC_HOST)!;
   const blockedDev = devices.find((d) => d.hostname === BLOCKED_HOST)!;
+  const scheduledDev = devices.find((d) => d.hostname === SCHEDULED_HOST)!;
+  const schoolNight = (start: string, stop: string, weekdays: string) => ({
+    name: `RouteLink: schedule ${scheduledDev.mac} 21:30-07:00`,
+    src: '*',
+    dest: '*',
+    src_mac: [scheduledDev.mac],
+    proto: 'all',
+    target: 'REJECT',
+    start_time: start,
+    stop_time: stop,
+    weekdays,
+  });
 
   const uci: DemoState['uci'] = {
     system: {
@@ -308,6 +322,8 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
         },
         true,
       ),
+      cfg_sched_eve: section('cfg_sched_eve', 'rule', schoolNight('21:30:00', '23:59:59', 'Sun Mon Tue Wed Thu'), true),
+      cfg_sched_morn: section('cfg_sched_morn', 'rule', schoolNight('00:00:00', '07:00:00', 'Mon Tue Wed Thu Fri'), true),
       cfg_fwd: section(
         'cfg_fwd',
         'redirect',
@@ -348,7 +364,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     syslog: buildSyslog(rng, devices),
     kernel: buildKernel(),
     agent: createDemoAgent(now),
-    admin: createDemoAdmin(),
+    admin: createDemoAdmin(scheduledDev.mac),
     packages: createDemoPackages(),
   };
 }

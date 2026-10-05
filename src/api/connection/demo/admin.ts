@@ -57,7 +57,13 @@ const CRONTAB = `# Weekly reboot (LuCI's suggestion: wait for the clock first)
 30 5 * * * wifi reload
 `;
 
-export const createDemoAdmin = (): DemoAdmin => ({
+/** The flush entry that a parental-control schedule adds (services/parental.ts). */
+const scheduleCron = (mac: string) =>
+  `# RouteLink: schedule ${mac}
+30 21 * * 0,1,2,3,4 for a in $(ip neigh show | awk 'tolower($5)=="${mac.toLowerCase()}"{print $1}'); do echo $a > /proc/net/nf_conntrack; done 2>/dev/null
+`;
+
+export const createDemoAdmin = (scheduledMac?: string): DemoAdmin => ({
   processes: PROCESSES.map(([pid, ppid, user, stat, vsz, cpu, command]) => ({
     pid,
     ppid,
@@ -67,7 +73,7 @@ export const createDemoAdmin = (): DemoAdmin => ({
     cpu,
     command,
   })),
-  crontab: CRONTAB,
+  crontab: CRONTAB + (scheduledMac ? scheduleCron(scheduledMac) : ''),
   clockSkewSec: 0,
 });
 

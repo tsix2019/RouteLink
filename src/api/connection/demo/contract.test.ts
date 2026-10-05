@@ -42,6 +42,7 @@ import { kernelLog, systemLog } from '../../services/logs';
 import { getDeviceCounters, getInterfaces, pickWan, reconnectInterface } from '../../services/network';
 import { installPackages, listAvailable, listInstalled, searchPackages } from '../../services/package-list';
 import { detectPackageEnv, removePackages } from '../../services/packages';
+import { getParental, saveSchedule } from '../../services/parental';
 import { listProcesses, signalProcess } from '../../services/processes';
 import { deleteStaticRoute, getRoutes, saveStaticRoute } from '../../services/routes';
 import { listServices, serviceAction } from '../../services/services';
@@ -186,10 +187,15 @@ describe('demo router: system and network pages (M2)', () => {
   it('scheduled tasks: read, add one, read it back', async () => {
     const { conn } = demo();
     const tab = await readCrontab(conn);
-    expect(tab.lines.filter((l) => l.kind === 'entry')).toHaveLength(2);
+    // Two of the user's own and the parental-control flush, which the app manages.
+    expect(tab.lines.filter((l) => l.kind === 'entry').map((l) => l.kind === 'entry' && l.managed)).toEqual([
+      false,
+      false,
+      true,
+    ]);
     const [added] = parseCrontab('0 3 * * * /etc/init.d/dnsmasq restart');
     await writeCrontab(conn, [...tab.lines, added], tab.original);
-    expect((await readCrontab(conn)).lines.filter((l) => l.kind === 'entry')).toHaveLength(3);
+    expect((await readCrontab(conn)).lines.filter((l) => l.kind === 'entry')).toHaveLength(4);
     await expect(writeCrontab(conn, tab.lines, tab.original)).rejects.toMatchObject({ code: 'cron-changed' });
   });
 
@@ -237,7 +243,8 @@ describe('demo router: system and network pages (M2)', () => {
       ['vpn', false],
     ]);
     expect(fw.forwards.map((f) => f.name)).toEqual(['NAS-HTTPS']);
-    expect(fw.rules.filter((r) => r.managed)).toHaveLength(1);
+    // The block rule and the two halves of the school-night schedule.
+    expect(fw.rules.filter((r) => r.managed)).toHaveLength(3);
 
     const input = {
       name: 'Camera',
@@ -335,6 +342,28 @@ describe('demo router: system and network pages (M2)', () => {
       fast,
     );
     expect((await getRoutes(conn)).statics).toHaveLength(1);
+  });
+});
+
+describe('demo router: M3 router features', () => {
+  it('parental control: the school-night schedule, changed and removed', async () => {
+    const { conn } = demo();
+    const switchMac = (await getClients(conn)).find((c) => c.hostname === 'Nintendo-Switch')!.mac;
+    const state = await getParental(conn);
+    expect(state.schedules.get(switchMac)).toMatchObject({
+      enabled: true,
+      periods: [{ days: [0, 1, 2, 3, 4], from: '21:30', to: '07:00' }],
+    });
+    const weekend = [{ days: [6 as const], from: '10:00', to: '12:00' }];
+    expect((await saveSchedule(conn, switchMac, weekend, true, fast)).status).toBe('confirmed');
+    const changed = await getParental(conn);
+    expect(changed.schedules.get(switchMac)?.periods).toEqual(weekend);
+    expect(changed.crontab.original).toContain('0 10 * * 6 ');
+    expect(changed.crontab.original).not.toContain('30 21 ');
+    await saveSchedule(conn, switchMac, [], true, fast);
+    const removed = await getParental(conn);
+    expect(removed.schedules.size).toBe(0);
+    expect(removed.crontab.original).not.toContain('RouteLink: schedule');
   });
 });
 

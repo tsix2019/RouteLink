@@ -5,6 +5,7 @@ import { stageAndApply, uci, type ApplyOptions, type ApplyOutcome, type UciSecti
 import type { UbusCall } from '../ubus/types';
 import { ActionError } from './action-error';
 import { BLOCK_RULE_PREFIX } from './clients';
+import { SCHEDULE_RULE_PREFIX } from './parental';
 
 export interface FirewallZone {
   section: string;
@@ -164,7 +165,7 @@ export function parseFirewall(values: Record<string, UciSection>): Firewall {
         destIp: words(s.dest_ip),
         target: String(s.target ?? 'DROP').toUpperCase(),
         enabled: s.enabled !== '0',
-        managed: name.startsWith(BLOCK_RULE_PREFIX),
+        managed: name.startsWith(BLOCK_RULE_PREFIX) || name.startsWith(SCHEDULE_RULE_PREFIX),
         extra: extraOptions(s, RULE_OPTIONS),
       };
       const src = str(s.src);
