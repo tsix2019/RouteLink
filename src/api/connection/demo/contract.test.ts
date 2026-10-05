@@ -27,6 +27,7 @@ import {
   type History,
 } from '../../services/agent';
 import { getClients } from '../../services/clients';
+import { createGuestChanges, deleteGuestChanges, getGuestState, guestWifiChanges } from '../../services/guest';
 import { getConnections, groupBySource, ReverseDns } from '../../services/conntrack';
 import {
   applyFirewallChanges,
@@ -282,6 +283,32 @@ describe('demo router: system and network pages (M2)', () => {
     await removePackages(conn, env, ['luci-app-adblock']);
     expect((await listInstalled(conn, env)).some((p) => p.name === 'luci-app-adblock')).toBe(false);
     expect((await installPackages(conn, env, ['no-such-thing'])).ok).toBe(false);
+  });
+
+  it('guest network: created on both radios, switched off and removed', async () => {
+    const { conn } = demo();
+    const before = await getGuestState(conn);
+    expect(before.support).toEqual({ status: 'ok', wanZone: 'wan' });
+    expect(before.guest).toBeNull();
+    expect(before.freeAddress).toBe('192.168.3.1');
+    const input = {
+      ssid: 'RouteLink-Guest',
+      encryption: 'sae-mixed' as const,
+      key: 'welcome-2026',
+      radios: before.radios.map((r) => r.name),
+      ipaddr: before.freeAddress,
+      isolate: true,
+    };
+    await stageAndApply(conn, createGuestChanges(input, { style: before.style, wanZone: 'wan' }), {
+      mode: 'rollback',
+      ...fast,
+    });
+    const created = await getGuestState(conn);
+    expect(created.guest?.wifi.map((w) => w.ssid)).toEqual(['RouteLink-Guest', 'RouteLink-Guest']);
+    await stageAndApply(conn, guestWifiChanges(created.guest!, false), { mode: 'rollback', ...fast });
+    expect((await getGuestState(conn)).guest?.wifi.every((w) => w.disabled)).toBe(true);
+    await stageAndApply(conn, deleteGuestChanges(created.configs), { mode: 'rollback', ...fast });
+    expect((await getGuestState(conn)).guest).toBeNull();
   });
 
   it('routes: the static route is installed; new ones appear and can be deleted', async () => {

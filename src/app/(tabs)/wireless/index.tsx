@@ -47,7 +47,20 @@ export default function Wireless() {
       }>
       {radios.data ? (
         hasRadios ? (
-          radios.data.map((radio) => <RadioSection key={radio.name} radio={radio} clients={clients.data ?? []} />)
+          <>
+            {radios.data.map((radio) => (
+              <RadioSection key={radio.name} radio={radio} clients={clients.data ?? []} />
+            ))}
+            <ListSection title={t('wireless:guest.section')}>
+              <ListRow
+                title={t('wireless:guest.row')}
+                icon="guest"
+                chevron
+                onPress={() => nav.push('/wireless/guest')}
+                testID="wireless-guest"
+              />
+            </ListSection>
+          </>
         ) : (
           <EmptyState icon="wifiOff" title={t('wireless:noRadios')} message={t('wireless:noRadiosHint')} />
         )

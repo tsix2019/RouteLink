@@ -1,7 +1,8 @@
 import { intToIp, ipToInt, netmaskToPrefix, parsePrefix, prefixContains } from '@/utils/net';
 
+import type { RouterConnection } from '../connection/types';
 import { uci, type UciSection, type UciValues } from '../uci';
-import type { UbusCall } from '../ubus/types';
+import type { UbusCall, UbusResult } from '../ubus/types';
 
 /**
  * Guest Wi-Fi (WL-5), built the way OpenWrt's "Guest Wi-Fi" guide does it: a bridge and an interface
@@ -188,3 +189,42 @@ export function takenSubnets(network: Record<string, UciSection>): { ipaddr: str
 }
 
 export const guestNetworkAddress = (ipaddr: string) => intToIp((ipToInt(ipaddr) & 0xffffff00) >>> 0);
+
+export interface GuestState {
+  support: GuestSupport;
+  guest: GuestNetwork | null;
+  configs: GuestConfigs;
+  /** Where a new guest network would go. */
+  freeAddress: string;
+  /** How the LAN writes its address; the guest interface follows it. */
+  style: 'netmask' | 'cidr-list' | 'cidr';
+  radios: { name: string; band: string }[];
+  /** SSID of the first access point, for a default guest name. */
+  mainSsid?: string;
+}
+
+/** Everything the guest page needs, in one batch. */
+export async function getGuestState(conn: RouterConnection): Promise<GuestState> {
+  const results = (await conn.batch(
+    (['network', 'wireless', 'dhcp', 'firewall'] as const).map((config) => ({
+      object: 'uci',
+      method: 'get',
+      params: { config },
+    })),
+  )) as UbusResult<{ values?: Record<string, UciSection> }>[];
+  const [network, wireless, dhcp, firewall] = results.map((r) => (r.ok ? (r.data.values ?? {}) : {}));
+  if (!results[0].ok) throw results[0].error;
+  const configs: GuestConfigs = { network, wireless, dhcp, firewall };
+  const lan = network.lan?.ipaddr;
+  const style = Array.isArray(lan) ? 'cidr-list' : typeof lan === 'string' && lan.includes('/') ? 'cidr' : 'netmask';
+  return {
+    support: guestSupport(wireless, firewall),
+    guest: parseGuest(configs),
+    configs,
+    freeAddress: freeGuestAddress(takenSubnets(network)),
+    style,
+    radios: ofType(wireless, 'wifi-device').map((r) => ({ name: r['.name'], band: String(r.band ?? r.hwmode ?? '') })),
+    mainSsid: ofType(wireless, 'wifi-iface').find((w) => (w.mode ?? 'ap') === 'ap' && w.network !== 'guest')?.ssid as
+      string | undefined,
+  };
+}

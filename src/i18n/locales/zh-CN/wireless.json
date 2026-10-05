@@ -125,5 +125,39 @@
     "confirmTitle": "保存 {{ssid}} 的 MAC 过滤？",
     "consequence": "不被允许的设备会被断开，之后也连不上",
     "phoneConsequence": "这台手机正连着这个网络：Wi-Fi 会重启，改动不会自动撤销"
+  },
+  "guest": {
+    "title": "访客网络",
+    "section": "访客网络",
+    "row": "访客 Wi-Fi",
+    "intro": "给访客单独的 Wi-Fi：只能上网，访问不到你家里的设备和路由器设置。",
+    "noWifi": "这台路由器没有 Wi-Fi。",
+    "notGateway": "这台路由器有 Wi-Fi，但自己不负责上网（是 AP）。访客网络需要和主路由一起配置，App 以后会支持。",
+    "create": "创建访客网络",
+    "ssid": "名称",
+    "password": "密码",
+    "security": "加密方式",
+    "radios": "频段",
+    "isolate": "访客之间隔离",
+    "isolateHint": "访客之间看不到彼此的设备。",
+    "subnet": "访客地址段",
+    "on": "访客 Wi-Fi",
+    "share": "用二维码分享",
+    "delete": "删除访客网络",
+    "deleteTitle": "删除访客网络？",
+    "deleteConsequence": "访客会被断开；它的 Wi-Fi、地址池和防火墙区域都会被删除",
+    "createTitle": "创建访客网络 {{ssid}}？",
+    "createConsequence": "Wi-Fi 会短暂重启；App 和路由器失去联系时，路由器会在 90 秒后自动撤销",
+    "toggleTitle": "{{state}}访客 Wi-Fi？",
+    "error": {
+      "ssid": "请输入名称（最多 32 字节）",
+      "password": "至少 8 个字符",
+      "radios": "至少选一个频段"
+    },
+    "security_options": {
+      "sae-mixed": "WPA2/WPA3",
+      "psk2": "WPA2",
+      "none": "开放（不需要密码）"
+    }
   }
 }

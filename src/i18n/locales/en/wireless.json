@@ -125,5 +125,39 @@
     "confirmTitle": "Save the MAC filter of {{ssid}}?",
     "consequence": "Devices that aren't allowed are disconnected and can't join again",
     "phoneConsequence": "This phone is on this network: Wi-Fi restarts and the change is applied without the automatic undo"
+  },
+  "guest": {
+    "title": "Guest Network",
+    "section": "Guest Network",
+    "row": "Guest Wi-Fi",
+    "intro": "A separate Wi-Fi for visitors: internet only, no access to your devices or the router's settings.",
+    "noWifi": "This router has no Wi-Fi.",
+    "notGateway": "This router has Wi-Fi but doesn't route to the internet itself (an access point). Set up the guest network together with the main router; the app will support that later.",
+    "create": "Create Guest Network",
+    "ssid": "Name",
+    "password": "Password",
+    "security": "Security",
+    "radios": "Bands",
+    "isolate": "Keep Guests Apart",
+    "isolateHint": "Guests can't see each other's devices.",
+    "subnet": "Guest Addresses",
+    "on": "Guest Wi-Fi",
+    "share": "Share with QR Code",
+    "delete": "Delete Guest Network",
+    "deleteTitle": "Delete the guest network?",
+    "deleteConsequence": "Guests are disconnected; its Wi-Fi, addresses and firewall zone are removed",
+    "createTitle": "Create the guest network {{ssid}}?",
+    "createConsequence": "Wi-Fi restarts for a moment; the router undoes it after 90 seconds if the app loses contact",
+    "toggleTitle": "Turn the guest Wi-Fi {{state}}?",
+    "error": {
+      "ssid": "Enter a name (at most 32 bytes)",
+      "password": "At least 8 characters",
+      "radios": "Choose at least one band"
+    },
+    "security_options": {
+      "sae-mixed": "WPA2/WPA3",
+      "psk2": "WPA2",
+      "none": "Open (no password)"
+    }
   }
 }
