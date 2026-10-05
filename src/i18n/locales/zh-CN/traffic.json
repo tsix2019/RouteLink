@@ -1,0 +1,16 @@
+{
+  "title": "流量统计",
+  "presets": {
+    "lastHour": "最近 1 小时",
+    "today": "今天",
+    "yesterday": "昨天",
+    "last7d": "最近 7 天",
+    "thisMonth": "本月",
+    "lastMonth": "上月",
+    "last30d": "最近 30 天",
+    "custom": "自定义"
+  },
+  "range": {
+    "hours": "每天 {{from}}–{{to}} 点"
+  }
+}

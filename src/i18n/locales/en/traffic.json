@@ -1,0 +1,16 @@
+{
+  "title": "Traffic",
+  "presets": {
+    "lastHour": "Last hour",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "last7d": "Last 7 days",
+    "thisMonth": "This month",
+    "lastMonth": "Last month",
+    "last30d": "Last 30 days",
+    "custom": "Custom"
+  },
+  "range": {
+    "hours": "daily {{from}}:00–{{to}}:00"
+  }
+}

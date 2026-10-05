@@ -1,3 +1,4 @@
+import enAgent from './locales/en/agent.json';
 import enCommon from './locales/en/common.json';
 import enDevices from './locales/en/devices.json';
 import enErrors from './locales/en/errors.json';
@@ -8,7 +9,9 @@ import enOverview from './locales/en/overview.json';
 import enRisk from './locales/en/risk.json';
 import enRouters from './locales/en/routers.json';
 import enSettings from './locales/en/settings.json';
+import enTraffic from './locales/en/traffic.json';
 import enWireless from './locales/en/wireless.json';
+import zhAgent from './locales/zh-CN/agent.json';
 import zhCommon from './locales/zh-CN/common.json';
 import zhDevices from './locales/zh-CN/devices.json';
 import zhErrors from './locales/zh-CN/errors.json';
@@ -19,6 +22,7 @@ import zhOverview from './locales/zh-CN/overview.json';
 import zhRisk from './locales/zh-CN/risk.json';
 import zhRouters from './locales/zh-CN/routers.json';
 import zhSettings from './locales/zh-CN/settings.json';
+import zhTraffic from './locales/zh-CN/traffic.json';
 import zhWireless from './locales/zh-CN/wireless.json';
 
 export const namespaces = [
@@ -33,6 +37,8 @@ export const namespaces = [
   'settings',
   'errors',
   'risk',
+  'traffic',
+  'agent',
 ] as const;
 
 export type Namespace = (typeof namespaces)[number];
@@ -50,6 +56,8 @@ export const resources = {
     settings: zhSettings,
     errors: zhErrors,
     risk: zhRisk,
+    traffic: zhTraffic,
+    agent: zhAgent,
   },
   en: {
     common: enCommon,
@@ -63,5 +71,7 @@ export const resources = {
     settings: enSettings,
     errors: enErrors,
     risk: enRisk,
+    traffic: enTraffic,
+    agent: enAgent,
   },
 } as const;
