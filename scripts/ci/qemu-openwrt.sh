@@ -90,6 +90,7 @@ setup_radio() { # radio band channel htmode ssid
   uci -q set "wireless.$1.channel=$3"
   uci -q set "wireless.$1.htmode=$4"
   uci -q set "wireless.$1.country=US"
+  uci -q set "wireless.default_$1.disabled=0" # 25.12 generates the interfaces disabled
   uci -q set "wireless.default_$1.ssid=$5"
   uci -q set "wireless.default_$1.encryption=psk2"
   uci -q set "wireless.default_$1.key=routelink-test"
