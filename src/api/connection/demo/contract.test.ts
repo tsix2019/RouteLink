@@ -45,6 +45,7 @@ import { detectPackageEnv, removePackages } from '../../services/packages';
 import { ddnsChanges, deleteDdnsChanges, getDdns, readProvider, saveDdns, validateDdns } from '../../services/ddns';
 import { deleteInstance, getOpenvpn, importOvpn, setInstanceEnabled, validateImport } from '../../services/openvpn';
 import { getParental, saveSchedule } from '../../services/parental';
+import { getSqm, queueChanges, saveSqm, validateQueue } from '../../services/sqm';
 import { listProcesses, signalProcess } from '../../services/processes';
 import {
   applyVlanChanges,
@@ -506,6 +507,30 @@ describe('demo router: DDNS', () => {
     expect((await getDdns(conn)).services.find((x) => x.section === added.section)?.status.next).toBe('disabled');
     await saveDdns(conn, deleteDdnsChanges(added));
     expect((await getDdns(conn)).services).toHaveLength(1);
+  });
+});
+
+describe('demo router: SQM', () => {
+  it('shapes the PPPoE line; slowed down further, then switched off', async () => {
+    const { conn } = demo();
+    const state = await getSqm(conn);
+    expect(state.wanDevice).toBe('pppoe-wan');
+    expect(state.qdiscs).toEqual(['cake', 'fq_codel']);
+    const [queue] = state.queues;
+    expect(queue).toMatchObject({ interface: 'pppoe-wan', download: 92, upload: 18, active: true });
+    const input = {
+      enabled: true,
+      interface: 'pppoe-wan',
+      download: '80',
+      upload: '15',
+      script: 'layer_cake.qos',
+      linklayer: 'ethernet' as const,
+    };
+    expect(validateQueue(input)).toEqual({});
+    await saveSqm(conn, queueChanges(input, queue));
+    expect((await getSqm(conn)).queues[0]).toMatchObject({ download: 80, script: 'layer_cake.qos', active: true });
+    await saveSqm(conn, queueChanges({ ...input, enabled: false }, queue));
+    expect((await getSqm(conn)).queues[0].active).toBe(false);
   });
 });
 

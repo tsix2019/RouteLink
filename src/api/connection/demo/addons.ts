@@ -30,6 +30,20 @@ const DDNS_PROVIDERS: Record<string, { ipv4: string; ipv6?: string }> = {
 const PROVIDERS_DIR = '/usr/share/ddns/default/';
 
 export const createAddonUci = (): Record<string, Record<string, UciSection>> => ({
+  // Shaping the PPPoE line a little below its 100/20 Mbit/s.
+  sqm: {
+    pppoe_wan: section('pppoe_wan', 'queue', {
+      enabled: '1',
+      interface: 'pppoe-wan',
+      download: '92000',
+      upload: '18000',
+      qdisc: 'cake',
+      script: 'piece_of_cake.qos',
+      qdisc_advanced: '0',
+      linklayer: 'ethernet',
+      overhead: '38',
+    }),
+  },
   ddns: {
     global: section('global', 'ddns', { ddns_dateformat: '%F %R', ddns_loglines: '250', upd_privateip: '0' }),
     myddns_ipv4: section('myddns_ipv4', 'service', {
@@ -76,8 +90,19 @@ export function demoAddonList(path: string): { name: string; type: string }[] | 
   if (path === PROVIDERS_DIR.slice(0, -1)) {
     return Object.keys(DDNS_PROVIDERS).map((name) => ({ name: `${name}.json`, type: 'file' }));
   }
+  if (path === '/var/run/sqm/available_qdiscs') {
+    return ['cake', 'fq_codel'].map((name) => ({ name, type: 'file' }));
+  }
   return null;
 }
+
+/** The ifb devices that sqm creates for download shaping on its enabled queues. */
+export const demoSqmDevices = (s: DemoState): string[] =>
+  s.services.sqm?.running === false
+    ? []
+    : Object.values(s.uci.sqm ?? {})
+        .filter((q) => q['.type'] === 'queue' && q.enabled === '1' && Number(q.download) > 0)
+        .map((q) => `ifb4${String(q.interface)}`);
 
 export function demoAddonFile(path: string): string | null {
   if (path.startsWith(PROVIDERS_DIR)) {

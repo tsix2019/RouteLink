@@ -22,7 +22,7 @@ export interface NetInterface {
   errors: string[];
 }
 
-interface RawInterface {
+export interface RawInterface {
   interface: string;
   up?: boolean;
   available?: boolean;

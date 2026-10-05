@@ -3,7 +3,7 @@ import type { UciSection } from '../../uci';
 import { adminHandlers, demoKill, demoLocaltime } from './admin';
 import { agentHandlers } from './agent';
 import { demoConntrack, demoReverseDns } from './connections';
-import { addonHandlers, demoAddonFile, demoAddonList } from './addons';
+import { addonHandlers, demoAddonFile, demoAddonList, demoSqmDevices } from './addons';
 import { demoIpRoute, demoKey, demoPublicKey, demoWireGuard } from './routing';
 import type { DemoDevice, DemoState } from './state';
 
@@ -123,6 +123,12 @@ const files: Record<
   },
   '/bin/kill': (s, args) => demoKill(s, args),
   '/etc/init.d/cron': (_s, args) => (args[0] === 'reload' ? { code: 0 } : { code: 1, stderr: 'unsupported' }),
+  '/etc/init.d/sqm': (s, args) => {
+    if (!s.services.sqm || !['enable', 'start'].includes(args[0])) return { code: 1, stderr: 'unsupported' };
+    if (args[0] === 'enable') s.services.sqm.enabled = true;
+    else s.services.sqm.running = true;
+    return { code: 0 };
+  },
   '/sbin/ifup': () => ({ code: 0 }),
   '/sbin/ifdown': () => ({ code: 0 }),
   '/usr/bin/etherwake': (s, args) => {
@@ -295,6 +301,7 @@ export const handlers: Record<string, Handler> = {
       'phy0-ap0': dev('phy0-ap0', '94:83:C4:00:00:01', { wireless: true }),
       'phy1-ap0': dev('phy1-ap0', '94:83:C4:00:00:02', { wireless: true }),
       wg0: dev('wg0', undefined),
+      ...Object.fromEntries(demoSqmDevices(s).map((name) => [name, dev(name, undefined)])),
     };
   },
   'luci-rpc.getDHCPLeases': (s) => ({

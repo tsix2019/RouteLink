@@ -103,6 +103,7 @@ const SERVICES: [string, boolean, boolean, number?][] = [
   ['odhcpd', true, true, 35],
   ['openvpn', true, true, 90],
   ['rpcd', true, true, 12],
+  ['sqm', true, true, 50],
   ['sysctl', true, false, 11],
   ['sysfixtime', true, false, 0],
   ['sysntpd', true, true, 98],
