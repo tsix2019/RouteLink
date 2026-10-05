@@ -183,6 +183,20 @@
         "dest_port": "500",
         "proto": "udp",
         "target": "ACCEPT"
+      },
+      "test_https": {
+        ".anonymous": false,
+        ".type": "redirect",
+        ".name": "test_https",
+        ".index": 13,
+        "name": "Test-HTTPS",
+        "src": "wan",
+        "src_dport": "8443",
+        "dest": "lan",
+        "dest_ip": "192.168.1.100",
+        "dest_port": "443",
+        "proto": "tcp",
+        "target": "DNAT"
       }
     }
   }

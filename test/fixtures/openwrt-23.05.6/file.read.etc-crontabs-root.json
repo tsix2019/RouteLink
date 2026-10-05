@@ -1,0 +1,6 @@
+{
+  "ok": true,
+  "data": {
+    "data": "*/30 * * * * logger routelink-test\n"
+  }
+}

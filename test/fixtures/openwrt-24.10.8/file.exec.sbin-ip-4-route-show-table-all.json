@@ -1,0 +1,7 @@
+{
+  "ok": true,
+  "data": {
+    "code": 0,
+    "stdout": "default via 10.0.2.2 dev eth1 proto static src 10.0.2.15 \n10.0.2.0/24 dev eth1 proto kernel scope link src 10.0.2.15 \n10.9.0.0/24 dev wg0 proto kernel scope link src 10.9.0.1 \n192.168.1.0/24 dev br-lan proto kernel scope link src 192.168.1.1 \nlocal 10.0.2.15 dev eth1 table local proto kernel scope host src 10.0.2.15 \nbroadcast 10.0.2.255 dev eth1 table local proto kernel scope link src 10.0.2.15 \nlocal 10.9.0.1 dev wg0 table local proto kernel scope host src 10.9.0.1 \nbroadcast 10.9.0.255 dev wg0 table local proto kernel scope link src 10.9.0.1 \nlocal 127.0.0.0/8 dev lo table local proto kernel scope host src 127.0.0.1 \nlocal 127.0.0.1 dev lo table local proto kernel scope host src 127.0.0.1 \nbroadcast 127.255.255.255 dev lo table local proto kernel scope link src 127.0.0.1 \nlocal 192.168.1.1 dev br-lan table local proto kernel scope host src 192.168.1.1 \nbroadcast 192.168.1.255 dev br-lan table local proto kernel scope link src 192.168.1.1 \n"
+  }
+}

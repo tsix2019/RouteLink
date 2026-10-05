@@ -18,8 +18,8 @@
         ".type": "globals",
         ".name": "globals",
         ".index": 1,
-        "dhcp_default_duid": "000436a2b166fe7843a88973cfa596ad1e7e",
-        "ula_prefix": "fd2c:6ad6:3acd::/48"
+        "dhcp_default_duid": "0004be89a77ad65d4a51aa0452756ecc72b8",
+        "ula_prefix": "fd1c:4465:c364::/48"
       },
       "cfg030f15": {
         ".anonymous": true,
@@ -39,10 +39,10 @@
         ".index": 3,
         "device": "br-lan",
         "proto": "static",
+        "ip6assign": "60",
         "ipaddr": [
           "192.168.1.1/24"
-        ],
-        "ip6assign": "60"
+        ]
       },
       "wan": {
         ".anonymous": false,
@@ -59,6 +59,29 @@
         ".index": 5,
         "device": "eth1",
         "proto": "dhcpv6"
+      },
+      "wg0": {
+        ".anonymous": false,
+        ".type": "interface",
+        ".name": "wg0",
+        ".index": 6,
+        "proto": "wireguard",
+        "private_key": "SJT7JXep0vbwrWv3WGvS0IGY8wsJoHb2HvI+0hTHpk0=",
+        "listen_port": "51820",
+        "addresses": [
+          "10.9.0.1/24"
+        ]
+      },
+      "wg0_peer": {
+        ".anonymous": false,
+        ".type": "wireguard_wg0",
+        ".name": "wg0_peer",
+        ".index": 7,
+        "description": "Test peer",
+        "public_key": "YF5zPLt+VVHJ3g7uVFK5CRsnl81YF6ZzdCRVDi7vSh4=",
+        "allowed_ips": [
+          "10.9.0.2/32"
+        ]
       }
     }
   }

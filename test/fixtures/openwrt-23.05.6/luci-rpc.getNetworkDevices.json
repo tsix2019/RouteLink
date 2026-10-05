@@ -57,13 +57,13 @@
       ],
       "mac": "02:00:00:00:02:00",
       "type": 1,
-      "ifindex": 9,
+      "ifindex": 10,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 5672,
+        "tx_bytes": 10652,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 39,
+        "tx_packets": 81,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,
@@ -108,12 +108,12 @@
       "type": 772,
       "ifindex": 1,
       "stats": {
-        "rx_bytes": 10342,
-        "tx_bytes": 10342,
+        "rx_bytes": 10591,
+        "tx_bytes": 10591,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 130,
-        "rx_packets": 130,
+        "tx_packets": 132,
+        "rx_packets": 132,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -160,7 +160,7 @@
       ],
       "ip6addrs": [
         {
-          "address": "fdef:e064:9b12::1",
+          "address": "fda7:324a:db6a::1",
           "netmask": "ffff:ffff:ffff:fff0::"
         },
         {
@@ -170,15 +170,15 @@
       ],
       "mac": "52:54:00:12:34:56",
       "type": 1,
-      "ifindex": 8,
+      "ifindex": 14,
       "stats": {
-        "rx_bytes": 122052,
-        "tx_bytes": 634916,
+        "rx_bytes": 95932,
+        "tx_bytes": 610046,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 1048,
-        "rx_packets": 1144,
-        "multicast": 1,
+        "tx_packets": 839,
+        "rx_packets": 901,
+        "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
         "tx_dropped": 0
@@ -215,12 +215,12 @@
       "type": 1,
       "ifindex": 2,
       "stats": {
-        "rx_bytes": 138736,
-        "tx_bytes": 637524,
+        "rx_bytes": 184203,
+        "tx_bytes": 825444,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 1057,
-        "rx_packets": 1155,
+        "tx_packets": 1419,
+        "rx_packets": 1532,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -261,13 +261,13 @@
       ],
       "mac": "02:00:00:00:00:00",
       "type": 1,
-      "ifindex": 12,
+      "ifindex": 15,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 1064,
+        "tx_bytes": 1484,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 8,
+        "tx_packets": 15,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,
@@ -307,13 +307,13 @@
       ],
       "mac": "02:00:00:00:01:00",
       "type": 1,
-      "ifindex": 10,
+      "ifindex": 9,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 5672,
+        "tx_bytes": 10652,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 39,
+        "tx_packets": 81,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,
@@ -334,6 +334,49 @@
         "changes": 2,
         "up_count": 1,
         "down_count": 1
+      }
+    },
+    "wg0": {
+      "name": "wg0",
+      "wireless": false,
+      "up": true,
+      "mtu": 1420,
+      "qlen": 1000,
+      "devtype": "wireguard",
+      "ipaddrs": [
+        {
+          "address": "10.9.0.1",
+          "netmask": "255.255.255.0",
+          "remote": "10.9.0.255"
+        }
+      ],
+      "ip6addrs": [],
+      "stats": {
+        "rx_bytes": 0,
+        "tx_bytes": 0,
+        "tx_errors": 0,
+        "rx_errors": 0,
+        "tx_packets": 0,
+        "rx_packets": 0,
+        "multicast": 0,
+        "collisions": 0,
+        "rx_dropped": 0,
+        "tx_dropped": 0
+      },
+      "flags": {
+        "up": true,
+        "broadcast": false,
+        "promisc": false,
+        "loopback": false,
+        "noarp": true,
+        "multicast": false,
+        "pointtopoint": true
+      },
+      "link": {
+        "carrier": true,
+        "changes": 0,
+        "up_count": 0,
+        "down_count": 0
       }
     },
     "eth1": {
@@ -364,12 +407,12 @@
       "type": 1,
       "ifindex": 3,
       "stats": {
-        "rx_bytes": 5435,
-        "tx_bytes": 6302,
+        "rx_bytes": 5693,
+        "tx_bytes": 7413,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 60,
-        "rx_packets": 45,
+        "tx_packets": 67,
+        "rx_packets": 49,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,

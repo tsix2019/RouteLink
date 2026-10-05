@@ -22,19 +22,6 @@ const recorded = () =>
 
 const sections: Record<string, UciSection> = {
   ...recorded(),
-  fwd_nas: {
-    '.name': 'fwd_nas',
-    '.type': 'redirect',
-    '.index': 20,
-    name: 'NAS-HTTPS',
-    src: 'wan',
-    src_dport: '8443',
-    dest: 'lan',
-    dest_ip: '192.168.1.100',
-    dest_port: '443',
-    proto: ['tcp'],
-    target: 'DNAT',
-  },
   fwd_game: {
     '.name': 'fwd_game',
     '.type': 'redirect',
@@ -101,11 +88,11 @@ describe('parseFirewall', () => {
     expect(fw.forwardings).toEqual([{ section: 'cfg04ad58', src: 'lan', dest: 'wan', enabled: true }]);
   });
 
-  it('reads port forwards, leaving out source NAT', () => {
+  it('reads port forwards (the QEMU router has one), leaving out source NAT', () => {
     expect(fw.forwards).toEqual([
       {
-        section: 'fwd_nas',
-        name: 'NAS-HTTPS',
+        section: 'test_https',
+        name: 'Test-HTTPS',
         protocols: ['tcp'],
         srcZone: 'wan',
         externalPort: '8443',
@@ -197,14 +184,14 @@ describe('port forward validation', () => {
 
   it('finds enabled forwards that already use the external port', () => {
     const { forwards } = parseFirewall(sections);
-    expect(forwardConflicts(forwards, forward({ externalPort: '8443' })).map((f) => f.name)).toEqual(['NAS-HTTPS']);
+    expect(forwardConflicts(forwards, forward({ externalPort: '8443' })).map((f) => f.name)).toEqual(['Test-HTTPS']);
     expect(forwardConflicts(forwards, forward({ externalPort: '8000-9000' })).map((f) => f.name)).toEqual([
-      'NAS-HTTPS',
+      'Test-HTTPS',
     ]);
     // Same port, other protocol; the disabled Game forward; editing the forward itself.
     expect(forwardConflicts(forwards, forward({ externalPort: '8443', protocols: ['udp'] }))).toEqual([]);
     expect(forwardConflicts(forwards, forward({ externalPort: '27005' }))).toEqual([]);
-    expect(forwardConflicts(forwards, forward({ externalPort: '8443' }), 'fwd_nas')).toEqual([]);
+    expect(forwardConflicts(forwards, forward({ externalPort: '8443' }), 'test_https')).toEqual([]);
   });
 });
 
@@ -241,7 +228,7 @@ describe('port forward changes', () => {
         method: 'set',
         params: {
           config: 'firewall',
-          section: 'fwd_nas',
+          section: 'test_https',
           values: {
             name: 'NAS',
             target: 'DNAT',
@@ -253,7 +240,7 @@ describe('port forward changes', () => {
           },
         },
       },
-      { object: 'uci', method: 'delete', params: { config: 'firewall', section: 'fwd_nas', option: 'dest_port' } },
+      { object: 'uci', method: 'delete', params: { config: 'firewall', section: 'test_https', option: 'dest_port' } },
     ]);
   });
 
@@ -261,9 +248,9 @@ describe('port forward changes', () => {
     expect(setEnabledChanges('fwd_game', true)).toEqual([
       { object: 'uci', method: 'set', params: { config: 'firewall', section: 'fwd_game', values: { enabled: '1' } } },
     ]);
-    expect(setEnabledChanges('fwd_nas', false)[0].params).toMatchObject({ values: { enabled: '0' } });
-    expect(deleteSectionChanges('fwd_nas')).toEqual([
-      { object: 'uci', method: 'delete', params: { config: 'firewall', section: 'fwd_nas' } },
+    expect(setEnabledChanges('test_https', false)[0].params).toMatchObject({ values: { enabled: '0' } });
+    expect(deleteSectionChanges('test_https')).toEqual([
+      { object: 'uci', method: 'delete', params: { config: 'firewall', section: 'test_https' } },
     ]);
   });
 });

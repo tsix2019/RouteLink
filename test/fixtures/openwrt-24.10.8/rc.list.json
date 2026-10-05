@@ -9,7 +9,7 @@
     "cron": {
       "start": 50,
       "enabled": true,
-      "running": false
+      "running": true
     },
     "dnsmasq": {
       "start": 19,

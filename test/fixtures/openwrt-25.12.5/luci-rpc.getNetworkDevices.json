@@ -23,12 +23,12 @@
       "type": 772,
       "ifindex": 1,
       "stats": {
-        "rx_bytes": 11204,
-        "tx_bytes": 11204,
+        "rx_bytes": 10342,
+        "tx_bytes": 10342,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 138,
-        "rx_packets": 138,
+        "tx_packets": 130,
+        "rx_packets": 130,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -75,7 +75,7 @@
       ],
       "ip6addrs": [
         {
-          "address": "fd2c:6ad6:3acd::1",
+          "address": "fd1c:4465:c364::1",
           "netmask": "ffff:ffff:ffff:fff0::"
         },
         {
@@ -85,18 +85,18 @@
       ],
       "mac": "52:54:00:12:34:56",
       "type": 1,
-      "ifindex": 5,
+      "ifindex": 11,
       "stats": {
-        "rx_bytes": 127255,
-        "tx_bytes": 679279,
+        "rx_bytes": 99275,
+        "tx_bytes": 672751,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 1118,
-        "rx_packets": 1221,
+        "tx_packets": 925,
+        "rx_packets": 988,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
-        "tx_dropped": 2
+        "tx_dropped": 0
       },
       "flags": {
         "up": true,
@@ -131,10 +131,10 @@
       "ifindex": 7,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 4928,
+        "tx_bytes": 10736,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 33,
+        "tx_packets": 85,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,
@@ -185,12 +185,12 @@
       "type": 1,
       "ifindex": 3,
       "stats": {
-        "rx_bytes": 5288,
-        "tx_bytes": 6506,
+        "rx_bytes": 6095,
+        "tx_bytes": 7641,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 60,
-        "rx_packets": 41,
+        "tx_packets": 70,
+        "rx_packets": 53,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -229,10 +229,10 @@
       "ifindex": 8,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 4928,
+        "tx_bytes": 10716,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 33,
+        "tx_packets": 85,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,
@@ -253,6 +253,49 @@
         "changes": 2,
         "up_count": 1,
         "down_count": 1
+      }
+    },
+    "wg0": {
+      "name": "wg0",
+      "wireless": false,
+      "up": true,
+      "mtu": 1420,
+      "qlen": 1000,
+      "devtype": "wireguard",
+      "ipaddrs": [
+        {
+          "address": "10.9.0.1",
+          "netmask": "255.255.255.0",
+          "remote": "10.9.0.255"
+        }
+      ],
+      "ip6addrs": [],
+      "stats": {
+        "rx_bytes": 0,
+        "tx_bytes": 0,
+        "tx_errors": 0,
+        "rx_errors": 0,
+        "tx_packets": 0,
+        "rx_packets": 0,
+        "multicast": 0,
+        "collisions": 0,
+        "rx_dropped": 0,
+        "tx_dropped": 0
+      },
+      "flags": {
+        "up": true,
+        "broadcast": false,
+        "promisc": false,
+        "loopback": false,
+        "noarp": true,
+        "multicast": false,
+        "pointtopoint": true
+      },
+      "link": {
+        "carrier": true,
+        "changes": 0,
+        "up_count": 0,
+        "down_count": 0
       }
     },
     "hwsim0": {
@@ -308,12 +351,12 @@
       "type": 1,
       "ifindex": 2,
       "stats": {
-        "rx_bytes": 145357,
-        "tx_bytes": 684477,
+        "rx_bytes": 192452,
+        "tx_bytes": 907416,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 1136,
-        "rx_packets": 1238,
+        "tx_packets": 1530,
+        "rx_packets": 1644,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -332,9 +375,9 @@
         "speed": -1,
         "duplex": "unknown",
         "carrier": true,
-        "changes": 4,
-        "up_count": 2,
-        "down_count": 2
+        "changes": 8,
+        "up_count": 4,
+        "down_count": 4
       }
     },
     "phy0-ap0": {
@@ -349,13 +392,13 @@
       "ip6addrs": [],
       "mac": "02:00:00:00:00:00",
       "type": 1,
-      "ifindex": 9,
+      "ifindex": 12,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 576,
+        "tx_bytes": 808,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 4,
+        "tx_packets": 9,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,

@@ -1,5 +1,6 @@
 // A6 (M2 plan T11): when the LAN address changes, can the session that applied the change still
-// confirm it, now on the new address? The answer decides how the app changes the LAN address.
+// confirm it, now on the new address? Yes on 23.05, 24.10 and 25.12 (rpcd keeps sessions across the
+// network reload): the app confirms on the new address, and the router rolls back if it never gets there.
 // Needs a second way in to the new address (ROUTER_ALT_URL → ROUTER_ALT_IP); the QEMU router in CI
 // has one. The test always moves the router back.
 import { nodeHttpClient } from '../../src/api/http/node';
@@ -70,6 +71,7 @@ async function moveLan(fromUrl: string, toUrl: string, ip: string): Promise<stri
       await waitFor(async () => (await connect().conn.call('system', 'board')) !== undefined, 120_000);
     }
     expect(there[there.length - 1]).toBe('ok');
-    expect(await connect().conn.ping()).toBe(true);
+    // Services settle for a moment after the move back.
+    expect(await waitFor(() => connect().conn.ping(), 30_000)).toBe(true);
   }, 300_000);
 });

@@ -16,10 +16,10 @@
       "ifindex": 8,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 4352,
+        "tx_bytes": 10644,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 29,
+        "tx_packets": 80,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,
@@ -67,7 +67,7 @@
       ],
       "ip6addrs": [
         {
-          "address": "fda0:5510:285b::1",
+          "address": "fd8b:b00a:3082::1",
           "netmask": "ffff:ffff:ffff:fff0::"
         },
         {
@@ -77,15 +77,15 @@
       ],
       "mac": "52:54:00:12:34:56",
       "type": 1,
-      "ifindex": 5,
+      "ifindex": 11,
       "stats": {
-        "rx_bytes": 124812,
-        "tx_bytes": 652434,
+        "rx_bytes": 99049,
+        "tx_bytes": 646726,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 1108,
-        "rx_packets": 1212,
-        "multicast": 0,
+        "tx_packets": 902,
+        "rx_packets": 967,
+        "multicast": 1,
         "collisions": 0,
         "rx_dropped": 0,
         "tx_dropped": 0
@@ -136,12 +136,12 @@
       "type": 1,
       "ifindex": 3,
       "stats": {
-        "rx_bytes": 5787,
-        "tx_bytes": 6822,
+        "rx_bytes": 5993,
+        "tx_bytes": 7378,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 64,
-        "rx_packets": 48,
+        "tx_packets": 68,
+        "rx_packets": 50,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -177,13 +177,13 @@
       "ip6addrs": [],
       "mac": "02:00:00:00:00:00",
       "type": 1,
-      "ifindex": 9,
+      "ifindex": 12,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 448,
+        "tx_bytes": 936,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 3,
+        "tx_packets": 10,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,
@@ -259,12 +259,12 @@
       "type": 1,
       "ifindex": 2,
       "stats": {
-        "rx_bytes": 142734,
-        "tx_bytes": 657520,
+        "rx_bytes": 189862,
+        "tx_bytes": 871615,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 1126,
-        "rx_packets": 1229,
+        "tx_packets": 1517,
+        "rx_packets": 1629,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -310,12 +310,12 @@
       "type": 772,
       "ifindex": 1,
       "stats": {
-        "rx_bytes": 10342,
-        "tx_bytes": 10342,
+        "rx_bytes": 10550,
+        "tx_bytes": 10550,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 130,
-        "rx_packets": 130,
+        "tx_packets": 131,
+        "rx_packets": 131,
         "multicast": 0,
         "collisions": 0,
         "rx_dropped": 0,
@@ -352,10 +352,10 @@
       "ifindex": 6,
       "stats": {
         "rx_bytes": 0,
-        "tx_bytes": 4352,
+        "tx_bytes": 10752,
         "tx_errors": 0,
         "rx_errors": 0,
-        "tx_packets": 29,
+        "tx_packets": 81,
         "rx_packets": 0,
         "multicast": 0,
         "collisions": 0,
@@ -376,6 +376,49 @@
         "changes": 2,
         "up_count": 1,
         "down_count": 1
+      }
+    },
+    "wg0": {
+      "name": "wg0",
+      "wireless": false,
+      "up": true,
+      "mtu": 1420,
+      "qlen": 1000,
+      "devtype": "wireguard",
+      "ipaddrs": [
+        {
+          "address": "10.9.0.1",
+          "netmask": "255.255.255.0",
+          "remote": "10.9.0.255"
+        }
+      ],
+      "ip6addrs": [],
+      "stats": {
+        "rx_bytes": 0,
+        "tx_bytes": 0,
+        "tx_errors": 0,
+        "rx_errors": 0,
+        "tx_packets": 0,
+        "rx_packets": 0,
+        "multicast": 0,
+        "collisions": 0,
+        "rx_dropped": 0,
+        "tx_dropped": 0
+      },
+      "flags": {
+        "up": true,
+        "broadcast": false,
+        "promisc": false,
+        "loopback": false,
+        "noarp": true,
+        "multicast": false,
+        "pointtopoint": true
+      },
+      "link": {
+        "carrier": true,
+        "changes": 0,
+        "up_count": 0,
+        "down_count": 0
       }
     }
   }

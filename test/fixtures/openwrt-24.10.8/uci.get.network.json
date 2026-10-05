@@ -17,7 +17,7 @@
         ".type": "globals",
         ".name": "globals",
         ".index": 1,
-        "ula_prefix": "fda0:5510:285b::/48"
+        "ula_prefix": "fd8b:b00a:3082::/48"
       },
       "cfg030f15": {
         ".anonymous": true,
@@ -56,6 +56,29 @@
         ".index": 5,
         "device": "eth1",
         "proto": "dhcpv6"
+      },
+      "wg0": {
+        ".anonymous": false,
+        ".type": "interface",
+        ".name": "wg0",
+        ".index": 6,
+        "proto": "wireguard",
+        "private_key": "yAPFWTESD1zIQ7/MB33SnB5tib4H0/XOrB8qVJCa3Wc=",
+        "listen_port": "51820",
+        "addresses": [
+          "10.9.0.1/24"
+        ]
+      },
+      "wg0_peer": {
+        ".anonymous": false,
+        ".type": "wireguard_wg0",
+        ".name": "wg0_peer",
+        ".index": 7,
+        "description": "Test peer",
+        "public_key": "2B/lH7BCuWprw5wYdZH5Ki7K4d+bA8ngwYsCCR31cVU=",
+        "allowed_ips": [
+          "10.9.0.2/32"
+        ]
       }
     }
   }

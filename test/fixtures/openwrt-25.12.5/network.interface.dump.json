@@ -9,12 +9,13 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 124,
+        "uptime": 53,
         "l3_device": "br-lan",
         "proto": "static",
         "device": "br-lan",
         "updated": [
-          "addresses"
+          "addresses",
+          "routes"
         ],
         "metric": 0,
         "dns_metric": 0,
@@ -29,10 +30,10 @@
         "ipv6-prefix": [],
         "ipv6-prefix-assignment": [
           {
-            "address": "fd2c:6ad6:3acd::",
+            "address": "fd1c:4465:c364::",
             "mask": 60,
             "local-address": {
-              "address": "fd2c:6ad6:3acd::1",
+              "address": "fd1c:4465:c364::1",
               "mask": 60
             }
           }
@@ -58,7 +59,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 124,
+        "uptime": 148,
         "l3_device": "lo",
         "proto": "static",
         "device": "lo",
@@ -98,7 +99,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 124,
+        "uptime": 147,
         "l3_device": "eth1",
         "proto": "dhcp",
         "device": "eth1",
@@ -152,7 +153,7 @@
         "available": true,
         "autostart": true,
         "dynamic": false,
-        "uptime": 110,
+        "uptime": 133,
         "l3_device": "eth1",
         "proto": "dhcpv6",
         "device": "eth1",
@@ -168,8 +169,8 @@
           {
             "address": "fec0::5054:ff:fe12:3457",
             "mask": 64,
-            "preferred": 14280,
-            "valid": 86280
+            "preferred": 14257,
+            "valid": 86257
           }
         ],
         "ipv6-prefix": [],
@@ -180,7 +181,7 @@
             "mask": 64,
             "nexthop": "::",
             "metric": 256,
-            "valid": 86280,
+            "valid": 86257,
             "source": "::/0"
           },
           {
@@ -188,10 +189,49 @@
             "mask": 0,
             "nexthop": "fe80::2",
             "metric": 512,
-            "valid": 1680,
+            "valid": 1657,
             "source": "fec0::5054:ff:fe12:3457/64"
           }
         ],
+        "dns-server": [],
+        "dns-search": [],
+        "neighbors": [],
+        "inactive": {
+          "ipv4-address": [],
+          "ipv6-address": [],
+          "route": [],
+          "dns-server": [],
+          "dns-search": [],
+          "neighbors": []
+        },
+        "data": {}
+      },
+      {
+        "interface": "wg0",
+        "up": true,
+        "pending": false,
+        "available": true,
+        "autostart": true,
+        "dynamic": false,
+        "uptime": 139,
+        "l3_device": "wg0",
+        "proto": "wireguard",
+        "updated": [
+          "addresses"
+        ],
+        "metric": 0,
+        "dns_metric": 0,
+        "delegation": true,
+        "ipv4-address": [
+          {
+            "address": "10.9.0.1",
+            "mask": 24
+          }
+        ],
+        "ipv6-address": [],
+        "ipv6-prefix": [],
+        "ipv6-prefix-assignment": [],
+        "route": [],
         "dns-server": [],
         "dns-search": [],
         "neighbors": [],
