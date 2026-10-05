@@ -84,5 +84,15 @@
     "handshake": "{{time}}前握手",
     "unnamed": "对端 {{key}}",
     "copied": "已复制公钥"
+  },
+  "connections": {
+    "title": "实时连接",
+    "filter": "按设备、地址或端口筛选",
+    "summary": "{{count}} 个连接",
+    "router": "路由器",
+    "inbound": "来自外网",
+    "more": "显示全部 {{count}} 个",
+    "empty": "没有连接",
+    "noAccounting": "流量数字需要开启连接计数（装 RouteLink 插件会自动开启）。"
   }
 }

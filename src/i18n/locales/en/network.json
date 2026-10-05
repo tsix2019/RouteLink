@@ -84,5 +84,15 @@
     "handshake": "Last handshake {{time}} ago",
     "unnamed": "Peer {{key}}",
     "copied": "Public key copied"
+  },
+  "connections": {
+    "title": "Connections",
+    "filter": "Filter by device, address or port",
+    "summary": "{{count}} connections",
+    "router": "Router",
+    "inbound": "From the internet",
+    "more": "Show all {{count}}",
+    "empty": "No connections",
+    "noAccounting": "Byte counts need connection accounting (the RouteLink plugin turns it on)."
   }
 }

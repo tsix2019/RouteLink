@@ -1,5 +1,5 @@
 import * as Clipboard from 'expo-clipboard';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -53,6 +53,7 @@ export default function DeviceDetail() {
 
 function DeviceContent({ client, clients }: { client: Client; clients: Client[] }) {
   const t = useT();
+  const nav = useRouter();
   const lang = useLang();
   const toast = useToast();
   const { colors } = useTheme();
@@ -143,6 +144,17 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
       <DeviceTrafficEntry mac={client.mac} />
 
       <ListSection title={t('devices:actions.title')}>
+        {client.online && client.ipv4 ? (
+          <ListRow
+            icon="connections"
+            title={t('network:connections.title')}
+            chevron
+            onPress={() =>
+              nav.navigate(`/network/connections?ip=${encodeURIComponent(client.ipv4!)}`, { withAnchor: true })
+            }
+            testID="device-connections"
+          />
+        ) : null}
         <ListRow
           icon="edit"
           title={t('devices:actions.rename')}

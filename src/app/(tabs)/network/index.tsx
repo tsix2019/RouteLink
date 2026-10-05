@@ -59,6 +59,13 @@ export default function Network() {
           onPress={() => nav.push('/network/routes')}
           testID="network-routes"
         />
+        <ListRow
+          title={t('network:connections.title')}
+          icon="connections"
+          chevron
+          onPress={() => nav.push('/network/connections')}
+          testID="network-connections"
+        />
         {isAvailable(caps.data, 'network.wireguard') ? (
           <ListRow
             title={t('network:wireguard.title')}
