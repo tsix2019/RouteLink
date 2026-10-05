@@ -86,6 +86,12 @@ export default function Overview() {
           />
         ) : null}
         <GlassButton
+          label={t('assistant:ask')}
+          icon="assistant"
+          onPress={() => nav.push('/assistant')}
+          testID="action-ask-ai"
+        />
+        <GlassButton
           label={t('overview:actions.reboot')}
           icon="power"
           variant="warning"

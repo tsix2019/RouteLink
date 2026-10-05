@@ -43,6 +43,11 @@ export default function DemoLink() {
       });
       return;
     }
+    if (target === '/assistant') {
+      router.replace('/overview', { withAnchor: true });
+      setTimeout(() => router.push('/assistant?ask=1'), 400);
+      return;
+    }
     if (target === '/terminal') {
       // Over the More tab, as when opened from there.
       router.replace('/more', { withAnchor: true });
