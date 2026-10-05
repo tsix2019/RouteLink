@@ -71,5 +71,18 @@
   "result": {
     "applied": "已应用",
     "rolledBack": "改动已撤销：路由器没有及时收到确认"
+  },
+  "wireguard": {
+    "title": "WireGuard",
+    "publicKey": "公钥",
+    "port": "监听端口",
+    "peers": "对端",
+    "noPeers": "没有对端",
+    "empty": "没有 WireGuard 接口",
+    "connected": "已连接",
+    "never": "还没有握手",
+    "handshake": "{{time}}前握手",
+    "unnamed": "对端 {{key}}",
+    "copied": "已复制公钥"
   }
 }

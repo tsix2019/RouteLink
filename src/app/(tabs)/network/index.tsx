@@ -3,7 +3,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
 import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
-import { useInterfaces } from '@/hooks/router-queries';
+import { isAvailable } from '@/api/capabilities';
+import { useCapabilities, useInterfaces } from '@/hooks/router-queries';
 import { useLang, useT } from '@/i18n';
 import { EmptyState, ErrorState, Skeleton } from '@/ui/Feedback';
 import { ListRow, ListSection } from '@/ui/ListSection';
@@ -18,6 +19,7 @@ export default function Network() {
   const lang = useLang();
   const nav = useRouter();
   const interfaces = useInterfaces();
+  const caps = useCapabilities();
 
   return (
     <Screen
@@ -57,6 +59,15 @@ export default function Network() {
           onPress={() => nav.push('/network/routes')}
           testID="network-routes"
         />
+        {isAvailable(caps.data, 'network.wireguard') ? (
+          <ListRow
+            title={t('network:wireguard.title')}
+            icon="vpn"
+            chevron
+            onPress={() => nav.push('/network/wireguard')}
+            testID="network-wireguard"
+          />
+        ) : null}
       </ListSection>
       {interfaces.data ? (
         interfaces.data.length ? (

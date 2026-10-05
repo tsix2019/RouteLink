@@ -71,5 +71,18 @@
   "result": {
     "applied": "Applied",
     "rolledBack": "The change was reverted: the router didn't get a confirmation in time"
+  },
+  "wireguard": {
+    "title": "WireGuard",
+    "publicKey": "Public Key",
+    "port": "Listen Port",
+    "peers": "Peers",
+    "noPeers": "No peers",
+    "empty": "No WireGuard interfaces",
+    "connected": "Connected",
+    "never": "No handshake yet",
+    "handshake": "Last handshake {{time}} ago",
+    "unnamed": "Peer {{key}}",
+    "copied": "Public key copied"
   }
 }
