@@ -277,7 +277,7 @@ export interface WgPeerInput {
 export type WgPeerError = Partial<
   Record<
     keyof WgPeerInput,
-    'key-invalid' | 'address-invalid' | 'address-taken' | 'port-invalid' | 'keepalive-invalid' | 'name-invalid'
+    'key-invalid' | 'address-invalid' | 'address-taken' | 'port-invalid' | 'keepalive-invalid' | 'name-too-long'
   >
 >;
 
@@ -298,7 +298,7 @@ export function nextPeerAddress(iface: WgConfigInterface): string | null {
 
 export function validatePeer(input: WgPeerInput, iface: WgConfigInterface, editing?: string): WgPeerError {
   const errors: WgPeerError = {};
-  if (input.name.length > 64) errors.name = 'name-invalid';
+  if (input.name.length > 64) errors.name = 'name-too-long';
   if (!isWgKey(input.publicKey)) errors.publicKey = 'key-invalid';
   if (input.privateKey && !isWgKey(input.privateKey)) errors.privateKey = 'key-invalid';
   if (input.presharedKey && !isWgKey(input.presharedKey)) errors.presharedKey = 'key-invalid';

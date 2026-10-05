@@ -168,3 +168,16 @@ export function prefixContains(cidr: string, ip: string): boolean {
   if (!net || !words || (words.length === 2 ? 4 : 6) !== net.family) return false;
   return wordsToText(maskWords(words, net.prefix)) === net.network;
 }
+
+/** RFC 1918, carrier-grade NAT (100.64/10) and link-local: not reachable from the internet. */
+export function isPrivateIPv4(ip: string): boolean {
+  if (!isIPv4(ip)) return false;
+  const [a, b] = ip.split('.').map(Number);
+  return (
+    a === 10 ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254)
+  );
+}

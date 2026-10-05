@@ -11,6 +11,7 @@ import {
   prefixContains,
   scanTargets,
   wordsToIpv6,
+  isPrivateIPv4,
 } from './net';
 
 describe('ipToInt / intToIp', () => {
@@ -169,5 +170,21 @@ describe('parsePrefix / prefixContains', () => {
     expect(prefixContains('fd00:8::/64', 'fd00:8::1234')).toBe(true);
     expect(prefixContains('fd00:8::/64', 'fd00:9::1')).toBe(false);
     expect(prefixContains('0.0.0.0/0', 'fd00::1')).toBe(false);
+  });
+});
+
+describe('isPrivateIPv4', () => {
+  it.each([
+    ['10.0.2.15', true],
+    ['172.16.0.1', true],
+    ['172.32.0.1', false],
+    ['192.168.8.1', true],
+    ['100.64.0.1', true],
+    ['100.128.0.1', false],
+    ['169.254.1.1', true],
+    ['203.0.113.45', false],
+    ['not an ip', false],
+  ])('%s → %s', (ip, expected) => {
+    expect(isPrivateIPv4(ip)).toBe(expected);
   });
 });
