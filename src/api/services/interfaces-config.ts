@@ -191,6 +191,22 @@ export function validateWan(
   return errors;
 }
 
+/** Whether saving the form would change anything. */
+export function wanChanged(input: WanInput, wan: WanConfig): boolean {
+  const same = (a: string, b: string | undefined) => a.trim() === (b ?? '');
+  if (input.proto !== wan.proto) return true;
+  if (
+    input.proto === 'static' &&
+    !(same(input.ipaddr, wan.ipaddr) && same(input.netmask, wan.netmask) && same(input.gateway, wan.gateway))
+  ) {
+    return true;
+  }
+  if (input.proto === 'pppoe' && !(same(input.username, wan.username) && input.password === (wan.password ?? ''))) {
+    return true;
+  }
+  return dnsList(input.dns).join(' ') !== wan.dns.join(' ') || !same(input.mtu, wan.mtu);
+}
+
 /** Options that belong to one protocol only: dropped when switching to another. */
 const PROTO_OPTIONS: Record<WanProto, string[]> = {
   dhcp: ['hostname', 'clientid', 'vendorid', 'broadcast'],

@@ -7,6 +7,7 @@ import {
   parseLanWan,
   validateLan,
   validateWan,
+  wanChanged,
   wanChanges,
   type LanInput,
   type WanInput,
@@ -304,5 +305,15 @@ describe('getLanWan', () => {
     const r = await getLanWan(conn);
     expect(conn.calls).toHaveLength(2);
     expect(r.wan?.proto).toBe('dhcp');
+  });
+});
+
+describe('wanChanged', () => {
+  const current = parseLanWan(values('openwrt-24.10.8', 'network'), {}).wan!;
+  it('tells whether the form differs from the router', () => {
+    expect(wanChanged(wanInput(), current)).toBe(false);
+    expect(wanChanged(wanInput({ dns: '1.1.1.1' }), current)).toBe(true);
+    expect(wanChanged(wanInput({ proto: 'pppoe', username: 'u' }), current)).toBe(true);
+    expect(wanChanged(wanInput({ mtu: '1480' }), current)).toBe(true);
   });
 });

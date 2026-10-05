@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -13,7 +13,7 @@ import { GlassButton } from '@/ui/GlassButton';
 import { GlassCard } from '@/ui/GlassCard';
 import { InfoGrid } from '@/ui/InfoGrid';
 import { RiskConfirm } from '@/ui/RiskConfirm';
-import { Screen } from '@/ui/Screen';
+import { HeaderButton, Screen } from '@/ui/Screen';
 import { StatusDot } from '@/ui/Status';
 import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
@@ -25,6 +25,7 @@ export default function InterfaceScreen() {
   const lang = useLang();
   const toast = useToast();
   const { iface } = useLocalSearchParams<{ iface: string }>();
+  const nav = useRouter();
   const { router } = useActiveRouter();
   const interfaces = useInterfaces();
   const counters = useDeviceCounters();
@@ -52,9 +53,22 @@ export default function InterfaceScreen() {
   // The app reaches the router at one of this interface's addresses: reconnecting cuts it off briefly.
   const servesApp = !!router && !router.isDemo && i.ipv4.some((a) => a.address === hostOf(router.baseUrl));
 
+  const editable = i.name === 'lan' || i.name === 'wan';
+
   return (
     <>
-      <Screen title={title}>
+      <Screen
+        title={title}
+        headerRight={
+          editable ? (
+            <HeaderButton
+              icon="edit"
+              accessibilityLabel={t('network:edit.button')}
+              onPress={() => nav.push(`/network/edit/${i.name}`)}
+              testID="interface-edit"
+            />
+          ) : undefined
+        }>
         <GlassCard
           title={t('network:detail.status')}
           icon="network"
