@@ -75,6 +75,22 @@ export function validateCustom(start: number, end: number, now: number): 'ok' | 
   return 'ok';
 }
 
+/** Compact route parameter: "today", "last7d@20-23", "1791100000-1791186400". */
+export function serializeRange(r: TimeRange): string {
+  const base = r.kind === 'preset' ? r.id : `${r.start}-${r.end}`;
+  return r.hours ? `${base}@${r.hours.from}-${r.hours.to}` : base;
+}
+
+export function parseRange(s: string | undefined): TimeRange | null {
+  if (!s) return null;
+  const [base, hoursPart] = s.split('@');
+  const h = hoursPart ? /^(\d{1,2})-(\d{1,2})$/.exec(hoursPart) : null;
+  const hours = h && +h[1] < 24 && +h[2] < 24 ? { from: +h[1], to: +h[2] } : undefined;
+  if ((PRESETS as readonly string[]).includes(base)) return { kind: 'preset', id: base as PresetId, hours };
+  const c = /^(\d+)-(\d+)$/.exec(base);
+  return c && +c[1] < +c[2] ? { kind: 'custom', start: +c[1], end: +c[2], hours } : null;
+}
+
 const clock = { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' } as const;
 
 /** "Oct 5, 00:00 – 13:47 · daily 20:00–23:00" / "10月5日 00:00 – 13:47 · 每天 20–23 点". */

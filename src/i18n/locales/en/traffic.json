@@ -38,5 +38,70 @@
       "future": "The range starts in the future.",
       "too-long": "Choose ten years at most."
     }
+  },
+  "overview": {
+    "down": "Download",
+    "up": "Upload",
+    "wan": "WAN",
+    "wanHint": "WAN counts packet headers and retransmissions too, so it is a little more than the devices' sum.",
+    "ranking": "Ranking",
+    "live": "Live",
+    "internet": "Internet",
+    "lan": "LAN",
+    "sort": {
+      "total": "Total",
+      "rx": "Download",
+      "tx": "Upload"
+    },
+    "more": "Show More",
+    "empty": "No traffic in this period.",
+    "dataSince": "No data before {{time}}",
+    "online": "{{count}} online",
+    "wanRow": "Internet (WAN)",
+    "liveEmpty": "Waiting for the first samples…",
+    "exportDevices": "Export Ranking (CSV)",
+    "exportCurve": "Export Curve (CSV)",
+    "settings": "Plugin Settings",
+    "exportTitle": "Traffic {{range}}",
+    "exportFailed": "Couldn't export: {{reason}}"
+  },
+  "device": {
+    "title": "Device traffic",
+    "total": "Total",
+    "peak": "Peak download",
+    "peakNote": "averaged over {{minutes}} min",
+    "peakNoteHours": "averaged over {{hours}} h",
+    "events": "Online and offline",
+    "noEvents": "No changes in this period.",
+    "event": {
+      "device_new": "First seen",
+      "device_online": "Came online",
+      "device_offline": "Went offline"
+    },
+    "lasted": "for {{duration}}",
+    "row": "Traffic",
+    "today": "Today ↓ {{rx}} ↑ {{tx}}",
+    "needsPlugin": "Install the plugin to see traffic"
+  },
+  "wan": {
+    "title": "WAN usage",
+    "daily": "Daily",
+    "monthly": "Monthly",
+    "period": "This period",
+    "periodSince": "since {{date}}",
+    "resetDay": "Monthly reset day",
+    "resetDayValue": "Day {{day}}",
+    "resetOff": "Not set",
+    "resetHint": "The day your internet plan's allowance resets, to count this period's usage. Kept on this phone only.",
+    "details": "Details",
+    "last30": "Last 30 days",
+    "last12": "Last 12 months"
+  },
+  "card": {
+    "title": "Today's traffic",
+    "top": "Most active today",
+    "install": "Install the RouteLink plugin to see each device's traffic.",
+    "installAction": "Install",
+    "dismiss": "Hide"
   }
 }

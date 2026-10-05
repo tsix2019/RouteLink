@@ -38,5 +38,70 @@
       "future": "开始时间还没到。",
       "too-long": "最长只能选 10 年。"
     }
+  },
+  "overview": {
+    "down": "下载",
+    "up": "上传",
+    "wan": "WAN 口",
+    "wanHint": "WAN 口的流量包含报头和重传，所以会比各设备之和略多。",
+    "ranking": "排行",
+    "live": "实时",
+    "internet": "互联网",
+    "lan": "局域网",
+    "sort": {
+      "total": "总量",
+      "rx": "下载",
+      "tx": "上传"
+    },
+    "more": "显示更多",
+    "empty": "这个时间段没有流量。",
+    "dataSince": "{{time}} 之前没有数据",
+    "online": "{{count}} 台在线",
+    "wanRow": "互联网（WAN 口）",
+    "liveEmpty": "正在获取第一批数据…",
+    "exportDevices": "导出排行（CSV）",
+    "exportCurve": "导出曲线（CSV）",
+    "settings": "插件设置",
+    "exportTitle": "流量 {{range}}",
+    "exportFailed": "导出失败：{{reason}}"
+  },
+  "device": {
+    "title": "设备流量",
+    "total": "总量",
+    "peak": "下载峰值",
+    "peakNote": "按 {{minutes}} 分钟平均",
+    "peakNoteHours": "按 {{hours}} 小时平均",
+    "events": "上下线记录",
+    "noEvents": "这个时间段没有上下线变化。",
+    "event": {
+      "device_new": "首次出现",
+      "device_online": "上线",
+      "device_offline": "下线"
+    },
+    "lasted": "持续 {{duration}}",
+    "row": "流量",
+    "today": "今天 ↓ {{rx}} ↑ {{tx}}",
+    "needsPlugin": "安装插件后可查看"
+  },
+  "wan": {
+    "title": "WAN 口历史",
+    "daily": "按日",
+    "monthly": "按月",
+    "period": "本期已用",
+    "periodSince": "{{date}} 起",
+    "resetDay": "每月重置日",
+    "resetDayValue": "每月 {{day}} 日",
+    "resetOff": "不设置",
+    "resetHint": "填写宽带或流量套餐每月重置的日期，用来计算本期用量。只保存在这台手机上。",
+    "details": "明细",
+    "last30": "最近 30 天",
+    "last12": "最近 12 个月"
+  },
+  "card": {
+    "title": "今日流量",
+    "top": "今天用得最多",
+    "install": "安装 RouteLink 插件，查看每台设备的流量。",
+    "installAction": "安装",
+    "dismiss": "不再显示"
   }
 }

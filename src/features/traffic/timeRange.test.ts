@@ -1,6 +1,6 @@
 import { initI18n, i18n } from '@/i18n';
 
-import { hoursMask, rangeLabel, resolveRange, validateCustom, type TimeRange } from './timeRange';
+import { hoursMask, parseRange, rangeLabel, resolveRange, serializeRange, validateCustom, type TimeRange } from './timeRange';
 
 jest.mock('expo-localization', () => ({ getLocales: () => [{ languageCode: 'en' }] }));
 
@@ -111,5 +111,22 @@ describe('rangeLabel', () => {
     await i18n.changeLanguage('zh-CN');
     expect(rangeLabel(i18n.t, preset('yesterday'), 'zh-CN', now)).toBe('10月4日 00:00 – 10月5日 00:00');
     await i18n.changeLanguage('en');
+  });
+});
+
+describe('serializeRange / parseRange', () => {
+  it.each<TimeRange>([
+    { kind: 'preset', id: 'today' },
+    { kind: 'preset', id: 'last7d', hours: { from: 20, to: 23 } },
+    { kind: 'custom', start: 1_791_100_000, end: 1_791_186_400 },
+    { kind: 'custom', start: 1_791_100_000, end: 1_791_186_400, hours: { from: 22, to: 6 } },
+  ])('round-trips %j', (r) => {
+    expect(parseRange(serializeRange(r))).toEqual({ hours: undefined, ...r });
+  });
+
+  it('rejects garbage', () => {
+    expect(parseRange(undefined)).toBeNull();
+    expect(parseRange('yesterday-ish')).toBeNull();
+    expect(parseRange('20-10')).toBeNull();
   });
 });
