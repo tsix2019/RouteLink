@@ -1,4 +1,4 @@
-import { niceMax } from './area-path';
+import { niceBytesMax, niceMax } from './area-path';
 import { runs, timeTicks } from './scale';
 
 // jest.config.js runs tests in Asia/Shanghai (UTC+8, no daylight saving).
@@ -54,5 +54,13 @@ describe('runs', () => {
 describe('niceMax', () => {
   it('rounds axis maxima up to 1, 2 or 5 × 10^n', () => {
     expect([0.7, 1.3, 3, 7, 4_100_000].map(niceMax)).toEqual([1, 2, 5, 10, 5_000_000]);
+  });
+});
+
+describe('niceBytesMax', () => {
+  it('rounds in binary units', () => {
+    expect(niceBytesMax(46 * 1024 ** 3)).toBe(50 * 1024 ** 3);
+    expect(niceBytesMax(1.7 * 1024 ** 4)).toBe(2 * 1024 ** 4);
+    expect(niceBytesMax(900)).toBe(1000);
   });
 });

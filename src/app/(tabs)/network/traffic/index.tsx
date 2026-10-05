@@ -15,11 +15,11 @@ import { csvFileName, shareCsv } from '@/features/traffic/share';
 import { TimeRangePicker } from '@/features/traffic/TimeRangePicker';
 import {
   DEFAULT_RANGE,
-  hoursMask,
   parseRange,
   rangeLabel,
   resolveRange,
   serializeRange,
+  usableHoursMask,
   type TimeRange,
 } from '@/features/traffic/timeRange';
 import { useAgentStatus, useLiveTraffic, useTrafficHistory, useTrafficSummary } from '@/hooks/agent-queries';
@@ -125,7 +125,7 @@ function TrafficContent({
   const label = useDeviceLabels();
 
   const { start, end } = resolveRange(range, now);
-  const mask = range.hours ? hoursMask(range.hours) : undefined;
+  const { mask, dropped } = usableHoursMask(range, start, now, info.retention.hourDays);
   const summary = useTrafficSummary({ start, end, cls, hoursMask: mask, sort, limit: PAGE * pages });
   const history = useTrafficHistory({ start, end, cls, hoursMask: mask });
   const live = useLiveTraffic(tab === 'live');
@@ -164,7 +164,7 @@ function TrafficContent({
         }}
       />
 
-      <GlassCard testID="traffic-totals">
+      <GlassCard testID="traffic-totals" contentStyle={styles.card}>
         <View style={styles.totals}>
           <Total
             label={t('traffic:overview.down')}
@@ -197,6 +197,11 @@ function TrafficContent({
         ) : (
           <Skeleton height={168} radius={12} />
         )}
+        {dropped ? (
+          <AppText variant="footnote" tone="tertiary">
+            {t('traffic:range.hoursDropped', { days: info.retention.hourDays })}
+          </AppText>
+        ) : null}
         {s && s.startExact > start + 60 ? (
           <AppText variant="footnote" tone="tertiary">
             {t('traffic:overview.dataSince', { time: fmtTime(s.startExact) })}
@@ -266,9 +271,8 @@ function TrafficContent({
               <ListRow
                 key="wan"
                 title={t('traffic:overview.wanRow')}
-                subtitle={t('traffic:overview.online', { count: live.data.live.online })}
+                subtitle={`↓ ${formatBitRate(live.data.live.wan.rxBps)} · ↑ ${formatBitRate(live.data.live.wan.txBps)} · ${t('traffic:overview.online', { count: live.data.live.online })}`}
                 icon="globe"
-                value={`↓ ${formatBitRate(live.data.live.wan.rxBps)}  ↑ ${formatBitRate(live.data.live.wan.txBps)}`}
               />,
               ...live.data.live.devices.map((d) => (
                 <Animated.View key={d.mac} layout={LinearTransition.duration(250)}>
@@ -327,6 +331,7 @@ function Total({ label, value, color }: { label: string; value?: string; color: 
 }
 
 const styles = StyleSheet.create({
+  card: { gap: spacing.m },
   totals: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.s },
   total: { flex: 1, gap: 2 },
   totalLabel: { flexDirection: 'row', alignItems: 'center', gap: 4 },

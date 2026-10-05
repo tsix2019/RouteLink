@@ -7,7 +7,7 @@ import { formatBytes } from '@/utils/format';
 
 import { AppText } from '../AppText';
 import { useTheme } from '../theme/ThemeProvider';
-import { niceMax } from './area-path';
+import { niceBytesMax } from './area-path';
 
 export interface Bar {
   /** Axis label, e.g. "10/5" or "Oct". */
@@ -27,7 +27,7 @@ export function BarChart({ bars, height = 168, testID }: { bars: readonly Bar[];
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const plotH = height - AXIS;
-  const max = niceMax(Math.max(1, ...bars.map((b) => Math.max(b.rx ?? 0, b.tx ?? 0))));
+  const max = niceBytesMax(Math.max(1, ...bars.map((b) => Math.max(b.rx ?? 0, b.tx ?? 0))));
   const slot = bars.length ? width / bars.length : 0;
   const barW = Math.max(1.5, Math.min(10, slot * 0.32));
   const h = (v: number | null) => ((v ?? 0) / max) * plotH;

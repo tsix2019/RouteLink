@@ -79,7 +79,9 @@ export async function detectPackageEnv(conn: RouterConnection): Promise<PackageE
   if (!/^\d+\.\d+/.test(version)) return { unsupported: 'not-openwrt' };
 
   const helper = r[2].ok ? PACKAGE_MANAGER_CALL : r[3].ok ? OPKG_CALL : null;
-  if (!helper) return { unsupported: 'no-helper' };
+  // Accounts other than root may not even stat files: that is missing permission, not a missing helper.
+  const denied = (x: UbusResult) => !x.ok && ['PERMISSION_DENIED', 'ACCESS_DENIED'].includes(x.error.code);
+  if (!helper) return { unsupported: denied(r[2]) && denied(r[3]) ? 'no-permission' : 'no-helper' };
   const manager = r[4].ok ? 'apk' : 'opkg';
   const uploadPath = manager === 'apk' ? '/tmp/upload.apk' : '/tmp/upload.ipk';
   const access = helper === OPKG_CALL ? r[11] : manager === 'apk' ? r[10] : r[9];

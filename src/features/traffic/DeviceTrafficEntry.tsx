@@ -20,13 +20,13 @@ export function DeviceTrafficEntry({ mac }: { mac: string }) {
         <ListRow
           icon="chart"
           title={t('traffic:device.row')}
-          value={
+          subtitle={
             device
               ? t('traffic:device.today', { rx: formatBytes(device.today.rx), tx: formatBytes(device.today.tx) })
               : undefined
           }
           chevron
-          onPress={() => nav.navigate(`/network/traffic/${encodeURIComponent(mac)}`)}
+          onPress={() => nav.navigate(`/network/traffic/${encodeURIComponent(mac)}`, { withAnchor: true })}
           testID="device-traffic"
         />
       ) : (
@@ -35,7 +35,7 @@ export function DeviceTrafficEntry({ mac }: { mac: string }) {
           title={t('traffic:device.row')}
           subtitle={t('traffic:device.needsPlugin')}
           chevron
-          onPress={() => nav.navigate(AGENT_PAGE)}
+          onPress={() => nav.navigate(AGENT_PAGE, { withAnchor: true })}
           testID="device-traffic"
         />
       )}

@@ -20,3 +20,10 @@ export function niceMax(value: number): number {
   const nice = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10;
   return nice * magnitude;
 }
+
+/** niceMax in binary units, so a byte axis reads "50.0 GB" rather than "46.6 GB". */
+export function niceBytesMax(bytes: number): number {
+  if (!Number.isFinite(bytes) || bytes <= 0) return 1;
+  const unit = 1024 ** Math.max(0, Math.floor(Math.log(bytes) / Math.log(1024)));
+  return niceMax(bytes / unit) * unit;
+}

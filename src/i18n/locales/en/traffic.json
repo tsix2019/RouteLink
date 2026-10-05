@@ -11,7 +11,8 @@
     "custom": "Custom"
   },
   "range": {
-    "hours": "daily {{from}}:00–{{to}}:00"
+    "hours": "daily {{from}}:00–{{to}}:00",
+    "hoursDropped": "Hour filters only apply to the last {{days}} days; whole days are shown."
   },
   "csv": {
     "device": "Device",
@@ -24,7 +25,8 @@
     "time": "Time"
   },
   "chart": {
-    "missing": "No data"
+    "missing": "No data",
+    "hint": "Press and hold the chart to read values"
   },
   "picker": {
     "title": "Custom range",
@@ -69,8 +71,8 @@
     "title": "Device traffic",
     "total": "Total",
     "peak": "Peak download",
-    "peakNote": "averaged over {{minutes}} min",
-    "peakNoteHours": "averaged over {{hours}} h",
+    "peakNote": "{{rate}} (averaged over {{minutes}} min)",
+    "peakNoteHours": "{{rate}} (averaged over {{hours}} h)",
     "events": "Online and offline",
     "noEvents": "No changes in this period.",
     "event": {

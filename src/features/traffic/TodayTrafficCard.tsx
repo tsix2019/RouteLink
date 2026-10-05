@@ -41,7 +41,7 @@ function TodayTotals() {
   const summary = useTrafficSummary({ ...range, limit: 3 });
   const s = summary.data;
   return (
-    <Pressable accessibilityRole="button" onPress={() => nav.navigate('/network/traffic')} testID="card-today-traffic">
+    <Pressable accessibilityRole="button" onPress={() => nav.navigate('/network/traffic', { withAnchor: true })} testID="card-today-traffic">
       <GlassCard
         title={t('traffic:card.title')}
         icon="chart"

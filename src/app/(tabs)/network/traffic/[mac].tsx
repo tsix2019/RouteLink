@@ -2,11 +2,11 @@ import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import type { AgentEvent, History } from '@/api/services/agent';
+import type { AgentEvent, AgentInfo, History } from '@/api/services/agent';
 import { AgentGate } from '@/features/agent/AgentGate';
 import { useDeviceLabels } from '@/features/traffic/labels';
 import { TimeRangePicker } from '@/features/traffic/TimeRangePicker';
-import { DEFAULT_RANGE, hoursMask, parseRange, resolveRange, type TimeRange } from '@/features/traffic/timeRange';
+import { DEFAULT_RANGE, parseRange, resolveRange, usableHoursMask, type TimeRange } from '@/features/traffic/timeRange';
 import { useAgentEvents, useTrafficHistory } from '@/hooks/agent-queries';
 import { useLang, useT } from '@/i18n';
 import { AppText } from '@/ui/AppText';
@@ -50,8 +50,9 @@ export default function DeviceTraffic() {
   return (
     <Screen title={label.name} onRefresh={() => setNow(new Date())}>
       <AgentGate>
-        {() => (
+        {(info) => (
           <Content
+            info={info}
             mac={mac}
             range={range}
             now={now}
@@ -68,11 +69,13 @@ export default function DeviceTraffic() {
 }
 
 function Content({
+  info,
   mac,
   range,
   now,
   onRange,
 }: {
+  info: AgentInfo;
   mac: string;
   range: TimeRange;
   now: Date;
@@ -83,7 +86,7 @@ function Content({
   const { colors } = useTheme();
   const label = useDeviceLabels()(mac);
   const { start, end } = resolveRange(range, now);
-  const mask = range.hours ? hoursMask(range.hours) : undefined;
+  const { mask, dropped } = usableHoursMask(range, start, now, info.retention.hourDays);
   const history = useTrafficHistory({ mac, start, end, hoursMask: mask });
   const events = useAgentEvents({ mac, start, end, types: [...EVENT_TYPES], limit: 200 });
   const s = history.data ? stats(history.data) : null;
@@ -115,7 +118,12 @@ function Content({
 
       <TimeRangePicker value={range} onChange={onRange} />
 
-      <GlassCard>
+      <GlassCard contentStyle={styles.card}>
+        {dropped ? (
+          <AppText variant="footnote" tone="tertiary">
+            {t('traffic:range.hoursDropped', { days: info.retention.hourDays })}
+          </AppText>
+        ) : null}
         {history.data ? (
           <TimeSeriesChart points={history.data.points} step={history.data.step} start={start} end={end} />
         ) : (
@@ -129,11 +137,15 @@ function Content({
             {
               label: t('traffic:device.peak'),
               value: s
-                ? `${formatBitRate(s.peakBps)} (${
-                    step >= 3600
-                      ? t('traffic:device.peakNoteHours', { hours: Math.round(step / 3600) })
-                      : t('traffic:device.peakNote', { minutes: Math.max(1, Math.round(step / 60)) })
-                  })`
+                ? step >= 3600
+                  ? t('traffic:device.peakNoteHours', {
+                      rate: formatBitRate(s.peakBps),
+                      hours: Math.round(step / 3600),
+                    })
+                  : t('traffic:device.peakNote', {
+                      rate: formatBitRate(s.peakBps),
+                      minutes: Math.max(1, Math.round(step / 60)),
+                    })
                 : undefined,
               wide: true,
             },
@@ -165,6 +177,7 @@ function Content({
 }
 
 const styles = StyleSheet.create({
+  card: { gap: spacing.m },
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.m },
   avatar: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
   headerText: { flex: 1, gap: 2 },
