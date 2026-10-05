@@ -15,6 +15,8 @@ const config: ExpoConfig = {
   ios: {
     bundleIdentifier: 'io.github.tsix2019.routelink',
     buildNumber: String(BUILD),
+    // Citadel (SSH) needs iOS 17.
+    deploymentTarget: '17.0',
     icon: './assets/routelink.icon',
     supportsTablet: false,
     infoPlist: {
@@ -66,6 +68,10 @@ const config: ExpoConfig = {
           useLegacyPackaging: true,
           enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
+          // sshj's ed25519 code uses java.util.Base64 (API 26).
+          minSdkVersion: 26,
+          // The same file in all three BouncyCastle jars (sshj).
+          packagingOptions: { exclude: ['META-INF/versions/9/OSGI-INF/MANIFEST.MF'] },
         },
       },
     ],
