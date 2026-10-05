@@ -1,5 +1,7 @@
 // Shared setup for integration tests against a real, disposable OpenWrt (Docker locally, QEMU in CI).
 // ROUTER_URL=http://127.0.0.1:18080 ROUTER_PASSWORD=routelink-test npm run test:int
+import { execFileSync } from 'node:child_process';
+
 import { LiveConnection } from '../../src/api/connection/live';
 import { nodeHttpClient } from '../../src/api/http/node';
 import type { AuthMode, Session } from '../../src/api/ubus/login';
@@ -43,4 +45,32 @@ export async function waitFor(check: () => Promise<boolean>, timeoutMs: number, 
     await sleep(stepMs);
   }
   return false;
+}
+
+/** SSH to the test router for checks the app has no permission for (QEMU in CI: ROUTER_SSH_PORT=18022). */
+export const SSH_PORT = process.env.ROUTER_SSH_PORT;
+
+export function routerShell(command: string, password = ROUTER_PASSWORD): string {
+  if (!SSH_PORT) throw new Error('ROUTER_SSH_PORT is not set');
+  return execFileSync(
+    'sshpass',
+    [
+      '-p',
+      password,
+      'ssh',
+      '-o',
+      'StrictHostKeyChecking=no',
+      '-o',
+      'UserKnownHostsFile=/dev/null',
+      '-o',
+      'LogLevel=ERROR',
+      '-o',
+      'PubkeyAuthentication=no',
+      '-p',
+      SSH_PORT,
+      'root@127.0.0.1',
+      command,
+    ],
+    { encoding: 'utf8', timeout: 60_000 },
+  );
 }

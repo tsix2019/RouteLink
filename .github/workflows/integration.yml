@@ -21,7 +21,7 @@ concurrency:
 jobs:
   openwrt:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -50,6 +50,7 @@ jobs:
         env:
           ROUTER_URL: http://127.0.0.1:18080
           ROUTER_PASSWORD: routelink-test
+          ROUTER_SSH_PORT: '18022'
           EXPECT_RADIOS: '1'
           ROUTER_ALT_URL: http://127.0.0.1:18081
           ROUTER_ALT_IP: 192.168.1.5
@@ -66,6 +67,16 @@ jobs:
         with:
           name: fixtures-${{ matrix.version }}
           path: test/fixtures/openwrt-${{ matrix.version }}
+      # Last: VLAN rollback, restoring a backup, a firmware upgrade and a factory reset change the router
+      # for good (design §21).
+      - name: High-risk tests
+        if: always() && steps.boot.outcome == 'success'
+        env:
+          ROUTER_URL: http://127.0.0.1:18080
+          ROUTER_PASSWORD: routelink-test
+          ROUTER_SSH_PORT: '18022'
+          EXPECT_RADIOS: '1'
+        run: npm run test:risky
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

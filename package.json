@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
     "test": "jest",
-    "test:int": "jest -c jest.integration.config.js"
+    "test:int": "jest -c jest.integration.config.js",
+    "test:risky": "jest -c jest.integration.config.js --testMatch \"<rootDir>/test/integration/**/*.risky.test.ts\""
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",

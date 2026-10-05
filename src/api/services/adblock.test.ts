@@ -169,6 +169,6 @@ describe('router calls', () => {
       .override('file.exec', ok({ code: 0 }));
     await adblockAction(adb, 'adblock', 'off');
     expect(adb.calls[0].params).toEqual({ config: 'adblock', section: 'global', values: { adb_enabled: '0' } });
-    expect(adb.calls.at(-1)!.params).toEqual({ command: '/etc/init.d/adblock', params: ['stop'] });
+    expect(adb.calls.at(-1)!.params).toEqual({ command: '/etc/init.d/adblock', params: ['restart'] });
   });
 });

@@ -236,8 +236,9 @@ export type AdblockAction = 'on' | 'off' | 'refresh';
 
 const fastAction = (conn: RouterConnection, action: string) =>
   conn.call('luci.adblock-fast', 'setInitAction', { name: 'adblock-fast', action }, { timeoutMs: 30_000 });
-const adblockInit = (conn: RouterConnection, action: 'restart' | 'stop') =>
-  conn.call('file', 'exec', { command: '/etc/init.d/adblock', params: [action] }, { timeoutMs: 60_000 });
+/** Only reload, restart, suspend and resume are allowed on every release (23.05 has no stop). */
+const adblockRestart = (conn: RouterConnection) =>
+  conn.call('file', 'exec', { command: '/etc/init.d/adblock', params: ['restart'] }, { timeoutMs: 60_000 });
 
 /** On, off, or download the lists again. adblock-fast's own object runs the long steps in the background. */
 export async function adblockAction(conn: RouterConnection, pkg: AdblockPackage, action: AdblockAction): Promise<void> {
@@ -251,7 +252,8 @@ export async function adblockAction(conn: RouterConnection, pkg: AdblockPackage,
       mode: 'direct',
     });
   }
-  await adblockInit(conn, action === 'off' ? 'stop' : 'restart');
+  // With adb_enabled off, a restart takes the block list out of the DNS server.
+  await adblockRestart(conn);
 }
 
 /** Switches blocking on; with no list selected (adblock-fast's default) a small general one comes on too. */
