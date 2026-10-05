@@ -35,6 +35,16 @@ export class UbusSession {
     return this.session;
   }
 
+  /** The logged-in session, logging in first if needed (for endpoints outside JSON-RPC, such as cgi-io). */
+  ensureSession(): Promise<Session> {
+    return this.session ? Promise.resolve(this.session) : this.relogin(null);
+  }
+
+  /** A fresh login replacing `stale`, which the router no longer accepts. */
+  renewSession(stale: Session): Promise<Session> {
+    return this.relogin(stale);
+  }
+
   async call<T>(object: string, method: string, params?: Record<string, unknown>, o: CallOptions = {}): Promise<T> {
     const [result] = await this.batch([{ object, method, params }], o);
     if (!result.ok) throw result.error;

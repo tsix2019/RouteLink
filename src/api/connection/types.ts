@@ -15,6 +15,11 @@ export interface RouterConnection {
   ping(): Promise<boolean>;
   /** Same router, own fresh login: isolates staged uci changes (see stageAndApply). */
   fork?(): RouterConnection;
+  /**
+   * Runs a command through LuCI's /cgi-bin/cgi-exec with this session and returns its stdout. Same ACL as
+   * ubus `file exec`, but it does not hang when the command reloads rpcd (package installs do).
+   */
+  cgiExec?(argv: string[], options?: { timeoutMs?: number }): Promise<string>;
 }
 
 export type ConnectionFailure =

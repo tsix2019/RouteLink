@@ -2,6 +2,7 @@ import { normalizeBaseUrl } from '@/utils/url';
 
 import { NativeError } from '../http/errors';
 import type { HttpClient, TlsOptions } from '../http/types';
+import { ProtocolError, UbusError } from '../ubus/errors';
 import type { AuthMode, Session } from '../ubus/login';
 import { UbusSession, type CallOptions } from '../ubus/session';
 import type { UbusCall, UbusResult } from '../ubus/types';
@@ -18,6 +19,22 @@ export interface LiveConnectionConfig {
   /** nativeHttpClient in the app, nodeHttpClient in scripts and integration tests. */
   http: HttpClient;
   onLogin?: (session: Session) => void;
+}
+
+/** Package installs download dependencies on the router; give them time. */
+const CGI_EXEC_TIMEOUT_MS = 180_000;
+const BACKSLASH = String.fromCharCode(92);
+
+/** cgi-io splits the command line at unescaped whitespace: escape it (and backslashes) like LuCI's fs.exec_direct. */
+export function cgiCommand(argv: string[]): string {
+  return argv
+    .map((a) =>
+      a
+        .split(BACKSLASH)
+        .join(BACKSLASH + BACKSLASH)
+        .replace(/(\s)/g, `${BACKSLASH}$1`),
+    )
+    .join(' ');
 }
 
 /** Any HTTP answer (even 404) or TLS handshake means the router is up. No credentials are sent. */
@@ -62,6 +79,28 @@ export class LiveConnection implements RouterConnection {
 
   ping(): Promise<boolean> {
     return pingRouter(this.cfg.http, this.baseUrl, this.tls);
+  }
+
+  async cgiExec(argv: string[], options: { timeoutMs?: number } = {}): Promise<string> {
+    const run = (s: Session) => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/x-www-form-urlencoded' };
+      if (s.cookie) headers.Cookie = s.cookie;
+      return this.cfg.http.request({
+        url: `${this.baseUrl}/cgi-bin/cgi-exec`,
+        method: 'POST',
+        headers,
+        tls: this.tls,
+        body: `sessionid=${encodeURIComponent(s.sid)}&command=${encodeURIComponent(cgiCommand(argv))}`,
+        timeoutMs: options.timeoutMs ?? CGI_EXEC_TIMEOUT_MS,
+      });
+    };
+    const first = await this.session.ensureSession();
+    let res = await run(first);
+    // cgi-io answers 403 both for an expired session and for an ACL denial; only the first is worth a login.
+    if (res.status === 403 && !/ACL/.test(res.body)) res = await run(await this.session.renewSession(first));
+    if (res.status === 403) throw new UbusError('PERMISSION_DENIED', `cgi-exec ${argv[0]}`, res.body.trim());
+    if (res.status !== 200) throw new ProtocolError(res.status, `HTTP ${res.status} from cgi-exec`);
+    return res.body;
   }
 
   /** A second session to the same router; it logs in on first use with the mode that worked here. */

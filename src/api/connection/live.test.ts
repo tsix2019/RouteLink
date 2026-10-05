@@ -1,7 +1,7 @@
 import { NativeError } from '../http/errors';
 import { FakeHttpClient, ubusEndpoint } from '../http/fake';
 import { AuthError, ProtocolError, UbusError } from '../ubus/errors';
-import { LiveConnection } from './live';
+import { cgiCommand, LiveConnection } from './live';
 import { classifyError, isPermanentFailure } from './types';
 
 const endpoint = ubusEndpoint({
@@ -64,6 +64,56 @@ describe('LiveConnection', () => {
     });
     await expect(up.ping()).resolves.toBe(true);
     await expect(down.ping()).resolves.toBe(false);
+  });
+});
+
+describe('cgiExec', () => {
+  const BS = String.fromCharCode(92);
+  let logins = 0;
+  const login = ubusEndpoint({
+    'session.login': () => [0, { ubus_rpc_session: `S${++logins}`, expires: 300 }],
+    'system.board': () => [0, {}],
+  });
+  const text = (status: number, body: string) => ({ status, headers: {}, body });
+  const make = (http: FakeHttpClient) =>
+    new LiveConnection({ routerId: 'r', baseUrl: 'http://r', username: 'root', password: 'p', http });
+  beforeEach(() => {
+    logins = 0;
+  });
+
+  it('escapes whitespace and backslashes like LuCI and sends the session id', () => {
+    expect(cgiCommand(['/usr/bin/x', 'two words', `a${BS}b`])).toBe(`/usr/bin/x two${BS} words a${BS}${BS}b`);
+  });
+
+  it('posts the command with the session and returns stdout', async () => {
+    const http = new FakeHttpClient()
+      .on('POST http://r/ubus', login)
+      .on('POST http://r/cgi-bin/cgi-exec', text(200, '{ "code": 0 }\n'));
+    await expect(make(http).cgiExec(['/usr/libexec/opkg-call', 'install', '/tmp/upload.ipk'])).resolves.toBe(
+      '{ "code": 0 }\n',
+    );
+    const req = http.requests.find((r) => r.url.endsWith('/cgi-exec'))!;
+    expect(req.headers?.['Content-Type']).toBe('application/x-www-form-urlencoded');
+    expect(new URLSearchParams(req.body).get('sessionid')).toBe('S1');
+    expect(new URLSearchParams(req.body).get('command')).toBe('/usr/libexec/opkg-call install /tmp/upload.ipk');
+  });
+
+  it('logs in again once when the session expired', async () => {
+    const http = new FakeHttpClient()
+      .on('POST http://r/ubus', login)
+      .on('POST http://r/cgi-bin/cgi-exec', text(403, 'Exec permission denied\n'), 1)
+      .on('POST http://r/cgi-bin/cgi-exec', text(200, 'ok'));
+    await expect(make(http).cgiExec(['/bin/true'])).resolves.toBe('ok');
+    const sids = http.requests.filter((r) => r.url.endsWith('/cgi-exec')).map((r) => new URLSearchParams(r.body).get('sessionid'));
+    expect(sids).toEqual(['S1', 'S2']);
+  });
+
+  it('reports an ACL denial as missing permission', async () => {
+    const http = new FakeHttpClient()
+      .on('POST http://r/ubus', login)
+      .on('POST http://r/cgi-bin/cgi-exec', text(403, 'Access to command denied by ACL\n'));
+    await expect(make(http).cgiExec(['/bin/cat', '/etc/shadow'])).rejects.toMatchObject({ code: 'PERMISSION_DENIED' });
+    expect(logins).toBe(1);
   });
 });
 

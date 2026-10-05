@@ -56,6 +56,22 @@ export class FixtureConnection implements RouterConnection {
     return true;
   }
 
+  /** Commands run through cgi-exec, in order. */
+  readonly execs: string[][] = [];
+  private execHandler?: (argv: string[]) => string | Promise<string>;
+
+  /** Answers cgiExec calls; without a handler cgiExec rejects like a router without cgi-io. */
+  onCgiExec(handler: (argv: string[]) => string | Promise<string>): this {
+    this.execHandler = handler;
+    return this;
+  }
+
+  async cgiExec(argv: string[]): Promise<string> {
+    this.execs.push(argv);
+    if (!this.execHandler) throw new UbusError('PERMISSION_DENIED', `cgi-exec ${argv[0]}`);
+    return this.execHandler(argv);
+  }
+
   private resolve(call: UbusCall): UbusResult {
     this.calls.push(call);
     const name = fixtureName(call);
