@@ -52,7 +52,8 @@ function harness(o: Setup = {}) {
   conn.override('file.write', o.writeFails ? fail('PERMISSION_DENIED') : ok({}));
   conn.override('routelink.info', () => {
     checks += 1;
-    if (!installed || o.neverStarts || checks <= (o.slowStart ?? 0)) return fail(installed ? 'NOT_FOUND' : 'PERMISSION_DENIED');
+    if (!installed || o.neverStarts || checks <= (o.slowStart ?? 0))
+      return fail(installed ? 'NOT_FOUND' : 'PERMISSION_DENIED');
     return ok({ version: '0.1.0', api: 1 });
   });
   conn.override('file.stat.usr-sbin-routelinkd', () => (installed ? ok({ type: 'file' }) : fail('NOT_FOUND')));
@@ -69,7 +70,9 @@ function harness(o: Setup = {}) {
     conn,
     fetchManifest: async (url) => {
       manifests.push(url);
-      return o.manifestJson ?? manifest(release.split('.').slice(0, 2).join('.'), o.arch ?? 'x86_64', apk ? 'apk' : 'ipk');
+      return (
+        o.manifestJson ?? manifest(release.split('.').slice(0, 2).join('.'), o.arch ?? 'x86_64', apk ? 'apk' : 'ipk')
+      );
     },
     download: async (url) => {
       downloads.push(url);
@@ -113,8 +116,13 @@ describe('installAgent', () => {
   it('reports upload progress in bytes', async () => {
     const h = harness();
     await installAgent(h.deps);
-    const uploads = h.steps.filter((s): s is Extract<InstallStep, { step: 'upload' }> => s.step === 'upload' && s.index === 0);
-    expect(uploads[uploads.length - 1]).toMatchObject({ sent: bytesOf('routelinkd').length, size: bytesOf('routelinkd').length });
+    const uploads = h.steps.filter(
+      (s): s is Extract<InstallStep, { step: 'upload' }> => s.step === 'upload' && s.index === 0,
+    );
+    expect(uploads[uploads.length - 1]).toMatchObject({
+      sent: bytesOf('routelinkd').length,
+      size: bytesOf('routelinkd').length,
+    });
   });
 
   it('updates the package lists first when there are none', async () => {
@@ -133,7 +141,9 @@ describe('installAgent', () => {
   it('trusts the signing key before installing apk packages, and only then', async () => {
     const apk = harness({ release: '25.12.5', apk: true });
     await expect(installAgent(apk.deps)).resolves.toMatchObject({ step: 'done' });
-    const keyWrite = apk.conn.calls.findIndex((c) => c.method === 'write' && c.params?.path === '/etc/apk/keys/routelink.pem');
+    const keyWrite = apk.conn.calls.findIndex(
+      (c) => c.method === 'write' && c.params?.path === '/etc/apk/keys/routelink.pem',
+    );
     const firstUpload = apk.conn.calls.findIndex((c) => c.method === 'write' && c.params?.path === '/tmp/upload.apk');
     expect(keyWrite).toBeGreaterThanOrEqual(0);
     expect(keyWrite).toBeLessThan(firstUpload);
@@ -224,7 +234,9 @@ describe('installAgent', () => {
           ),
       });
       expect(apk.result).toMatchObject({ reason: 'dependencies', detail: 'libmnl0, kmod-nf-conntrack-netlink' });
-      const cannotFind = await failure({ install: () => helperOut(255, '', 'cannot find dependency libubus20250102 for routelinkd') });
+      const cannotFind = await failure({
+        install: () => helperOut(255, '', 'cannot find dependency libubus20250102 for routelinkd'),
+      });
       expect(cannotFind.result).toMatchObject({ reason: 'dependencies', detail: 'libubus20250102' });
     });
 

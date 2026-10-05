@@ -66,7 +66,11 @@ export function AgentPlaceholder({ status }: { status: Exclude<AgentStatus, { st
       return <EmptyState icon="plugin" title={t('agent:gate.tooNew.title')} message={t('agent:gate.tooNew.message')} />;
     case 'no-permission':
       return (
-        <EmptyState icon="lock" title={t('agent:gate.noPermission.title')} message={t('agent:gate.noPermission.message')} />
+        <EmptyState
+          icon="lock"
+          title={t('agent:gate.noPermission.title')}
+          message={t('agent:gate.noPermission.message')}
+        />
       );
   }
 }

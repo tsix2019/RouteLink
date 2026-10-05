@@ -76,11 +76,15 @@ export function pickTarget(m: Manifest, env: PackageEnv): ManifestFile[] | 'unsu
   const format = env.manager === 'apk' ? 'apk' : 'ipk';
   const target = m.targets[`${env.release}/${env.arch}`];
   if (!target || target.format !== format) {
-    const releaseKnown = Object.entries(m.targets).some(([k, t]) => k.startsWith(`${env.release}/`) && t.format === format);
+    const releaseKnown = Object.entries(m.targets).some(
+      ([k, t]) => k.startsWith(`${env.release}/`) && t.format === format,
+    );
     return releaseKnown ? 'unsupported-arch' : 'unsupported-release';
   }
   const order = INSTALL_ORDER as readonly string[];
-  return target.files.filter((f) => order.includes(f.package)).sort((a, b) => order.indexOf(a.package) - order.indexOf(b.package));
+  return target.files
+    .filter((f) => order.includes(f.package))
+    .sort((a, b) => order.indexOf(a.package) - order.indexOf(b.package));
 }
 
 /** Download mirrors work as a prefix ("https://ghproxy.example/https://github.com/..."); GitHub is slow in places. */

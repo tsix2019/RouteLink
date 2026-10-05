@@ -81,7 +81,9 @@ describe('AgentBanner', () => {
   });
 
   it('warns about offloading, the clock and counting', async () => {
-    await render(<AgentBanner info={info({ offload_warning: true, time_synced: false, conntrack_accounting: false })} />);
+    await render(
+      <AgentBanner info={info({ offload_warning: true, time_synced: false, conntrack_accounting: false })} />,
+    );
     expect(screen.getByText(/Hardware offloading is on/)).toBeTruthy();
     expect(screen.getByText(/clock is not synchronised/)).toBeTruthy();
     expect(screen.getByText(/nf_conntrack_acct/)).toBeTruthy();

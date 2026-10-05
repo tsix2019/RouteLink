@@ -93,7 +93,11 @@ export async function installAgent(deps: InstallDeps, mirror?: string): Promise<
     }
     if ('unsupported' in env) {
       throw new Failed(
-        env.unsupported === 'no-permission' ? 'not-root' : env.unsupported === 'no-helper' ? 'no-helper' : 'unsupported-release',
+        env.unsupported === 'no-permission'
+          ? 'not-root'
+          : env.unsupported === 'no-helper'
+            ? 'no-helper'
+            : 'unsupported-release',
       );
     }
 
@@ -168,7 +172,11 @@ export async function installAgent(deps: InstallDeps, mirror?: string): Promise<
       error instanceof Failed
         ? { step: 'failed', reason: error.reason, ...(error.detail ? { detail: error.detail } : {}) }
         : error instanceof PackageError
-          ? { step: 'failed', reason: error.reason === 'remove' ? 'install' : error.reason, ...(error.detail ? { detail: error.detail } : {}) }
+          ? {
+              step: 'failed',
+              reason: error.reason === 'remove' ? 'install' : error.reason,
+              ...(error.detail ? { detail: error.detail } : {}),
+            }
           : { step: 'failed', reason: 'install', detail: message(error) };
     onStep(failed);
     return failed;

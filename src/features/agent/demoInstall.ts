@@ -30,7 +30,12 @@ export function demoInstallDeps(
           size: SIZES[pkg],
         })),
       );
-      return { version: '0.1.0', api: 1, tag: 'agent-v0.1.0', targets: { '24.10/aarch64_cortex-a53': { format: 'ipk', files } } };
+      return {
+        version: '0.1.0',
+        api: 1,
+        tag: 'agent-v0.1.0',
+        targets: { '24.10/aarch64_cortex-a53': { format: 'ipk', files } },
+      };
     },
     async download(url) {
       await wait();
