@@ -53,6 +53,8 @@ export interface ApplyOptions {
   timeoutSec?: number;
   sleep?: (ms: number) => Promise<void>;
   now?: () => number;
+  /** The change moves the router to this address: confirm there, with the same session. */
+  confirmAt?: string;
 }
 
 /**
@@ -87,11 +89,12 @@ export async function stageAndApply(
   const deadline = now() + Math.max(5, timeoutSec - 10) * 1000;
   await work.call('uci', 'apply', { rollback: true, timeout: timeoutSec });
   await sleep(1_500);
+  const confirmer = o.confirmAt && work.relocated ? work.relocated(o.confirmAt) : work;
 
   while (now() < deadline) {
     try {
       // Only the session that applied may confirm: never swap it for a fresh login here.
-      await work.call('uci', 'confirm', {}, { timeoutMs: 4_000, relogin: false });
+      await confirmer.call('uci', 'confirm', {}, { timeoutMs: 4_000, relogin: false });
       return { status: 'confirmed' };
     } catch (error) {
       if (error instanceof UbusError && error.code === 'NO_DATA') return { status: 'applied' };

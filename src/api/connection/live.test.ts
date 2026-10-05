@@ -17,6 +17,20 @@ describe('LiveConnection', () => {
     expect(conn.baseUrl).toBe('http://192.168.1.1');
   });
 
+  it('continues its session at a new address without logging in again', async () => {
+    const http = new FakeHttpClient()
+      .on('POST http://192.168.1.1/ubus', endpoint)
+      .on('POST http://192.168.8.1/ubus', endpoint);
+    const conn = new LiveConnection({ routerId: 'r1', baseUrl: '192.168.1.1', username: 'root', password: 'p', http });
+    await conn.call('system', 'board');
+    const moved = conn.relocated('http://192.168.8.1');
+    await expect(moved.call('system', 'board')).resolves.toEqual({ model: 'OpenWrt One' });
+    const last = http.requests[http.requests.length - 1];
+    expect(last.url).toBe('http://192.168.8.1/ubus');
+    expect(JSON.parse(last.body!).params[0]).toBe('S');
+    expect(http.requests.filter((r) => r.body?.includes('"login"'))).toHaveLength(1);
+  });
+
   it('pins the certificate when a fingerprint is stored', async () => {
     const http = new FakeHttpClient().on('POST https://r/ubus', endpoint);
     const sha = 'ab'.repeat(32);

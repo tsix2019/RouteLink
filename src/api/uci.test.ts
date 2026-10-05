@@ -63,6 +63,21 @@ it('stages, applies and confirms in a forked session, leaving the main session u
   expect(forked.log).toEqual(['uci.add(dhcp)', 'uci.set(firewall)', 'uci.apply', 'uci.confirm']);
 });
 
+it('confirms at the new address when the change moves the router', async () => {
+  const forked = new ScriptedConnection(() => ({}));
+  const moved = new ScriptedConnection(() => ({}));
+  const relocated = jest.fn(() => moved);
+  const conn = Object.assign(new ScriptedConnection(() => ({})), {
+    fork: () => Object.assign(forked, { relocated }),
+  });
+  await expect(
+    stageAndApply(conn, changes, { mode: 'rollback', confirmAt: 'http://192.168.8.1', ...clock() }),
+  ).resolves.toEqual({ status: 'confirmed' });
+  expect(relocated).toHaveBeenCalledWith('http://192.168.8.1');
+  expect(forked.log).toEqual(['uci.add(dhcp)', 'uci.set(firewall)', 'uci.apply']);
+  expect(moved.log).toEqual(['uci.confirm']);
+});
+
 it('confirms after a rollback-protected apply', async () => {
   const conn = new ScriptedConnection(() => ({}));
   const outcome = await stageAndApply(conn, changes, { mode: 'rollback', ...clock() });

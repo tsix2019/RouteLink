@@ -16,6 +16,11 @@ export interface RouterConnection {
   /** Same router, own fresh login: isolates staged uci changes (see stageAndApply). */
   fork?(): RouterConnection;
   /**
+   * This session at another address (the router's LAN address just changed): rpcd keeps sessions across
+   * the network reload, so the change can be confirmed there (A6 in the M2 plan).
+   */
+  relocated?(baseUrl: string): RouterConnection;
+  /**
    * Runs a command through LuCI's /cgi-bin/cgi-exec with this session and returns its stdout. Same ACL as
    * ubus `file exec`, but it does not hang when the command reloads rpcd (package installs do).
    */

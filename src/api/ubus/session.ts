@@ -45,6 +45,11 @@ export class UbusSession {
     return this.relogin(stale);
   }
 
+  /** Continues an existing session (another connection's) instead of logging in. */
+  adopt(session: Session): void {
+    this.session = session;
+  }
+
   async call<T>(object: string, method: string, params?: Record<string, unknown>, o: CallOptions = {}): Promise<T> {
     const [result] = await this.batch([{ object, method, params }], o);
     if (!result.ok) throw result.error;

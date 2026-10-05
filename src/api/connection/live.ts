@@ -103,6 +103,21 @@ export class LiveConnection implements RouterConnection {
     return res.body;
   }
 
+  /** The same session at another address; the endpoint keeps its path (/ubus or LuCI's). */
+  relocated(baseUrl: string): LiveConnection {
+    const moved = new LiveConnection({
+      ...this.cfg,
+      baseUrl,
+      authMode: this.session.current?.mode ?? this.cfg.authMode,
+      onLogin: undefined,
+    });
+    const current = this.session.current;
+    if (current) {
+      moved.session.adopt({ ...current, endpoint: moved.baseUrl + current.endpoint.slice(this.baseUrl.length) });
+    }
+    return moved;
+  }
+
   /** A second session to the same router; it logs in on first use with the mode that worked here. */
   fork(): LiveConnection {
     return new LiveConnection({
