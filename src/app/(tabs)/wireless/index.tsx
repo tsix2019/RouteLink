@@ -6,7 +6,8 @@ import type { Radio } from '@/api/services/wireless';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
 import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
 import { bandLabel, channelLabel, encryptionLabel, widthLabel } from '@/features/wireless/labels';
-import { useClients, useRadios } from '@/hooks/router-queries';
+import { getWifiSchedules } from '@/api/services/wifi-schedule';
+import { useClients, useRadios, useRouterQuery } from '@/hooks/router-queries';
 import { useT } from '@/i18n';
 import { EmptyState, ErrorState, Skeleton } from '@/ui/Feedback';
 import { ListRow, ListSection } from '@/ui/ListSection';
@@ -20,6 +21,7 @@ export default function Wireless() {
   const nav = useRouter();
   const radios = useRadios();
   const clients = useClients();
+  const schedules = useRouterQuery(['wifi-schedule'], getWifiSchedules);
   const hasRadios = !!radios.data?.length;
 
   return (
@@ -58,6 +60,22 @@ export default function Wireless() {
                 chevron
                 onPress={() => nav.push('/wireless/guest')}
                 testID="wireless-guest"
+              />
+            </ListSection>
+            <ListSection title={t('wireless:schedule.section')}>
+              <ListRow
+                title={t('wireless:schedule.row')}
+                icon="moon"
+                value={
+                  schedules.data
+                    ? schedules.data.schedules.length
+                      ? t('wireless:schedule.count', { count: schedules.data.schedules.length })
+                      : t('wireless:schedule.none')
+                    : undefined
+                }
+                chevron
+                onPress={() => nav.push('/wireless/schedule')}
+                testID="wireless-schedule"
               />
             </ListSection>
           </>

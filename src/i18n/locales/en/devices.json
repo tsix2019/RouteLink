@@ -64,5 +64,37 @@
     "rolledBack": "The change was reverted: the router didn't get a confirmation in time",
     "woken": "Wake packet sent",
     "wokenByPhone": "Wake packet sent from this phone"
+  },
+  "parental": {
+    "title": "Internet Time",
+    "none": "No limits",
+    "count": "{{count}} blocked periods",
+    "paused": "Paused",
+    "intro": "During these periods this device has no internet; it stays on Wi-Fi and can still reach the router. Times are in the router's time zone.",
+    "enabled": "Block by schedule",
+    "periods": "No internet during",
+    "noPeriods": "No periods yet",
+    "add": "Add Period",
+    "edit": "Edit Period",
+    "days": "Days",
+    "from": "From",
+    "to": "Until",
+    "overnightHint": "An end earlier than the start means that time on the next day.",
+    "deletePeriod": "Delete This Period",
+    "save": "Save and Apply",
+    "blockedNow": "Blocked right now ({{window}})",
+    "allowedNow": "Internet allowed right now",
+    "routerTime": "Router time {{time}}",
+    "confirmTitle": "Update internet time for “{{name}}”?",
+    "consequenceRules": "The router reloads its firewall rules, which takes a few seconds.",
+    "consequenceCut": "When a period starts, the device's open connections are cut too, a video that is playing for example.",
+    "footer": "The app manages these rules; the firewall page shows them read-only. In time zones with daylight saving, a switch takes effect at the next firewall reload.",
+    "unsaved": "Changes not saved yet",
+    "saved": "Internet time updated",
+    "error": {
+      "days": "Pick at least one day",
+      "time": "Invalid time",
+      "same": "Start and end can't be the same"
+    }
   }
 }

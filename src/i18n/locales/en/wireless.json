@@ -159,5 +159,42 @@
       "psk2": "WPA2",
       "none": "Open"
     }
+  },
+  "schedule": {
+    "section": "Schedule",
+    "row": "Wi-Fi Schedule",
+    "none": "Off",
+    "count": "{{count}}",
+    "title": "Wi-Fi Schedule",
+    "intro": "At the off time the router switches Wi-Fi off, at the on time back on. Devices on these networks are disconnected. Times are in the router's time zone.",
+    "list": "Schedules",
+    "empty": "No schedules yet",
+    "add": "Add Schedule",
+    "edit": "Edit Schedule",
+    "days": "Off on",
+    "off": "Off at",
+    "on": "On at",
+    "nextDayHint": "An on time earlier than the off time means that time on the next day.",
+    "radios": "Radios",
+    "allRadios": "All radios",
+    "offAt": "Off at {{time}}",
+    "onAt": "on at {{time}}",
+    "onNextDay": "on at {{time}} the next day",
+    "offNow": "According to the schedule, Wi-Fi is off now",
+    "deleteSchedule": "Delete This Schedule",
+    "save": "Save",
+    "unsaved": "Changes not saved yet",
+    "saved": "Wi-Fi schedule saved",
+    "confirmTitle": "Save the Wi-Fi schedule?",
+    "consequenceCut": "At the off time every device on these networks is disconnected, this phone too.",
+    "consequenceReboot": "If the router restarts during an off period, Wi-Fi stays on until the next scheduled change.",
+    "footer": "Schedules live in the router's scheduled tasks and are managed by the app; the wireless settings stay as they are, so Wi-Fi can be switched on by hand at any time.",
+    "error": {
+      "days": "Pick at least one day",
+      "radios": "Pick at least one radio",
+      "time": "Invalid time",
+      "same": "Off and on can't be the same time"
+    },
+    "summary": "{{off}}, {{on}}"
   }
 }

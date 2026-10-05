@@ -23,7 +23,19 @@
     "not-wireless": "只能踢掉无线设备",
     "wol-failed": "网络唤醒失败：{{message}}",
     "wol-unavailable": "路由器没有安装 etherwake，iOS 也不能直接发送唤醒包",
-    "log-unavailable": "无法读取日志：{{message}}"
+    "log-unavailable": "无法读取日志：{{message}}",
+    "cron-changed": "计划任务在别处被改过了，刷新后再试",
+    "cron-reload": "计划任务已保存，但 cron 没能重新加载：{{message}}",
+    "vlan-in-use": "这个 VLAN 正被接口使用（{{message}}），不能删除",
+    "filtering-on": "这个网桥已经开启了 VLAN 过滤",
+    "filtering-in-use": "还有其他 VLAN 或打标签的端口，不能直接关闭 VLAN 过滤",
+    "no-private-key": "这个对端的密钥是对方自己生成的，路由器上没有它的私钥，没法导出配置",
+    "backup-invalid": "这不是 OpenWrt 的配置备份文件",
+    "backup-unsupported": "这个连接方式不能下载备份",
+    "restore-failed": "恢复备份失败：{{message}}",
+    "reset-failed": "恢复出厂设置失败：{{message}}",
+    "no-space": "路由器内存不够放下这个固件文件",
+    "flash-failed": "刷写固件失败：{{message}}"
   },
   "offlineNamed": "无法连接「{{name}}」",
   "relogin": {

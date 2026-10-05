@@ -23,7 +23,19 @@
     "not-wireless": "Only Wi-Fi devices can be disconnected",
     "wol-failed": "Wake-on-LAN failed: {{message}}",
     "wol-unavailable": "etherwake isn't installed on the router, and iOS can't send wake packets itself",
-    "log-unavailable": "Couldn't read the log: {{message}}"
+    "log-unavailable": "Couldn't read the log: {{message}}",
+    "cron-changed": "The scheduled tasks were changed elsewhere; refresh and try again",
+    "cron-reload": "Saved, but cron did not reload: {{message}}",
+    "vlan-in-use": "An interface uses this VLAN ({{message}}); it can't be deleted",
+    "filtering-on": "VLAN filtering is already on for this bridge",
+    "filtering-in-use": "Other VLANs or tagged ports exist; VLAN filtering can't simply be switched off",
+    "no-private-key": "This peer made its own keys; without its private key on the router there is nothing to export",
+    "backup-invalid": "This is not an OpenWrt configuration backup",
+    "backup-unsupported": "Backups can't be downloaded over this connection",
+    "restore-failed": "Restoring the backup failed: {{message}}",
+    "reset-failed": "The factory reset failed: {{message}}",
+    "no-space": "The router does not have enough free memory for this firmware file",
+    "flash-failed": "Flashing the firmware failed: {{message}}"
   },
   "offlineNamed": "Can't reach {{name}}",
   "relogin": {

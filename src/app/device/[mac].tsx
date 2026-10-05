@@ -9,7 +9,8 @@ import type { Client } from '@/api/services/clients';
 import { deviceIcon } from '@/features/devices/deviceIcon';
 import { useDeviceActions } from '@/features/devices/useDeviceActions';
 import { DeviceTrafficEntry } from '@/features/traffic/DeviceTrafficEntry';
-import { useClients } from '@/hooks/router-queries';
+import { getParental } from '@/api/services/parental';
+import { useClients, useRouterQuery } from '@/hooks/router-queries';
 import { useLang, useT } from '@/i18n';
 import { useSettings } from '@/state/settings';
 import { AppText } from '@/ui/AppText';
@@ -58,6 +59,7 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
   const toast = useToast();
   const { colors } = useTheme();
   const actions = useDeviceActions();
+  const parental = useRouterQuery(['parental'], getParental);
   const addWol = useSettings((s) => s.addWol);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [ban, setBan] = useState(false);
@@ -155,6 +157,18 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
             testID="device-connections"
           />
         ) : null}
+        <ListRow
+          icon="hourglass"
+          title={t('devices:parental.title')}
+          value={(() => {
+            const s = parental.data?.schedules.get(client.mac);
+            if (!s?.periods.length) return parental.data ? t('devices:parental.none') : undefined;
+            return s.enabled ? t('devices:parental.count', { count: s.periods.length }) : t('devices:parental.paused');
+          })()}
+          chevron
+          onPress={() => nav.navigate(`/devices/schedule?mac=${encodeURIComponent(client.mac)}`, { withAnchor: true })}
+          testID="device-parental"
+        />
         <ListRow
           icon="edit"
           title={t('devices:actions.rename')}

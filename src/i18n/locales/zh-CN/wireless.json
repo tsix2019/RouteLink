@@ -159,5 +159,42 @@
       "psk2": "WPA2",
       "none": "开放"
     }
+  },
+  "schedule": {
+    "section": "定时",
+    "row": "Wi-Fi 定时开关",
+    "none": "未设置",
+    "count": "{{count}} 条",
+    "title": "Wi-Fi 定时开关",
+    "intro": "到了关闭时间，路由器关掉 Wi-Fi；到了开启时间再打开。连着这些 Wi-Fi 的设备会断开。时间按路由器的时区计算。",
+    "list": "定时",
+    "empty": "还没有定时",
+    "add": "添加定时",
+    "edit": "编辑定时",
+    "days": "哪几天关闭",
+    "off": "关闭时间",
+    "on": "开启时间",
+    "nextDayHint": "开启时间早于关闭时间时，在第二天这个时间开启。",
+    "radios": "射频",
+    "allRadios": "全部射频",
+    "offAt": "{{time}} 关闭",
+    "onAt": "{{time}} 开启",
+    "onNextDay": "次日 {{time}} 开启",
+    "offNow": "按计划，现在 Wi-Fi 是关着的",
+    "deleteSchedule": "删除这条定时",
+    "save": "保存",
+    "unsaved": "有修改还没保存",
+    "saved": "已保存 Wi-Fi 定时",
+    "confirmTitle": "保存 Wi-Fi 定时？",
+    "consequenceCut": "到了关闭时间，连着这些 Wi-Fi 的设备都会断开，手机也一样。",
+    "consequenceReboot": "关闭时段里路由器重启的话，Wi-Fi 会先开着，到下一个时间点再执行。",
+    "footer": "定时写在路由器的计划任务里，由 App 管理；不改无线配置，随时可以手动打开 Wi-Fi。",
+    "error": {
+      "days": "至少选一天",
+      "radios": "至少选一个射频",
+      "time": "时间格式不对",
+      "same": "关闭和开启不能是同一时间"
+    },
+    "summary": "{{off}}，{{on}}"
   }
 }

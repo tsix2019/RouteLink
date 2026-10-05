@@ -21,7 +21,15 @@ export type Feature =
   | 'system.cron'
   | 'system.leds'
   | 'system.time'
-  | 'system.password';
+  | 'system.password'
+  | 'network.wireguard.config'
+  | 'network.openvpn'
+  | 'network.ddns'
+  | 'network.sqm'
+  | 'network.adblock'
+  | 'system.backup'
+  | 'system.firmware'
+  | 'system.reset';
 
 export type CapabilityState =
   | { status: 'ok' }
@@ -33,7 +41,7 @@ export type CapabilityState =
 export type Capabilities = Record<Feature, CapabilityState>;
 
 interface Access {
-  scope: 'ubus' | 'file' | 'uci';
+  scope: 'ubus' | 'file' | 'uci' | 'cgi-io';
   object: string;
   fn: string;
 }
@@ -96,6 +104,46 @@ const REQUIREMENTS: Record<Exclude<Feature, 'wireless'>, Requirement> = {
     packages: ['luci-mod-system'],
   },
   'system.password': { access: [ubus('luci', 'setPassword')], packages: ['luci-mod-system'] },
+  // M3. Keys for new tunnels and peers come from luci-proto-wireguard as well.
+  'network.wireguard.config': {
+    access: [ubus('luci.wireguard', 'generateKeyPair'), uciConfig('network', 'write')],
+    packages: ['luci-proto-wireguard'],
+  },
+  'network.openvpn': {
+    access: [uciConfig('openvpn', 'write'), file('/etc/openvpn/routelink.ovpn', 'write')],
+    packages: ['openvpn-openssl', 'luci-app-openvpn'],
+  },
+  'network.ddns': {
+    access: [ubus('luci.ddns', 'get_services_status'), uciConfig('ddns', 'write')],
+    packages: ['ddns-scripts', 'luci-app-ddns'],
+  },
+  'network.sqm': {
+    access: [uciConfig('sqm', 'write'), file('/etc/init.d/sqm enable')],
+    packages: ['sqm-scripts', 'luci-app-sqm'],
+  },
+  // adblock-fast (preferred) or adblock.
+  'network.adblock': {
+    access: [ubus('luci.adblock-fast', 'getInitStatus'), ubus('luci.adblock-fast', 'setInitAction')],
+    orAccess: [[uciConfig('adblock', 'write'), file('/etc/init.d/adblock restart')]],
+    packages: ['adblock-fast', 'luci-app-adblock-fast'],
+  },
+  'system.backup': {
+    access: [
+      { scope: 'cgi-io', object: 'backup', fn: 'read' },
+      file('/tmp/backup.tar.gz', 'write'),
+      file('/sbin/sysupgrade --restore-backup /tmp/backup.tar.gz'),
+    ],
+    packages: ['luci-mod-system'],
+  },
+  'system.firmware': {
+    access: [
+      file('/tmp/firmware.bin', 'write'),
+      ubus('system', 'validate_firmware_image'),
+      file('/sbin/sysupgrade /tmp/firmware.bin'),
+    ],
+    packages: ['luci-mod-system'],
+  },
+  'system.reset': { access: [file('/sbin/firstboot -r -y')], packages: ['luci-mod-system'] },
 };
 
 const accessKey = (a: Access) => `${a.scope}|${a.object}|${a.fn}`;

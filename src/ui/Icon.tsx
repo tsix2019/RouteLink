@@ -94,6 +94,15 @@ export const ICONS = {
   key: { sf: 'key', ion: 'key-outline' },
   guest: { sf: 'person.2', ion: 'people-outline' },
   filter: { sf: 'line.3.horizontal.decrease.circle', ion: 'filter-outline' },
+  hourglass: { sf: 'hourglass', ion: 'hourglass-outline' },
+  moon: { sf: 'moon', ion: 'moon-outline' },
+  vlan: { sf: 'square.grid.3x3', ion: 'grid-outline' },
+  speed: { sf: 'speedometer', ion: 'speedometer-outline' },
+  adblock: { sf: 'hand.raised', ion: 'hand-left-outline' },
+  backup: { sf: 'archivebox', ion: 'archive-outline' },
+  firmware: { sf: 'arrow.up.circle', ion: 'arrow-up-circle-outline' },
+  reset: { sf: 'arrow.counterclockwise.circle', ion: 'refresh-circle-outline' },
+  import: { sf: 'doc.badge.plus', ion: 'document-attach-outline' },
 } as const satisfies Record<string, { sf: string; ion: IonName } | { sf: string; mci: MciName }>;
 
 export type IconName = keyof typeof ICONS;

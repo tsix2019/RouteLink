@@ -41,6 +41,44 @@ describe('detectCapabilities (OpenWrt 24.10, no Wi-Fi, no etherwake)', () => {
   });
 });
 
+describe.each(['openwrt-23.05.6', 'openwrt-24.10.8', 'openwrt-25.12.5'])('M3 pages on %s (QEMU recordings)', (set) => {
+  it('grants what LuCI’s apps use, with the M3 packages installed', async () => {
+    const caps = await detectCapabilities(
+      new FixtureConnection(set).override('session.access.uci-network-write', ok({ access: true })),
+    );
+    for (const feature of [
+      'network.wireguard.config',
+      'network.openvpn',
+      'network.ddns',
+      'network.sqm',
+      'network.adblock',
+      'system.backup',
+      'system.firmware',
+      'system.reset',
+    ] as const) {
+      expect([feature, caps[feature]]).toEqual([feature, { status: 'ok' }]);
+    }
+  });
+
+  it('falls back to adblock when adblock-fast is missing', async () => {
+    const conn = new FixtureConnection(set)
+      .override('session.access.ubus-luci-adblock-fast-getinitstatus', ok({ access: false }))
+      .override('session.access.ubus-luci-adblock-fast-setinitaction', ok({ access: false }));
+    expect((await detectCapabilities(conn))['network.adblock']).toEqual({ status: 'ok' });
+  });
+
+  it('names the packages for DDNS when they are missing', async () => {
+    const conn = new FixtureConnection(set).override(
+      'session.access.ubus-luci-ddns-get-services-status',
+      ok({ access: false }),
+    );
+    expect((await detectCapabilities(conn))['network.ddns']).toEqual({
+      status: 'missing-package',
+      packages: ['ddns-scripts', 'luci-app-ddns'],
+    });
+  });
+});
+
 describe.each(['openwrt-23.05.6', 'openwrt-24.10.8', 'openwrt-25.12.5'])('M2 pages on %s (QEMU recordings)', (set) => {
   it('grants what LuCI’s own pages use', async () => {
     const conn = new FixtureConnection(set)
