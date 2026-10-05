@@ -16,6 +16,8 @@ module.exports = defineConfig([
       '.claude/**',
       // LuCI modules (top-level return, LuCI globals), not app code
       'openwrt/luci-app-routelink/htdocs/**',
+      // Vendored xterm.js (scripts/build-terminal.ts)
+      'src/features/terminal/xterm.generated.ts',
     ],
   },
 ]);

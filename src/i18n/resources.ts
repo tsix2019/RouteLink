@@ -9,6 +9,7 @@ import enOverview from './locales/en/overview.json';
 import enRisk from './locales/en/risk.json';
 import enRouters from './locales/en/routers.json';
 import enSettings from './locales/en/settings.json';
+import enTerminal from './locales/en/terminal.json';
 import enTraffic from './locales/en/traffic.json';
 import enWireless from './locales/en/wireless.json';
 import zhAgent from './locales/zh-CN/agent.json';
@@ -22,6 +23,7 @@ import zhOverview from './locales/zh-CN/overview.json';
 import zhRisk from './locales/zh-CN/risk.json';
 import zhRouters from './locales/zh-CN/routers.json';
 import zhSettings from './locales/zh-CN/settings.json';
+import zhTerminal from './locales/zh-CN/terminal.json';
 import zhTraffic from './locales/zh-CN/traffic.json';
 import zhWireless from './locales/zh-CN/wireless.json';
 
@@ -39,6 +41,7 @@ export const namespaces = [
   'risk',
   'traffic',
   'agent',
+  'terminal',
 ] as const;
 
 export type Namespace = (typeof namespaces)[number];
@@ -58,6 +61,7 @@ export const resources = {
     risk: zhRisk,
     traffic: zhTraffic,
     agent: zhAgent,
+    terminal: zhTerminal,
   },
   en: {
     common: enCommon,
@@ -73,5 +77,6 @@ export const resources = {
     risk: enRisk,
     traffic: enTraffic,
     agent: enAgent,
+    terminal: enTerminal,
   },
 } as const;

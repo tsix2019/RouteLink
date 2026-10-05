@@ -43,6 +43,12 @@ export default function DemoLink() {
       });
       return;
     }
+    if (target === '/terminal') {
+      // Over the More tab, as when opened from there.
+      router.replace('/more', { withAnchor: true });
+      setTimeout(() => router.push('/terminal'), 400);
+      return;
+    }
     if (target === '/traffic-live') {
       router.replace('/network/traffic?tab=live', { withAnchor: true });
       return;

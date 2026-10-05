@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { dropLiveConnection } from '@/api/connection/manager';
 import { parseAddress } from '@/features/routers/login';
 import { formatFingerprint } from '@/features/routers/trust';
+import { SshSection, sshFieldsOf, sshPortError, type SshFields } from '@/features/terminal/SshSection';
 import { useT } from '@/i18n';
 import { useRouters, type RouterProfile } from '@/state/routers';
 import { useSettings } from '@/state/settings';
@@ -52,11 +53,17 @@ function RouterForm({ profile }: { profile: RouterProfile }) {
   const [savePassword, setSavePassword] = useState(profile.savePassword);
   const [addressError, setAddressError] = useState<string | undefined>();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [ssh, setSsh] = useState<SshFields>(() => sshFieldsOf(profile));
+  const [portError, setPortError] = useState<string | undefined>();
 
   const save = async () => {
     const baseUrl = parseAddress(address);
     if (!baseUrl) {
       setAddressError(t('routers:login.addressInvalid'));
+      return;
+    }
+    if (sshPortError(ssh.port)) {
+      setPortError(t('terminal:settings.portInvalid'));
       return;
     }
     // A new address may present a different certificate: the pin only belongs to the old one.
@@ -68,7 +75,10 @@ function RouterForm({ profile }: { profile: RouterProfile }) {
         baseUrl,
         username: username.trim() || 'root',
         savePassword,
-        ...(moved ? { tlsSha256: undefined } : {}),
+        ...(moved ? { tlsSha256: undefined, sshHostKey: undefined } : {}),
+        sshPort: Number(ssh.port),
+        sshUser: ssh.user.trim() || 'root',
+        sshAuth: ssh.auth,
       },
       password ? password : undefined,
     );
@@ -148,6 +158,15 @@ function RouterForm({ profile }: { profile: RouterProfile }) {
             />
           </GlassCard>
         ) : null}
+        <SshSection
+          profile={profile}
+          fields={ssh}
+          portError={portError}
+          onChange={(patch) => {
+            setSsh((v) => ({ ...v, ...patch }));
+            if (patch.port !== undefined) setPortError(undefined);
+          }}
+        />
         <GlassButton label={t('save')} variant="primary" onPress={() => void save()} testID="router-save" />
         <GlassButton
           label={t('more:routerEdit.delete')}

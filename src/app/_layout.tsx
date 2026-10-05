@@ -93,6 +93,7 @@ function RootStack() {
         <Stack.Screen name="wireguard-export" options={sheetOptions([0.92, 1])} />
         <Stack.Screen name="reboot" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
         <Stack.Screen name="maintenance" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
+        <Stack.Screen name="terminal" options={{ presentation: 'fullScreenModal' }} />
       </Stack>
     </View>
   );

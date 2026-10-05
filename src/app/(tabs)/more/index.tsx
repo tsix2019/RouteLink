@@ -91,6 +91,14 @@ export default function More() {
             testID="more-logs"
           />
           <ListRow
+            title={t('terminal:entry')}
+            icon="terminal"
+            chevron
+            disabled={!hasRouter}
+            onPress={() => nav.push('/terminal')}
+            testID="more-terminal"
+          />
+          <ListRow
             title={t('agent:title')}
             icon="plugin"
             chevron
