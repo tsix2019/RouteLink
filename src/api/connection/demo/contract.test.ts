@@ -28,6 +28,13 @@ import {
 } from '../../services/agent';
 import { getClients } from '../../services/clients';
 import { getConnections, groupBySource, ReverseDns } from '../../services/conntrack';
+import {
+  applyFirewallChanges,
+  deleteSectionChanges,
+  getFirewall,
+  portForwardChanges,
+  setEnabledChanges,
+} from '../../services/firewall';
 import { parseCrontab, readCrontab, writeCrontab } from '../../services/cron';
 import { getLeds, ledChanges } from '../../services/leds';
 import { kernelLog, systemLog } from '../../services/logs';
@@ -216,6 +223,34 @@ describe('demo router: system and network pages (M2)', () => {
     const names = await new ReverseDns().resolve(conn, remotes);
     expect(names['45.57.90.1']).toContain('nflxvideo.net');
     expect(Object.keys(names).length).toBeLessThan(remotes.length);
+  });
+
+  it('firewall: zones, a port forward and the app’s block rule; forwards can be added, switched off and removed', async () => {
+    const { conn } = demo();
+    const fw = await getFirewall(conn);
+    expect(fw.zones.map((z) => [z.name, z.masq])).toEqual([
+      ['lan', false],
+      ['wan', true],
+      ['vpn', false],
+    ]);
+    expect(fw.forwards.map((f) => f.name)).toEqual(['NAS-HTTPS']);
+    expect(fw.rules.filter((r) => r.managed)).toHaveLength(1);
+
+    const input = {
+      name: 'Camera',
+      protocols: ['tcp' as const],
+      srcZone: 'wan',
+      externalPort: '8554',
+      destZone: 'lan',
+      internalIp: '192.168.8.109',
+      internalPort: '554',
+    };
+    await applyFirewallChanges(conn, portForwardChanges(input), fast);
+    const camera = (await getFirewall(conn)).forwards.find((f) => f.name === 'Camera')!;
+    await applyFirewallChanges(conn, setEnabledChanges(camera.section, false), fast);
+    expect((await getFirewall(conn)).forwards.find((f) => f.name === 'Camera')?.enabled).toBe(false);
+    await applyFirewallChanges(conn, deleteSectionChanges(camera.section), fast);
+    expect((await getFirewall(conn)).forwards).toHaveLength(1);
   });
 
   it('routes: the static route is installed; new ones appear and can be deleted', async () => {
