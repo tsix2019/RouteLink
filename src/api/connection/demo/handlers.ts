@@ -1,5 +1,6 @@
 import { UbusError } from '../../ubus/errors';
 import type { UciSection } from '../../uci';
+import { agentHandlers } from './agent';
 import type { DemoDevice, DemoState } from './state';
 
 type Params = Record<string, unknown>;
@@ -124,12 +125,38 @@ const files: Record<
 
 export const handlers: Record<string, Handler> = {
   'session.access': () => ({ access: true }),
-  'file.stat': (_s, p) =>
-    p.path === '/usr/bin/etherwake' ? { path: p.path, type: 'file', size: 10512 } : notFound('file.stat'),
+  'file.stat': (s, p) => {
+    const files: Record<string, number> = {
+      '/usr/bin/etherwake': 10512,
+      '/usr/libexec/package-manager-call': 2391,
+      ...(s.agent.installed ? { '/usr/sbin/routelinkd': 92_416 } : {}),
+    };
+    const size = files[String(p.path)];
+    return size ? { path: p.path, type: 'file', size } : notFound('file.stat');
+  },
   'file.list': (_s, p) =>
     p.path === '/sys/devices/system/cpu'
       ? { entries: ['cpu0', 'cpu1', 'cpu2', 'cpu3', 'cpufreq'].map((name) => ({ name, type: 'directory' })) }
-      : { entries: [] },
+      : p.path === '/var/opkg-lists'
+        ? { entries: ['openwrt_base', 'openwrt_core', 'openwrt_luci', 'openwrt_packages'].map((name) => ({ name, type: 'file' })) }
+        : { entries: [] },
+  'file.read': (_s, p) =>
+    p.path === '/etc/opkg/distfeeds.conf'
+      ? {
+          data: ['core', 'base', 'luci', 'packages']
+            .map((feed) =>
+              feed === 'core'
+                ? 'src/gz openwrt_core https://downloads.openwrt.org/releases/24.10.8/targets/mediatek/filogic/packages'
+                : `src/gz openwrt_${feed} https://downloads.openwrt.org/releases/24.10.8/packages/aarch64_cortex-a53/${feed}`,
+            )
+            .join('\n'),
+        }
+      : notFound('file.read'),
+  // Plugin uploads (package installs) and the apk key: accepted and dropped.
+  'file.write': (_s, p) =>
+    String(p.path).startsWith('/tmp/upload.') || String(p.path).startsWith('/etc/apk/keys/')
+      ? {}
+      : notFound('file.write'),
   'file.exec': (s, p, now) => {
     const run = files[String(p.command)];
     if (!run) throw new UbusError('PERMISSION_DENIED', 'file.exec');
@@ -320,6 +347,8 @@ export const handlers: Record<string, Handler> = {
   'uci.apply': () => ({}),
   'uci.confirm': () => ({}),
   'uci.changes': () => ({ changes: {} }),
+
+  ...agentHandlers,
 
   'rc.list': (s) => s.services,
   'rc.init': (s, p) => {

@@ -77,6 +77,17 @@ export const CALLS: UbusCall[] = [
   { object: 'iwinfo', method: 'txpowerlist', params: { device: 'radio0' } },
   { object: 'iwinfo', method: 'assoclist', params: { device: 'phy0-ap0' } },
   { object: 'iwinfo', method: 'scan', params: { device: 'phy0-ap0' } },
+  // Package management through LuCI's helper (services/packages.ts detectPackageEnv).
+  { object: 'file', method: 'stat', params: { path: '/usr/libexec/package-manager-call' } },
+  { object: 'file', method: 'stat', params: { path: '/usr/libexec/opkg-call' } },
+  { object: 'file', method: 'stat', params: { path: '/usr/bin/apk' } },
+  { object: 'file', method: 'read', params: { path: '/etc/opkg/distfeeds.conf' } },
+  { object: 'file', method: 'read', params: { path: '/etc/apk/repositories.d/distfeeds.list' } },
+  { object: 'file', method: 'list', params: { path: '/var/opkg-lists' } },
+  { object: 'file', method: 'list', params: { path: '/var/cache/apk' } },
+  access('file', '/usr/libexec/package-manager-call install /tmp/upload.ipk', 'exec'),
+  access('file', '/usr/libexec/package-manager-call install /tmp/upload.apk', 'exec'),
+  access('file', '/usr/libexec/opkg-call install /tmp/upload.ipk', 'exec'),
 ];
 
 /** Calls that take longer than the default timeout. */

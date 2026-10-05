@@ -2,6 +2,10 @@
  * Contract: every service function must work against the demo router, so demo mode can show every
  * screen (design §26). Add each new service function here.
  */
+import { createHash } from 'node:crypto';
+
+import { demoInstallDeps } from '../../../features/agent/demoInstall';
+import { installAgent } from '../../../features/agent/install';
 import { detectCapabilities } from '../../capabilities';
 import { NativeError } from '../../http/errors';
 import {
@@ -13,9 +17,19 @@ import {
   unblockClient,
   wakeOnLan,
 } from '../../services/client-actions';
+import {
+  agentEvents,
+  agentHistory,
+  agentLive,
+  agentSummary,
+  getAgentDevices,
+  getAgentStatus,
+  type History,
+} from '../../services/agent';
 import { getClients } from '../../services/clients';
 import { kernelLog, systemLog } from '../../services/logs';
 import { getDeviceCounters, getInterfaces, pickWan, reconnectInterface } from '../../services/network';
+import { detectPackageEnv, removePackages } from '../../services/packages';
 import { listServices, serviceAction } from '../../services/services';
 import { getSystem, getTemperature, loadRatio, reboot } from '../../services/system';
 import { getRadios, networkChanges, radioChanges, scan } from '../../services/wireless';
@@ -133,5 +147,93 @@ describe('demo router: writes change what reads return', () => {
     clock.advance(10_000);
     expect(await conn.ping()).toBe(true);
     expect((await getSystem(conn)).uptimeSec).toBeLessThan(before);
+  });
+});
+
+describe('demo router: the routelink plugin', () => {
+  const { conn } = demo();
+  const now = Math.floor(1_800_000_000_000 / 1000);
+  const midnight = Math.floor((now + 8 * 3600) / 86400) * 86400 - 8 * 3600;
+  const sum = (h: History) => h.points.reduce((s, p) => [s[0] + (p.rx ?? 0), s[1] + (p.tx ?? 0)], [0, 0]);
+  /** Equal up to rounding: the demo rounds per point in a history and per device in a summary. */
+  const expectSameTotals = (s: { rx: number; tx: number }, h: History) => {
+    const [rx, tx] = sum(h);
+    const slack = h.points.length + 16;
+    expect(Math.abs(s.rx - rx)).toBeLessThanOrEqual(slack);
+    expect(Math.abs(s.tx - tx)).toBeLessThanOrEqual(slack);
+  };
+
+  it('is installed and running', async () => {
+    await expect(getAgentStatus(conn)).resolves.toMatchObject({ state: 'ok', info: { api: 1, zonename: 'Asia/Shanghai' } });
+  });
+
+  it('knows every device, with today’s usage and current rates', async () => {
+    const devices = await getAgentDevices(conn);
+    expect(devices).toHaveLength(15);
+    expect(devices.filter((d) => d.today.rx > 0).length).toBeGreaterThan(10);
+    expect(devices.filter((d) => !d.online).map((d) => d.hostname)).toEqual(expect.arrayContaining(['ThinkPad', 'iPad']));
+  });
+
+  it('splits the live WAN rate across the devices', async () => {
+    const live = await agentLive(conn);
+    const total = live.devices.reduce((s, d) => s + d.rxBps, 0);
+    expect(total).toBeGreaterThan(0);
+    expect(Math.abs(total * 1.03 - live.wan.rxBps) / live.wan.rxBps).toBeLessThan(0.01);
+    const order = live.devices.map((d) => d.rxBps + d.txBps);
+    expect(order).toEqual([...order].sort((a, b) => b - a));
+  });
+
+  it.each([
+    ['today, by the minute', midnight, now],
+    ['the last 7 days, by the hour', now - 7 * 86400, now],
+    ['100 days back, by the day', now - 100 * 86400, now - 95 * 86400],
+  ])('summary totals equal the history: %s', async (_name, start, end) => {
+    const s = await agentSummary(conn, { start, end, limit: 500 });
+    expectSameTotals(s, await agentHistory(conn, { start, end }));
+    expect(s.wanRx).toBeGreaterThan(s.rx);
+  });
+
+  it('keeps hour-of-day filters consistent too', async () => {
+    const q = { start: now - 7 * 86400, end: now, hoursMask: (1 << 20) | (1 << 21) | (1 << 22) };
+    const s = await agentSummary(conn, { ...q, limit: 500 });
+    expectSameTotals(s, await agentHistory(conn, q));
+    const all = await agentSummary(conn, { start: q.start, end: q.end, limit: 500 });
+    expect(s.rx).toBeLessThan(all.rx / 3);
+  });
+
+  it('has no data before the plugin was installed', async () => {
+    const h = await agentHistory(conn, { start: now - 200 * 86400, end: now - 190 * 86400 });
+    expect(h.tier).toBe('day');
+    expect(h.points.every((p) => p.rx === null)).toBe(true);
+  });
+
+  it('per-device history, events and LAN traffic', async () => {
+    const devices = await getAgentDevices(conn);
+    const laptop = devices.find((d) => d.hostname === 'MacBook-Air')!;
+    const h = await agentHistory(conn, { mac: laptop.mac, start: now - 86400, end: now });
+    expect(sum(h)[0]).toBeGreaterThan(0);
+    const e = await agentEvents(conn, { start: now - 3 * 86400, end: now, mac: laptop.mac });
+    expect(e.events.map((x) => x.type)).toEqual(expect.arrayContaining(['device_online', 'device_offline']));
+    expect(e.events.map((x) => x.ts)).toEqual([...e.events.map((x) => x.ts)].sort((a, b) => b - a));
+    const lan = await agentSummary(conn, { start: now - 86400, end: now, cls: 'lan' });
+    expect(lan.devices[0].mac).toBe(devices.find((d) => d.hostname === 'NAS')!.mac);
+  });
+
+  it('can be removed and installed again with the one-tap flow', async () => {
+    const fresh = new DemoConnection(2026, () => 1_800_000_000_000, 0);
+    const env = await detectPackageEnv(fresh);
+    expect(env).toMatchObject({ release: '24.10', arch: 'aarch64_cortex-a53', manager: 'opkg' });
+    if ('unsupported' in env) return;
+    await removePackages(fresh, env, ['luci-i18n-routelink-zh-cn', 'luci-app-routelink', 'routelinkd']);
+    await expect(getAgentStatus(fresh)).resolves.toEqual({ state: 'not-installed' });
+    const sha256 = async (b: Uint8Array) => createHash('sha256').update(b).digest('hex');
+    const result = await installAgent({
+      conn: fresh,
+      ...demoInstallDeps(sha256, 0),
+      sha256,
+      onStep: () => undefined,
+      sleep: async () => undefined,
+    });
+    expect(result).toEqual({ step: 'done', version: '0.1.0' });
   });
 });

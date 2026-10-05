@@ -3,6 +3,7 @@ import { UbusError } from '../../ubus/errors';
 import type { CallOptions } from '../../ubus/session';
 import { callKey, type UbusCall, type UbusResult } from '../../ubus/types';
 import type { RouterConnection } from '../types';
+import { demoPackageHelper } from './agent';
 import { handlers, hostapdHandler } from './handlers';
 import { createDemoState, tick, type DemoState } from './state';
 
@@ -17,6 +18,8 @@ export class DemoConnection implements RouterConnection {
   constructor(
     seed = 2026,
     private readonly clock: () => number = Date.now,
+    /** Package installs take a moment on a real router; tests pass 0. */
+    private readonly cgiLatencyMs = 700,
   ) {
     this.state = createDemoState(seed, clock());
   }
@@ -41,6 +44,14 @@ export class DemoConnection implements RouterConnection {
         throw error;
       }
     });
+  }
+
+  /** The only command the app runs through cgi-exec is LuCI's package helper. */
+  async cgiExec(argv: string[]): Promise<string> {
+    if (this.cgiLatencyMs) await new Promise((resolve) => setTimeout(resolve, this.cgiLatencyMs));
+    this.checkReboot(this.clock());
+    if (argv[0] !== '/usr/libexec/package-manager-call') throw new UbusError('PERMISSION_DENIED', `cgi-exec ${argv[0]}`);
+    return demoPackageHelper(this.state, argv);
   }
 
   async ping(): Promise<boolean> {

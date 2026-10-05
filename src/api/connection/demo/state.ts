@@ -1,4 +1,5 @@
 import type { UciSection } from '../../uci';
+import { createDemoAgent, type DemoAgent } from './agent';
 import { createRandom, type Random } from './random';
 
 export interface DemoDevice {
@@ -32,6 +33,8 @@ export interface DemoState {
   services: Record<string, { enabled: boolean; running: boolean; start?: number }>;
   syslog: string[];
   kernel: string[];
+  /** The router plugin (installed from the start; can be removed and installed again). */
+  agent: DemoAgent;
 }
 
 /** Real vendor prefixes so the device list shows believable vendors. */
@@ -261,6 +264,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     services,
     syslog: buildSyslog(rng, devices),
     kernel: buildKernel(),
+    agent: createDemoAgent(now),
   };
 }
 
