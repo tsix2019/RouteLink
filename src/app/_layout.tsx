@@ -99,7 +99,6 @@ function RootStack() {
         <Stack.Screen name="trust-certificate" options={sheetOptions([0.8, 1])} />
         <Stack.Screen name="device/[mac]" options={sheetOptions([0.68, 1])} />
         <Stack.Screen name="wifi-qr" options={sheetOptions([0.85, 1])} />
-        <Stack.Screen name="wireguard-export" options={sheetOptions([0.92, 1])} />
         <Stack.Screen name="reboot" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
         <Stack.Screen name="maintenance" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
         <Stack.Screen name="terminal" options={{ presentation: 'fullScreenModal' }} />

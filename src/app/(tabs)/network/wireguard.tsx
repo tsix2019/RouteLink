@@ -7,26 +7,14 @@ import { isAvailable } from '@/api/capabilities';
 import { getWireGuard, peerConnected, type WgInterface, type WgPeer } from '@/api/services/wireguard';
 import {
   applyWgChanges,
-  createInterfaceChanges,
-  deleteInterfaceChanges,
   deletePeerChanges,
-  editInterfaceChanges,
-  generateKeyPair,
-  generatePsk,
   getWgConfig,
-  nextPeerAddress,
-  peerChanges,
-  suggestInterface,
   type WgConfigInterface,
   type WgConfigPeer,
-  type WgInterfaceInput,
-  type WgPeerInput,
 } from '@/api/services/wireguard-config';
 import type { UbusCall } from '@/api/ubus/types';
 import { FeatureGate } from '@/features/capabilities/FeatureGate';
-import { WgInterfaceSheet } from '@/features/network/WgInterfaceSheet';
-import { WgPeerSheet } from '@/features/network/WgPeerSheet';
-import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
+import { wgExportHref } from '@/features/network/wireguardHrefs';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
 import { useCapabilities, useRouterMutation, useRouterQuery } from '@/hooks/router-queries';
 import { useLang, useT } from '@/i18n';
@@ -44,31 +32,27 @@ import { formatBytes, formatDuration } from '@/utils/format';
 
 const shortKey = (key: string) => `${key.slice(0, 8)}…`;
 
-type Sheet =
-  | { kind: 'iface'; input: WgInterfaceInput; editing?: WgConfigInterface }
-  | { kind: 'peer'; iface: WgConfigInterface; input: WgPeerInput; psk?: string; editing?: WgConfigPeer };
-type Pending = {
-  title: string;
-  changes: UbusCall[];
-  destructive?: boolean;
-  /** A new peer with router-made keys: open its export once it is saved. */
-  exportKey?: { iface: string; publicKey: string };
-};
+type Pending = { title: string; changes: UbusCall[] };
 
-/** NW-7 / NW-8: WireGuard tunnels and peers — status, and editing where luci-proto-wireguard allows it. */
+const ifaceHref = (name?: string) =>
+  `/network/edit/wg-interface${name ? `?name=${encodeURIComponent(name)}` : ''}` as const;
+const peerHref = (iface: string, section?: string) =>
+  `/network/edit/wg-peer?iface=${encodeURIComponent(iface)}${section ? `&section=${encodeURIComponent(section)}` : ''}` as const;
+
+/**
+ * NW-7 / NW-8: WireGuard tunnels and peers — status here; tunnels and peers are edited on their own pages where
+ * luci-proto-wireguard allows it.
+ */
 export default function WireGuard() {
   const t = useT();
   const lang = useLang();
   const toast = useToast();
   const nav = useRouter();
-  const { connection } = useActiveRouter();
   const canEdit = isAvailable(useCapabilities().data, 'network.wireguard.config');
   const wg = useRouterQuery(['wireguard'], getWireGuard, { refetchInterval: 5_000 });
   const config = useRouterQuery(['wireguard-config'], getWgConfig, { enabled: canEdit });
-  const [sheet, setSheet] = useState<Sheet | null>(null);
-  const [menu, setMenu] = useState<{ iface: WgConfigInterface; peer?: WgConfigPeer } | null>(null);
+  const [menu, setMenu] = useState<{ iface: WgConfigInterface; peer: WgConfigPeer } | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
-  const [busy, setBusy] = useState(false);
   const apply = useRouterMutation(
     (conn, changes: UbusCall[]) => applyWgChanges(conn, changes),
     [['wireguard'], ['wireguard-config'], ['firewall'], ['interfaces']],
@@ -96,78 +80,12 @@ export default function WireGuard() {
     toast(t('network:wireguard.copied'));
   };
 
-  /** Keys come from the router before a form opens, so Save only has to stage uci changes. */
-  const withKeys = async (open: (keys: { privateKey: string; publicKey: string }, psk: string) => void) => {
-    if (!connection) return;
-    setBusy(true);
-    try {
-      const keys = await generateKeyPair(connection);
-      open(keys, await generatePsk(connection));
-    } catch (e) {
-      fail(e);
-    } finally {
-      setBusy(false);
-    }
-  };
-  const newTunnel = () =>
-    withKeys((keys) => {
-      const s = suggestInterface(config.data!.interfaces, config.data!.network);
-      setSheet({ kind: 'iface', input: { ...s, privateKey: keys.privateKey, mtu: '', joinLan: true, openPort: true } });
-    });
-  const newPeer = (iface: WgConfigInterface) =>
-    withKeys((keys, psk) =>
-      setSheet({
-        kind: 'peer',
-        iface,
-        psk,
-        input: {
-          name: '',
-          publicKey: keys.publicKey,
-          privateKey: keys.privateKey,
-          presharedKey: '',
-          allowedIps: nextPeerAddress(iface) ?? '',
-          endpointHost: '',
-          endpointPort: '',
-          keepalive: '25',
-          routeAllowedIps: false,
-        },
-      }),
-    );
-  const editPeer = (iface: WgConfigInterface, peer: WgConfigPeer) =>
-    withKeys((_keys, psk) =>
-      setSheet({
-        kind: 'peer',
-        iface,
-        editing: peer,
-        psk,
-        input: {
-          name: peer.name,
-          publicKey: peer.publicKey,
-          privateKey: peer.privateKey ?? '',
-          presharedKey: peer.presharedKey ?? '',
-          allowedIps: peer.allowedIps.join(' '),
-          endpointHost: peer.endpointHost ?? '',
-          endpointPort: peer.endpointPort ?? '',
-          keepalive: peer.keepalive ?? '',
-          routeAllowedIps: peer.routeAllowedIps,
-        },
-      }),
-    );
-
   const run = (p: Pending) =>
     apply.mutate(p.changes, {
-      onSuccess: (outcome) => {
-        if (outcome.status === 'rolled-back') {
-          toast(t('network:result.rolledBack'), 'warning');
-          return;
-        }
-        toast(t('network:wireguard.applied'));
-        if (p.exportKey) {
-          nav.push(
-            `/wireguard-export?iface=${encodeURIComponent(p.exportKey.iface)}&key=${encodeURIComponent(p.exportKey.publicKey)}`,
-          );
-        }
-      },
+      onSuccess: (outcome) =>
+        outcome.status === 'rolled-back'
+          ? toast(t('network:result.rolledBack'), 'warning')
+          : toast(t('network:wireguard.applied')),
       onError: fail,
     });
 
@@ -201,7 +119,7 @@ export default function WireGuard() {
                       title={t('network:wireguard.editTunnel')}
                       icon="edit"
                       chevron
-                      onPress={() => setMenu({ iface })}
+                      onPress={() => nav.push(ifaceHref(iface.name))}
                       testID={`wg-iface-${iface.name}`}
                     />
                   </ListSection>
@@ -229,9 +147,8 @@ export default function WireGuard() {
                   <GlassButton
                     label={t('network:wireguard.addPeer')}
                     icon="plus"
-                    disabled={busy || apply.isPending}
-                    loading={busy}
-                    onPress={() => void newPeer(iface)}
+                    disabled={apply.isPending}
+                    onPress={() => nav.push(peerHref(iface.name))}
                     testID={`wg-add-peer-${iface.name}`}
                   />
                 </View>
@@ -241,8 +158,8 @@ export default function WireGuard() {
                 label={t('network:wireguard.newTunnel')}
                 icon="plus"
                 variant={interfaces.length ? 'glass' : 'primary'}
-                disabled={busy || apply.isPending}
-                onPress={() => void newTunnel()}
+                disabled={apply.isPending}
+                onPress={() => nav.push(ifaceHref())}
                 testID="wg-new-tunnel"
               />
             </>
@@ -262,147 +179,52 @@ export default function WireGuard() {
 
       <ActionSheet
         visible={!!menu}
-        title={menu?.peer ? menu.peer.name || shortKey(menu.peer.publicKey) : menu?.iface.name}
-        message={menu?.peer && !menu.peer.privateKey ? t('network:wireguard.noExport') : undefined}
+        title={menu ? menu.peer.name || shortKey(menu.peer.publicKey) : undefined}
+        message={menu && !menu.peer.privateKey ? t('network:wireguard.noExport') : undefined}
         actions={
           !menu
             ? []
-            : menu.peer
-              ? [
-                  {
-                    label: t('network:wireguard.exportPeer'),
-                    icon: 'qrcode' as const,
-                    disabled: !menu.peer.privateKey,
-                    onPress: () => {
-                      const { iface, peer } = menu;
-                      setMenu(null);
-                      nav.push(
-                        `/wireguard-export?iface=${encodeURIComponent(iface.name)}&key=${encodeURIComponent(peer!.publicKey)}`,
-                      );
-                    },
+            : [
+                {
+                  label: t('network:wireguard.exportPeer'),
+                  icon: 'qrcode' as const,
+                  disabled: !menu.peer.privateKey,
+                  onPress: () => {
+                    setMenu(null);
+                    nav.push(wgExportHref(menu.iface.name, menu.peer.publicKey));
                   },
-                  {
-                    label: t('network:wireguard.editPeer'),
-                    icon: 'edit' as const,
-                    onPress: () => {
-                      const { iface, peer } = menu;
-                      setMenu(null);
-                      void editPeer(iface, peer!);
-                    },
+                },
+                {
+                  label: t('network:wireguard.editPeer'),
+                  icon: 'edit' as const,
+                  onPress: () => {
+                    setMenu(null);
+                    nav.push(peerHref(menu.iface.name, menu.peer.section));
                   },
-                  {
-                    label: t('network:wireguard.deletePeer'),
-                    icon: 'trash' as const,
-                    destructive: true,
-                    onPress: () => {
-                      const peer = menu.peer!;
-                      setMenu(null);
-                      setPending({
-                        title: t('network:wireguard.deletePeerTitle', { name: peer.name || shortKey(peer.publicKey) }),
-                        changes: deletePeerChanges(peer),
-                        destructive: true,
-                      });
-                    },
+                },
+                {
+                  label: t('network:wireguard.deletePeer'),
+                  icon: 'trash' as const,
+                  destructive: true,
+                  onPress: () => {
+                    const { peer } = menu;
+                    setMenu(null);
+                    setPending({
+                      title: t('network:wireguard.deletePeerTitle', { name: peer.name || shortKey(peer.publicKey) }),
+                      changes: deletePeerChanges(peer),
+                    });
                   },
-                ]
-              : [
-                  {
-                    label: t('network:wireguard.editTunnel'),
-                    icon: 'edit' as const,
-                    onPress: () => {
-                      const { iface } = menu;
-                      setMenu(null);
-                      setSheet({
-                        kind: 'iface',
-                        editing: iface,
-                        input: {
-                          name: iface.name,
-                          privateKey: iface.privateKey,
-                          listenPort: iface.listenPort ?? '',
-                          addresses: iface.addresses.join(' '),
-                          mtu: iface.mtu ?? '',
-                          joinLan: iface.zone === 'lan',
-                          openPort: !!iface.portRule,
-                        },
-                      });
-                    },
-                  },
-                  {
-                    label: t('network:wireguard.deleteTunnel'),
-                    icon: 'trash' as const,
-                    destructive: true,
-                    onPress: () => {
-                      const { iface } = menu;
-                      setMenu(null);
-                      setPending({
-                        title: t('network:wireguard.deleteTunnelTitle', { name: iface.name }),
-                        changes: deleteInterfaceChanges(iface, config.data!.firewall),
-                        destructive: true,
-                      });
-                    },
-                  },
-                ]
+                },
+              ]
         }
         onCancel={() => setMenu(null)}
       />
-      {sheet?.kind === 'iface' && config.data ? (
-        <WgInterfaceSheet
-          initial={sheet.input}
-          editing={sheet.editing}
-          interfaces={config.data.interfaces}
-          network={config.data.network}
-          onCancel={() => setSheet(null)}
-          onSave={(input) => {
-            setSheet(null);
-            setPending({
-              title: t('network:wireguard.confirmTitle'),
-              changes: sheet.editing
-                ? editInterfaceChanges(sheet.editing, input, config.data!.firewall)
-                : createInterfaceChanges(input, config.data!.firewall),
-            });
-          }}
-        />
-      ) : null}
-      {sheet?.kind === 'peer' ? (
-        <WgPeerSheet
-          iface={sheet.iface}
-          initial={sheet.input}
-          pskCandidate={sheet.psk}
-          editing={sheet.editing}
-          onCancel={() => setSheet(null)}
-          onDelete={
-            sheet.editing
-              ? () => {
-                  const peer = sheet.editing!;
-                  setSheet(null);
-                  setPending({
-                    title: t('network:wireguard.deletePeerTitle', { name: peer.name || shortKey(peer.publicKey) }),
-                    changes: deletePeerChanges(peer),
-                    destructive: true,
-                  });
-                }
-              : undefined
-          }
-          onSave={(input) => {
-            const { iface, editing } = sheet;
-            setSheet(null);
-            setPending({
-              title: t('network:wireguard.confirmTitle'),
-              changes: peerChanges(iface, input, editing),
-              exportKey: !editing && input.privateKey ? { iface: iface.name, publicKey: input.publicKey } : undefined,
-            });
-          }}
-        />
-      ) : null}
       <RiskConfirm
         visible={!!pending}
         level="medium"
         disruptive
         title={pending?.title ?? ''}
-        consequences={[
-          t('network:wireguard.consequence'),
-          ...(pending?.destructive ? [t('network:wireguard.deleteConsequence')] : []),
-        ]}
+        consequences={[t('network:wireguard.consequence'), t('network:wireguard.deleteConsequence')]}
         confirmLabel={t('common:confirm')}
         onConfirm={() => {
           const p = pending;

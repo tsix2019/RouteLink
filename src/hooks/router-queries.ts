@@ -20,6 +20,8 @@ export interface RouterQueryOptions {
   refetchInterval?: number;
   enabled?: boolean;
   staleTime?: number;
+  /** How long an unused result stays cached; 0 for one-off data such as keys made for one form. */
+  gcTime?: number;
 }
 
 /** Query scoped to the active router: the key starts with its id, so routers never share data. */
@@ -36,6 +38,7 @@ export function useRouterQuery<T>(
     enabled: !!connection && (o.enabled ?? true),
     refetchInterval: focused && o.refetchInterval ? o.refetchInterval : false,
     staleTime: o.staleTime,
+    gcTime: o.gcTime,
   });
 }
 
