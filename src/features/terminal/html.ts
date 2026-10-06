@@ -1,3 +1,4 @@
+import { TOUCH_SCROLL_JS } from './touchScroll';
 import { FIT_JS, XTERM_CSS, XTERM_JS } from './xterm.generated';
 
 /** Terminal colours: the app's light and dark backgrounds, xterm's ANSI palette tuned for each. */
@@ -91,8 +92,7 @@ export function terminalHtml(o: { fontSize: number; theme: TerminalTheme }): str
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <style>${XTERM_CSS}
 html,body{margin:0;padding:0;height:100%;overflow:hidden;background:${o.theme.background}}
-#t{position:absolute;top:6px;left:8px;right:4px;bottom:4px}
-.xterm .xterm-viewport{overflow-y:auto}
+#t{position:absolute;top:6px;left:8px;right:4px;bottom:4px;touch-action:none}
 </style>
 </head><body><div id="t"></div>
 <script>${XTERM_JS}</script>
@@ -119,6 +119,25 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:${o.theme.ba
     ['autocomplete', 'autocorrect', 'autocapitalize'].forEach(function (a) { ta.setAttribute(a, 'off'); });
     ta.setAttribute('spellcheck', 'false');
   }
+  // Fingers: the scrollback scrolls; full-screen programs (vi, less, top, tmux) get wheel steps, which xterm
+  // turns into mouse wheel reports when the program asked for the mouse, and into arrow keys otherwise.
+  ${TOUCH_SCROLL_JS}
+  var plain = function () { return term.buffer.active.type === 'normal' && term.modes.mouseTrackingMode === 'none'; };
+  var screen = term.element.querySelector('.xterm-screen');
+  touchScroll(document.getElementById('t'), {
+    lineHeight: function () { return (screen && screen.clientHeight / term.rows) || 16; },
+    scroll: function (lines, x, y) {
+      if (plain()) return term.scrollLines(lines);
+      for (var i = 0; i < Math.abs(lines); i++) {
+        term.element.dispatchEvent(new WheelEvent('wheel', {
+          deltaY: lines > 0 ? 1 : -1, deltaMode: 1, clientX: x, clientY: y, bubbles: true, cancelable: true,
+        }));
+      }
+    },
+    canFling: plain,
+    requestFrame: function (f) { return requestAnimationFrame(f); },
+    cancelFrame: function (id) { cancelAnimationFrame(id); },
+  });
   term.onData(function (d) { post({ type: 'input', data: d }); });
   term.onResize(function (s) { post({ type: 'resize', cols: s.cols, rows: s.rows }); });
   window.addEventListener('resize', function () { fit.fit(); });
