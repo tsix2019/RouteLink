@@ -36,6 +36,10 @@ export interface AgentInfo {
   liveIntervalSec: number;
   liveUntil: number;
   started: number;
+  /** P4: why speed limits could not be set up (e.g. missing kernel modules); empty when fine. */
+  limitsError: string;
+  /** P4: DNS logging is on. */
+  dnsEnabled: boolean;
   retention: {
     minuteHours: number;
     hourDays: number;
@@ -193,6 +197,8 @@ export function parseInfo(raw: unknown): AgentInfo {
     liveIntervalSec: num(r.live_interval, 2),
     liveUntil: num(r.live_until),
     started: num(r.started),
+    limitsError: str(r.limits_error),
+    dnsEnabled: bool(r.dns_enabled),
     retention: {
       minuteHours: num(ret.minute_hours),
       hourDays: num(ret.hour_days),
