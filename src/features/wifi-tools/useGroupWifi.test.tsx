@@ -50,12 +50,30 @@ describe('Wi-Fi tools in demo mode', () => {
     expect(ts).toEqual([...ts].sort((a, b) => a - b));
   });
 
+  it('asks for the seed on the router’s clock when the phone’s is off', async () => {
+    const mac = await apStation();
+    // The demo router keeps the real clock; the phone runs 700 s ahead (past the plugin's live tier).
+    const real = Date.now.bind(Date);
+    const skew = jest.spyOn(Date, 'now').mockImplementation(() => real() + 700_000);
+    try {
+      const { result } = await renderHook(() => useLiveStation(DEMO_AP_ID, mac, true, true), { wrapper });
+      await waitFor(() => expect(result.current.samples.length).toBeGreaterThan(10));
+      const ts = result.current.samples.map((s) => s.t);
+      expect(Math.max(...ts) - Math.min(...ts)).toBeLessThanOrEqual(300);
+      expect(Math.max(...ts)).toBeLessThanOrEqual(Math.floor(real() / 1000) + 1);
+    } finally {
+      skew.mockRestore();
+    }
+  });
+
   it('reads the station from iwinfo without the plugin', async () => {
     const mac = await apStation();
     const { result } = await renderHook(() => useLiveStation(DEMO_AP_ID, mac, false, true), { wrapper });
     await waitFor(() => expect(result.current.data?.station).toBeTruthy());
     expect(result.current.data?.source).toBe('iwinfo');
-    expect(result.current.samples).toHaveLength(1);
+    // Only what the page sampled itself (other tests may have sampled this station this session).
+    const last = result.current.samples[result.current.samples.length - 1];
+    expect(last.signal).toBe(result.current.data?.station?.signal);
   });
 
   it('merges the signal history and the roaming record of the group', async () => {

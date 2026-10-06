@@ -12,7 +12,7 @@ import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { AGENT_KEY } from '@/hooks/agent-queries';
 import { useMemberQuery } from '@/hooks/router-queries';
 
-import { appendSample, mergeHistories, mergeLive, samplesOf, type LiveSample } from './live';
+import { appendSample, LIVE_WINDOW_SEC, mergeHistories, mergeLive, samplesOf, type LiveSample } from './live';
 import { roamingRecord, type RoamEntry } from './roaming';
 
 /** Data hooks of the Wi-Fi tools across the routers of the active network group. */
@@ -174,15 +174,6 @@ async function sampleStation(
  */
 export function useLiveStation(routerId: string | undefined, mac: string, plugin: boolean, enabled: boolean) {
   const key = `${routerId ?? 'none'}:${mac}`;
-  const seed = useMemberQuery(
-    routerId,
-    [AGENT_KEY, 'signal', mac, 'live-seed'],
-    (conn) => {
-      const end = Math.floor(Date.now() / 1000);
-      return agentSignal(conn, { mac, start: end - 300, end });
-    },
-    { enabled: enabled && plugin, staleTime: 0 },
-  );
   const live = useMemberQuery(
     routerId,
     ['wifi-tools', 'live', mac, plugin ? 'plugin' : 'iwinfo'],
@@ -198,6 +189,16 @@ export function useLiveStation(routerId: string | undefined, mac: string, plugin
     { enabled, refetchInterval: plugin ? 1_000 : 2_000, staleTime: 0 },
   );
   const data = live.data;
+  // The plugin keeps its per-second points for the last minutes of ITS clock (the live tier only applies
+  // within 600 s of the router's now): ask relative to the time its first answer carried, not the phone's.
+  const routerNow = data?.source === 'plugin' ? data.now : undefined;
+  const seed = useMemberQuery(
+    routerId,
+    [AGENT_KEY, 'signal', mac, 'live-seed'],
+    (conn) => agentSignal(conn, { mac, start: routerNow! - LIVE_WINDOW_SEC, end: routerNow! }),
+    { enabled: enabled && plugin && routerNow !== undefined, staleTime: 0 },
+  );
+  // Seed and samples are both on the router's clock.
   const samples = data ? mergeLive(seed.data ? samplesOf(seed.data.points) : [], data.samples, data.now) : [];
   return { data, samples, error: live.error, isLoading: live.isLoading };
 }
