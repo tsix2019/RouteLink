@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
-import { getDemoConnection, getLiveConnection } from '@/api/connection/manager';
-import { DEMO_ROUTER_ID } from '@/api/connection/demo/connection';
+import { getDemoApConnection, getDemoConnection, getLiveConnection } from '@/api/connection/manager';
+import { DEMO_AP_ID, DEMO_AP_NAME, DEMO_ROUTER_ID } from '@/api/connection/demo/connection';
 import type { RouterConnection } from '@/api/connection/types';
 import { apsOf, roleOf, type GroupMember, type MemberRef } from '@/api/group';
 import { useRouters, type RouterProfile } from '@/state/routers';
@@ -91,7 +91,10 @@ export function ActiveRouterProvider({ children }: { children: ReactNode }) {
         router: { id: DEMO_ROUTER_ID, name: 'RouteLink Demo', baseUrl: 'demo://openwrt-one', isDemo: true },
         connection: getDemoConnection(),
         status: 'ready',
-        group: NO_GROUP,
+        group: {
+          gateway: { id: DEMO_ROUTER_ID, name: 'RouteLink Demo' },
+          members: [{ id: DEMO_AP_ID, name: DEMO_AP_NAME, connection: getDemoApConnection(), isDemo: true }],
+        },
       };
     }
     if (!profile) return { router: null, connection: null, status: 'none', group: NO_GROUP };
@@ -102,7 +105,8 @@ export function ActiveRouterProvider({ children }: { children: ReactNode }) {
       isDemo: false,
       profile,
     };
-    if (!password || password.id !== profile.id) return { router, connection: null, status: 'loading', group: NO_GROUP };
+    if (!password || password.id !== profile.id)
+      return { router, connection: null, status: 'loading', group: NO_GROUP };
     if (password.value === null) return { router, connection: null, status: 'needs-password', group: NO_GROUP };
     const connect = (p: RouterProfile, value: string) =>
       getLiveConnection(p, value, (session) => {

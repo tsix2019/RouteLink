@@ -140,7 +140,8 @@ describe('demo router: read services', () => {
   it('clients: wifi, wired, offline, static and blocked', async () => {
     const clients = await getClients(demo().conn);
     expect(clients).toHaveLength(15);
-    expect(clients.filter((c) => c.connection === 'wifi' && c.online).length).toBeGreaterThanOrEqual(8);
+    // The rest of the Wi-Fi devices are on the demo AP (wifi.contract.test.ts merges the group).
+    expect(clients.filter((c) => c.connection === 'wifi' && c.online).length).toBeGreaterThanOrEqual(5);
     expect(clients.filter((c) => !c.online)).toHaveLength(2);
     expect(clients.find((c) => c.name === 'NAS')).toMatchObject({ isStatic: true, connection: 'wired' });
     expect(clients.find((c) => c.name === 'Smart-Plug')).toMatchObject({ isBlocked: true });

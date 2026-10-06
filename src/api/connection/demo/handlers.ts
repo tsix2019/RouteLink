@@ -7,7 +7,8 @@ import { demoConntrack, demoReverseDns } from './connections';
 import { addonHandlers, demoAddonFile, demoAddonList, demoSqmDevices } from './addons';
 import { DEMO_MOUNTS, demoMaintenanceWrite, demoValidateFirmware, maintenanceCommands } from './maintenance';
 import { demoIpRoute, demoKey, demoPublicKey, demoWireGuard } from './routing';
-import type { DemoDevice, DemoState } from './state';
+import type { DemoState } from './state';
+import { hostapdHandler as wifiHostapd, wifiAgentHandlers, wirelessHandlers } from './wifi';
 
 type Params = Record<string, unknown>;
 export type Handler = (state: DemoState, params: Params, now: number) => unknown;
@@ -15,11 +16,6 @@ export type Handler = (state: DemoState, params: Params, now: number) => unknown
 const CRONTAB = '/etc/crontabs/root';
 const LAN_MAC = '94:83:C4:00:00:10';
 const WAN_MAC = '94:83:C4:00:00:11';
-const IFNAMES: Record<string, string> = { radio0: 'phy0-ap0', radio1: 'phy1-ap0' };
-
-const isStation = (d: DemoDevice, now: number) =>
-  d.kind === 'wifi' && d.online && !(d.bannedUntil && d.bannedUntil > now);
-
 const uptime = (state: DemoState, now: number) => Math.floor((now - state.bootTime) / 1000);
 
 function iface(name: string, proto: string, device: string, extra: Record<string, unknown>, upSince: number) {
@@ -44,63 +40,11 @@ function iface(name: string, proto: string, device: string, extra: Record<string
   };
 }
 
-function radioStatus(state: DemoState, radio: 'radio0' | 'radio1') {
-  const dev = state.uci.wireless[radio];
-  const ifaces = Object.values(state.uci.wireless).filter((s) => s['.type'] === 'wifi-iface' && s.device === radio);
-  const disabled = dev.disabled === '1';
-  return {
-    up: !disabled,
-    pending: false,
-    autostart: true,
-    disabled,
-    retry_setup_failed: false,
-    config: {
-      type: 'mac80211',
-      band: dev.band,
-      channel: dev.channel,
-      htmode: dev.htmode,
-      country: dev.country,
-      txpower: dev.txpower,
-    },
-    interfaces: ifaces.map((i) => ({
-      section: i['.name'],
-      ifname: disabled || i.disabled === '1' ? undefined : IFNAMES[radio],
-      config: { mode: i.mode, ssid: i.ssid, encryption: i.encryption, network: [i.network] },
-      vlans: [],
-      stations: [],
-    })),
-  };
-}
-
 function nextSectionName(config: Record<string, UciSection>): string {
   let n = Object.keys(config).length;
   while (config[`cfg${n.toString(16).padStart(6, '0')}`]) n++;
   return `cfg${n.toString(16).padStart(6, '0')}`;
 }
-
-const CHANNELS_2G = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
-const CHANNELS_5G = [
-  36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 149, 153, 157, 161, 165,
-];
-
-/** iwinfo accepts a radio name or one of its interfaces. */
-function demoRadio(device: unknown): 'radio0' | 'radio1' {
-  const name = String(device);
-  if (name === 'radio0' || name === 'radio1') return name;
-  const radio = Object.keys(IFNAMES).find((r) => IFNAMES[r] === name);
-  if (radio === 'radio0' || radio === 'radio1') return radio;
-  throw new UbusError('NOT_FOUND', 'iwinfo');
-}
-
-const SCAN_NETWORKS = [
-  ['ChinaNet-5G-8A2F', 149, -58, 'WPA2 PSK (CCMP)'],
-  ['TP-LINK_3C9E', 1, -63, 'WPA2 PSK (CCMP)'],
-  ['Xiaomi_AX6000', 44, -67, 'WPA3 SAE (CCMP)'],
-  ['CMCC-Home', 11, -71, 'WPA2 PSK (CCMP)'],
-  ['', 6, -74, 'WPA2 PSK (CCMP)'],
-  ['Neighbor-Guest', 6, -79, 'none'],
-  ['HUAWEI-B3', 157, -82, 'WPA2/WPA3 PSK/SAE (CCMP)'],
-] as const;
 
 const files: Record<
   string,
@@ -327,94 +271,10 @@ export const handlers: Record<string, Handler> = {
   }),
   'luci-rpc.getHostHints': (s) =>
     Object.fromEntries(s.devices.map((d) => [d.mac, { ipaddrs: [d.ip], ip6addrs: [], name: d.hostname }])),
-  'luci-rpc.getWirelessDevices': (s) => ({ radio0: radioStatus(s, 'radio0'), radio1: radioStatus(s, 'radio1') }),
+  ...wirelessHandlers('gateway'),
+  ...wifiAgentHandlers('gateway'),
 
-  'iwinfo.assoclist': (s, p, now) => {
-    const radio = Object.keys(IFNAMES).find((r) => IFNAMES[r] === p.device);
-    return {
-      results: s.devices
-        .filter((d) => d.radio === radio && isStation(d, now))
-        .map((d) => ({
-          mac: d.mac,
-          signal: d.signal,
-          noise: -95,
-          inactive: 30 + (d.connectedSec % 900),
-          connected_time: d.connectedSec + Math.floor((now - s.lastTick) / 1000),
-          rx: { rate: d.rxRate },
-          tx: { rate: d.txRate },
-        })),
-    };
-  },
-  'iwinfo.info': (_s, p) => {
-    const radio = demoRadio(p.device);
-    return {
-      phy: radio === 'radio0' ? 'phy0' : 'phy1',
-      htmodes:
-        radio === 'radio0'
-          ? ['HT20', 'HT40', 'HE20', 'HE40']
-          : ['HT20', 'HT40', 'VHT20', 'VHT40', 'VHT80', 'VHT160', 'HE20', 'HE40', 'HE80', 'HE160'],
-      hwmodes: radio === 'radio0' ? ['b', 'g', 'n', 'ax'] : ['a', 'n', 'ac', 'ax'],
-    };
-  },
-  'iwinfo.freqlist': (_s, p) => ({
-    results: (demoRadio(p.device) === 'radio0' ? CHANNELS_2G : CHANNELS_5G).map((channel) => ({
-      channel,
-      mhz: channel <= 14 ? 2407 + channel * 5 : 5000 + channel * 5,
-      restricted: channel >= 52 && channel <= 144,
-    })),
-  }),
-  'iwinfo.txpowerlist': (_s, p) => ({
-    results: Array.from({ length: demoRadio(p.device) === 'radio0' ? 21 : 24 }, (_, dbm) => ({
-      dbm,
-      mw: Math.round(10 ** (dbm / 10)),
-    })),
-  }),
-  'iwinfo.scan': () => ({
-    results: SCAN_NETWORKS.map(([ssid, channel, signal, enc], i) => ({
-      ssid: ssid || undefined,
-      bssid: `5C:A6:E6:${(16 + i).toString(16).toUpperCase()}:4A:${(32 + i * 7).toString(16).toUpperCase()}`,
-      channel,
-      signal,
-      encryption: enc === 'none' ? { enabled: false } : { enabled: true, description: enc },
-    })),
-  }),
-
-  'uci.get': (s, p) => {
-    const config = s.uci[String(p.config)];
-    if (!config) return notFound('uci.get');
-    return p.section ? { values: config[String(p.section)] } : { values: config };
-  },
-  'uci.set': (s, p) => {
-    const config = s.uci[String(p.config)];
-    const sec = config?.[String(p.section)];
-    if (!sec) return notFound('uci.set');
-    Object.assign(sec, p.values);
-    return {};
-  },
-  'uci.add': (s, p) => {
-    const config = (s.uci[String(p.config)] ??= {});
-    const name = typeof p.name === 'string' ? p.name : nextSectionName(config);
-    config[name] = {
-      '.name': name,
-      '.type': String(p.type),
-      '.anonymous': !p.name,
-      ...(p.values as object),
-    } as UciSection;
-    return { section: name };
-  },
-  'uci.delete': (s, p) => {
-    const config = s.uci[String(p.config)];
-    const sec = config?.[String(p.section)];
-    if (!sec) return notFound('uci.delete');
-    if (p.option) delete sec[String(p.option)];
-    else delete config[String(p.section)];
-    return {};
-  },
-  // Demo edits are applied on staging; there is nothing to revert or roll back.
-  'uci.revert': () => ({}),
-  'uci.apply': () => ({}),
-  'uci.confirm': () => ({}),
-  'uci.changes': () => ({ changes: {} }),
+  ...uciHandlers((s) => s.uci),
 
   ...agentHandlers,
   ...adminHandlers,
@@ -455,15 +315,50 @@ export const handlers: Record<string, Handler> = {
   },
 };
 
-/** hostapd objects are per interface ("hostapd.phy1-ap0"). */
-export function hostapdHandler(object: string): Handler | undefined {
-  if (!object.startsWith('hostapd.')) return undefined;
-  const ifname = object.slice('hostapd.'.length);
-  return (s, p, now) => {
-    if (!Object.values(IFNAMES).includes(ifname)) return notFound(`${object}.del_client`);
-    const d = s.devices.find((x) => x.mac.toLowerCase() === String(p.addr).toLowerCase());
-    if (d) d.bannedUntil = now + Math.max(15_000, Number(p.ban_time ?? 0));
-    return {};
+/** hostapd objects of the gateway's interfaces ("hostapd.phy1-ap0"). */
+export const hostapdHandler = (object: string): Handler | undefined => wifiHostapd(object, 'gateway');
+
+/** uci over one config store (the gateway's, or the demo AP's). */
+export function uciHandlers(
+  store: (s: DemoState) => Record<string, Record<string, UciSection>>,
+): Record<string, Handler> {
+  return {
+    'uci.get': (s, p) => {
+      const config = store(s)[String(p.config)];
+      if (!config) return notFound('uci.get');
+      return p.section ? { values: config[String(p.section)] } : { values: config };
+    },
+    'uci.set': (s, p) => {
+      const config = store(s)[String(p.config)];
+      const sec = config?.[String(p.section)];
+      if (!sec) return notFound('uci.set');
+      Object.assign(sec, p.values);
+      return {};
+    },
+    'uci.add': (s, p) => {
+      const config = (store(s)[String(p.config)] ??= {});
+      const name = typeof p.name === 'string' ? p.name : nextSectionName(config);
+      config[name] = {
+        '.name': name,
+        '.type': String(p.type),
+        '.anonymous': !p.name,
+        ...(p.values as object),
+      } as UciSection;
+      return { section: name };
+    },
+    'uci.delete': (s, p) => {
+      const config = store(s)[String(p.config)];
+      const sec = config?.[String(p.section)];
+      if (!sec) return notFound('uci.delete');
+      if (p.option) delete sec[String(p.option)];
+      else delete config[String(p.section)];
+      return {};
+    },
+    // Demo edits are applied on staging; there is nothing to revert or roll back.
+    'uci.revert': () => ({}),
+    'uci.apply': () => ({}),
+    'uci.confirm': () => ({}),
+    'uci.changes': () => ({ changes: {} }),
   };
 }
 

@@ -4,6 +4,7 @@ import { createDemoAdmin, type DemoAdmin } from './admin';
 import { createDemoAgent, type DemoAgent } from './agent';
 import { createDemoPackages, type DemoPackages } from './packages';
 import { createRandom, type Random } from './random';
+import { ON_AP } from './wifi';
 
 export interface DemoDevice {
   mac: string;
@@ -18,6 +19,14 @@ export interface DemoDevice {
   connectedSec: number;
   /** Absolute ms timestamp until which a kicked station stays away. */
   bannedUntil?: number;
+  /** Associated with the demo access point instead of the gateway. */
+  ap?: boolean;
+}
+
+/** The demo access point (P2 network groups): its own config; devices and plugin state are shared. */
+export interface DemoApState {
+  uci: Record<string, Record<string, UciSection>>;
+  bootTime: number;
 }
 
 export interface DemoState {
@@ -47,6 +56,7 @@ export interface DemoState {
   vpn: { keys: number; files: Record<string, string> };
   /** dropbear's /etc/dropbear/authorized_keys. */
   ssh: { authorizedKeys: string };
+  ap: DemoApState;
 }
 
 /** An imported OpenVPN client profile (NW-8). */
@@ -84,6 +94,14 @@ const DEVICES: [hostname: string, oui: string, kind: 'wifi' | 'wired', radio?: '
 ];
 
 const OFFLINE = new Set(['ThinkPad', 'iPad']);
+/** Marked as "mine" in the plugin's trust list; the NAS is also watched (a notice when it goes away). */
+const TRUSTED: [hostname: string, watch: boolean][] = [
+  ['iPhone-16-Pro', false],
+  ['MacBook-Air', false],
+  ['Desk-PC', false],
+  ['NAS', true],
+  ['Living-Room-TV', false],
+];
 const STATIC_HOST = 'NAS';
 const BLOCKED_HOST = 'Smart-Plug';
 /** Has a parental-control schedule (DV-8): school nights. */
@@ -177,6 +195,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     rxRate: kind === 'wifi' ? rng.pick([144400, 286800, 573500, 866700, 1200900]) : 0,
     txRate: kind === 'wifi' ? rng.pick([173300, 433300, 866700, 1200900]) : 0,
     connectedSec: rng.int(120, 86400),
+    ap: ON_AP.has(hostname) || undefined,
   }));
   const staticDev = devices.find((d) => d.hostname === STATIC_HOST)!;
   const blockedDev = devices.find((d) => d.hostname === BLOCKED_HOST)!;
@@ -315,6 +334,18 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
         key: 'routelink-demo',
       }),
     },
+    // The plugin's settings; `device` sections are the trust list shared with LuCI (WF-3).
+    routelink: {
+      main: section('main', 'routelink', { wifi: '1' }),
+      retention: section('retention', 'retention', { signal_minute_days: '7', signal_hour_days: '30' }),
+      ...Object.fromEntries(
+        TRUSTED.map(([host, watch], k) => {
+          const name = `cfg0${(0x7a10 + k).toString(16)}`;
+          const mac = devices.find((d) => d.hostname === host)!.mac;
+          return [name, section(name, 'device', { mac, trusted: '1', watch: watch ? '1' : '0' }, true)];
+        }),
+      ),
+    },
     dhcp: {
       lan: section('lan', 'dhcp', { interface: 'lan', start: '100', limit: '150', leasetime: '12h' }),
       cfg_nas: section('cfg_nas', 'host', { name: 'NAS', mac: staticDev.mac, ip: staticDev.ip }, true),
@@ -445,6 +476,60 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     uploads: {},
     ssh: {
       authorizedKeys: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDemoLaptopKeyDemoLaptopKeyDemoLaptopKey00 alex@laptop\n',
+    },
+    ap: createDemoAp(now),
+  };
+}
+
+/**
+ * The AP repeats the gateway's SSIDs, but its 2.4 GHz network was set up long ago (WPA2, WPS on) and its
+ * 5 GHz radio sits on the gateway's channel: material for the security check and channel advice.
+ */
+function createDemoAp(now: number): DemoApState {
+  return {
+    bootTime: now - (11 * 86400 + 2 * 3600) * 1000,
+    uci: {
+      system: {
+        cfg01e48a: section(
+          'cfg01e48a',
+          'system',
+          { hostname: 'RouteLink-Demo-AP', timezone: 'CST-8', zonename: 'Asia/Shanghai' },
+          true,
+        ),
+      },
+      wireless: {
+        radio0: section('radio0', 'wifi-device', {
+          type: 'mac80211',
+          band: '2g',
+          channel: '1',
+          htmode: 'HE40',
+          country: 'CN',
+        }),
+        radio1: section('radio1', 'wifi-device', {
+          type: 'mac80211',
+          band: '5g',
+          channel: '36',
+          htmode: 'HE80',
+          country: 'CN',
+        }),
+        default_radio0: section('default_radio0', 'wifi-iface', {
+          device: 'radio0',
+          network: 'lan',
+          mode: 'ap',
+          ssid: 'RouteLink',
+          encryption: 'psk2',
+          key: 'routelink-demo',
+          wps_pushbutton: '1',
+        }),
+        default_radio1: section('default_radio1', 'wifi-iface', {
+          device: 'radio1',
+          network: 'lan',
+          mode: 'ap',
+          ssid: 'RouteLink-5G',
+          encryption: 'sae-mixed',
+          key: 'routelink-demo',
+        }),
+      },
     },
   };
 }

@@ -150,8 +150,6 @@ export function useMemberMutation<A, R>(
       return fn(connection, args);
     },
     onSettled: () =>
-      Promise.all(
-        ids.flatMap((id) => invalidate.map((k) => client.invalidateQueries({ queryKey: [id, ...k] }))),
-      ),
+      Promise.all(ids.flatMap((id) => invalidate.map((k) => client.invalidateQueries({ queryKey: [id, ...k] })))),
   });
 }
