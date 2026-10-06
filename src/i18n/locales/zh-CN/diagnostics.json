@@ -1,0 +1,307 @@
+{
+  "entries": {
+    "section": "诊断",
+    "diagnose": "一键诊断",
+    "diagnoseHint": "从手机到外网逐段检查",
+    "tools": "诊断工具",
+    "toolsHint": "ping、traceroute、nslookup",
+    "latency": "断网和延迟",
+    "speed": "测速",
+    "needsPlugin": "安装 RouteLink 插件后可以查看",
+    "pluginTooOld": "需要升级 RouteLink 插件"
+  },
+  "segment": {
+    "phone-wifi": "手机到 Wi-Fi",
+    "ap-uplink": "AP 到主路由",
+    "wan": "主路由 WAN",
+    "upstream": "上游网关",
+    "dns": "DNS",
+    "internet": "外网",
+    "stability": "近期稳定性",
+    "wifi-security": "Wi-Fi 安全"
+  },
+  "status": {
+    "ok": "正常",
+    "warn": "警告",
+    "fail": "异常",
+    "skip": "跳过",
+    "pending": "等待检查",
+    "running": "正在检查"
+  },
+  "advice": {
+    "move-closer": "信号偏弱，把手机靠近 AP 试试",
+    "optimize-channel": "做一次信道优化，避开拥挤的信道",
+    "check-ap-cable": "检查 AP 到主路由的网线或无线回程",
+    "check-modem": "检查光猫和拨号账号",
+    "isp-unstable": "宽带最近不太稳定，可能是运营商的问题",
+    "isp-upstream": "运营商那一侧丢包严重，可能是运营商的问题",
+    "change-dns": "能连上外网但域名解析失败，换一个 DNS 服务器",
+    "outage-log": "查看断网记录，可以作为投诉的证据",
+    "fix-security": "去安全检查里修复 Wi-Fi 的安全问题"
+  },
+  "headline": {
+    "running": "正在检查…",
+    "ok": "网络一切正常",
+    "warn": "需要留意：{{segment}}",
+    "fail": "问题出在：{{segment}}"
+  },
+  "diagnose": {
+    "title": "一键诊断",
+    "progress": "已检查 {{done}}/{{total}} 段，大约需要 15 秒",
+    "finished": "{{time}} 完成，用时 {{seconds}} 秒",
+    "again": "重新诊断",
+    "share": "分享诊断结果",
+    "failed": "诊断没能完成：{{reason}}",
+    "footer": "从近到远逐段检查。路由器上的命令和诊断工具一样，不装插件也能用；“近期稳定性”需要插件。"
+  },
+  "facts": {
+    "signal": "AP 收到的信号 {{dbm}} dBm",
+    "rate": "协商速率 {{rate}} Mbps",
+    "phoneUnknown": "设备列表里没找到这台手机，可能没连这个网络的 Wi-Fi",
+    "rtt": "访问路由器往返 {{ms}} ms，抖动 {{jitter}} ms",
+    "rttLoss": "失败 {{loss}}%",
+    "rttFail": "手机连不上路由器",
+    "noAps": "网络组里没有能连接的 AP",
+    "apLoss": "ping 主路由丢包：{{list}}",
+    "wanMissing": "没有找到 WAN 接口",
+    "noIp": "没有 IP",
+    "uptime": "已在线 {{duration}}",
+    "redials": "最近 24 小时重拨 {{n}} 次",
+    "noNexthop": "没有找到 WAN 的上一跳网关",
+    "nexthop": "上一跳 {{ip}}",
+    "avg": "平均 {{ms}} ms",
+    "noReply": "不通",
+    "dns": "解析 {{list}}",
+    "publicLoss": "ping 公共地址丢包 {{loss}}%",
+    "http204Ok": "HTTP 检查通过",
+    "http204Fail": "HTTP 检查失败",
+    "needsPlugin": "需要 RouteLink 插件",
+    "noProbeData": "插件没有返回延迟数据",
+    "recent": "最近 24 小时丢包 {{loss}}%，断网 {{n}} 次",
+    "noWifi": "读取不到 Wi-Fi 设置",
+    "security": "最弱的网络安全等级：{{level}}"
+  },
+  "level": {
+    "high": "高",
+    "medium": "中",
+    "low": "低",
+    "danger": "危险"
+  },
+  "share": {
+    "title": "RouteLink 网络诊断 · {{router}} · {{time}}",
+    "line": "{{label}}：{{facts}}",
+    "separator": "；",
+    "status": {
+      "ok": "【正常】",
+      "warn": "【警告】",
+      "fail": "【异常】",
+      "skip": "【跳过】"
+    }
+  },
+  "tools": {
+    "title": "诊断工具",
+    "tool": {
+      "ping": "Ping",
+      "traceroute": "路由追踪",
+      "nslookup": "域名解析"
+    },
+    "target": "目标",
+    "targetPlaceholder": "域名或 IP，比如 www.baidu.com",
+    "targetInvalid": "请输入域名或 IP 地址",
+    "router": "执行的路由器",
+    "routerTitle": "在哪台路由器上执行",
+    "gateway": "主路由",
+    "ap": "AP",
+    "needsPassword": "没有保存密码",
+    "count": "次数",
+    "countValue": "{{n}} 次",
+    "family": "协议",
+    "ipv4": "IPv4",
+    "ipv6": "IPv6",
+    "server": "DNS 服务器（可选）",
+    "serverPlaceholder": "留空用路由器自己的 DNS",
+    "run": "开始",
+    "running": "正在执行…",
+    "elapsed": "{{router}} · 用时 {{seconds}} 秒",
+    "raw": "原始输出",
+    "failed": "执行失败：{{reason}}",
+    "footer": "通过 LuCI 诊断页本来就有的权限执行，不装插件也能用。最长 60 秒。",
+    "ping": {
+      "sent": "发送",
+      "received": "收到",
+      "loss": "丢包",
+      "min": "最小",
+      "avg": "平均",
+      "max": "最大",
+      "jitter": "抖动",
+      "noReply": "没有收到回应"
+    },
+    "trace": {
+      "hops": "经过的路由",
+      "hop": "第 {{n}} 跳",
+      "noReply": "无响应",
+      "empty": "没有拿到路由信息"
+    },
+    "dns": {
+      "answers": "解析结果",
+      "server": "DNS 服务器",
+      "cname": "别名 {{cname}}",
+      "error": {
+        "NXDOMAIN": "域名不存在",
+        "SERVFAIL": "DNS 服务器出错",
+        "REFUSED": "DNS 服务器拒绝了查询",
+        "TIMEOUT": "查询超时",
+        "NO_ANSWER": "没有查到地址",
+        "other": "解析失败（{{code}}）"
+      }
+    }
+  },
+  "latency": {
+    "title": "断网和延迟",
+    "availability": "可用率",
+    "outages": "断网次数",
+    "downtime": "累计断网",
+    "noData": "这个时间段没有探测数据",
+    "targets": "探测目标",
+    "kind": {
+      "gateway": "上一跳网关",
+      "custom": "自定义目标"
+    },
+    "targetStats": "平均 {{avg}} · 最高 {{max}} · 丢包 {{loss}}",
+    "chartHint": "按住图表可以查看各时刻的数值",
+    "avg": "平均",
+    "max": "最高",
+    "loss": "丢包",
+    "point": "{{time}} · 平均 {{avg}} · 最高 {{max}} · 丢包 {{loss}}",
+    "missing": "没有数据",
+    "outageList": "断网记录",
+    "noOutages": "这个时间段没有断网",
+    "ongoing": "进行中",
+    "outageRow": "{{cause}} · {{duration}}",
+    "cause": {
+      "wan_down": "WAN 断开",
+      "redial": "重新拨号",
+      "upstream": "上游不通"
+    },
+    "hoursIgnored": "断网和延迟记录不能按每天的时段筛选，这里显示的是全天。",
+    "export": "导出",
+    "exportOutages": "导出断网记录（CSV）",
+    "exportLatency": "导出延迟数据（CSV）",
+    "shareText": "分享文字摘要",
+    "exportFailed": "导出失败：{{reason}}",
+    "exportTitle": "断网和延迟 · {{range}}",
+    "footer": "插件每 10 秒向每个目标发一次 ping，2 秒内没有回应算丢包。除上一跳网关以外的目标都不通时记为断网。",
+    "notEnabled": {
+      "title": "延迟探测没有开启",
+      "message": "在插件设置里打开延迟探测后，这里会开始记录。",
+      "action": "打开插件设置"
+    },
+    "tooOld": {
+      "title": "插件版本过旧",
+      "message": "升级 RouteLink 插件后才能记录断网和延迟。",
+      "action": "升级插件"
+    },
+    "csv": {
+      "start": "开始",
+      "end": "结束",
+      "duration": "时长（秒）",
+      "cause": "原因",
+      "ongoing": "进行中",
+      "time": "时间",
+      "target": "目标",
+      "avg": "平均（毫秒）",
+      "max": "最高（毫秒）",
+      "loss": "丢包（%）"
+    },
+    "text": {
+      "header": "{{router}} 断网和延迟记录（{{range}}）",
+      "stats": "可用率 {{availability}}，断网 {{n}} 次，累计 {{downtime}}",
+      "target": "{{ip}}（{{kind}}）：{{stats}}",
+      "outagesTitle": "断网记录：",
+      "outage": "{{start}} – {{end}}，{{duration}}，{{cause}}",
+      "none": "没有断网"
+    }
+  },
+  "speed": {
+    "title": "测速",
+    "mode": {
+      "phone": "手机",
+      "router": "路由器",
+      "compare": "对比"
+    },
+    "modeHint": {
+      "phone": "由手机测，结果是 Wi-Fi 加宽带的速度。",
+      "router": "由路由器上的插件测，只反映宽带本身的速度。",
+      "compare": "先测手机，再测路由器，看看瓶颈在 Wi-Fi 还是宽带。"
+    },
+    "start": "开始测速",
+    "stop": "停止",
+    "again": "再测一次",
+    "stage": {
+      "phone": "手机",
+      "router": "路由器"
+    },
+    "phase": {
+      "starting": "准备中",
+      "latency": "测延迟",
+      "download": "测下载",
+      "upload": "测上传",
+      "done": "完成",
+      "failed": "失败"
+    },
+    "down": "下载",
+    "up": "上传",
+    "latency": "延迟",
+    "jitter": "抖动",
+    "ms": "{{value}} ms",
+    "contractShare": "签约带宽的 {{pct}}%",
+    "wanNote": "路由器的速率按 WAN 口的计数算，同一时间其他设备的流量也会算进去。",
+    "notWifi": "手机现在没连 Wi-Fi，手机测速走的是移动数据。",
+    "already": "路由器已经在测速，接着显示这次的进度",
+    "failed": "测速失败：{{reason}}",
+    "stopped": "已停止",
+    "needsPlugin": "路由器测速需要 RouteLink 插件",
+    "demoNote": "演示模式：手机测速是模拟的，不消耗流量。",
+    "compare": {
+      "title": "对比结论",
+      "wifi-bottleneck": "手机只测到路由器的 {{pct}}%，瓶颈在 Wi-Fi。",
+      "broadband": "两边都不到签约带宽的 60%，问题在宽带。",
+      "ok": "Wi-Fi 和宽带都没有明显问题。",
+      "incomplete": "有一边没测完，没法对比。",
+      "noContract": "填上签约带宽后，还能判断宽带是否达标。",
+      "signal": "查看信号监测",
+      "channels": "做一次信道优化"
+    },
+    "history": {
+      "phone": "手机测速记录",
+      "router": "路由器测速记录",
+      "empty": "还没有测速记录",
+      "more": "显示更多",
+      "row": "↓ {{down}} · ↑ {{up}}",
+      "error": "失败：{{error}}"
+    },
+    "contract": {
+      "title": "签约带宽",
+      "down": "下行",
+      "up": "上行",
+      "unset": "未填写",
+      "value": "{{value}} Mbps",
+      "promptDown": "签约下行带宽（Mbps）",
+      "promptUp": "签约上行带宽（Mbps）",
+      "hint": "留空表示不填。",
+      "invalid": "请输入大于 0 的数字",
+      "footer": "可选。填写后，对比测速会判断宽带是否达到签约带宽的 60%。"
+    },
+    "server": {
+      "title": "测速服务器",
+      "cloudflare": "Cloudflare",
+      "prompt": "LibreSpeed 服务器地址",
+      "hint": "留空用 Cloudflare。",
+      "invalid": "请输入 http:// 或 https:// 开头的地址",
+      "footerPlugin": "保存在插件的设置里，手机和路由器测速都用它。",
+      "footerNoPlugin": "安装 RouteLink 插件后，可以改用自己的 LibreSpeed 服务器。",
+      "saved": "测速服务器已保存",
+      "saveFailed": "保存失败：{{reason}}"
+    }
+  }
+}

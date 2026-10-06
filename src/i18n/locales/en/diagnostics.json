@@ -1,0 +1,307 @@
+{
+  "entries": {
+    "section": "Diagnostics",
+    "diagnose": "One-tap diagnosis",
+    "diagnoseHint": "Checks every hop from the phone to the internet",
+    "tools": "Diagnostic tools",
+    "toolsHint": "ping, traceroute, nslookup",
+    "latency": "Outages and latency",
+    "speed": "Speed test",
+    "needsPlugin": "Install the RouteLink plugin to see this",
+    "pluginTooOld": "Needs a newer RouteLink plugin"
+  },
+  "segment": {
+    "phone-wifi": "Phone to Wi-Fi",
+    "ap-uplink": "Access points to gateway",
+    "wan": "Gateway WAN",
+    "upstream": "Upstream gateway",
+    "dns": "DNS",
+    "internet": "Internet",
+    "stability": "Recent stability",
+    "wifi-security": "Wi-Fi security"
+  },
+  "status": {
+    "ok": "OK",
+    "warn": "Warning",
+    "fail": "Problem",
+    "skip": "Skipped",
+    "pending": "Waiting",
+    "running": "Checking"
+  },
+  "advice": {
+    "move-closer": "The signal is weak: try moving the phone closer to the access point",
+    "optimize-channel": "Run channel optimisation to move off a crowded channel",
+    "check-ap-cable": "Check the cable or wireless backhaul between the access point and the gateway",
+    "check-modem": "Check the modem and the dial-up account",
+    "isp-unstable": "The connection has been unstable lately; it may be your provider",
+    "isp-upstream": "Heavy loss on the provider's side; it may be your provider",
+    "change-dns": "The internet is reachable but names don't resolve: try another DNS server",
+    "outage-log": "See the outage log, useful as evidence for your provider",
+    "fix-security": "Fix the Wi-Fi security issues in the security check"
+  },
+  "headline": {
+    "running": "Checking…",
+    "ok": "Everything looks fine",
+    "warn": "Worth a look: {{segment}}",
+    "fail": "The problem is at: {{segment}}"
+  },
+  "diagnose": {
+    "title": "One-tap diagnosis",
+    "progress": "{{done}} of {{total}} checked, about 15 seconds in all",
+    "finished": "Finished {{time}}, took {{seconds}} s",
+    "again": "Run again",
+    "share": "Share the results",
+    "failed": "The diagnosis could not finish: {{reason}}",
+    "footer": "Checks from near to far. The router-side commands are the same as the diagnostic tools and need no plugin; “Recent stability” needs the plugin."
+  },
+  "facts": {
+    "signal": "Signal at the access point {{dbm}} dBm",
+    "rate": "link rate {{rate}} Mbps",
+    "phoneUnknown": "This phone is not in the device list; it may not be on this network's Wi-Fi",
+    "rtt": "Round trip to the router {{ms}} ms, jitter {{jitter}} ms",
+    "rttLoss": "{{loss}}% failed",
+    "rttFail": "The phone cannot reach the router",
+    "noAps": "No reachable access points in the network group",
+    "apLoss": "Loss pinging the gateway: {{list}}",
+    "wanMissing": "No WAN interface found",
+    "noIp": "no IP address",
+    "uptime": "up {{duration}}",
+    "redials": "Reconnects in the last 24 h: {{n}}",
+    "noNexthop": "The WAN's next hop is unknown",
+    "nexthop": "Next hop {{ip}}",
+    "avg": "average {{ms}} ms",
+    "noReply": "no reply",
+    "dns": "Lookups: {{list}}",
+    "publicLoss": "Loss pinging public addresses {{loss}}%",
+    "http204Ok": "HTTP check passed",
+    "http204Fail": "HTTP check failed",
+    "needsPlugin": "Needs the RouteLink plugin",
+    "noProbeData": "The plugin returned no latency data",
+    "recent": "Last 24 h: {{loss}}% loss, outages: {{n}}",
+    "noWifi": "Could not read the Wi-Fi settings",
+    "security": "Weakest network: {{level}}"
+  },
+  "level": {
+    "high": "high",
+    "medium": "medium",
+    "low": "low",
+    "danger": "dangerous"
+  },
+  "share": {
+    "title": "RouteLink network diagnosis · {{router}} · {{time}}",
+    "line": "{{label}}: {{facts}}",
+    "separator": "; ",
+    "status": {
+      "ok": "[OK]",
+      "warn": "[Warning]",
+      "fail": "[Problem]",
+      "skip": "[Skipped]"
+    }
+  },
+  "tools": {
+    "title": "Diagnostic tools",
+    "tool": {
+      "ping": "Ping",
+      "traceroute": "Traceroute",
+      "nslookup": "nslookup"
+    },
+    "target": "Target",
+    "targetPlaceholder": "Host name or IP, e.g. www.apple.com",
+    "targetInvalid": "Enter a host name or an IP address",
+    "router": "Run on",
+    "routerTitle": "Which router runs the command",
+    "gateway": "Gateway",
+    "ap": "Access point",
+    "needsPassword": "No saved password",
+    "count": "Count",
+    "countValue": "{{n}} pings",
+    "family": "Protocol",
+    "ipv4": "IPv4",
+    "ipv6": "IPv6",
+    "server": "DNS server (optional)",
+    "serverPlaceholder": "Leave empty to use the router's own DNS",
+    "run": "Run",
+    "running": "Running…",
+    "elapsed": "{{router}} · took {{seconds}} s",
+    "raw": "Raw output",
+    "failed": "Could not run it: {{reason}}",
+    "footer": "Runs with the permission LuCI's diagnostics page already has, so no plugin is needed. At most 60 seconds.",
+    "ping": {
+      "sent": "Sent",
+      "received": "Received",
+      "loss": "Loss",
+      "min": "Min",
+      "avg": "Average",
+      "max": "Max",
+      "jitter": "Jitter",
+      "noReply": "No replies"
+    },
+    "trace": {
+      "hops": "Hops",
+      "hop": "Hop {{n}}",
+      "noReply": "No reply",
+      "empty": "No route information"
+    },
+    "dns": {
+      "answers": "Answers",
+      "server": "DNS server",
+      "cname": "alias of {{cname}}",
+      "error": {
+        "NXDOMAIN": "The name does not exist",
+        "SERVFAIL": "The DNS server failed",
+        "REFUSED": "The DNS server refused the query",
+        "TIMEOUT": "The query timed out",
+        "NO_ANSWER": "No address found",
+        "other": "Lookup failed ({{code}})"
+      }
+    }
+  },
+  "latency": {
+    "title": "Outages and latency",
+    "availability": "Availability",
+    "outages": "Outages",
+    "downtime": "Downtime",
+    "noData": "No probe data for this period",
+    "targets": "Probe targets",
+    "kind": {
+      "gateway": "WAN next hop",
+      "custom": "Custom target"
+    },
+    "targetStats": "avg {{avg}} · max {{max}} · loss {{loss}}",
+    "chartHint": "Press and hold the chart to read a moment",
+    "avg": "Average",
+    "max": "Max",
+    "loss": "Loss",
+    "point": "{{time}} · avg {{avg}} · max {{max}} · loss {{loss}}",
+    "missing": "no data",
+    "outageList": "Outage log",
+    "noOutages": "No outages in this period",
+    "ongoing": "ongoing",
+    "outageRow": "{{cause}} · {{duration}}",
+    "cause": {
+      "wan_down": "WAN down",
+      "redial": "Reconnect",
+      "upstream": "Upstream unreachable"
+    },
+    "hoursIgnored": "Outages and latency cannot be filtered by hours of the day; showing whole days.",
+    "export": "Export",
+    "exportOutages": "Export outages (CSV)",
+    "exportLatency": "Export latency (CSV)",
+    "shareText": "Share a text summary",
+    "exportFailed": "Export failed: {{reason}}",
+    "exportTitle": "Outages and latency · {{range}}",
+    "footer": "The plugin pings every target every 10 seconds; no reply within 2 seconds counts as loss. It is an outage when every target except the WAN's next hop is unreachable.",
+    "notEnabled": {
+      "title": "Latency probes are off",
+      "message": "Turn on latency probes in the plugin settings and recording starts here.",
+      "action": "Open plugin settings"
+    },
+    "tooOld": {
+      "title": "The plugin is too old",
+      "message": "Upgrade the RouteLink plugin to record outages and latency.",
+      "action": "Upgrade the plugin"
+    },
+    "csv": {
+      "start": "Start",
+      "end": "End",
+      "duration": "Duration (s)",
+      "cause": "Cause",
+      "ongoing": "Ongoing",
+      "time": "Time",
+      "target": "Target",
+      "avg": "Average (ms)",
+      "max": "Max (ms)",
+      "loss": "Loss (%)"
+    },
+    "text": {
+      "header": "{{router}} outages and latency ({{range}})",
+      "stats": "Availability {{availability}}, outages: {{n}}, downtime {{downtime}}",
+      "target": "{{ip}} ({{kind}}): {{stats}}",
+      "outagesTitle": "Outages:",
+      "outage": "{{start}} – {{end}}, {{duration}}, {{cause}}",
+      "none": "No outages"
+    }
+  },
+  "speed": {
+    "title": "Speed test",
+    "mode": {
+      "phone": "Phone",
+      "router": "Router",
+      "compare": "Compare"
+    },
+    "modeHint": {
+      "phone": "Measured by the phone: Wi-Fi plus broadband.",
+      "router": "Measured by the plugin on the router: the broadband alone.",
+      "compare": "The phone first, then the router: is the bottleneck the Wi-Fi or the broadband?"
+    },
+    "start": "Start",
+    "stop": "Stop",
+    "again": "Test again",
+    "stage": {
+      "phone": "Phone",
+      "router": "Router"
+    },
+    "phase": {
+      "starting": "Starting",
+      "latency": "Latency",
+      "download": "Download",
+      "upload": "Upload",
+      "done": "Done",
+      "failed": "Failed"
+    },
+    "down": "Download",
+    "up": "Upload",
+    "latency": "Latency",
+    "jitter": "Jitter",
+    "ms": "{{value}} ms",
+    "contractShare": "{{pct}}% of your plan",
+    "wanNote": "The router's rate comes from the WAN counters, so other devices' traffic at the same time counts too.",
+    "notWifi": "The phone is not on Wi-Fi: the phone test runs over mobile data.",
+    "already": "The router is already testing; following that run",
+    "failed": "Speed test failed: {{reason}}",
+    "stopped": "Stopped",
+    "needsPlugin": "The router test needs the RouteLink plugin",
+    "demoNote": "Demo mode: the phone test is simulated and uses no data.",
+    "compare": {
+      "title": "Verdict",
+      "wifi-bottleneck": "The phone reached only {{pct}}% of the router: the Wi-Fi is the bottleneck.",
+      "broadband": "Both are below 60% of your plan: the broadband is the problem.",
+      "ok": "Neither the Wi-Fi nor the broadband shows a problem.",
+      "incomplete": "One of the tests did not finish, so there is nothing to compare.",
+      "noContract": "Enter your plan's bandwidth to also check the broadband against it.",
+      "signal": "Open the signal monitor",
+      "channels": "Run channel optimisation"
+    },
+    "history": {
+      "phone": "Phone tests",
+      "router": "Router tests",
+      "empty": "No speed tests yet",
+      "more": "Show more",
+      "row": "↓ {{down}} · ↑ {{up}}",
+      "error": "Failed: {{error}}"
+    },
+    "contract": {
+      "title": "Plan bandwidth",
+      "down": "Download",
+      "up": "Upload",
+      "unset": "Not set",
+      "value": "{{value}} Mbps",
+      "promptDown": "Plan download (Mbps)",
+      "promptUp": "Plan upload (Mbps)",
+      "hint": "Leave empty to clear it.",
+      "invalid": "Enter a number above 0",
+      "footer": "Optional. With it, the comparison checks whether the broadband reaches 60% of your plan."
+    },
+    "server": {
+      "title": "Test server",
+      "cloudflare": "Cloudflare",
+      "prompt": "LibreSpeed server URL",
+      "hint": "Leave empty to use Cloudflare.",
+      "invalid": "Enter an address starting with http:// or https://",
+      "footerPlugin": "Stored in the plugin's settings; the phone and the router both use it.",
+      "footerNoPlugin": "With the RouteLink plugin you can use your own LibreSpeed server instead.",
+      "saved": "Test server saved",
+      "saveFailed": "Could not save: {{reason}}"
+    }
+  }
+}
