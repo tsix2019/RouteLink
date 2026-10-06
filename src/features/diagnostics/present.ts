@@ -37,7 +37,7 @@ export function segmentFacts(t: AppT, lang: AppLanguage, r: SegmentResult, o: { 
     case 'phone-wifi': {
       const signal = num(f, 'signal');
       const band = text(f, 'band');
-      const rate = num(f, 'rate');
+      const rate = num(f, 'rate'); // kbit/s as iwinfo reports it
       const rtt = num(f, 'rttMs');
       const loss = num(f, 'lossPct') ?? 0;
       return [
@@ -46,7 +46,7 @@ export function segmentFacts(t: AppT, lang: AppLanguage, r: SegmentResult, o: { 
           : join([
               t('diagnostics:facts.signal', { dbm: signal }),
               band && bandLabel(t, band as Parameters<typeof bandLabel>[1]),
-              rate !== undefined && t('diagnostics:facts.rate', { rate: Math.round(rate) }),
+              rate !== undefined && t('diagnostics:facts.rate', { rate: Math.round(rate / 1000) }),
               text(f, 'ap'),
             ]),
         rtt === undefined

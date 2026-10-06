@@ -44,7 +44,8 @@ it('describes each segment of a demo run in plain lines', async () => {
   const results = await demoRun();
   const by = Object.fromEntries(results.map((r) => [r.segment, r]));
   const facts = (s: SegmentResult['segment']) => segmentFacts(t(), 'en', by[s], { plugin: true });
-  expect(facts('phone-wifi')[0]).toMatch(/^Signal at the access point -\d+ dBm · /);
+  // The link rate comes in kbit/s.
+  expect(facts('phone-wifi')[0]).toMatch(/^Signal at the access point -\d+ dBm · .+ · link rate \d{2,4} Mbps · /);
   expect(facts('phone-wifi')[1]).toMatch(/^Round trip to the router \d+ ms, jitter \d+ ms$/);
   expect(facts('ap-uplink')[0]).toBe(`Loss pinging the gateway: ${DEMO_AP_NAME}: 0%`);
   expect(facts('wan')).toEqual([expect.stringMatching(/^PPPoE · [\d.]+ · up /), 'Reconnects in the last 24 h: 1']);
