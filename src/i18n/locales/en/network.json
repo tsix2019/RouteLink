@@ -351,6 +351,7 @@
     "intro": "Import the .ovpn client profile from your provider and the router connects to that VPN.",
     "empty": "No profiles yet",
     "import": "Import .ovpn Profile",
+    "pickFile": "Choose .ovpn File",
     "running": "Running",
     "stopped": "Not running",
     "unknown": "State unknown",

@@ -351,6 +351,7 @@
     "intro": "导入服务商给的 .ovpn 客户端配置，路由器就会连上这个 VPN。",
     "empty": "还没有导入配置",
     "import": "导入 .ovpn 配置",
+    "pickFile": "选择 .ovpn 文件",
     "running": "运行中",
     "stopped": "未运行",
     "unknown": "状态未知",
