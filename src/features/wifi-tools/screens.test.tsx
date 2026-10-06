@@ -10,7 +10,9 @@ import RouteLinkNative from 'routelink-native';
 import { DEMO_AP_ID, DEMO_AP_NAME, DEMO_ROUTER_ID } from '@/api/connection/demo/connection';
 import { getDemoApConnection, getDemoConnection, resetDemoConnection } from '@/api/connection/manager';
 import { getGroupClients } from '@/api/group';
+import { getRadios } from '@/api/services/wireless';
 import Intruders from '@/app/(tabs)/devices/intruders';
+import Channels from '@/app/(tabs)/wireless/tools/channels';
 import SignalDetail from '@/app/(tabs)/wireless/tools/signal/[mac]';
 import SignalMonitor from '@/app/(tabs)/wireless/tools/signal/index';
 import { ActiveRouterProvider } from '@/features/routers/ActiveRouterProvider';
@@ -139,5 +141,32 @@ describe('intruder check', () => {
     await fireEvent.press(screen.getByText('Trust this device'));
     // Written to the plugin's UCI, then read back.
     await waitFor(() => expect(screen.getAllByText('Unknown')).toHaveLength(strangers.length - 1));
+  });
+});
+
+describe('channel optimisation', () => {
+  it('scans both routers, advises every radio and switches one through a safe apply', async () => {
+    await render(wrap(<Channels />));
+    await fireEvent.press(screen.getByTestId('channels-scan'));
+    await waitFor(() => expect(screen.getByTestId('channels-summary')).toBeTruthy());
+    // 2.4 GHz is shown first: both routers' radios.
+    expect(screen.getByTestId('channels-demo/radio0')).toBeTruthy();
+    expect(screen.getByTestId('channels-demo-ap/radio0')).toBeTruthy();
+
+    await fireEvent.press(screen.getByText('segment:5 GHz'));
+    expect(screen.getByText('All radios are on good channels')).toBeTruthy();
+    await fireEvent(screen.getByLabelText('Allow DFS channels'), 'valueChange', true);
+    expect(screen.getByText(/^Radios worth changing: \d$/)).toBeTruthy();
+
+    const button = screen.getAllByText(/^Switch to channel \d+$/)[0];
+    const channel = Number(/\d+$/.exec(String(button.props.children))![0]);
+    await fireEvent.press(button);
+    await fireEvent.press(screen.getByText('Confirm'));
+    await waitFor(async () => {
+      const channels = [...(await getRadios(getDemoConnection())), ...(await getRadios(getDemoApConnection()))].map(
+        (r) => r.channel,
+      );
+      expect(channels).toContain(String(channel));
+    });
   });
 });

@@ -123,5 +123,55 @@
       "kick": "Kicking a device off is temporary: if it knows the password it will join again. Change the Wi-Fi password to keep it out.",
       "private": "Phones using a private (random) address show no vendor; that alone does not make them intruders."
     }
+  },
+  "channels": {
+    "title": "Channel Optimisation",
+    "introTitle": "Channel scan",
+    "intro": "Every radio of every access point in the group scans the air: see which channels nearby networks use and where yours would be better off.",
+    "scanWarning": "While scanning, an access point briefly leaves its channel: connected devices may stall for a second or two.",
+    "start": "Start scan",
+    "rescan": "Scan again",
+    "scanning": "Scanning {{count}} routers…",
+    "unreachable": "{{name}} is not connected and was not scanned",
+    "failed": "{{name}} could not scan: {{error}}",
+    "none": "No radio in the group can scan",
+    "summaryChange": "Radios worth changing: {{count}}",
+    "summaryKeep": "All radios are on good channels",
+    "allowDfs": "Allow DFS channels",
+    "dfsHint": "DFS channels (52–144) need a radar check first: after a switch the radio takes 1–10 minutes to come back, and it moves away by itself when it detects radar.",
+    "legend": {
+      "own": "Your networks",
+      "other": "Neighbours",
+      "current": "Current",
+      "target": "Suggested"
+    },
+    "channel": "Channel {{channel}}",
+    "busy": "{{pct}}% busy",
+    "dfs": "DFS channel",
+    "reason": {
+      "keep-best": "The current channel already has the least interference.",
+      "keep-small-gain": "No other channel is much better (interference would not even halve): better to stay.",
+      "change": "Channel {{to}} has {{pct}}% less interference.",
+      "crowded-24": "2.4 GHz is crowded here: a 20 MHz channel is more robust.",
+      "no-candidates": "No channel to choose from."
+    },
+    "switchTo": "Switch to channel {{channel}}",
+    "toWidth20": "Use 20 MHz",
+    "scanFailed": "This radio did not finish its scan; the picture may be incomplete.",
+    "noChannel": "The radio's current channel is unknown, so there is no advice.",
+    "table": "Channels",
+    "heard": "{{count}} networks heard",
+    "networks": "Networks: {{count}}",
+    "strongest": "strongest {{signal}} dBm",
+    "own": "yours: {{count}}",
+    "quiet": "No networks heard",
+    "confirm": {
+      "channel": "Move {{router}} {{band}} to channel {{channel}}?",
+      "width": "Switch {{router}} {{band}} to 20 MHz?",
+      "drop": "Wi-Fi on this radio drops for a few seconds; devices reconnect by themselves",
+      "rollback": "Applied safely: confirmed once the phone is back, otherwise the router restores the old setting",
+      "direct": "The phone is on this radio and cannot confirm during the radar check: this change is not rolled back",
+      "dfs": "On a DFS channel the radio may take 1–10 minutes to come back, and it moves to another channel if it detects radar"
+    }
   }
 }

@@ -123,5 +123,55 @@
       "kick": "踢下线只是暂时的：对方知道密码还会再连上，要彻底解决请修改 Wi-Fi 密码。",
       "private": "开了私有地址（随机 MAC）的手机显示不出厂商，不一定是蹭网的。"
     }
+  },
+  "channels": {
+    "title": "信道优化",
+    "introTitle": "信道扫描",
+    "intro": "扫描组内每台 AP 的每个射频，看看周围的网络占了哪些信道，再给出换信道的建议。",
+    "scanWarning": "扫描时 AP 会短暂离开当前信道，连着的设备可能卡顿一两秒。",
+    "start": "开始扫描",
+    "rescan": "重新扫描",
+    "scanning": "正在扫描 {{count}} 台路由器…",
+    "unreachable": "{{name}} 没有连接，未能扫描",
+    "failed": "{{name}} 扫描失败：{{error}}",
+    "none": "组内没有可以扫描的射频",
+    "summaryChange": "建议调整 {{count}} 个射频",
+    "summaryKeep": "当前的信道都合适，不需要调整",
+    "allowDfs": "允许 DFS 信道",
+    "dfsHint": "DFS 信道（52～144）要先检测雷达：切换后要等 1～10 分钟才能用，检测到雷达时还会自动换走。",
+    "legend": {
+      "own": "自家网络",
+      "other": "邻居网络",
+      "current": "当前信道",
+      "target": "建议信道"
+    },
+    "channel": "信道 {{channel}}",
+    "busy": "繁忙 {{pct}}%",
+    "dfs": "DFS 信道",
+    "reason": {
+      "keep-best": "当前信道已经是干扰最小的。",
+      "keep-small-gain": "别的信道好不了多少（干扰降不到一半），不建议更换。",
+      "change": "换到信道 {{to}}，干扰可以降低 {{pct}}%。",
+      "crowded-24": "2.4 GHz 很拥挤，建议把频宽改成 20 MHz。",
+      "no-candidates": "没有可选的信道。"
+    },
+    "switchTo": "切换到信道 {{channel}}",
+    "toWidth20": "改为 20 MHz",
+    "scanFailed": "这个射频没能完成扫描，结果可能不全。",
+    "noChannel": "读不到这个射频当前的信道，无法给出建议。",
+    "table": "各信道情况",
+    "heard": "听到 {{count}} 个网络",
+    "networks": "{{count}} 个网络",
+    "strongest": "最强 {{signal}} dBm",
+    "own": "自家 {{count}} 个",
+    "quiet": "没有听到网络",
+    "confirm": {
+      "channel": "把 {{router}} 的 {{band}} 换到信道 {{channel}}？",
+      "width": "把 {{router}} 的 {{band}} 改为 20 MHz？",
+      "drop": "这个射频上的 Wi-Fi 会断开几秒，设备会自动重新连接",
+      "rollback": "修改通过安全应用提交：手机重新连上后完成确认，否则路由器会自动恢复原设置",
+      "direct": "手机就连在这个射频上，DFS 检测期间无法确认，这次不会自动恢复",
+      "dfs": "DFS 信道切换后可能要等 1～10 分钟才能恢复；期间如果检测到雷达，路由器会换到别的信道"
+    }
   }
 }
