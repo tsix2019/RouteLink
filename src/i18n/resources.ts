@@ -1,7 +1,9 @@
 import enAgent from './locales/en/agent.json';
 import enAssistant from './locales/en/assistant.json';
 import enCommon from './locales/en/common.json';
+import enControl from './locales/en/control.json';
 import enDevices from './locales/en/devices.json';
+import enDiagnostics from './locales/en/diagnostics.json';
 import enErrors from './locales/en/errors.json';
 import enMore from './locales/en/more.json';
 import enNetwork from './locales/en/network.json';
@@ -17,7 +19,9 @@ import enWireless from './locales/en/wireless.json';
 import zhAgent from './locales/zh-CN/agent.json';
 import zhAssistant from './locales/zh-CN/assistant.json';
 import zhCommon from './locales/zh-CN/common.json';
+import zhControl from './locales/zh-CN/control.json';
 import zhDevices from './locales/zh-CN/devices.json';
+import zhDiagnostics from './locales/zh-CN/diagnostics.json';
 import zhErrors from './locales/zh-CN/errors.json';
 import zhMore from './locales/zh-CN/more.json';
 import zhNetwork from './locales/zh-CN/network.json';
@@ -47,7 +51,9 @@ export const namespaces = [
   'agent',
   'terminal',
   'assistant',
+  'diagnostics',
   'wifitools',
+  'control',
 ] as const;
 
 export type Namespace = (typeof namespaces)[number];
@@ -69,7 +75,9 @@ export const resources = {
     agent: zhAgent,
     terminal: zhTerminal,
     assistant: zhAssistant,
+    diagnostics: zhDiagnostics,
     wifitools: zhWifitools,
+    control: zhControl,
   },
   en: {
     common: enCommon,
@@ -87,6 +95,8 @@ export const resources = {
     agent: enAgent,
     terminal: enTerminal,
     assistant: enAssistant,
+    diagnostics: enDiagnostics,
     wifitools: enWifitools,
+    control: enControl,
   },
 } as const;

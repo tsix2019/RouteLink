@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import type { AgentEvent, AgentInfo, History } from '@/api/services/agent';
 import { AgentGate } from '@/features/agent/AgentGate';
+import { DeviceControls } from '@/features/control/DeviceControls';
 import { useDeviceLabels } from '@/features/traffic/labels';
 import { TimeRangePicker } from '@/features/traffic/TimeRangePicker';
 import { DEFAULT_RANGE, parseRange, resolveRange, usableHoursMask, type TimeRange } from '@/features/traffic/timeRange';
@@ -152,6 +153,8 @@ function Content({
           ]}
         />
       </GlassCard>
+
+      <DeviceControls mac={mac} info={info} start={start} end={end} />
 
       <ListSection title={t('traffic:device.events')}>
         {list.length ? (

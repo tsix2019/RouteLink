@@ -305,6 +305,18 @@ function TrafficContent({
             disabled: !history.data,
             onPress: () => void exportCsv('curve'),
           },
+          ...(info.capabilities.includes('limits')
+            ? [
+                {
+                  label: t('control:rules.entry'),
+                  icon: 'speed' as const,
+                  onPress: () => {
+                    onMenuClose();
+                    nav.push('/network/traffic/rules');
+                  },
+                },
+              ]
+            : []),
           {
             label: t('traffic:overview.settings'),
             icon: 'plugin',
