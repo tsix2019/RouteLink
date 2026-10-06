@@ -40,4 +40,33 @@ describe('background check', () => {
     expect(await checkRouters({ notify, connect })).toEqual({ checked: 1, alerts: 1 });
     expect(notify).toHaveBeenLastCalledWith('Home is back', expect.any(String));
   });
+
+  it('leaves new devices to the plugin when one of its push channels sends them', async () => {
+    const add = useRouters.getState().add;
+    const home = await add({ name: 'Lab', baseUrl: 'http://192.168.9.1', username: 'root', savePassword: true }, 'pw');
+    useSettings.getState().set({ notifyRouters: [home.id], language: 'en' });
+    const notify = jest.fn(async (_title: string, _body: string) => undefined);
+    const demo = new DemoConnection(2026, () => 1_800_000_000_000, 0);
+    const connect = () => demo;
+    await checkRouters({ notify, connect });
+
+    const join = (mac: string) =>
+      demo.state.devices.push({
+        ...demo.state.devices[0],
+        mac,
+        hostname: `New-${mac.slice(-2)}`,
+        ip: `192.168.8.${200 + demo.state.devices.length}`,
+      });
+    // The demo plugin has a Bark channel with device_new.
+    join('02:11:22:33:44:01');
+    expect(await checkRouters({ notify, connect })).toEqual({ checked: 1, alerts: 0 });
+
+    demo.state.uci.routelink.cfg_notify_bark.enabled = '0';
+    join('02:11:22:33:44:02');
+    expect(await checkRouters({ notify, connect })).toEqual({ checked: 1, alerts: 1 });
+    expect(notify).toHaveBeenLastCalledWith(
+      expect.stringContaining('Lab'),
+      expect.stringContaining('02:11:22:33:44:02'),
+    );
+  });
 });

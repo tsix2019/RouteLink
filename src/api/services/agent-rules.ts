@@ -296,3 +296,19 @@ export const rulesOf = (rules: AgentRules, mac: string) => {
   const m = normalizeMac(mac) ?? mac;
   return { limit: rules.limits.find((r) => r.mac === m), quota: rules.quotas.find((q) => q.mac === m) };
 };
+
+/**
+ * The plugin itself pushes new devices (an enabled channel subscribed to `device_new`): the app's own
+ * background notice for them would only repeat it (plan P4 §0.7). False when the plugin is not there.
+ */
+export async function pluginPushesNewDevices(conn: RouterConnection): Promise<boolean> {
+  const [info, config] = await conn.batch([
+    { object: 'routelink', method: 'info' },
+    { object: 'uci', method: 'get', params: { config: 'routelink' } },
+  ]);
+  if (!info.ok || !config.ok) return false;
+  const modules = (info.data as { modules?: unknown }).modules;
+  if (!Array.isArray(modules) || !modules.includes('notify')) return false;
+  const values = (config.data as { values?: Record<string, UciSection> }).values ?? {};
+  return parseRules(values).channels.some((c) => c.enabled && c.events.includes('device_new'));
+}
