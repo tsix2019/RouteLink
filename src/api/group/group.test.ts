@@ -119,7 +119,12 @@ describe('mergeGroupClients', () => {
 
   it('marks clients of an offline AP as unknown, where they were last seen', () => {
     const lastSeen: LastSeenAp = new Map();
-    mergeGroupClients(GW, [client('AA:00:00:00:00:01')], [{ member: AP1, report: report([['AA:00:00:00:00:01', 5]]) }], lastSeen);
+    mergeGroupClients(
+      GW,
+      [client('AA:00:00:00:00:01')],
+      [{ member: AP1, report: report([['AA:00:00:00:00:01', 5]]) }],
+      lastSeen,
+    );
     const { clients, offline } = mergeGroupClients(
       GW,
       [client('AA:00:00:00:00:01', { online: true })],
@@ -152,7 +157,9 @@ describe('getApStations', () => {
       'routelink.stations',
       ok({
         interfaces: [{ ifname: 'phy0-ap0', phy: 'phy0', ssid: 'Home', freq: 5180, channel: 36, stations: 1 }],
-        stations: [{ mac: 'aa:bb:cc:00:00:01', ifname: 'phy0-ap0', freq: 5180, signal: -61, inactive_ms: 30, tx_rate: 866700 }],
+        stations: [
+          { mac: 'aa:bb:cc:00:00:01', ifname: 'phy0-ap0', freq: 5180, signal: -61, inactive_ms: 30, tx_rate: 866700 },
+        ],
       }),
     );
     const r = await getApStations(conn);

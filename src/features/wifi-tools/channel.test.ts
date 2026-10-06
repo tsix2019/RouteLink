@@ -93,7 +93,17 @@ describe('recommendChannels', () => {
   });
 
   it('suggests 20 MHz on a crowded 2.4 GHz band', () => {
-    const scan = [net(1, -50), net(1, -55), net(1, -60), net(6, -50), net(6, -52), net(6, -58), net(11, -45), net(11, -50), net(11, -60)];
+    const scan = [
+      net(1, -50),
+      net(1, -55),
+      net(1, -60),
+      net(6, -50),
+      net(6, -52),
+      net(6, -58),
+      net(11, -45),
+      net(11, -50),
+      net(11, -60),
+    ];
     const [advice] = recommendChannels([radio24(scan, { width: 40 })]);
     expect(advice.suggestWidth20).toBe(true);
   });
@@ -119,12 +129,22 @@ describe('scan parsing', () => {
   it('reads the announced width from a recorded scan', () => {
     const fixture = loadFixture('openwrt-24.10.8', 'iwinfo.scan.phy0-ap0');
     const scan = parseScan((fixture.ok ? (fixture.data as { results: [] }).results : []) ?? []);
-    expect(scan.find((n) => n.ssid === 'RouteLink-5G')).toMatchObject({ band: '5G', channel: 36, width: 80, center: 42 });
+    expect(scan.find((n) => n.ssid === 'RouteLink-5G')).toMatchObject({
+      band: '5G',
+      channel: 36,
+      width: 80,
+      center: 42,
+    });
     expect(scan.find((n) => n.ssid === 'Neighbor-Test')).toMatchObject({ band: '2.4G', channel: 11, width: 20 });
   });
 
   it('summarises channels', () => {
-    const rows = channelTable('2.4G', [net(1, -50), net(1, -70), net(6, -40, { bssid: 'AA:00:00:00:00:01' })], ['aa:00:00:00:00:01'], [1, 6, 11]);
+    const rows = channelTable(
+      '2.4G',
+      [net(1, -50), net(1, -70), net(6, -40, { bssid: 'AA:00:00:00:00:01' })],
+      ['aa:00:00:00:00:01'],
+      [1, 6, 11],
+    );
     expect(rows).toEqual([
       { channel: 1, networks: 2, strongest: -50, own: 0 },
       { channel: 6, networks: 1, strongest: -40, own: 1 },
@@ -133,7 +153,9 @@ describe('scan parsing', () => {
   });
 
   it('reads widths from htmode', () => {
-    expect(['HT20', 'VHT80', 'HE160', 'EHT320', 'NOHT', undefined].map(widthOfHtmode)).toEqual([20, 80, 160, 320, 20, 20]);
+    expect(['HT20', 'VHT80', 'HE160', 'EHT320', 'NOHT', undefined].map(widthOfHtmode)).toEqual([
+      20, 80, 160, 320, 20, 20,
+    ]);
   });
 });
 

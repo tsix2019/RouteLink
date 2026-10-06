@@ -87,7 +87,7 @@ describe('generatePassword', () => {
   it('makes 16 characters of three kinds in groups of four, and rates strong', () => {
     let seed = 7;
     const random = (b: Uint8Array) => {
-      for (let i = 0; i < b.length; i++) b[i] = (seed = (seed * 1103515245 + 12345) & 0xff);
+      for (let i = 0; i < b.length; i++) b[i] = seed = (seed * 1103515245 + 12345) & 0xff;
       return b;
     };
     const pw = generatePassword(random);
@@ -144,7 +144,13 @@ describe('fixChanges', () => {
         params: {
           config: 'wireless',
           section: 'default_radio0',
-          values: { encryption: 'sae-mixed', ieee80211w: '1', wps_pushbutton: '0', wps_label: '0', key: 'Abcd-Efgh-2345-Jkmn' },
+          values: {
+            encryption: 'sae-mixed',
+            ieee80211w: '1',
+            wps_pushbutton: '0',
+            wps_label: '0',
+            key: 'Abcd-Efgh-2345-Jkmn',
+          },
         },
       },
     ]);

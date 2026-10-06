@@ -60,5 +60,4 @@ export function retryRate(retries?: number, packets?: number): number | undefine
 }
 
 /** Weakest first, unknown signals last. */
-export const byWeakest = <T extends { signal?: number }>(a: T, b: T) =>
-  (a.signal ?? 1) - (b.signal ?? 1);
+export const byWeakest = <T extends { signal?: number }>(a: T, b: T) => (a.signal ?? 1) - (b.signal ?? 1);

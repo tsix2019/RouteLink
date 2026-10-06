@@ -56,8 +56,7 @@ export function rateEncryption(encryption: string, ieee80211w?: string): Securit
 export type PasswordStrength = 'weak' | 'medium' | 'strong';
 export type WeakReason = 'short' | 'digits' | 'common' | 'keyboard' | 'ssid' | 'repeat' | 'one-kind';
 
-const classesOf = (s: string) =>
-  [/[a-z]/, /[A-Z]/, /\d/, /[^a-zA-Z\d]/].filter((re) => re.test(s)).length;
+const classesOf = (s: string) => [/[a-z]/, /[A-Z]/, /\d/, /[^a-zA-Z\d]/].filter((re) => re.test(s)).length;
 
 /** Typed along one keyboard row (either direction), like "qwertyuiop" or "0987654321". */
 function isKeyboardRun(lower: string): boolean {
@@ -205,7 +204,8 @@ export const worstLevel = (levels: SecurityLevel[]): SecurityLevel | undefined =
 /** Fixes that need a new password (open/WEP networks being encrypted, or the password fix itself). */
 export const fixNeedsKey = (n: WifiNetwork, fix: SecurityFix) =>
   fix === 'new-password' ||
-  ((fix === 'upgrade-wpa3' || fix === 'upgrade-wpa2') && (!needsKey(n.encryption) || baseOf(n.encryption).startsWith('wep')));
+  ((fix === 'upgrade-wpa3' || fix === 'upgrade-wpa2') &&
+    (!needsKey(n.encryption) || baseOf(n.encryption).startsWith('wep')));
 
 /**
  * uci changes for the chosen fixes on one network, staged together and applied through the WL-2 flow.

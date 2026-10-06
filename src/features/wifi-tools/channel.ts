@@ -183,9 +183,8 @@ export function recommendChannels(radios: OwnRadio[], o: ChannelOptions = {}): C
     assigned.set(r, final);
 
     const finalSpan = spanOf(r.band, final, 20);
-    const strongOnFinal = r.band === '2.4G'
-      ? external.filter((e) => overlap(finalSpan, e.span) > 0 && e.signal > STRONG_24).length
-      : 0;
+    const strongOnFinal =
+      r.band === '2.4G' ? external.filter((e) => overlap(finalSpan, e.span) > 0 && e.signal > STRONG_24).length : 0;
     const suggestWidth20 = r.band === '2.4G' && r.width >= 40 && strongOnFinal >= 3;
 
     result.set(r.key, {
@@ -213,7 +212,12 @@ export interface ChannelRow {
 }
 
 /** Per-channel summary of what a radio hears, for the table under the occupancy chart. */
-export function channelTable(band: Band, scan: ScannedNetwork[], ownBssids: string[], channels: number[]): ChannelRow[] {
+export function channelTable(
+  band: Band,
+  scan: ScannedNetwork[],
+  ownBssids: string[],
+  channels: number[],
+): ChannelRow[] {
   const own = new Set(ownBssids.map((b) => b.toUpperCase()));
   return channels.map((channel) => {
     const here = scan.filter((n) => n.band === band && n.channel === channel);

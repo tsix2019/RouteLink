@@ -16,7 +16,9 @@ export interface GroupMember extends MemberRef {
 const lastSeenByGateway = new Map<string, LastSeenAp>();
 
 /** Reads every AP in parallel; one that fails counts as offline instead of failing the whole list. */
-export async function getMemberReports(members: GroupMember[]): Promise<{ member: MemberRef; report: ApReport | null }[]> {
+export async function getMemberReports(
+  members: GroupMember[],
+): Promise<{ member: MemberRef; report: ApReport | null }[]> {
   return Promise.all(
     members.map(async (m) => ({
       member: { id: m.id, name: m.name },

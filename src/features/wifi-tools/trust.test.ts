@@ -55,9 +55,12 @@ describe('markChanges', () => {
   });
 
   it('skips updates that change nothing', () => {
-    expect(markChanges(current, [{ mac: 'AA:BB:CC:DD:EE:01', trusted: true }, { mac: 'x', trusted: true }])).toEqual(
-      [],
-    );
+    expect(
+      markChanges(current, [
+        { mac: 'AA:BB:CC:DD:EE:01', trusted: true },
+        { mac: 'x', trusted: true },
+      ]),
+    ).toEqual([]);
     expect(markChanges([], [{ mac: 'AA:BB:CC:DD:EE:09', trusted: false }])).toEqual([]);
   });
 });

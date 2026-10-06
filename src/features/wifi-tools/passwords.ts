@@ -47,4 +47,10 @@ export const COMMON_PASSWORDS: ReadonlySet<string> = new Set(
 );
 
 /** Rows of a keyboard, for "pressed one key after another" patterns. */
-export const KEYBOARD_ROWS = ['1234567890', 'qwertyuiop', 'asdfghjkl', 'zxcvbnm', '1qaz2wsx3edc4rfv5tgb6yhn7ujm8ik9ol0p'];
+export const KEYBOARD_ROWS = [
+  '1234567890',
+  'qwertyuiop',
+  'asdfghjkl',
+  'zxcvbnm',
+  '1qaz2wsx3edc4rfv5tgb6yhn7ujm8ik9ol0p',
+];

@@ -6,9 +6,7 @@ export const roleOf = (r: Pick<RouterProfile, 'role'>): RouterRole => r.role ?? 
 
 /** The access points of a gateway, in the user's order. */
 export function apsOf(routers: RouterProfile[], gatewayId: string): RouterProfile[] {
-  return routers
-    .filter((r) => roleOf(r) === 'ap' && r.gatewayId === gatewayId)
-    .sort((a, b) => a.order - b.order);
+  return routers.filter((r) => roleOf(r) === 'ap' && r.gatewayId === gatewayId).sort((a, b) => a.order - b.order);
 }
 
 /** The gateway an access point belongs to, if it still exists. */
