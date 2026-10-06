@@ -114,7 +114,8 @@ function ForwardForm({
   const run = () => {
     const kind = pending;
     setPending(null);
-    const changes = kind === 'delete' && forward ? deleteSectionChanges(forward.section) : portForwardChanges(input, forward);
+    const changes =
+      kind === 'delete' && forward ? deleteSectionChanges(forward.section) : portForwardChanges(input, forward);
     apply.mutate(changes, {
       onSuccess: (outcome) => {
         if (outcome.status === 'rolled-back') {
@@ -245,9 +246,7 @@ function ForwardForm({
         visible={!!pending}
         level="medium"
         disruptive
-        title={
-          pending === 'delete' ? t('network:firewall.deleteTitle', { name }) : t('network:firewall.saveTitle')
-        }
+        title={pending === 'delete' ? t('network:firewall.deleteTitle', { name }) : t('network:firewall.saveTitle')}
         consequences={[
           t('network:firewall.consequence'),
           ...(pending === 'save' ? [t('network:firewall.exposeConsequence')] : []),
