@@ -11,6 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { setupNotifications, syncBackgroundCheck } from '@/features/background/task';
 import { ActiveRouterProvider } from '@/features/routers/ActiveRouterProvider';
+import { useAutoUpdateCheck } from '@/features/update/useAutoUpdateCheck';
 import { createQueryClient, useAppStateFocus } from '@/hooks/query-client';
 import { i18n, initI18n, setLanguage } from '@/i18n';
 import { useRouters } from '@/state/routers';
@@ -32,6 +33,7 @@ export default function RootLayout() {
   const [fontsReady, fontError] = useFonts(FONT_ASSETS);
   const ready = settingsReady && routersReady && (fontsReady || !!fontError);
   useAppStateFocus();
+  useAutoUpdateCheck();
 
   useEffect(() => {
     if (settingsReady) void setLanguage(language);
