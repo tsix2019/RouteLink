@@ -70,5 +70,23 @@
     "loadFailed": "Couldn't read the router's certificate",
     "view": "View Certificate",
     "trusted": "New certificate trusted"
+  },
+  "group": {
+    "apTag": "Access point",
+    "gatewayTag": "Gateway",
+    "section": "Network Group",
+    "role": "Role",
+    "standalone": "Standalone router",
+    "gateway": "Main router",
+    "apOf": "Access point of {{name}}",
+    "joinAs": "Join {{name}} as an access point",
+    "footer": "A main router and its access points form a network group: one device list, Wi-Fi settings per access point, and same-name networks changed together.",
+    "saved": "Network group updated",
+    "suggestTitle": "Join a network group?",
+    "suggestMessage": "{{name}} looks like an access point behind {{gateway}}. As part of its group, its Wi-Fi devices show up in the main router’s device list.",
+    "suggestJoin": "Join as access point",
+    "suggestSkip": "Keep it standalone",
+    "usePassword": "Use a saved router’s password",
+    "usePasswordNone": "No saved passwords"
   }
 }

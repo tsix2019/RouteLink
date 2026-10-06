@@ -4,14 +4,18 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { getLiveConnection } from '@/api/connection/manager';
 import { classifyError, type ConnectionFailure } from '@/api/connection/types';
+import { readGroupHints, roleOf, suggestGateway } from '@/api/group';
 import { useAddDraft, type AddTarget } from '@/features/routers/addDraft';
+import { useSetRole } from '@/features/routers/GroupSection';
 import { hostOf, parseAddress, tryLogin, type LoginOutcome } from '@/features/routers/login';
 import { nativeFetchCertificate, resolveCertificate } from '@/features/routers/trust';
 import { useTrustPrompt } from '@/features/routers/TrustSheet';
 import { useT } from '@/i18n';
-import { useRouters } from '@/state/routers';
+import { sortedRouters, useRouters, type RouterProfile } from '@/state/routers';
 import { useSettings } from '@/state/settings';
+import { ActionSheet } from '@/ui/ActionSheet';
 import { AppText } from '@/ui/AppText';
 import { describeFailure } from '@/ui/errorText';
 import { Banner } from '@/ui/Feedback';
@@ -21,6 +25,7 @@ import { Icon } from '@/ui/Icon';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { Screen } from '@/ui/Screen';
 import { TextField } from '@/ui/TextField';
+import { useToast } from '@/ui/Toast';
 import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
 import { Segmented } from '@/ui/Segmented';
@@ -40,6 +45,27 @@ interface Entry extends AddTarget {
 
 const toEntry = (target: AddTarget): Entry => ({ ...target, password: '', status: { state: 'idle' } });
 
+interface Suggestion {
+  profile: RouterProfile;
+  gateway: RouterProfile;
+}
+
+/** NG-1: a new router that looks like an AP behind a saved router (bounded: never holds up the add). */
+async function findSuggestion(profile: RouterProfile, password: string): Promise<Suggestion | null> {
+  try {
+    const conn = getLiveConnection(profile, password);
+    const hints = await Promise.race([
+      readGroupHints(conn),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 6_000)),
+    ]);
+    if (!hints) return null;
+    const gateway = suggestGateway(hints, useRouters.getState().routers, profile.id);
+    return gateway ? { profile, gateway } : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Step 2 of adding routers: credentials, a login check per router (with the certificate trust
  * prompt for self-signed HTTPS), then save and open the first router.
@@ -54,6 +80,12 @@ export default function AddRouterLogin() {
   const addRouter = useRouters((s) => s.add);
   const setActive = useRouters((s) => s.setActive);
   const setSettings = useSettings((s) => s.set);
+  const getPassword = useRouters((s) => s.getPassword);
+  const setRole = useSetRole();
+  const toast = useToast();
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [newIds, setNewIds] = useState<string[]>([]);
+  const [pickingPassword, setPickingPassword] = useState(false);
 
   const draft = useAddDraft((s) => s.targets);
   const manual = draft.length === 0;
@@ -131,6 +163,7 @@ export default function AddRouterLogin() {
     const done = list.map((e) => results.get(e.baseUrl)!);
     if (done.every((e) => e.status.state === 'ok')) {
       const ids: string[] = [];
+      const found: Suggestion[] = [];
       for (const e of done) {
         if (e.status.state !== 'ok') continue;
         const { outcome } = e.status;
@@ -147,19 +180,51 @@ export default function AddRouterLogin() {
           shared ? password : e.password,
         );
         ids.push(profile.id);
+        const suggestion = await findSuggestion(profile, shared ? password : e.password);
+        if (suggestion) found.push(suggestion);
       }
-      setActive(ids[0]);
-      setSettings({ demoMode: false });
-      queryClient.removeQueries({ queryKey: [ids[0]] });
-      // Leave the modal and whatever was underneath (welcome, switcher): start fresh on the new router.
-      navigation.getParent()?.reset({
-        index: 0,
-        routes: [{ name: '(tabs)', state: { index: 0, routes: [{ name: 'overview' }] } }],
-      });
+      if (found.length) {
+        setNewIds(ids);
+        setSuggestions(found);
+        return;
+      }
+      finish(ids);
       return;
     }
     setBusy(false);
   };
+
+  const finish = (ids: string[]) => {
+    // An access point opens on its gateway: that is where the merged view is.
+    const first = useRouters.getState().routers.find((r) => r.id === ids[0]);
+    const open = first && roleOf(first) === 'ap' && first.gatewayId ? first.gatewayId : ids[0];
+    setActive(open);
+    setSettings({ demoMode: false });
+    queryClient.removeQueries({ queryKey: [open] });
+    // Leave the modal and whatever was underneath (welcome, switcher): start fresh on the new router.
+    navigation.getParent()?.reset({
+      index: 0,
+      routes: [{ name: '(tabs)', state: { index: 0, routes: [{ name: 'overview' }] } }],
+    });
+  };
+
+  const decide = async (join: boolean) => {
+    const [current, ...rest] = suggestions;
+    if (join) await setRole(current.profile, { gatewayId: current.gateway.id });
+    setSuggestions(rest);
+    if (!rest.length) finish(newIds);
+  };
+
+  /** "Use the main router's password": most APs of a home share it. */
+  const fillPassword = async (id: string) => {
+    setPickingPassword(false);
+    const saved = await getPassword(id);
+    if (saved) setPassword(saved);
+    else toast(t('routers:group.usePasswordNone'), 'info');
+  };
+  const passwordSources = sortedRouters(routers).sort(
+    (a, b) => Number(roleOf(b) === 'gateway') - Number(roleOf(a) === 'gateway'),
+  );
 
   return (
     <>
@@ -266,6 +331,15 @@ export default function AddRouterLogin() {
               testID="login-password"
             />
           ) : null}
+          {shared && passwordSources.length ? (
+            <GlassButton
+              label={t('routers:group.usePassword')}
+              icon="key"
+              compact
+              onPress={() => setPickingPassword(true)}
+              testID="login-use-password"
+            />
+          ) : null}
         </GlassCard>
 
         <ListSection footer={t('routers:login.savePasswordHint')}>
@@ -289,6 +363,30 @@ export default function AddRouterLogin() {
         />
       </Screen>
       {trust.sheet}
+      <ActionSheet
+        visible={pickingPassword}
+        title={t('routers:group.usePassword')}
+        actions={passwordSources.map((r) => ({
+          label: r.name,
+          icon: 'router',
+          onPress: () => void fillPassword(r.id),
+        }))}
+        onCancel={() => setPickingPassword(false)}
+      />
+      <ActionSheet
+        visible={suggestions.length > 0}
+        title={t('routers:group.suggestTitle')}
+        message={
+          suggestions[0]
+            ? t('routers:group.suggestMessage', {
+                name: suggestions[0].profile.name,
+                gateway: suggestions[0].gateway.name,
+              })
+            : undefined
+        }
+        actions={[{ label: t('routers:group.suggestJoin'), icon: 'accessPoint', onPress: () => void decide(true) }]}
+        onCancel={() => void decide(false)}
+      />
     </>
   );
 }

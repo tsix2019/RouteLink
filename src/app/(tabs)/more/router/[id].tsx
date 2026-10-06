@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import { dropLiveConnection } from '@/api/connection/manager';
+import { GroupSection } from '@/features/routers/GroupSection';
 import { parseAddress } from '@/features/routers/login';
 import { formatFingerprint } from '@/features/routers/trust';
 import { SshSection, sshFieldsOf, sshPortError, type SshFields } from '@/features/terminal/SshSection';
@@ -158,6 +159,7 @@ function RouterForm({ profile }: { profile: RouterProfile }) {
             />
           </GlassCard>
         ) : null}
+        <GroupSection profile={profile} />
         <SshSection
           profile={profile}
           fields={ssh}

@@ -39,3 +39,4 @@ export async function getGroupClients(
   if (!lastSeen) lastSeenByGateway.set(gateway.id, (lastSeen = new Map()));
   return mergeGroupClients(gateway, clients, reports, lastSeen);
 }
+export * from './suggest';

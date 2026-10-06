@@ -2,10 +2,12 @@ import { useQueries } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
+import { DEMO_AP_NAME } from '@/api/connection/demo/connection';
 import { pingRouter } from '@/api/connection/live';
+import { switcherTree } from '@/api/group';
 import { nativeHttpClient } from '@/api/http/native';
 import { useT } from '@/i18n';
-import { sortedRouters, useRouters } from '@/state/routers';
+import { sortedRouters, useRouters, type RouterProfile } from '@/state/routers';
 import { useSettings } from '@/state/settings';
 import { useSnapshots } from '@/state/snapshots';
 import { AppText } from '@/ui/AppText';
@@ -19,7 +21,10 @@ import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
 import { isHttps } from '@/utils/url';
 
-/** Sheet listing every router with live reachability; tap to switch. */
+/**
+ * Sheet listing every router with live reachability; tap to switch. Access points are listed under their
+ * gateway (NG-2) and can still be picked to manage them on their own.
+ */
 export default function RouterSwitcher() {
   const t = useT();
   const nav = useRouter();
@@ -55,27 +60,34 @@ export default function RouterSwitcher() {
       <Screen inTabs={false}>
         <AppText variant="title">{t('routers:switcherTitle')}</AppText>
         <ListSection>
-          {routers.map((r, i) => {
-            const online = pings[i]?.data;
-            const current = !demoMode && r.id === activeId;
-            return (
-              <ListRow
-                key={r.id}
-                title={r.name}
-                subtitle={[r.baseUrl.replace(/^https?:\/\//, ''), snapshots[r.id]?.model ?? r.model]
-                  .filter(Boolean)
-                  .join(' · ')}
-                left={<StatusDot status={online === undefined ? 'unknown' : online ? 'online' : 'offline'} />}
-                right={
-                  <View style={styles.right}>
-                    {!isHttps(r.baseUrl) ? <Icon name="lockOpen" size={14} color={colors.textTertiary} /> : null}
-                    {current ? <Icon name="check" size={18} color={colors.accent} /> : null}
-                  </View>
-                }
-                onPress={() => select(r.id)}
-              />
-            );
-          })}
+          {switcherTree(routers)
+            .flatMap(({ router, aps }) => [router, ...aps])
+            .map((r) => {
+              const online = pings[routers.indexOf(r)]?.data;
+              const current = !demoMode && r.id === activeId;
+              const nested = r.role === 'ap' && routers.some((g) => g.id === r.gatewayId && g.role === 'gateway');
+              return (
+                <ListRow
+                  key={r.id}
+                  title={r.name}
+                  subtitle={[
+                    nested ? t('routers:group.apTag') : r.role === 'gateway' ? t('routers:group.gatewayTag') : null,
+                    r.baseUrl.replace(/^https?:\/\//, ''),
+                    snapshots[r.id]?.model ?? r.model,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                  left={
+                    <View style={nested ? styles.nested : undefined}>
+                      <StatusDot status={online === undefined ? 'unknown' : online ? 'online' : 'offline'} />
+                    </View>
+                  }
+                  right={<RowRight router={r} current={current} />}
+                  onPress={() => select(r.id)}
+                  testID={`switch-${r.id}`}
+                />
+              );
+            })}
           {demoMode || routers.length === 0 ? (
             <ListRow
               key="demo"
@@ -87,6 +99,19 @@ export default function RouterSwitcher() {
                 setSettings({ demoMode: true });
                 nav.back();
               }}
+            />
+          ) : null}
+          {demoMode ? (
+            <ListRow
+              key="demo-ap"
+              title={DEMO_AP_NAME}
+              subtitle={`${t('routers:group.apTag')} · Xiaomi AX3000T`}
+              left={
+                <View style={styles.nested}>
+                  <StatusDot status="online" />
+                </View>
+              }
+              disabled
             />
           ) : null}
         </ListSection>
@@ -104,7 +129,18 @@ export default function RouterSwitcher() {
   );
 }
 
+function RowRight({ router, current }: { router: RouterProfile; current: boolean }) {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.right}>
+      {!isHttps(router.baseUrl) ? <Icon name="lockOpen" size={14} color={colors.textTertiary} /> : null}
+      {current ? <Icon name="check" size={18} color={colors.accent} /> : null}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   right: { flexDirection: 'row', alignItems: 'center', gap: spacing.s },
+  nested: { marginLeft: spacing.l },
   actions: { gap: spacing.s },
 });
