@@ -4,6 +4,10 @@ import type {
   CertificateInfo,
   HttpRequestOptions,
   HttpResponse,
+  LiveMonitorConfig,
+  LiveMonitorState,
+  LiveMonitorSupport,
+  LiveMonitorUpdate,
   NetworkInfo,
   RouteLinkNativeEvents,
   SshExecResult,
@@ -33,6 +37,22 @@ declare class RouteLinkNativeModule extends NativeModule<RouteLinkNativeEvents> 
   sshClose(id: string): Promise<void>;
   /** A one-off command on its own connection. */
   sshExec(options: SshOptions, command: string, timeoutMs?: number): Promise<SshExecResult>;
+
+  // Live monitor (design §16). Android only; iOS rejects with ERR_UNSUPPORTED.
+  /** Starts the foreground service, or replaces the running monitor (one router at a time). */
+  startLiveMonitor(config: LiveMonitorConfig): Promise<void>;
+  /** Ignored when nothing runs. */
+  updateLiveMonitor(update: LiveMonitorUpdate): Promise<void>;
+  stopLiveMonitor(): Promise<void>;
+  getLiveMonitorState(): Promise<LiveMonitorState>;
+  clearLiveMonitorInterruption(): Promise<void>;
+  getLiveMonitorSupport(): Promise<LiveMonitorSupport>;
+  canPostPromotedNotifications(): Promise<boolean>;
+  /** Each resolves false when no settings page could be opened. */
+  openPromotedNotificationSettings(): Promise<boolean>;
+  openNotificationSettings(): Promise<boolean>;
+  /** Asks to be left out of battery optimisation, or opens the list when that is not possible. */
+  openBatteryOptimizationSettings(): Promise<boolean>;
 }
 
 export default requireNativeModule<RouteLinkNativeModule>('RouteLinkNative');

@@ -1,5 +1,6 @@
 package expo.modules.routelinknative
 
+import android.content.Context
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
@@ -11,11 +12,23 @@ import kotlinx.coroutines.withContext
 class RouteLinkNativeModule : Module() {
   private val http = HttpEngine()
   private val ssh = SshEngine { name, payload -> sendEvent(name, payload) }
+  private val liveEvents: (String, Map<String, Any?>) -> Unit = { name, payload -> sendEvent(name, payload) }
+
+  private val context: Context
+    get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
+
+  /** Settings pages open on top of the app when there is an activity. */
+  private val activityOrContext: Context
+    get() = appContext.currentActivity ?: context
 
   override fun definition() = ModuleDefinition {
     Name("RouteLinkNative")
 
-    Events("onSshData", "onSshClosed")
+    Events("onSshData", "onSshClosed", "onLiveMonitorStopped", "onLiveMonitorStatus")
+
+    OnCreate {
+      LiveMonitor.emitter = liveEvents
+    }
 
     AsyncFunction("httpRequest") Coroutine { options: HttpRequestRecord ->
       http.execute(options)
@@ -70,8 +83,50 @@ class RouteLinkNativeModule : Module() {
       withContext(Dispatchers.IO) { ssh.exec(options, command, (timeoutMs ?: 30_000.0).toLong()) }
     }
 
+    // Live monitor (design §16): Android only; iOS rejects with ERR_UNSUPPORTED.
+    AsyncFunction("startLiveMonitor") { config: LiveMonitorConfigRecord ->
+      LiveMonitor.start(context, config.toConfig(System.currentTimeMillis()))
+    }
+
+    AsyncFunction("updateLiveMonitor") { update: LiveMonitorUpdateRecord ->
+      LiveMonitor.update(update)
+    }
+
+    AsyncFunction("stopLiveMonitor") {
+      LiveMonitor.stop(context)
+    }
+
+    AsyncFunction("getLiveMonitorState") {
+      LiveMonitor.state(context)
+    }
+
+    AsyncFunction("clearLiveMonitorInterruption") {
+      LiveMonitor.clearInterruption(context)
+    }
+
+    AsyncFunction("getLiveMonitorSupport") {
+      LiveMonitor.support(context)
+    }
+
+    AsyncFunction("canPostPromotedNotifications") {
+      LiveMonitor.canPostPromoted(context)
+    }
+
+    AsyncFunction("openPromotedNotificationSettings") {
+      LiveMonitor.openPromotionSettings(activityOrContext)
+    }
+
+    AsyncFunction("openNotificationSettings") {
+      LiveMonitor.openNotificationSettings(activityOrContext)
+    }
+
+    AsyncFunction("openBatteryOptimizationSettings") {
+      LiveMonitor.openBatteryOptimizationSettings(activityOrContext)
+    }
+
     OnDestroy {
       ssh.closeAll()
+      if (LiveMonitor.emitter === liveEvents) LiveMonitor.emitter = null
     }
   }
 }
