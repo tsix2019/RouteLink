@@ -3,6 +3,7 @@
 #include <string.h>
 #include <uci.h>
 
+#include "core/util.h"
 #include "sys/config.h"
 
 void rl_config_defaults(rl_config *c)
@@ -10,6 +11,7 @@ void rl_config_defaults(rl_config *c)
 	memset(c, 0, sizeof(*c));
 	c->enabled = true;
 	c->traffic = true;
+	c->wifi = true;
 	snprintf(c->data_dir, sizeof(c->data_dir), "/etc/routelink");
 	c->commit_interval = 0;
 	c->max_size_mb = 32;
@@ -17,6 +19,8 @@ void rl_config_defaults(rl_config *c)
 	c->sample_interval = 30;
 	c->live_interval = 2;
 	c->ret = (rl_retention){ .minute_hours = 48, .hour_days = 90, .day_days = 730, .event_days = 90 };
+	c->signal_minute_days = 7;
+	c->signal_hour_days = 30;
 }
 
 static int clamp(int v, int lo, int hi)
@@ -53,6 +57,7 @@ void rl_config_load(rl_config *c)
 		struct uci_section *r = uci_lookup_section(ctx, pkg, "retention");
 		c->enabled = get_bool(ctx, m, "enabled", c->enabled);
 		c->traffic = get_bool(ctx, m, "traffic", c->traffic);
+		c->wifi = get_bool(ctx, m, "wifi", c->wifi);
 		const char *dir = m ? uci_lookup_option_string(ctx, m, "data_dir") : NULL;
 		if (dir && dir[0] == '/') {
 			snprintf(c->data_dir, sizeof(c->data_dir), "%s", dir);
@@ -72,8 +77,44 @@ void rl_config_load(rl_config *c)
 		c->ret.hour_days = clamp(get_int(ctx, r, "hour_days", c->ret.hour_days), 2, 3660);
 		c->ret.day_days = clamp(get_int(ctx, r, "day_days", c->ret.day_days), 62, 36600);
 		c->ret.event_days = clamp(get_int(ctx, r, "event_days", c->ret.event_days), 1, 3660);
+		/* signal hours are rebuilt from minutes after a restart: a day of minutes is plenty */
+		c->signal_minute_days = clamp(get_int(ctx, r, "signal_minute_days", c->signal_minute_days), 1, 90);
+		c->signal_hour_days = clamp(get_int(ctx, r, "signal_hour_days", c->signal_hour_days), 1, 3660);
 	}
 	uci_free_context(ctx);
+}
+
+size_t rl_config_devices(rl_devflag **out)
+{
+	size_t n = 0, cap = 0;
+	*out = NULL;
+	struct uci_context *ctx = uci_alloc_context();
+	struct uci_package *pkg = NULL;
+	if (!ctx)
+		return 0;
+	if (uci_load(ctx, "routelink", &pkg) == UCI_OK && pkg) {
+		struct uci_element *e;
+		uci_foreach_element(&pkg->sections, e) {
+			struct uci_section *s = uci_to_section(e);
+			rl_mac mac;
+			if (strcmp(s->type, "device") || !rl_mac_parse(uci_lookup_option_string(ctx, s, "mac"), &mac))
+				continue;
+			rl_devflag *f = NULL;
+			for (size_t i = 0; i < n && !f; i++)
+				if (rl_mac_eq(&(*out)[i].mac, &mac))
+					f = &(*out)[i];
+			if (!f) {
+				*out = rl_grow(*out, &cap, n + 1, sizeof(rl_devflag));
+				f = &(*out)[n++];
+				memset(f, 0, sizeof(*f));
+				f->mac = mac;
+			}
+			f->trusted = get_bool(ctx, s, "trusted", false);
+			f->watch = get_bool(ctx, s, "watch", false);
+		}
+	}
+	uci_free_context(ctx);
+	return n;
 }
 
 void rl_config_timezone(char *tz, int tz_len, char *zonename, int zone_len)

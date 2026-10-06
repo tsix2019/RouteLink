@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include <errno.h>
+#include <glob.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -209,18 +210,42 @@ static void schedule_sample(rl_daemon *d)
 	uloop_timeout_set(&d->sample_timer, secs * 1000);
 }
 
+static bool mac_of(uint16_t dev, rl_mac *out, void *ctx)
+{
+	rl_daemon *d = ctx;
+	rl_device *dv = rl_devtab_by_idx(d->devs, dev);
+	if (!dv)
+		return false;
+	*out = dv->mac;
+	return true;
+}
+
 static void handle_time_jump(rl_daemon *d, int64_t now)
 {
-	int64_t jump = now - d->last_sample;
+	int64_t jump = now - d->last_clock;
 	syslog(LOG_NOTICE, "clock jumped by %lld s", (long long)jump);
 	if (!d->synced) {
 		/* everything recorded so far carries the wrong time: drop it, the clock is set now */
 		rl_agg_reset(d->agg);
 		rl_store_discard_pending(d->store);
 		rl_recover(d->store, d->agg, now);
+		if (d->sig_minute) {
+			rl_wifi_reset_data(d->wifi);
+			rl_series_discard_pending(d->sig_minute);
+			rl_series_discard_pending(d->sig_hour);
+			rl_wifi_recover(d->wifi, d->sig_minute, d->sig_hour, now, mac_of, d);
+		}
 		d->synced = true;
 	}
 	event(d, RL_EV_TIME_JUMP, RL_EV_NO_DEV, jump);
+}
+
+/* Both samplers watch the clock: a step means NTP set it (or someone changed it). */
+static void check_clock(rl_daemon *d, int64_t now)
+{
+	if (d->last_clock && (now < d->last_clock - 60 || now > d->last_clock + 3600))
+		handle_time_jump(d, now);
+	d->last_clock = now;
 }
 
 void rl_daemon_sample(rl_daemon *d)
@@ -228,8 +253,7 @@ void rl_daemon_sample(rl_daemon *d)
 	int64_t now = rl_daemon_now();
 	if (!rl_daemon_traffic_on(d) || !d->net_ready)
 		return;
-	if (d->last_sample && (now < d->last_sample - 60 || now > d->last_sample + 3600))
-		handle_time_jump(d, now);
+	check_clock(d, now);
 
 	rl_flows_begin(d->flows, d->baseline_next);
 	d->baseline_next = false;
@@ -323,6 +347,296 @@ static void close_traffic(rl_daemon *d)
 	d->wan_valid = false;
 }
 
+/* ---- wireless (AP role) ---- */
+
+bool rl_daemon_wifi_on(const rl_daemon *d)
+{
+	return d->wifi_on;
+}
+
+int rl_daemon_wifi_interval(const rl_daemon *d)
+{
+	return rl_daemon_now() < d->wifi_live_until ? RL_WIFI_LIVE_INTERVAL : RL_WIFI_INTERVAL;
+}
+
+static void on_sig_rec(rl_tier tier, const uint8_t rec[RL_SERIES_REC_SIZE], void *ctx)
+{
+	rl_daemon *d = ctx;
+	rl_series *s = tier == RL_TIER_HOUR ? d->sig_hour : d->sig_minute;
+	if (s)
+		rl_series_append(s, rec);
+}
+
+static void on_assoc(const rl_wifi_sta *st, bool connected, void *ctx)
+{
+	rl_daemon *d = ctx;
+	event(d, connected ? RL_EV_WIFI_CONNECT : RL_EV_WIFI_DISCONNECT, st->dev, st->freq);
+}
+
+typedef struct {
+	rl_daemon *d;
+	const rl_nl_iface *ifc;
+	int64_t now;
+} sta_ctx;
+
+static void on_station(const rl_sta_sample *s, void *x)
+{
+	sta_ctx *c = x;
+	rl_daemon *d = c->d;
+	bool created;
+	if ((s->has & RL_STA_FLAGS) && !s->authorized)
+		return; /* still in the handshake, or a wrong password: not a device of this network (yet) */
+	rl_device *dev = rl_devtab_get(d->devs, &s->mac, c->now, &created);
+	if (!dev)
+		return;
+	if (created)
+		event(d, RL_EV_DEVICE_NEW, dev->idx, 0);
+	rl_devtab_touch(dev, c->now);
+	rl_wifi_update(d->wifi, s, dev->idx, c->ifc->ifname, c->ifc->freq, c->now);
+}
+
+static void wifi_sample(rl_daemon *d)
+{
+	rl_nl_iface ifaces[RL_NL_MAX_IFACES];
+	int64_t now = rl_daemon_now();
+	if (!d->wifi_on)
+		return;
+	check_clock(d, now);
+	rl_wifi_tick(d->wifi, now);
+	int n = rl_nl80211_ap_ifaces(d->nl, ifaces, RL_NL_MAX_IFACES);
+	bool complete = n >= 0; /* a failed dump must not look like every station left */
+	if (n >= 0) {
+		memcpy(d->ifaces, ifaces, (size_t)n * sizeof(rl_nl_iface));
+		d->n_ifaces = n;
+	}
+	rl_wifi_begin(d->wifi);
+	for (int i = 0; n >= 0 && i < d->n_ifaces; i++) {
+		sta_ctx c = { d, &d->ifaces[i], now };
+		if (rl_nl80211_stations(d->nl, d->ifaces[i].ifindex, on_station, &c) != 0)
+			complete = false;
+	}
+	rl_wifi_end(d->wifi, now, complete);
+	if (!rl_daemon_traffic_on(d))
+		rl_devtab_presence(d->devs, now, NULL, NULL); /* no online/offline events from an AP */
+}
+
+static void wifi_timer_cb(struct uloop_timeout *t)
+{
+	rl_daemon *d = container_of(t, rl_daemon, wifi_timer);
+	wifi_sample(d);
+	if (d->wifi_on)
+		uloop_timeout_set(t, rl_daemon_wifi_interval(d) * 1000);
+}
+
+/* Samples within a second (a station joined: catch its authorization quickly). */
+static void wifi_sample_soon(rl_daemon *d)
+{
+	if (d->wifi_on && (!d->wifi_timer.pending || uloop_timeout_remaining64(&d->wifi_timer) > 1000))
+		uloop_timeout_set(&d->wifi_timer, 1000);
+}
+
+void rl_daemon_wifi_live(rl_daemon *d)
+{
+	int64_t now = rl_daemon_now();
+	bool was_live = now < d->wifi_live_until;
+	d->wifi_live_until = now + RL_LIVE_LEASE;
+	if (!was_live && d->wifi_on) {
+		wifi_sample(d);
+		uloop_timeout_set(&d->wifi_timer, RL_WIFI_LIVE_INTERVAL * 1000);
+	}
+}
+
+typedef struct {
+	rl_daemon *d;
+	int64_t now;
+} survey_ctx;
+
+static void on_survey(const rl_survey_sample *s, void *x)
+{
+	survey_ctx *c = x;
+	rl_wifi_survey_add(c->d->wifi, s, c->now);
+}
+
+static void survey_sample(rl_daemon *d)
+{
+	uint32_t wiphys[RL_NL_MAX_IFACES];
+	size_t n = 0;
+	survey_ctx c = { d, rl_daemon_now() };
+	for (int i = 0; i < d->n_ifaces; i++) {
+		const rl_nl_iface *ifc = &d->ifaces[i];
+		bool done = false;
+		for (size_t j = 0; j < n && !done; j++)
+			done = wiphys[j] == ifc->wiphy;
+		if (done)
+			continue; /* one dump per radio */
+		wiphys[n++] = ifc->wiphy;
+		rl_wifi_survey_begin(d->wifi, ifc->wiphy);
+		if (rl_nl80211_survey(d->nl, ifc->ifindex, ifc->wiphy, on_survey, &c) == 0)
+			rl_wifi_survey_end(d->wifi, ifc->wiphy);
+	}
+	rl_wifi_survey_retain(d->wifi, wiphys, n);
+}
+
+static void survey_timer_cb(struct uloop_timeout *t)
+{
+	rl_daemon *d = container_of(t, rl_daemon, survey_timer);
+	if (!d->wifi_on)
+		return;
+	survey_sample(d);
+	uloop_timeout_set(t, RL_SURVEY_INTERVAL * 1000);
+}
+
+static void on_nl_event(bool added, int ifindex, const rl_mac *mac, void *ctx)
+{
+	rl_daemon *d = ctx;
+	if (!d->wifi_on)
+		return;
+	if (added)
+		wifi_sample_soon(d);
+	else
+		rl_wifi_disassoc(d->wifi, mac, ifindex, rl_daemon_now());
+}
+
+static void nl_fd_cb(struct uloop_fd *fd, unsigned int events)
+{
+	rl_daemon *d = container_of(fd, rl_daemon, nl_fd);
+	if (rl_nl80211_on_readable(d->nl))
+		wifi_sample_soon(d); /* events were lost: the next dump catches up */
+}
+
+static void open_nl(rl_daemon *d)
+{
+	if (d->nl)
+		return;
+	d->nl = rl_nl80211_open(on_nl_event, d);
+	if (!d->nl) {
+		if (!d->nl_missing_logged)
+			syslog(LOG_INFO, "no nl80211 (%s): wireless sampling unavailable", strerror(errno));
+		d->nl_missing_logged = true;
+		return;
+	}
+	d->nl_fd.fd = rl_nl80211_event_fd(d->nl);
+	d->nl_fd.cb = nl_fd_cb;
+	if (d->nl_fd.fd >= 0)
+		uloop_fd_add(&d->nl_fd, ULOOP_READ);
+}
+
+static void close_nl(rl_daemon *d)
+{
+	if (!d->nl)
+		return;
+	if (d->nl_fd.fd >= 0)
+		uloop_fd_delete(&d->nl_fd);
+	rl_nl80211_close(d->nl);
+	d->nl = NULL;
+}
+
+static int open_signal(rl_daemon *d)
+{
+	char path[256];
+	bool bad_m = false, bad_h = false;
+	if (d->sig_minute)
+		return 0;
+	snprintf(path, sizeof(path), "%s/signal.minute", d->cfg.data_dir);
+	d->sig_minute = rl_series_open(path, RL_SIG_KIND_MINUTE, &bad_m);
+	snprintf(path, sizeof(path), "%s/signal.hour", d->cfg.data_dir);
+	d->sig_hour = rl_series_open(path, RL_SIG_KIND_HOUR, &bad_h);
+	if (!d->sig_minute || !d->sig_hour) {
+		syslog(LOG_ERR, "cannot open the signal files in %s", d->cfg.data_dir);
+		rl_series_close(d->sig_minute);
+		rl_series_close(d->sig_hour);
+		d->sig_minute = d->sig_hour = NULL;
+		return -1;
+	}
+	if (bad_m || bad_h) {
+		syslog(LOG_WARNING, "damaged signal files were replaced");
+		event(d, RL_EV_DATA_RECOVERED, RL_EV_NO_DEV, 0);
+	}
+	int n = rl_wifi_recover(d->wifi, d->sig_minute, d->sig_hour, rl_daemon_now(), mac_of, d);
+	if (n)
+		syslog(LOG_INFO, "rebuilt %d hourly signal records after downtime", n);
+	return 0;
+}
+
+static void close_signal(rl_daemon *d)
+{
+	rl_series_close(d->sig_minute);
+	rl_series_close(d->sig_hour);
+	d->sig_minute = d->sig_hour = NULL;
+}
+
+static void start_wifi(rl_daemon *d)
+{
+	if (d->wifi_on || !d->nl || open_signal(d) != 0)
+		return;
+	d->wifi_on = true;
+	uloop_timeout_set(&d->wifi_timer, 0);
+	uloop_timeout_set(&d->survey_timer, 1000); /* after the first station sample found the interfaces */
+	syslog(LOG_INFO, "wireless sampling started");
+}
+
+/* flush: write the open buckets (the open hour too: nothing rebuilds it while the daemon keeps running). */
+static void stop_wifi(rl_daemon *d, bool flush)
+{
+	if (!d->wifi_on)
+		return;
+	uloop_timeout_cancel(&d->wifi_timer);
+	uloop_timeout_cancel(&d->survey_timer);
+	if (flush)
+		rl_wifi_flush(d->wifi, true);
+	rl_wifi_clear(d->wifi);
+	rl_wifi_survey_retain(d->wifi, NULL, 0);
+	d->n_ifaces = 0;
+	d->wifi_on = false;
+	syslog(LOG_INFO, "wireless sampling stopped");
+}
+
+static void detect_ap(rl_daemon *d)
+{
+	rl_nl_iface ifaces[RL_NL_MAX_IFACES];
+	open_nl(d);
+	d->role.ap = d->nl && (rl_nl80211_ap_ifaces(d->nl, ifaces, RL_NL_MAX_IFACES) > 0 || rl_role_wifi_configured());
+	if (d->cfg.wifi && d->role.ap)
+		start_wifi(d);
+	else
+		stop_wifi(d, true);
+}
+
+/* ---- LuCI menu: an access point only shows Wireless and Settings ---- */
+
+static bool set_marker(const char *name, bool on)
+{
+	char path[64];
+	snprintf(path, sizeof(path), RL_RUN_DIR "/%s", name);
+	bool exists = access(path, F_OK) == 0;
+	if (on == exists)
+		return false;
+	if (on) {
+		mkdir(RL_RUN_DIR, 0755);
+		FILE *f = fopen(path, "w");
+		if (f)
+			fclose(f);
+	} else {
+		unlink(path);
+	}
+	return true;
+}
+
+static void update_menu(rl_daemon *d, bool running)
+{
+	bool changed = set_marker("ap", running && d->role.ap);
+	changed |= set_marker("ap-only", running && d->role.ap && !d->role.gateway);
+	if (!changed)
+		return;
+	/* LuCI caches the menu with its dependencies resolved */
+	glob_t g;
+	if (glob("/tmp/luci-indexcache*", 0, NULL, &g) == 0) {
+		for (size_t i = 0; i < g.gl_pathc; i++)
+			unlink(g.gl_pathv[i]);
+		globfree(&g);
+	}
+}
+
 /* ---- periodic refresh: interfaces, role, names, clock ---- */
 
 static void check_synced(rl_daemon *d)
@@ -350,6 +664,8 @@ static void names_timer_cb(struct uloop_timeout *t)
 			open_traffic(d);
 		else
 			close_traffic(d);
+		detect_ap(d);
+		update_menu(d, true);
 		if (first) {
 			rl_daemon_sample(d);
 			schedule_sample(d);
@@ -372,12 +688,22 @@ static bool on_flash(const char *dir)
 	return (unsigned long)fs.f_type == JFFS2_MAGIC || (unsigned long)fs.f_type == UBIFS_MAGIC;
 }
 
+static uint64_t signal_bytes(const rl_daemon *d)
+{
+	return d->sig_minute ? rl_series_bytes(d->sig_minute) + rl_series_bytes(d->sig_hour) : 0;
+}
+
+uint64_t rl_daemon_storage(const rl_daemon *d)
+{
+	return rl_store_bytes(d->store) + signal_bytes(d);
+}
+
 static void compute_limits(rl_daemon *d)
 {
 	struct statvfs vfs;
 	uint64_t max = (uint64_t)d->cfg.max_size_mb << 20;
 	if (statvfs(d->cfg.data_dir, &vfs) == 0) {
-		uint64_t avail = (uint64_t)vfs.f_bavail * vfs.f_frsize + rl_store_bytes(d->store);
+		uint64_t avail = (uint64_t)vfs.f_bavail * vfs.f_frsize + rl_daemon_storage(d);
 		uint64_t pct = avail / 100 * (uint64_t)d->cfg.max_size_percent;
 		if (pct < max)
 			max = pct;
@@ -395,15 +721,25 @@ int rl_daemon_commit(rl_daemon *d, bool flush_minute)
 		return -1;
 	int64_t now = rl_daemon_now();
 	int rc = 0;
-	if (flush_minute)
+	if (flush_minute) {
 		rl_agg_flush(d->agg, RL_TIER_MINUTE); /* the partial minute; rl_recover adds it back after a restart */
+		rl_wifi_flush(d->wifi, false);        /* likewise; rl_wifi_recover rebuilds the open hour from it */
+	}
 	if (rl_store_commit(d->store) != 0)
+		rc = -1;
+	if (d->sig_minute && (rl_series_commit(d->sig_minute) != 0 || rl_series_commit(d->sig_hour) != 0))
 		rc = -1;
 	if (rl_devtab_save(d->devs, d->devtab_path) != 0)
 		rc = -1;
 	int64_t day = rl_bucket_start(RL_TIER_DAY, now);
 	if (day != d->last_compact_day) {
-		rl_store_compact(d->store, now, &d->cfg.ret, d->max_bytes);
+		/* signal history gets at most 3/8 of the size limit: minutes 1/4, hours 1/8 */
+		if (d->sig_minute) {
+			rl_series_compact(d->sig_minute, now - (int64_t)d->cfg.signal_minute_days * 86400, d->max_bytes / 4);
+			rl_series_compact(d->sig_hour, now - (int64_t)d->cfg.signal_hour_days * 86400, d->max_bytes / 8);
+		}
+		uint64_t sig = signal_bytes(d), store_max = d->max_bytes > sig ? d->max_bytes - sig : 0;
+		rl_store_compact(d->store, now, &d->cfg.ret, RL_MAX(store_max, d->max_bytes / 2));
 		rl_events_compact(d->events, now, d->cfg.ret.event_days, RL_EVENTS_CAP);
 		d->last_compact_day = day;
 	}
@@ -435,7 +771,7 @@ static void on_close(rl_tier tier, const rl_rec *r, void *ctx)
 void rl_daemon_reset(rl_daemon *d, unsigned scope)
 {
 	if (scope & RL_RESET_DEVICES)
-		scope |= RL_RESET_TRAFFIC | RL_RESET_EVENTS; /* indexes would be reused */
+		scope |= RL_RESET_TRAFFIC | RL_RESET_EVENTS | RL_RESET_SIGNAL; /* indexes would be reused */
 	if (scope & RL_RESET_TRAFFIC) {
 		rl_store_reset(d->store);
 		rl_agg_reset(d->agg);
@@ -444,7 +780,15 @@ void rl_daemon_reset(rl_daemon *d, unsigned scope)
 	}
 	if (scope & RL_RESET_EVENTS)
 		rl_events_reset(d->events);
+	if (scope & RL_RESET_SIGNAL) {
+		if (d->sig_minute) {
+			rl_series_reset(d->sig_minute);
+			rl_series_reset(d->sig_hour);
+		}
+		rl_wifi_reset_data(d->wifi);
+	}
 	if (scope & RL_RESET_DEVICES) {
+		rl_wifi_clear(d->wifi); /* stations refer to device indexes */
 		rl_devtab_clear(d->devs);
 		rl_devtab_save(d->devs, d->devtab_path);
 		rl_flows_free(d->flows);
@@ -458,6 +802,22 @@ void rl_daemon_time_synced(rl_daemon *d)
 	if (!d->synced)
 		syslog(LOG_INFO, "clock synchronised by ntpd");
 	d->synced = true;
+}
+
+/* ---- config device sections ---- */
+
+static void load_devflags(rl_daemon *d)
+{
+	free(d->devflags);
+	d->n_devflags = rl_config_devices(&d->devflags);
+}
+
+const rl_devflag *rl_daemon_devflag(const rl_daemon *d, const rl_mac *mac)
+{
+	for (size_t i = 0; i < d->n_devflags; i++)
+		if (rl_mac_eq(&d->devflags[i].mac, mac))
+			return &d->devflags[i];
+	return NULL;
 }
 
 /* ---- setup ---- */
@@ -555,6 +915,9 @@ int rl_daemon_init(rl_daemon *d)
 	d->devs = rl_devtab_new();
 	d->flows = rl_flows_new();
 	d->agg = rl_agg_new(on_close, d);
+	d->wifi = rl_wifi_new(on_sig_rec, on_assoc, d);
+	d->nl_fd.fd = -1;
+	load_devflags(d);
 	d->conn_count = calloc(65536, sizeof(uint32_t));
 	if (!d->conn_count)
 		abort();
@@ -579,6 +942,8 @@ int rl_daemon_init(rl_daemon *d)
 	d->sample_timer.cb = sample_timer_cb;
 	d->names_timer.cb = names_timer_cb;
 	d->commit_timer.cb = commit_timer_cb;
+	d->wifi_timer.cb = wifi_timer_cb;
+	d->survey_timer.cb = survey_timer_cb;
 	uloop_timeout_set(&d->commit_timer, d->commit_interval * 1000);
 
 	rl_api_init(d);
@@ -595,6 +960,7 @@ void rl_daemon_reload(rl_daemon *d)
 	rl_config_defaults(&d->cfg);
 	rl_config_load(&d->cfg);
 	apply_timezone(d);
+	load_devflags(d);
 	if (strcmp(old.data_dir, d->cfg.data_dir) != 0) {
 		/* data is not migrated: close the old directory after a final write */
 		rl_config moved = d->cfg;
@@ -602,6 +968,9 @@ void rl_daemon_reload(rl_daemon *d)
 		rl_daemon_commit(d, true);
 		d->cfg = moved;
 		close_data(d);
+		/* the minutes were flushed above; the next names refresh restarts sampling in the new directory */
+		stop_wifi(d, false);
+		close_signal(d);
 		rl_devtab_clear(d->devs);
 		rl_flows_free(d->flows);
 		d->flows = rl_flows_new();
@@ -626,7 +995,12 @@ void rl_daemon_reload(rl_daemon *d)
 void rl_daemon_shutdown(rl_daemon *d)
 {
 	rl_daemon_commit(d, true);
+	update_menu(d, false);
 	close_traffic(d);
+	close_nl(d);
+	close_signal(d);
+	rl_wifi_free(d->wifi);
+	free(d->devflags);
 	if (d->neigh) {
 		uloop_fd_delete(&d->neigh_fd);
 		rl_neigh_close(d->neigh);

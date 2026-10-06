@@ -16,6 +16,8 @@ typedef enum {
 	RL_EV_TIME_JUMP,
 	RL_EV_COMMIT_FAILED,
 	RL_EV_DATA_RECOVERED,
+	RL_EV_WIFI_CONNECT,    /* a = frequency (MHz) of the interface it joined */
+	RL_EV_WIFI_DISCONNECT, /* a = frequency (MHz) of the interface it left */
 	RL_EV_TYPE_END
 } rl_event_type;
 

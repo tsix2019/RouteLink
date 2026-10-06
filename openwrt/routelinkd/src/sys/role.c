@@ -90,6 +90,34 @@ void rl_role_detect(struct ubus_context *ctx, const rl_netinfo *ni, rl_role *r)
 	r->nlbwmon_running = nlbwmon_running(ctx);
 }
 
+bool rl_role_wifi_configured(void)
+{
+	bool found = false;
+	struct uci_context *ctx = uci_alloc_context();
+	struct uci_package *pkg = NULL;
+	if (!ctx)
+		return false;
+	if (uci_load(ctx, "wireless", &pkg) == UCI_OK && pkg) {
+		struct uci_element *e;
+		uci_foreach_element(&pkg->sections, e) {
+			struct uci_section *s = uci_to_section(e);
+			if (strcmp(s->type, "wifi-iface") || truthy(uci_lookup_option_string(ctx, s, "disabled")))
+				continue;
+			const char *mode = uci_lookup_option_string(ctx, s, "mode");
+			const char *dev = uci_lookup_option_string(ctx, s, "device");
+			if (mode && strcmp(mode, "ap"))
+				continue;
+			struct uci_section *radio = dev ? uci_lookup_section(ctx, pkg, dev) : NULL;
+			if (radio && truthy(uci_lookup_option_string(ctx, radio, "disabled")))
+				continue;
+			found = true;
+			break;
+		}
+	}
+	uci_free_context(ctx);
+	return found;
+}
+
 const char *rl_offload_name(rl_offload o)
 {
 	switch (o) {

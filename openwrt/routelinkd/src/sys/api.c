@@ -12,6 +12,8 @@
 #define MAX_EVENTS_OUT 1000
 #define MAX_IPS 8
 
+static const char *const CAPABILITIES[] = { "traffic", "wifi" };
+
 static struct rl_daemon *D;
 static struct blob_buf b;
 
@@ -107,10 +109,19 @@ static int m_info(struct ubus_context *ctx, struct ubus_object *obj, struct ubus
 	c = blobmsg_open_array(&b, "roles");
 	if (D->role.gateway)
 		blobmsg_add_string(&b, NULL, "gateway");
+	if (D->role.ap)
+		blobmsg_add_string(&b, NULL, "ap");
 	blobmsg_close_array(&b, c);
 	c = blobmsg_open_array(&b, "modules");
 	if (rl_daemon_traffic_on(D))
 		blobmsg_add_string(&b, NULL, "traffic");
+	if (rl_daemon_wifi_on(D))
+		blobmsg_add_string(&b, NULL, "wifi");
+	blobmsg_close_array(&b, c);
+	/* every module this build has, switched on or not (modules only lists the running ones) */
+	c = blobmsg_open_array(&b, "capabilities");
+	for (size_t i = 0; i < ARRAY_SIZE(CAPABILITIES); i++)
+		blobmsg_add_string(&b, NULL, CAPABILITIES[i]);
 	blobmsg_close_array(&b, c);
 	blobmsg_add_string(&b, "offload", rl_offload_name(D->role.offload));
 	blobmsg_add_u8(&b, "offload_warning", rl_offload_warning(D->role.offload));
@@ -119,7 +130,7 @@ static int m_info(struct ubus_context *ctx, struct ubus_object *obj, struct ubus
 	blobmsg_add_u8(&b, "time_synced", D->synced);
 	blobmsg_add_string(&b, "zonename", D->zonename);
 	blobmsg_add_string(&b, "data_dir", D->cfg.data_dir);
-	blobmsg_add_u64(&b, "storage_used", rl_store_bytes(D->store));
+	blobmsg_add_u64(&b, "storage_used", rl_daemon_storage(D));
 	blobmsg_add_u64(&b, "storage_limit", D->max_bytes);
 	blobmsg_add_u32(&b, "commit_interval", (uint32_t)D->commit_interval);
 	blobmsg_add_u64(&b, "last_commit", (uint64_t)D->last_commit);
@@ -133,6 +144,8 @@ static int m_info(struct ubus_context *ctx, struct ubus_object *obj, struct ubus
 	blobmsg_add_u32(&b, "hour_days", (uint32_t)D->cfg.ret.hour_days);
 	blobmsg_add_u32(&b, "day_days", (uint32_t)D->cfg.ret.day_days);
 	blobmsg_add_u32(&b, "event_days", (uint32_t)D->cfg.ret.event_days);
+	blobmsg_add_u32(&b, "signal_minute_days", (uint32_t)D->cfg.signal_minute_days);
+	blobmsg_add_u32(&b, "signal_hour_days", (uint32_t)D->cfg.signal_hour_days);
 	blobmsg_close_table(&b, c);
 	return ubus_send_reply(ctx, req, b.head);
 }
@@ -464,10 +477,12 @@ static int m_reset(struct ubus_context *ctx, struct ubus_object *obj, struct ubu
 		scope = RL_RESET_TRAFFIC;
 	else if (!strcmp(s, "events"))
 		scope = RL_RESET_EVENTS;
+	else if (!strcmp(s, "signal"))
+		scope = RL_RESET_SIGNAL;
 	else if (!strcmp(s, "devices"))
 		scope = RL_RESET_DEVICES;
 	else if (!strcmp(s, "all"))
-		scope = RL_RESET_TRAFFIC | RL_RESET_EVENTS | RL_RESET_DEVICES;
+		scope = RL_RESET_TRAFFIC | RL_RESET_EVENTS | RL_RESET_DEVICES | RL_RESET_SIGNAL;
 	else
 		return UBUS_STATUS_INVALID_ARGUMENT;
 	rl_daemon_reset(D, scope);
