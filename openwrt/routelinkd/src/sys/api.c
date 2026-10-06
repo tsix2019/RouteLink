@@ -717,7 +717,9 @@ static int m_survey(struct ubus_context *ctx, struct ubus_object *obj, struct ub
 	list = blobmsg_open_array(&b, "channels");
 	for (size_t i = 0; on && i < rl_wifi_survey_count(D->wifi); i++) {
 		const rl_survey_entry *sv = rl_wifi_survey_at(D->wifi, i);
-		bool skip = !(sv->s.has & RL_SV_NOISE) && sv->busy_pct < 0 && sv->busy_pct_total < 0;
+		/* no data at all, or outside the Wi-Fi channel plans (mac80211_hwsim also scans 900 MHz S1G) */
+		bool skip = (!(sv->s.has & RL_SV_NOISE) && sv->busy_pct < 0 && sv->busy_pct_total < 0) ||
+			    !rl_wifi_channel(sv->s.freq);
 		for (int j = 0; j < n_used && !skip; j++)
 			skip = used[j] == sv;
 		if (skip)

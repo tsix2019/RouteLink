@@ -2,6 +2,7 @@ name: Integration
 
 # Real OpenWrt in QEMU (KVM) with simulated radios, three releases. Slow, so not on every push:
 # changes to the router-facing code, the tests themselves, or on demand.
+# plugin-wireless: routelinkd on the same kind of router, with a fourth radio joining as a station.
 on:
   push:
     branches: [main]
@@ -9,6 +10,8 @@ on:
       - 'src/api/**'
       - 'test/integration/**'
       - 'scripts/ci/qemu-openwrt.sh'
+      - 'scripts/ci/plugin-wireless.sh'
+      - 'openwrt/routelinkd/**'
       - 'scripts/record-fixtures.ts'
       - '.github/workflows/integration.yml'
       - 'jest.integration.config.js'
@@ -81,4 +84,48 @@ jobs:
         if: failure()
         with:
           name: serial-${{ matrix.version }}
+          path: .qemu/serial.log
+
+  plugin-wireless:
+    # Wireless sampling of the router plugin (plan P2 T6): stations, survey, signal history and the
+    # connect / disconnect events, with wpa_supplicant on a spare hwsim radio as the station.
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['23.05.6', '24.10.8', '25.12.5']
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build routelinkd (x86_64)
+        uses: openwrt/gh-action-sdk@v11
+        env:
+          ARCH: x86_64-${{ matrix.version }}
+          FEEDNAME: routelink
+          FEED_DIR: ${{ github.workspace }}/openwrt
+          PACKAGES: routelinkd
+          NO_REFRESH_CHECK: true
+          NO_SHFMT_CHECK: true
+          INDEX: '0'
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666"' | sudo tee /etc/udev/rules.d/99-kvm.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Install QEMU
+        run: sudo apt-get update -q && sudo apt-get install -yq qemu-system-x86 sshpass
+      - uses: actions/cache@v5
+        with:
+          path: .qemu/openwrt-${{ matrix.version }}.img
+          key: openwrt-x86-64-${{ matrix.version }}
+      - name: Boot OpenWrt ${{ matrix.version }} with a spare radio
+        id: boot
+        env:
+          HWSIM_RADIOS: '4'
+        run: scripts/ci/qemu-openwrt.sh ${{ matrix.version }} .qemu
+      - name: Wireless sampling
+        run: scripts/ci/plugin-wireless.sh bin/packages/x86_64/routelink
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: plugin-serial-${{ matrix.version }}
           path: .qemu/serial.log
