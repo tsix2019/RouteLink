@@ -94,6 +94,12 @@ export default function Overview() {
       <ResourcesCard system={system.data} temperature={temperature.data} />
       <SystemCard system={system.data} />
       <GlassCard title={t('overview:actions.title')} icon="bolt" contentStyle={styles.actions}>
+        <GlassButton
+          label={t('diagnostics:entries.diagnose')}
+          icon="pulse"
+          onPress={() => nav.navigate('/network/diagnostics', { withAnchor: true })}
+          testID="action-diagnose"
+        />
         {isAvailable(caps.data, 'wireless') ? (
           <GlassButton
             label={t('overview:actions.wifiQr')}

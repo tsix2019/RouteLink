@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
+import { DiagnosticsSection } from '@/features/diagnostics/DiagnosticsSection';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
 import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
 import { isAvailable } from '@/api/capabilities';
@@ -35,6 +36,7 @@ export default function Network() {
           />
         ) : null
       }>
+      <DiagnosticsSection />
       <ListSection title={t('network:statistics')}>
         <ListRow
           title={t('traffic:title')}

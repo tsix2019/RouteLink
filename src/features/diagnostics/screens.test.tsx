@@ -15,6 +15,7 @@ import Latency from '@/app/(tabs)/network/diagnostics/latency';
 import SpeedTest from '@/app/(tabs)/network/diagnostics/speed';
 import DiagnosticTools from '@/app/(tabs)/network/diagnostics/tools';
 import { ActiveRouterProvider } from '@/features/routers/ActiveRouterProvider';
+import { DiagnosticsSection } from './DiagnosticsSection';
 import { initI18n } from '@/i18n';
 import { useSettings } from '@/state/settings';
 
@@ -194,5 +195,23 @@ describe('speed test', () => {
     await fireEvent.changeText(screen.getByDisplayValue(''), '500');
     await fireEvent.press(screen.getByText('Save'));
     expect(screen.getByText('500 Mbps')).toBeTruthy();
+  });
+});
+
+describe('entries in the Network tab', () => {
+  it('opens every diagnostics page', async () => {
+    await render(wrap(<DiagnosticsSection />));
+    await fireEvent.press(screen.getByText('One-tap diagnosis'));
+    await fireEvent.press(screen.getByText('Diagnostic tools'));
+    await fireEvent.press(screen.getByText('Speed test'));
+    // The demo router has the plugin with latency probes.
+    await waitFor(() => expect(screen.queryByText('Install the RouteLink plugin to see this')).toBeNull());
+    await fireEvent.press(screen.getByText('Outages and latency'));
+    expect(mockPush.mock.calls.map((c) => c[0])).toEqual([
+      '/network/diagnostics',
+      '/network/diagnostics/tools',
+      '/network/diagnostics/speed',
+      '/network/diagnostics/latency',
+    ]);
   });
 });
