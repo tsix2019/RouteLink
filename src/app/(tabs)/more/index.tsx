@@ -8,6 +8,7 @@ import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule'
 import { useRebootConfirm } from '@/features/routers/useRebootConfirm';
 import { isAvailable } from '@/api/capabilities';
 import { useFactoryReset } from '@/features/maintenance/useFactoryReset';
+import { hasUpdate } from '@/features/update/check';
 import { useCapabilities, useRouterQuery } from '@/hooks/router-queries';
 import { useT, type LanguagePreference } from '@/i18n';
 import { useRouters } from '@/state/routers';
@@ -15,6 +16,7 @@ import { useSettings, type RefreshInterval, type ThemePreference } from '@/state
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { Screen } from '@/ui/Screen';
 import { SelectSheet } from '@/ui/SelectSheet';
+import { Badge } from '@/ui/Status';
 
 type Picker = 'language' | 'theme' | 'refresh' | null;
 
@@ -230,7 +232,18 @@ export default function More() {
             }}
             testID="more-demo"
           />
-          <ListRow title={t('more:about')} icon="about" chevron onPress={() => nav.push('/more/about')} />
+          <ListRow
+            title={t('more:about')}
+            icon="about"
+            right={
+              hasUpdate(settings.updateLatest) ? (
+                <Badge label={t('more:updateScreen.badge')} tone="accent" />
+              ) : undefined
+            }
+            chevron
+            onPress={() => nav.push('/more/about')}
+            testID="more-about"
+          />
         </ListSection>
       </Screen>
 

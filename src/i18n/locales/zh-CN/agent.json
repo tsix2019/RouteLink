@@ -75,7 +75,7 @@
     "uninstall": "卸载插件",
     "install": "安装插件",
     "requirements": "需要约 {{size}} 的剩余空间、root 账号，并且路由器要能连上 OpenWrt 官方软件源（用来补装依赖）。",
-    "mirror": "下载镜像",
+    "mirror": "GitHub 下载镜像",
     "mirrorHint": "可以不填。填写后会加在 GitHub 下载地址前面，适合访问 GitHub 慢的网络。",
     "manual": "手动安装说明"
   },

@@ -1,9 +1,11 @@
-import Constants from 'expo-constants';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { StyleSheet, View } from 'react-native';
 
+import { currentVersion, hasUpdate } from '@/features/update/check';
 import { useT } from '@/i18n';
+import { useSettings } from '@/state/settings';
 import { AppText } from '@/ui/AppText';
 import { GlassCard } from '@/ui/GlassCard';
 import { ListRow, ListSection } from '@/ui/ListSection';
@@ -14,7 +16,15 @@ const REPO = 'https://github.com/tsix2019/RouteLink';
 
 export default function About() {
   const t = useT();
-  const version = Constants.expoConfig?.version ?? '—';
+  const nav = useRouter();
+  const version = currentVersion();
+  const latest = useSettings((s) => s.updateLatest);
+  const checkedAt = useSettings((s) => s.updateCheckedAt);
+  const updateStatus = hasUpdate(latest, version)
+    ? t('more:updateScreen.newVersion', { version: latest!.version })
+    : checkedAt
+      ? t('more:updateScreen.upToDate')
+      : t('more:updateScreen.check');
   return (
     <Screen title={t('more:about')}>
       <View style={styles.hero}>
@@ -25,6 +35,14 @@ export default function About() {
         </AppText>
       </View>
       <ListSection>
+        <ListRow
+          title={t('more:update')}
+          subtitle={updateStatus}
+          icon="download"
+          chevron
+          onPress={() => nav.push('/more/update')}
+          testID="about-update"
+        />
         <ListRow
           title={t('more:aboutScreen.source')}
           subtitle="github.com/tsix2019/RouteLink"
