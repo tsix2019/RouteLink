@@ -134,3 +134,8 @@ config retention 'retention'
 
 | 项目 | 结论 |
 |---|---|
+| `speedtest_start` 已在测时 | libubus 没有"忙"这个状态码，改为返回正在进行的那次：`{ "id": 16, "already": true }`（§1.3 已改） |
+| `core/probe` | 断网原因：断网前 30 秒到结束之间出现过 WAN ifdown，并且 60 秒内又 ifup，记为重新拨号；ifdown 更久或没有恢复记为 WAN 断开；都没有记为上游不通 |
+| T7–T11 App 逻辑和演示 | 完成。一键诊断的数据收集（`diagnose.ts`）在演示网络上整套跑通：演示数据里几小时前有一次重新拨号，所以 WAN 和近期稳定性两段是警告 |
+| T12–T16 界面 | 完成（子任务）。HTTP 204 检查依次试 `connectivitycheck.gstatic.com`、`www.google.cn`、`cp.cloudflare.com`，5 秒内任意一个返回 204 就算通过，需要在国内真实网络里确认；手机自己的 Wi-Fi 信号：原生模块的网络信息里没有这一项，暂不显示（§0.8 允许） |
+| `latency` 的 `max_points` | 和 `history` 一样 1～1000；导出 CSV 每个目标取 1000 个点 |

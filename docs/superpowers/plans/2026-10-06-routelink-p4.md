@@ -161,3 +161,11 @@ config notify_settings 'notify'
 
 | 项目 | 结论 |
 |---|---|
+| T13–T17 App | 完成。规则读写在 `services/agent-rules.ts`，插件新方法在 `services/agent-control.ts`；演示路由器带一条限速、两条配额、开着 DNS 记录和一个 Bark 渠道 |
+| 核心模块 | `core/sha256`、`core/quota`、`core/schedule`、`core/dns`、`core/vlog`、`core/dest`、`core/notify`、`core/tcgen`、`core/nftgen` 先写好并有单元测试（ASan、UBSan）；钉钉、飞书的签名用 Python 的 hmac 核对过；nftables 脚本在 24.10.8 容器里用 `nft -c` 和实际加载检查过 |
+| 配额周期 | 按路由器本地时间，用 `mktime` 处理夏令时（切换那天按 23 或 25 小时算）；80% 的门槛是 `limit - limit / 5` |
+| DNS 解析 | 压缩指针只能往前指、最多跳 16 次；随机数据喂 2000 次在 ASan、UBSan 下不出错 |
+| 变长记录日志 | 每条记录前后都有长度，所以可以从新到旧倒着读（按 64 KB 一块）；访问去向一条记录装不下 100 条时，丢掉流量最少的几条 |
+| 后台通知去重（§0.7） | 路由器插件里有开着的、订阅了新设备的推送渠道时，App 的后台检查不再发新设备通知 |
+| T1 限速验证 | 测试 `test/agent/limits.agent.ts`：在路由器的 LAN 口上套用 `core/tcgen` 生成的脚本，开、关软件加速各测一次下载和上传，误差要求 ±10%。CI 先加载 `sch_htb`、`cls_flower`、`act_police` 和 flowtable 模块；rootfs 镜像里没有 `tc`，测试里先装 `tc-tiny` |
+| T20 模拟器 | 本机只有 API 34 的镜像；用户决定不下载 API 36.1 镜像（磁盘空间），状态栏胶囊和推广通知的验证留到以后 |
