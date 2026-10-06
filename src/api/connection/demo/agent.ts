@@ -15,6 +15,7 @@ import {
 } from './presence';
 import { hash01 } from './random';
 import type { DemoState } from './state';
+import { LATENCY_RETENTION, wanEvents } from './diag';
 import { SIGNAL_RETENTION, wifiEvents } from './wifi';
 
 /**
@@ -30,7 +31,7 @@ export const AGENT_DATA_DAYS = 120;
 const WAN_OVERHEAD = 1.03;
 const RETENTION = { minute_hours: 48, hour_days: 90, day_days: 730, event_days: 90 };
 /** Modules of this plugin build (P2): `info.capabilities`. */
-export const DEMO_CAPABILITIES = ['traffic', 'wifi'];
+export const DEMO_CAPABILITIES = ['traffic', 'wifi', 'latency', 'speedtest'];
 
 /** The trust list in the plugin's UCI (`device` sections), as the daemon reads it. */
 export function deviceMarks(state: DemoState): Map<string, { trusted: boolean; watch: boolean }> {
@@ -315,6 +316,7 @@ function eventList(ctx: Ctx, start: number, end: number): Ev[] {
     if (!d.online) out.push({ ts: ctx.now - OFFLINE_FOR, type: 'device_offline', mac: d.mac });
   });
   out.push(...wifiEvents(ctx, 'gateway', from, to));
+  out.push(...wanEvents(ctx, from, to));
   out.push({ ts: ctx.state.agent.dataSince, type: 'daemon_start' });
   out.push({ ts: Math.floor(ctx.state.bootTime / 1000) + 41, type: 'daemon_start' });
   return out.filter((e) => e.ts >= from && e.ts < to).sort((a, b) => b.ts - a.ts);
@@ -330,6 +332,8 @@ const EVENT_TYPES = [
   'data_recovered',
   'wifi_connect',
   'wifi_disconnect',
+  'wan_down',
+  'wan_up',
 ];
 
 /** The `events` method over a list of events (the gateway's, or the demo AP's). */
@@ -392,7 +396,7 @@ export const agentHandlers: Record<string, Handler> = {
     version: '0.1.0',
     api: 1,
     roles: ['gateway', 'ap'],
-    modules: ['traffic', 'wifi'],
+    modules: ['traffic', 'wifi', 'latency', 'speedtest'],
     capabilities: DEMO_CAPABILITIES,
     offload: 'software',
     offload_warning: false,
@@ -410,7 +414,7 @@ export const agentHandlers: Record<string, Handler> = {
     live_until: now + 30,
     started: Math.floor(state.bootTime / 1000) + 41,
     events_lost: 0,
-    retention: { ...RETENTION, ...SIGNAL_RETENTION },
+    retention: { ...RETENTION, ...SIGNAL_RETENTION, ...LATENCY_RETENTION },
   })),
   'routelink.devices': installed((ctx) => {
     const rates = currentRates(ctx);

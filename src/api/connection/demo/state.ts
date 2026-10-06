@@ -2,6 +2,7 @@ import type { UciSection } from '../../uci';
 import { createAddonUci } from './addons';
 import { createDemoAdmin, type DemoAdmin } from './admin';
 import { createDemoAgent, type DemoAgent } from './agent';
+import { createDemoDiag, type DemoDiag } from './diag';
 import { createDemoPackages, type DemoPackages } from './packages';
 import { createRandom, type Random } from './random';
 import { ON_AP } from './wifi';
@@ -57,6 +58,8 @@ export interface DemoState {
   /** dropbear's /etc/dropbear/authorized_keys. */
   ssh: { authorizedKeys: string };
   ap: DemoApState;
+  /** Router-side speed tests started in this session (P3). */
+  diag: DemoDiag;
 }
 
 /** An imported OpenVPN client profile (NW-8). */
@@ -478,6 +481,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
       authorizedKeys: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDemoLaptopKeyDemoLaptopKeyDemoLaptopKey00 alex@laptop\n',
     },
     ap: createDemoAp(now),
+    diag: createDemoDiag(),
   };
 }
 

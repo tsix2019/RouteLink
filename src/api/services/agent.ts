@@ -142,7 +142,10 @@ export type AgentEventType =
   | 'data_recovered'
   /** value: frequency (MHz) of the interface */
   | 'wifi_connect'
-  | 'wifi_disconnect';
+  | 'wifi_disconnect'
+  /** The WAN interface went down / came up (netifd), P3 */
+  | 'wan_down'
+  | 'wan_up';
 
 export interface AgentEvent {
   ts: number;

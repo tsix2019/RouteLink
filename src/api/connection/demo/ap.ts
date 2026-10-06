@@ -1,5 +1,6 @@
 import { UbusError } from '../../ubus/errors';
 import { DEMO_CAPABILITIES, eventsOf, type Ev } from './agent';
+import { diagCommands } from './diag';
 import { uciHandlers, type Handler } from './handlers';
 import { type Ctx } from './presence';
 import type { DemoState } from './state';
@@ -69,6 +70,11 @@ export const apHandlers: Record<string, Handler> = {
     swap: { total: 0, free: 0 },
   }),
   ...wirelessHandlers('ap'),
+  'file.exec': (s, p, now) => {
+    const run = diagCommands('ap')[String(p.command)];
+    if (!run) throw new UbusError('PERMISSION_DENIED', 'file.exec');
+    return run(s, (p.params as string[] | undefined) ?? [], now);
+  },
   ...uciHandlers((s) => s.ap.uci),
   ...wifiAgentHandlers('ap'),
   'routelink.info': (s, _p, nowMs) => {

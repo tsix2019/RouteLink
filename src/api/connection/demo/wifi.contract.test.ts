@@ -28,7 +28,11 @@ describe('demo network group', () => {
     const { conn, ap } = demo();
     await expect(getAgentStatus(conn)).resolves.toMatchObject({
       state: 'ok',
-      info: { roles: ['gateway', 'ap'], capabilities: ['traffic', 'wifi'], retention: { signalMinuteDays: 7 } },
+      info: {
+        roles: ['gateway', 'ap'],
+        capabilities: expect.arrayContaining(['traffic', 'wifi']),
+        retention: { signalMinuteDays: 7 },
+      },
     });
     await expect(getAgentStatus(ap)).resolves.toMatchObject({
       state: 'ok',

@@ -3,6 +3,7 @@ import { UbusError } from '../../ubus/errors';
 import type { UciSection } from '../../uci';
 import { adminHandlers, demoKill, demoLocaltime } from './admin';
 import { agentHandlers } from './agent';
+import { diagAgentHandlers, diagCommands } from './diag';
 import { demoConntrack, demoReverseDns } from './connections';
 import { addonHandlers, demoAddonFile, demoAddonList, demoSqmDevices } from './addons';
 import { DEMO_MOUNTS, demoMaintenanceWrite, demoValidateFirmware, maintenanceCommands } from './maintenance';
@@ -68,6 +69,7 @@ const files: Record<
     return { code: 0 };
   },
   '/bin/kill': (s, args) => demoKill(s, args),
+  ...diagCommands('gateway'),
   ...maintenanceCommands,
   '/etc/init.d/cron': (_s, args) => (args[0] === 'reload' ? { code: 0 } : { code: 1, stderr: 'unsupported' }),
   '/etc/init.d/sqm': (s, args) => {
@@ -277,6 +279,7 @@ export const handlers: Record<string, Handler> = {
   ...uciHandlers((s) => s.uci),
 
   ...agentHandlers,
+  ...diagAgentHandlers,
   ...adminHandlers,
   ...addonHandlers,
   'luci.getConntrackList': (s, _p, now) => demoConntrack(s, now),
