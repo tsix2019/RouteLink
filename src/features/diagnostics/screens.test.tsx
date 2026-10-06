@@ -8,8 +8,10 @@ import type { ReactNode } from 'react';
 import { Share } from 'react-native';
 import RouteLinkNative from 'routelink-native';
 
+import { DEMO_AP_NAME } from '@/api/connection/demo/connection';
 import { resetDemoConnection } from '@/api/connection/manager';
 import Diagnosis from '@/app/(tabs)/network/diagnostics/index';
+import DiagnosticTools from '@/app/(tabs)/network/diagnostics/tools';
 import { ActiveRouterProvider } from '@/features/routers/ActiveRouterProvider';
 import { initI18n } from '@/i18n';
 import { useSettings } from '@/state/settings';
@@ -108,4 +110,32 @@ describe('one-click diagnosis', () => {
     expect(screen.getByText('Checking…')).toBeTruthy();
     await waitFor(() => expect(screen.getByText('Run again')).toBeTruthy(), { timeout: 8_000 });
   }, 20_000);
+});
+
+describe('diagnostic tools', () => {
+  it('checks the target, pings from the gateway and traces from the AP', async () => {
+    await render(wrap(<DiagnosticTools />));
+    await fireEvent.press(screen.getByTestId('tools-run'));
+    expect(screen.getByText('Enter a host name or an IP address')).toBeTruthy();
+
+    await fireEvent.changeText(screen.getByTestId('tools-target'), 'www.baidu.com');
+    await fireEvent.press(screen.getByText('segment:10 pings'));
+    await fireEvent.press(screen.getByTestId('tools-run'));
+    await waitFor(() => expect(screen.getByTestId('tools-summary')).toBeTruthy());
+    expect(screen.getAllByText('10')).toHaveLength(2); // sent and received
+    expect(screen.getByText(/^Demo router · took \d+ s$/)).toBeTruthy();
+    expect(screen.getByTestId('tools-raw').props.children).toMatch(/10 packets transmitted/);
+
+    await fireEvent.press(screen.getByTestId('tools-router'));
+    await fireEvent.press(screen.getByText(DEMO_AP_NAME));
+    await fireEvent.press(screen.getByText('segment:Traceroute'));
+    await fireEvent.press(screen.getByTestId('tools-run'));
+    await waitFor(() => expect(screen.getByText(new RegExp(`^Hops · ${DEMO_AP_NAME} · took`))).toBeTruthy());
+    expect(screen.getByText('192.168.8.1')).toBeTruthy();
+
+    await fireEvent.press(screen.getByText('segment:nslookup'));
+    await fireEvent.changeText(screen.getByTestId('tools-target'), 'nothing.invalid');
+    await fireEvent.press(screen.getByTestId('tools-run'));
+    await waitFor(() => expect(screen.getByText(/^Answers · /)).toBeTruthy());
+  });
 });
