@@ -121,6 +121,23 @@ export function describeSchedule(s: readonly string[], lang: 'zh-CN' | 'en'): st
   return null;
 }
 
+/**
+ * Where an entry the user is editing sits in a crontab read again (lines may have moved): the same
+ * schedule and command, not App-managed, nearest to where it was. Null once it was changed or removed.
+ */
+export function findEntry(lines: CronLine[], entry: CronEntry, near: number): number | null {
+  const same = (l: CronLine | undefined) =>
+    l?.kind === 'entry' &&
+    !l.managed &&
+    l.command === entry.command &&
+    l.schedule.join(' ') === entry.schedule.join(' ');
+  let found: number | null = null;
+  lines.forEach((l, i) => {
+    if (same(l) && (found === null || Math.abs(i - near) < Math.abs(found - near))) found = i;
+  });
+  return found;
+}
+
 export interface Crontab {
   lines: CronLine[];
   /** File content as read, to detect changes made elsewhere before writing back. */
