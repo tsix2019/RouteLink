@@ -27,7 +27,7 @@ return view.extend({
 	render: function(info) {
 		var self = this;
 		var m = new form.Map('routelink', _('RouteLink settings'),
-			_('Per-device traffic accounting for the RouteLink app. Changes apply after "Save & Apply".'));
+			_('Per-device traffic accounting and wireless signal history for the RouteLink app. Changes apply after "Save & Apply".'));
 
 		var s = m.section(form.NamedSection, 'main', 'routelink', _('General'));
 		s.addremove = false;
@@ -37,6 +37,11 @@ return view.extend({
 		o.rmempty = false;
 
 		o = s.option(form.Flag, 'traffic', _('Traffic accounting'), _('Only active on a gateway (a zone with masquerading).'));
+		o.default = '1';
+		o.rmempty = false;
+
+		o = s.option(form.Flag, 'wifi', _('Wireless sampling'),
+			_('Signal, rates and channel busy time of wireless stations. Only active on an access point (a wireless interface in AP mode).'));
 		o.default = '1';
 		o.rmempty = false;
 
@@ -85,6 +90,12 @@ return view.extend({
 		o = s.option(form.Value, 'event_days', _('Events (days)'));
 		o.default = '90';
 		o.datatype = 'range(1,3660)';
+		o = s.option(form.Value, 'signal_minute_days', _('Per-minute signal data (days)'));
+		o.default = '7';
+		o.datatype = 'range(1,90)';
+		o = s.option(form.Value, 'signal_hour_days', _('Hourly signal data (days)'));
+		o.default = '30';
+		o.datatype = 'range(1,3660)';
 
 		return m.render().then(function(node) {
 			var data = E('div', { 'class': 'cbi-section' }, [
@@ -102,6 +113,8 @@ return view.extend({
 						_('Clear traffic')), ' ',
 					E('button', { 'class': 'btn cbi-button-negative', click: function() { self.confirmReset('events', _('Clear events?')); } },
 						_('Clear events')), ' ',
+					E('button', { 'class': 'btn cbi-button-negative', click: function() { self.confirmReset('signal', _('Clear signal history?')); } },
+						_('Clear signal history')), ' ',
 					E('button', { 'class': 'btn cbi-button-negative', click: function() { self.confirmReset('all', _('Clear all data?')); } },
 						_('Clear everything'))
 				])

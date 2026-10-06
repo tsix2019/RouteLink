@@ -20,6 +20,9 @@ var callEvents = rpc.declare({
 	object: 'routelink', method: 'events',
 	params: [ 'start', 'end', 'types', 'mac', 'limit', 'offset' ]
 });
+var callStations = rpc.declare({ object: 'routelink', method: 'stations', params: [ 'live' ] });
+var callSignal = rpc.declare({ object: 'routelink', method: 'signal', params: [ 'mac', 'start', 'end', 'max_points' ] });
+var callSurvey = rpc.declare({ object: 'routelink', method: 'survey' });
 var callReset = rpc.declare({ object: 'routelink', method: 'reset', params: [ 'scope' ] });
 var callCommit = rpc.declare({ object: 'routelink', method: 'commit' });
 var callInit = rpc.declare({ object: 'rc', method: 'init', params: [ 'name', 'action' ] });
@@ -175,6 +178,104 @@ function chart(points, step, height) {
 	return root;
 }
 
+/* ---- wireless ---- */
+
+/* Signal grades of the app (design §17.1): >= -60 dBm excellent, >= -70 good, >= -80 fair, else poor;
+ * a signal-to-noise ratio under 20 dB costs a grade. */
+var GRADES = [
+	[ _('Excellent'), '#2e9e44' ],
+	[ _('Good'), '#7cb342' ],
+	[ _('Fair'), '#f39c12' ],
+	[ _('Poor'), '#d9534f' ]
+];
+
+function signalGrade(signal, noise) {
+	var g = signal >= -60 ? 0 : signal >= -70 ? 1 : signal >= -80 ? 2 : 3;
+	if (noise != null && noise < 0 && signal - noise < 20 && g < 3)
+		g++;
+	return g;
+}
+
+function gradeBadge(signal, noise) {
+	if (signal == null)
+		return E('span', {}, '-');
+	var g = GRADES[signalGrade(signal, noise)];
+	return E('span', { style: 'white-space:nowrap' }, [
+		E('span', { style: 'display:inline-block;width:10px;height:10px;border-radius:5px;margin-right:6px;background:' + g[1] }),
+		'%d dBm '.format(signal),
+		E('span', { style: 'color:' + g[1] }, g[0])
+	]);
+}
+
+function bandOf(freq) {
+	return freq >= 5925 ? '6 GHz' : freq >= 4900 ? '5 GHz' : freq >= 2400 ? '2.4 GHz' : '-';
+}
+
+/* Negotiated rates come in kbit/s. */
+function formatKbit(kbit) {
+	if (kbit == null)
+		return '-';
+	return kbit >= 1000 ? (kbit / 1000).toFixed(kbit >= 100000 ? 0 : 1) + ' Mbit/s' : kbit + ' kbit/s';
+}
+
+function formatDuration(sec) {
+	if (sec == null)
+		return '-';
+	var d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60);
+	return d ? '%dd %dh'.format(d, h) : h ? '%dh %dm'.format(h, m) : m ? '%dm'.format(m) : '%ds'.format(sec);
+}
+
+/*
+ * Signal history line chart. points: [ [ts, avg, min, ...] ] from the signal method, null for no data
+ * (drawn as a gap). Bands at -60/-70/-80 dBm show the grades.
+ */
+function signalChart(points, height) {
+	var width = 800, h = height || 160, pad = 28, top = -10, bottom = -100;
+	var root = svg('svg', { viewBox: '0 0 ' + width + ' ' + (h + pad), width: '100%', preserveAspectRatio: 'none',
+		style: 'max-height:' + (h + pad) + 'px' });
+	var n = Math.max(points.length, 2);
+	var x = function(i) { return i * width / (n - 1); };
+	var y = function(v) { return (top - Math.max(bottom, Math.min(top, v))) / (top - bottom) * h; };
+
+	[ [ -60, 0 ], [ -70, 1 ], [ -80, 2 ] ].forEach(function(l) {
+		root.appendChild(svg('line', { x1: 0, x2: width, y1: y(l[0]), y2: y(l[0]), stroke: GRADES[l[1]][1],
+			'stroke-opacity': '0.5', 'stroke-dasharray': '4 4' }));
+		var t = svg('text', { x: width - 4, y: y(l[0]) - 2, 'font-size': '10', fill: '#888', 'text-anchor': 'end' });
+		t.textContent = l[0] + ' dBm';
+		root.appendChild(t);
+	});
+
+	[ [ 2, '#2f7ef6', '1', '0.45' ], [ 1, '#2f7ef6', '2', '1' ] ].forEach(function(series) {
+		var d = '', open = false;
+		points.forEach(function(p, i) {
+			if (p[series[0]] == null) {
+				open = false;
+				return;
+			}
+			d += (open ? 'L' : 'M') + x(i) + ',' + y(p[series[0]]);
+			open = true;
+		});
+		root.appendChild(svg('path', { d: d, fill: 'none', stroke: series[1], 'stroke-width': series[2],
+			'stroke-opacity': series[3] }));
+	});
+
+	points.forEach(function(p, i) {
+		if (p[1] == null)
+			root.appendChild(svg('rect', { x: x(i) - width / n / 2, y: 0, width: width / n, height: h,
+				fill: '#888', 'fill-opacity': '0.12' }));
+	});
+
+	[ 0, Math.floor((points.length - 1) / 2), points.length - 1 ].forEach(function(i, k) {
+		if (!points[i])
+			return;
+		var t = svg('text', { x: x(i), y: h + 18, 'font-size': '11', fill: '#888',
+			'text-anchor': k === 0 ? 'start' : k === 1 ? 'middle' : 'end' });
+		t.textContent = formatTime(points[i][0], points[points.length - 1][0] - points[0][0] > 86400);
+		root.appendChild(t);
+	});
+	return root;
+}
+
 /* Rate sparkline from an array of numbers. */
 function sparkline(values, color) {
 	var width = 120, h = 24, max = Math.max.apply(null, values.concat([ 1 ]));
@@ -218,6 +319,9 @@ return baseclass.extend({
 	history: callHistory,
 	summary: callSummary,
 	events: callEvents,
+	stations: callStations,
+	signal: callSignal,
+	survey: callSurvey,
 	reset: callReset,
 	commit: callCommit,
 	initAction: callInit,
@@ -234,6 +338,13 @@ return baseclass.extend({
 	bar: bar,
 	csv: csv,
 	download: download,
+	GRADES: GRADES,
+	signalGrade: signalGrade,
+	gradeBadge: gradeBadge,
+	bandOf: bandOf,
+	formatKbit: formatKbit,
+	formatDuration: formatDuration,
+	signalChart: signalChart,
 
 	/* nlbwmon zeroes conntrack counters: offer to stop it. */
 	stopNlbwmon: function() {

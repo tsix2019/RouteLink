@@ -25,7 +25,8 @@ return view.extend({
 			E('h3', {}, _('Status')),
 			E('table', { 'class': 'table' }, [
 				[ _('Version'), info.version ],
-				[ _('Role'), info.roles.indexOf('gateway') >= 0 ? _('Gateway (traffic accounting)') : _('Not a gateway') ],
+				[ _('Role'), [ info.roles.indexOf('gateway') >= 0 ? _('Gateway (traffic accounting)') : _('Not a gateway'),
+					info.roles.indexOf('ap') >= 0 ? _('Access point') : null ].filter(function(r) { return r; }).join(', ') ],
 				[ _('Flow offloading'), { none: _('Off'), software: _('Software'), hardware: _('Hardware'), sfe: 'SFE' }[info.offload] || info.offload ],
 				[ _('Clock'), info.time_synced ? _('Synchronised') : _('Not synchronised') ],
 				[ _('Storage'), '%s / %s'.format(rl.formatBytes(info.storage_used), rl.formatBytes(info.storage_limit)) ],

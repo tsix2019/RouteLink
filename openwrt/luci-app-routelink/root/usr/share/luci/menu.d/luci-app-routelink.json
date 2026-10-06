@@ -16,6 +16,9 @@
 		"action": {
 			"type": "view",
 			"path": "routelink/overview"
+		},
+		"depends": {
+			"fs": { "/var/run/routelink/ap-only": "absent" }
 		}
 	},
 
@@ -25,6 +28,21 @@
 		"action": {
 			"type": "view",
 			"path": "routelink/traffic"
+		},
+		"depends": {
+			"fs": { "/var/run/routelink/ap-only": "absent" }
+		}
+	},
+
+	"admin/services/routelink/wireless": {
+		"title": "Wireless",
+		"order": 3,
+		"action": {
+			"type": "view",
+			"path": "routelink/wireless"
+		},
+		"depends": {
+			"fs": { "/var/run/routelink/ap": "file" }
 		}
 	},
 
