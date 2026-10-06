@@ -1,14 +1,12 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { activePeriod, getParental, saveSchedule, validatePeriod, type BlockPeriod } from '@/api/services/parental';
+import { activePeriod, getParental, saveSchedule } from '@/api/services/parental';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
 import { useClients, useRouterMutation, useRouterQuery, useSystem } from '@/hooks/router-queries';
 import { useLang, useT } from '@/i18n';
 import { AppText } from '@/ui/AppText';
-import { DayPicker } from '@/ui/DayPicker';
-import { EditSheet } from '@/ui/EditSheet';
 import { describeError } from '@/ui/errorText';
 import { ErrorState, Skeleton } from '@/ui/Feedback';
 import { GlassButton } from '@/ui/GlassButton';
@@ -17,20 +15,12 @@ import { ListRow, ListSection } from '@/ui/ListSection';
 import { RiskConfirm } from '@/ui/RiskConfirm';
 import { Screen } from '@/ui/Screen';
 import { StatusDot } from '@/ui/Status';
-import { TimeField } from '@/ui/TimeField';
 import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
 import { normalizeMac } from '@/utils/mac';
 import { describeDays, describeWindow } from '@/utils/weekly';
 
-interface Draft {
-  enabled: boolean;
-  periods: BlockPeriod[];
-}
-
-const NEW_PERIOD: BlockPeriod = { days: [0, 1, 2, 3, 4], from: '21:30', to: '07:00' };
-
-/** DV-8: blocked periods for one device, saved as a whole with "Save and Apply". */
+/** DV-8: blocked periods for one device, each edited and saved on its own page; switched on and off here. */
 export default function ParentalSchedule() {
   const t = useT();
   const lang = useLang();
@@ -40,14 +30,16 @@ export default function ParentalSchedule() {
   const state = useRouterQuery(['parental'], getParental);
   const localTime = useSystem().data?.localTime;
   const saved = state.data?.schedules.get(mac);
-  const [draft, setDraft] = useState<Draft | null>(null);
-  const [editing, setEditing] = useState<{ index: number | null; period: BlockPeriod } | null>(null);
-  const [confirming, setConfirming] = useState(false);
-  const current: Draft = draft ?? { enabled: saved?.enabled ?? true, periods: saved?.periods ?? [] };
+  const nav = useRouter();
+  // The switch flipped, waiting for its confirmation.
+  const [switching, setSwitching] = useState<boolean | null>(null);
   const name = client?.name ?? mac;
+  const periods = saved?.periods ?? [];
+  const periodHref = (index?: number) =>
+    `/devices/edit/period?mac=${encodeURIComponent(mac)}${index === undefined ? '' : `&index=${index}`}` as const;
 
   const save = useRouterMutation(
-    (conn, d: Draft) => saveSchedule(conn, mac, d.periods, d.enabled),
+    (conn, enabled: boolean) => saveSchedule(conn, mac, periods, enabled),
     [['parental'], ['firewall'], ['cron']],
   );
 
@@ -58,17 +50,15 @@ export default function ParentalSchedule() {
       ? activePeriod(saved.periods, now.getUTCDay(), now.getUTCHours() * 60 + now.getUTCMinutes())
       : null;
 
-  const update = (patch: Partial<Draft>) => setDraft({ ...current, ...patch });
   const commit = () => {
-    setConfirming(false);
-    save.mutate(current, {
-      onSuccess: (outcome) => {
-        if (outcome.status === 'rolled-back') toast(t('network:result.rolledBack'), 'warning');
-        else {
-          toast(t('devices:parental.saved'));
-          setDraft(null);
-        }
-      },
+    const enabled = switching;
+    setSwitching(null);
+    if (enabled === null) return;
+    save.mutate(enabled, {
+      onSuccess: (outcome) =>
+        outcome.status === 'rolled-back'
+          ? toast(t('network:result.rolledBack'), 'warning')
+          : toast(t('devices:parental.saved')),
       onError: (e) => toast(describeError(t, e).title, 'error'),
     });
   };
@@ -105,21 +95,23 @@ export default function ParentalSchedule() {
             <ListSection>
               <ListRow
                 title={t('devices:parental.enabled')}
-                switchValue={current.enabled}
-                onSwitch={(enabled) => update({ enabled })}
+                // Nothing to switch before the first period: that one turns the schedule on.
+                switchValue={saved?.enabled ?? true}
+                onSwitch={setSwitching}
+                disabled={!saved || save.isPending}
                 testID="parental-enabled"
               />
             </ListSection>
             <ListSection title={t('devices:parental.periods')} footer={t('devices:parental.footer')}>
-              {current.periods.length ? (
-                current.periods.map((p, index) => (
+              {periods.length ? (
+                periods.map((p, index) => (
                   <ListRow
                     key={`${p.from}-${p.to}-${p.days.join()}`}
                     icon="hourglass"
                     title={describeDays(p.days, lang)}
                     subtitle={describeWindow(p.from, p.to, lang)}
                     chevron
-                    onPress={() => setEditing({ index, period: p })}
+                    onPress={() => nav.push(periodHref(index))}
                     testID={`period-${index}`}
                   />
                 ))
@@ -130,21 +122,8 @@ export default function ParentalSchedule() {
             <GlassButton
               label={t('devices:parental.add')}
               icon="plus"
-              onPress={() => setEditing({ index: null, period: NEW_PERIOD })}
+              onPress={() => nav.push(periodHref())}
               testID="period-add"
-            />
-            {draft ? (
-              <AppText variant="footnote" tone="secondary" align="center">
-                {t('devices:parental.unsaved')}
-              </AppText>
-            ) : null}
-            <GlassButton
-              label={t('devices:parental.save')}
-              variant="primary"
-              disabled={!draft || save.isPending}
-              loading={save.isPending}
-              onPress={() => setConfirming(true)}
-              testID="parental-save"
             />
           </>
         ) : state.isError ? (
@@ -158,86 +137,21 @@ export default function ParentalSchedule() {
         )}
       </Screen>
 
-      {editing ? (
-        <PeriodSheet
-          initial={editing.period}
-          isNew={editing.index === null}
-          onCancel={() => setEditing(null)}
-          onDelete={
-            editing.index === null
-              ? undefined
-              : () => {
-                  update({ periods: current.periods.filter((_, i) => i !== editing.index) });
-                  setEditing(null);
-                }
-          }
-          onSave={(period) => {
-            const periods =
-              editing.index === null
-                ? [...current.periods, period]
-                : current.periods.map((p, i) => (i === editing.index ? period : p));
-            update({ periods });
-            setEditing(null);
-          }}
-        />
-      ) : null}
       <RiskConfirm
-        visible={confirming}
+        visible={switching !== null}
         level="medium"
         disruptive
         title={t('devices:parental.confirmTitle', { name })}
-        consequences={[t('devices:parental.consequenceRules'), t('devices:parental.consequenceCut')]}
+        consequences={
+          switching
+            ? [t('devices:parental.consequenceRules'), t('devices:parental.consequenceCut')]
+            : [t('devices:parental.consequenceRules')]
+        }
         confirmLabel={t('devices:parental.save')}
         onConfirm={commit}
-        onCancel={() => setConfirming(false)}
+        onCancel={() => setSwitching(null)}
       />
     </>
-  );
-}
-
-function PeriodSheet({
-  initial,
-  isNew,
-  onSave,
-  onDelete,
-  onCancel,
-}: {
-  initial: BlockPeriod;
-  isNew: boolean;
-  onSave(period: BlockPeriod): void;
-  onDelete?(): void;
-  onCancel(): void;
-}) {
-  const t = useT();
-  const lang = useLang();
-  const [period, setPeriod] = useState(initial);
-  const [error, setError] = useState<ReturnType<typeof validatePeriod>>(null);
-  const set = (patch: Partial<BlockPeriod>) => {
-    setPeriod((p) => ({ ...p, ...patch }));
-    setError(null);
-  };
-  return (
-    <EditSheet
-      title={isNew ? t('devices:parental.add') : t('devices:parental.edit')}
-      onCancel={onCancel}
-      onDelete={onDelete}
-      deleteLabel={t('devices:parental.deletePeriod')}
-      onSave={() => {
-        const found = validatePeriod(period);
-        setError(found);
-        if (!found) onSave(period);
-      }}
-      testID="period-sheet">
-      <AppText variant="footnote" tone="secondary">
-        {t('devices:parental.days')}
-      </AppText>
-      <DayPicker value={period.days} onChange={(days) => set({ days })} lang={lang} testID="period-days" />
-      <TimeField label={t('devices:parental.from')} value={period.from} onChange={(from) => set({ from })} />
-      <TimeField label={t('devices:parental.to')} value={period.to} onChange={(to) => set({ to })} />
-      <AppText variant="footnote" tone={error ? 'danger' : 'secondary'}>
-        {error ? t(`devices:parental.error.${error}`) : t('devices:parental.overnightHint')}
-      </AppText>
-    </EditSheet>
   );
 }
 
