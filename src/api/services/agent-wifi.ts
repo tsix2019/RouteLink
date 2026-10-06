@@ -125,7 +125,8 @@ export function parseStations(raw: unknown): AgentStations {
         mac: mac(s.mac),
         ifname: str(s.ifname),
         freq: num(s.freq),
-        signal: num(s.signal),
+        // Left out when the driver does not report it: the average, else 0 like iwinfo's assoclist.
+        signal: maybe(s.signal) ?? maybe(s.signal_avg) ?? 0,
         signalAvg: maybe(s.signal_avg),
         noise: maybe(s.noise),
         inactiveMs: num(s.inactive_ms),
