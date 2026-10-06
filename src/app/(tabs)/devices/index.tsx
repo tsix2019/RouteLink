@@ -1,9 +1,10 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { DeviceRow } from '@/features/devices/DeviceRow';
 import { filterClients, type LinkFilter, type StatusFilter } from '@/features/devices/filter';
+import { GroupBanner } from '@/features/devices/GroupBanner';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
 import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
 import { useClients } from '@/hooks/router-queries';
@@ -11,13 +12,14 @@ import { useT } from '@/i18n';
 import { AppText } from '@/ui/AppText';
 import { EmptyState, ErrorState, Skeleton } from '@/ui/Feedback';
 import { ListSection } from '@/ui/ListSection';
-import { Screen } from '@/ui/Screen';
+import { HeaderButton, Screen } from '@/ui/Screen';
 import { TextField } from '@/ui/TextField';
 import { spacing } from '@/ui/theme/tokens';
 import { Segmented } from '@/ui/Segmented';
 
 export default function Devices() {
   const t = useT();
+  const nav = useRouter();
   const clients = useClients();
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
@@ -43,8 +45,21 @@ export default function Devices() {
       <Screen
         title={t('tabs.devices')}
         headerLeft={<RouterSwitcherCapsule />}
+        headerRight={
+          <HeaderButton
+            icon="shield"
+            accessibilityLabel={t('devices:intruders')}
+            onPress={() => nav.push('/devices/intruders')}
+            testID="devices-intruders"
+          />
+        }
         onRefresh={() => clients.refetch()}
-        top={<ConnectionBanner error={clients.data ? clients.error : null} onRetry={() => void clients.refetch()} />}>
+        top={
+          <>
+            <ConnectionBanner error={clients.data ? clients.error : null} onRetry={() => void clients.refetch()} />
+            <GroupBanner />
+          </>
+        }>
         {Platform.OS === 'android' ? (
           <TextField placeholder={t('devices:search')} value={query} onChangeText={setQuery} />
         ) : null}

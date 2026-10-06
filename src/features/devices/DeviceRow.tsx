@@ -20,7 +20,7 @@ export function DeviceRow({ client }: { client: Client }) {
   return (
     <ListRow
       title={client.name}
-      subtitle={[client.ipv4 ?? '—', vendor].filter(Boolean).join(' · ')}
+      subtitle={[client.ipv4 ?? '—', vendor, client.ap?.name].filter(Boolean).join(' · ')}
       left={
         <View style={[styles.icon, { backgroundColor: client.online ? colors.accent : colors.separator }]}>
           <Icon name={deviceIcon(client)} size={18} color={client.online ? colors.accentText : colors.textSecondary} />

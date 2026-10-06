@@ -28,7 +28,9 @@
     "connectedFor": "Connected for",
     "lease": "Lease remaining",
     "staticIp": "Static IP",
-    "notFound": "This device is no longer listed"
+    "notFound": "This device is no longer listed",
+    "apUnknown": "{{name}} is offline, Wi-Fi unknown",
+    "signalRow": "Signal"
   },
   "actions": {
     "title": "Actions",
@@ -96,5 +98,12 @@
       "time": "Invalid time",
       "same": "Start and end can't be the same"
     }
-  }
+  },
+  "group": {
+    "offline": "{{name}} is not reachable: the Wi-Fi details of its devices are unknown.",
+    "needsPassword": "The password of {{name}} is not saved: its devices show without Wi-Fi details.",
+    "enterPassword": "Enter",
+    "retry": "Retry"
+  },
+  "intruders": "Who is on my Wi-Fi"
 }

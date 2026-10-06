@@ -102,6 +102,14 @@ export default function Overview() {
             testID="action-wifi-qr"
           />
         ) : null}
+        {isAvailable(caps.data, 'wireless') ? (
+          <GlassButton
+            label={t('devices:intruders')}
+            icon="shield"
+            onPress={() => nav.navigate('/devices/intruders')}
+            testID="action-intruders"
+          />
+        ) : null}
         <GlassButton
           label={t('assistant:ask')}
           icon="assistant"

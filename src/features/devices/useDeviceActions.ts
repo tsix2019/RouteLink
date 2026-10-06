@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 
 import { isAvailable } from '@/api/capabilities';
 import { toNativeError } from '@/api/http/errors';
+import { ActionError } from '@/api/services/action-error';
 import {
   blockClient,
   kickClient,
@@ -14,6 +15,7 @@ import {
 } from '@/api/services/client-actions';
 import type { Client } from '@/api/services/clients';
 import type { ApplyOutcome } from '@/api/uci';
+import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { useCapabilities, useInterfaces, useRouterMutation } from '@/hooks/router-queries';
 import { useT } from '@/i18n';
 import { describeError } from '@/ui/errorText';
@@ -27,6 +29,7 @@ export function useDeviceActions() {
   const toast = useToast();
   const caps = useCapabilities();
   const lanDevice = useInterfaces().data?.find((i) => i.name === 'lan')?.device;
+  const { router, group } = useActiveRouter();
 
   const report = (outcome: ApplyOutcome) =>
     outcome.status === 'rolled-back'
@@ -45,10 +48,13 @@ export function useDeviceActions() {
   const release = useRouterMutation((conn, client: Client) => removeStaticIp(conn, client), CLIENTS);
   const block = useRouterMutation((conn, client: Client) => blockClient(conn, client), CLIENTS);
   const unblock = useRouterMutation((conn, client: Client) => unblockClient(conn, client), CLIENTS);
-  const kick = useRouterMutation(
-    (conn, a: { client: Client; ban: boolean }) => kickClient(conn, a.client, a.ban ? 5 : 0),
-    CLIENTS,
-  );
+  // NG-5: a station is kicked on the access point it is associated with.
+  const kick = useRouterMutation((conn, a: { client: Client; ban: boolean }) => {
+    const apId = a.client.ap?.routerId;
+    const target = !apId || apId === router?.id ? conn : group.members.find((m) => m.id === apId)?.connection;
+    if (!target) throw new ActionError('ap-unreachable');
+    return kickClient(target, a.client, a.ban ? 5 : 0);
+  }, CLIENTS);
   const wake = useRouterMutation(
     (conn, mac: string) =>
       wakeOnLan(conn, mac, {
