@@ -118,6 +118,19 @@ export function useFormExit() {
   };
 }
 
+/**
+ * The item being edited as first loaded. Saving or deleting it refetches the list; the page keeps its form
+ * on the way out instead of flashing "no longer exists".
+ */
+export function useLoaded<T>(value: T | undefined): T | undefined {
+  const [kept, setKept] = useState(value);
+  if (kept === undefined && value !== undefined) setKept(value);
+  return kept ?? value;
+}
+
+/** Whether a form's values moved away from where they started. */
+export const differs = (a: unknown, b: unknown) => JSON.stringify(a) !== JSON.stringify(b);
+
 /** The page for one item while its data loads, failed to load, or the item is gone (deleted elsewhere). */
 export function FormPlaceholder({
   title,
