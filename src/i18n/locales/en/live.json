@@ -1,0 +1,61 @@
+{
+  "button": "Live monitor",
+  "stop": "Stop monitoring · {{remaining}} left",
+  "stopUnlimited": "Stop live monitor",
+  "elsewhere": "Monitoring “{{name}}”",
+  "starting": "Starting…",
+  "pick": {
+    "title": "Live monitor",
+    "message": "Shows the speed and devices online in the notification shade and the status bar, and ends by itself.",
+    "replace": "Ends the monitor of “{{name}}”: one router at a time.",
+    "min30": "30 minutes",
+    "hour1": "1 hour",
+    "hour4": "4 hours",
+    "unlimited": "Until I stop it"
+  },
+  "noWan": "The WAN interface has not been read yet. Try again in a moment.",
+  "startFailed": "Couldn't start the live monitor",
+  "stoppedError": "Live monitor stopped: the router's certificate has changed",
+  "stoppedSystem": "The system ended the live monitor",
+  "tips": {
+    "notifications": "The live monitor is a notification: allow notifications first.",
+    "promotion": "The status bar chip is turned off for RouteLink. You can turn it on in the system settings.",
+    "battery": "Turn off battery optimisation for RouteLink so the system doesn't end the monitor.",
+    "session": "The login expired. Reconnecting…",
+    "open": "Settings",
+    "allow": "Allow"
+  },
+  "interrupted": {
+    "text": "The system interrupted the live monitor of “{{name}}”. Turning off battery optimisation prevents this.",
+    "battery": "Battery settings",
+    "dismiss": "OK"
+  },
+  "brand": {
+    "oneplus": "OnePlus: turn on Fluid Cloud for RouteLink in the system settings to see the speed there.",
+    "oppo": "OPPO: from ColorOS 16, the speed shows in Fluid Cloud.",
+    "xiaomi": "Xiaomi: HyperOS may show it as a small status bar chip rather than in the Super Island.",
+    "vivo": "vivo: whether the Origin Island shows it is unknown; the notification is always there.",
+    "honor": "Honor: status bar chips are for preinstalled apps only; the speed shows in the notification.",
+    "huawei": "Huawei: status bar chips are not open to other apps; the speed shows in the notification.",
+    "samsung": "Samsung: the Now Bar skips other apps by default. Turn on “Live notifications for all apps” in the developer options."
+  },
+  "notification": {
+    "channel": "Live monitor",
+    "line": "↓ {rx} ↑ {tx} · {online} online",
+    "lineNoCount": "↓ {rx} ↑ {tx}",
+    "top": "Busiest: {name} {rate}",
+    "connecting": "Connecting to the router…",
+    "offlineTitle": "Router offline",
+    "offlineText": "Can't reach “{name}”, trying again",
+    "offlineChip": "Offline",
+    "recovered": "Back online (offline for {duration})",
+    "sessionExpired": "Login expired. Open the app to reconnect",
+    "error": "Can't read the router, trying again",
+    "stop": "Stop",
+    "stoppedTitle": "Live monitor stopped",
+    "stoppedTls": "The router's certificate has changed",
+    "sec": "{s}s",
+    "minSec": "{m}m {s}s",
+    "hourMin": "{h}h {m}m"
+  }
+}

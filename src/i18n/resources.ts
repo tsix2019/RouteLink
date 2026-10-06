@@ -5,6 +5,7 @@ import enControl from './locales/en/control.json';
 import enDevices from './locales/en/devices.json';
 import enDiagnostics from './locales/en/diagnostics.json';
 import enErrors from './locales/en/errors.json';
+import enLive from './locales/en/live.json';
 import enMore from './locales/en/more.json';
 import enNetwork from './locales/en/network.json';
 import enOnboarding from './locales/en/onboarding.json';
@@ -23,6 +24,7 @@ import zhControl from './locales/zh-CN/control.json';
 import zhDevices from './locales/zh-CN/devices.json';
 import zhDiagnostics from './locales/zh-CN/diagnostics.json';
 import zhErrors from './locales/zh-CN/errors.json';
+import zhLive from './locales/zh-CN/live.json';
 import zhMore from './locales/zh-CN/more.json';
 import zhNetwork from './locales/zh-CN/network.json';
 import zhOnboarding from './locales/zh-CN/onboarding.json';
@@ -54,6 +56,7 @@ export const namespaces = [
   'diagnostics',
   'wifitools',
   'control',
+  'live',
 ] as const;
 
 export type Namespace = (typeof namespaces)[number];
@@ -78,6 +81,7 @@ export const resources = {
     diagnostics: zhDiagnostics,
     wifitools: zhWifitools,
     control: zhControl,
+    live: zhLive,
   },
   en: {
     common: enCommon,
@@ -98,5 +102,6 @@ export const resources = {
     diagnostics: enDiagnostics,
     wifitools: enWifitools,
     control: enControl,
+    live: enLive,
   },
 } as const;

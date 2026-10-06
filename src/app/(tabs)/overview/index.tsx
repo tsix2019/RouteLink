@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 
 import { isAvailable } from '@/api/capabilities';
 import { pickWan } from '@/api/services/network';
+import { LiveMonitorButton, LiveMonitorNotice } from '@/features/live/LiveMonitor';
 import { DevicesCard, ResourcesCard, SystemCard, TrafficCard, WanCard } from '@/features/overview/cards';
 import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
@@ -87,6 +88,7 @@ export default function Overview() {
           updatedAt={system.data ? system.dataUpdatedAt : undefined}
         />
       }>
+      <LiveMonitorNotice />
       <TrafficCard series={traffic.series} latest={traffic.latest} intervalSec={intervalSec} />
       <TodayTrafficCard />
       <DevicesCard clients={clients.data} />
@@ -94,6 +96,12 @@ export default function Overview() {
       <ResourcesCard system={system.data} temperature={temperature.data} />
       <SystemCard system={system.data} />
       <GlassCard title={t('overview:actions.title')} icon="bolt" contentStyle={styles.actions}>
+        <LiveMonitorButton
+          latest={traffic.latest}
+          devicesOnline={devicesOnline}
+          clients={clients.data}
+          wanDevice={wan?.device}
+        />
         <GlassButton
           label={t('diagnostics:entries.diagnose')}
           icon="pulse"
