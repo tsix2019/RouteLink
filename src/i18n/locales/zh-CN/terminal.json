@@ -11,6 +11,8 @@
   "reconnect": "重新连接",
   "fontSmaller": "缩小字号",
   "fontLarger": "放大字号",
+  "landscape": "横屏",
+  "portrait": "竖屏",
   "paste": "粘贴",
   "copy": "复制选中的文字",
   "copied": "已复制",
