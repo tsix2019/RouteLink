@@ -1,6 +1,5 @@
 {
   "separator": ", ",
-  "apOffline": "{{names}} not responding: the signal of devices on it is unknown for now",
   "grade": {
     "excellent": "Excellent",
     "good": "Good",
@@ -8,7 +7,11 @@
     "poor": "Poor"
   },
   "tag": {
-    "phone": "This phone"
+    "stranger": "Unknown",
+    "trusted": "Trusted",
+    "phone": "This phone",
+    "random": "Random MAC",
+    "router": "Group router"
   },
   "mode": {
     "legacy": "802.11a/b/g",
@@ -74,5 +77,51 @@
     "disconnect": "Left {{ap}}",
     "roamed": "Roamed",
     "none": "No connects or disconnects in this period"
+  },
+  "intruders": {
+    "title": "Who's on My Wi-Fi",
+    "rescan": "Scan again",
+    "scanning": "Scanning…",
+    "scanningDetail": "Reading the devices of {{names}}",
+    "readingTrust": "Reading the trust list…",
+    "summary": {
+      "ssid": "Online on “{{ssid}}”: {{online}}",
+      "wifi": "Online on Wi-Fi: {{online}}",
+      "all": "Online: {{online}}",
+      "strangers": ", unknown: {{count}}",
+      "clean": ", none unknown"
+    },
+    "scope": {
+      "ssid": "“{{ssid}}”",
+      "wifi": "All Wi-Fi",
+      "all": "All devices"
+    },
+    "empty": "No devices online in this scope",
+    "setup": {
+      "title": "Mark your devices first",
+      "message": "At first every device counts as unknown. Tick the devices you recognise and trust them; from then on only new devices show as unknown.",
+      "start": "Start"
+    },
+    "pick": {
+      "start": "Mark trusted devices",
+      "hint": "{{count}} ticked. Ticked devices become trusted, unticked ones are no longer trusted.",
+      "all": "All",
+      "confirm": "Done",
+      "saved": "Trust list updated"
+    },
+    "trust": "Trust this device",
+    "untrust": "Stop trusting",
+    "trusted": "Trusted devices added: {{count}}",
+    "untrusted": "No longer trusted",
+    "changePassword": "Change Wi-Fi password",
+    "details": "Device details",
+    "signalUnknown": "Signal unknown",
+    "connectedFor": "connected {{duration}}",
+    "kickTemporary": "Kicking is temporary: anyone who knows the password can join again",
+    "localTrust": "The trust list is kept on this phone and moves to the router once the plugin is installed.",
+    "note": {
+      "kick": "Kicking a device off is temporary: if it knows the password it will join again. Change the Wi-Fi password to keep it out.",
+      "private": "Phones using a private (random) address show no vendor; that alone does not make them intruders."
+    }
   }
 }

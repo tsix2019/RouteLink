@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { GroupBanner } from '@/features/devices/GroupBanner';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
 import { GradeBadge, mbps } from '@/features/wifi-tools/GradeBadge';
 import {
@@ -17,7 +18,7 @@ import { bandLabel } from '@/features/wireless/labels';
 import { useGroupClients } from '@/hooks/router-queries';
 import { useT } from '@/i18n';
 import { AppText } from '@/ui/AppText';
-import { Banner, EmptyState, ErrorState, Skeleton } from '@/ui/Feedback';
+import { EmptyState, ErrorState, Skeleton } from '@/ui/Feedback';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { Screen } from '@/ui/Screen';
 import { Segmented } from '@/ui/Segmented';
@@ -38,19 +39,17 @@ export default function SignalMonitor() {
   const rows = sortSignalRows(signalRows(group.data?.clients ?? [], phoneIp), sort);
   const counts = gradeCounts(rows);
   const weak = counts.fair + counts.poor;
-  const offline = group.data?.offline ?? [];
 
   return (
     <Screen
       title={t('wifitools:signal.title')}
       onRefresh={() => group.refetch()}
-      top={<ConnectionBanner error={group.data ? group.error : null} onRetry={() => void group.refetch()} />}>
-      {offline.length ? (
-        <Banner
-          tone="warning"
-          text={t('wifitools:apOffline', { names: offline.map((m) => m.name).join(t('wifitools:separator')) })}
-        />
-      ) : null}
+      top={
+        <>
+          <ConnectionBanner error={group.data ? group.error : null} onRetry={() => void group.refetch()} />
+          <GroupBanner />
+        </>
+      }>
       <Segmented
         values={SORTS.map((s) => t(`wifitools:signal.sort.${s}`))}
         selectedIndex={SORTS.indexOf(sort)}

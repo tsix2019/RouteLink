@@ -10,6 +10,7 @@ import RouteLinkNative from 'routelink-native';
 import { DEMO_AP_ID, DEMO_AP_NAME, DEMO_ROUTER_ID } from '@/api/connection/demo/connection';
 import { getDemoApConnection, getDemoConnection, resetDemoConnection } from '@/api/connection/manager';
 import { getGroupClients } from '@/api/group';
+import Intruders from '@/app/(tabs)/devices/intruders';
 import SignalDetail from '@/app/(tabs)/wireless/tools/signal/[mac]';
 import SignalMonitor from '@/app/(tabs)/wireless/tools/signal/index';
 import { ActiveRouterProvider } from '@/features/routers/ActiveRouterProvider';
@@ -117,5 +118,26 @@ describe('signal monitor', () => {
     expect(screen.getByText('Last 5 minutes')).toBeTruthy();
     await waitFor(() => expect(screen.getByText('Signal history')).toBeTruthy());
     expect(screen.getByText('Roaming')).toBeTruthy();
+  });
+});
+
+describe('intruder check', () => {
+  it('scans, sums up the phone’s SSID and offers the actions for a stranger', async () => {
+    await render(wrap(<Intruders />));
+    expect(screen.getByText('Scanning…')).toBeTruthy();
+    await waitFor(() => expect(screen.getByTestId('intruders-summary')).toBeTruthy(), { timeout: 6_000 });
+    expect(screen.getByText(/^Online on “RouteLink-5G”: \d+, unknown: \d+$/)).toBeTruthy();
+    expect(screen.getAllByText('This phone').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Unknown').length).toBeGreaterThan(0);
+
+    await fireEvent.press(screen.getByText('segment:All devices'));
+    expect(screen.getByText(/^Online: \d+/)).toBeTruthy();
+
+    const strangers = screen.getAllByText('Unknown');
+    await fireEvent.press(strangers[0]);
+    expect(screen.getByText('Device details')).toBeTruthy();
+    await fireEvent.press(screen.getByText('Trust this device'));
+    // Written to the plugin's UCI, then read back.
+    await waitFor(() => expect(screen.getAllByText('Unknown')).toHaveLength(strangers.length - 1));
   });
 });

@@ -1,6 +1,5 @@
 {
   "separator": "、",
-  "apOffline": "{{names}} 没有响应，挂在上面的设备暂时看不到信号",
   "grade": {
     "excellent": "优",
     "good": "良",
@@ -8,7 +7,11 @@
     "poor": "差"
   },
   "tag": {
-    "phone": "本机"
+    "stranger": "陌生",
+    "trusted": "已信任",
+    "phone": "本机",
+    "random": "随机 MAC",
+    "router": "组内路由器"
   },
   "mode": {
     "legacy": "802.11a/b/g",
@@ -74,5 +77,51 @@
     "disconnect": "从 {{ap}} 断开",
     "roamed": "漫游",
     "none": "这段时间没有连接或断开的记录"
+  },
+  "intruders": {
+    "title": "查蹭网",
+    "rescan": "重新扫描",
+    "scanning": "正在扫描…",
+    "scanningDetail": "读取 {{names}} 上的设备",
+    "readingTrust": "正在读取信任列表…",
+    "summary": {
+      "ssid": "「{{ssid}}」下 {{online}} 台在线",
+      "wifi": "Wi-Fi 下 {{online}} 台在线",
+      "all": "共 {{online}} 台在线",
+      "strangers": "，其中 {{count}} 台陌生",
+      "clean": "，没有陌生设备"
+    },
+    "scope": {
+      "ssid": "「{{ssid}}」",
+      "wifi": "全部 Wi-Fi",
+      "all": "全部设备"
+    },
+    "empty": "这个范围内没有在线设备",
+    "setup": {
+      "title": "先标记你的设备",
+      "message": "第一次使用时，所有设备都算陌生。勾选你认识的设备并标记为信任，以后新出现的设备才会显示为陌生。",
+      "start": "开始勾选"
+    },
+    "pick": {
+      "start": "批量标记信任",
+      "hint": "已勾选 {{count}} 台。勾选的设备标记为信任，没勾选的取消信任。",
+      "all": "全选",
+      "confirm": "完成",
+      "saved": "信任列表已更新"
+    },
+    "trust": "标记为信任",
+    "untrust": "取消信任",
+    "trusted": "已信任 {{count}} 台设备",
+    "untrusted": "已取消信任",
+    "changePassword": "修改 Wi-Fi 密码",
+    "details": "设备详情",
+    "signalUnknown": "信号未知",
+    "connectedFor": "已连接 {{duration}}",
+    "kickTemporary": "踢下线只是暂时的，对方知道密码还会再连上",
+    "localTrust": "信任列表保存在这台手机上，装上插件后会自动移到路由器。",
+    "note": {
+      "kick": "踢下线只是暂时的：对方知道密码还会再连上，要彻底解决请修改 Wi-Fi 密码。",
+      "private": "开了私有地址（随机 MAC）的手机显示不出厂商，不一定是蹭网的。"
+    }
   }
 }
