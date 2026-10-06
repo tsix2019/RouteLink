@@ -167,7 +167,9 @@
     "passwordTitle": "修改 {{user}} 的密码？",
     "passwordConsequence": "LuCI 和 SSH 要用新密码登录；App 会为这台路由器保存新密码",
     "passwordDone": "密码已修改",
-    "zoneDone": "时区已修改"
+    "zoneDone": "时区已修改",
+    "zoneSearch": "按名称或 TZ 字符串搜索",
+    "zoneNone": "没有匹配的时区"
   },
   "packages": "软件包",
   "packagesScreen": {
