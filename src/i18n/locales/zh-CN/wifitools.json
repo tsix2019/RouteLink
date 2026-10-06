@@ -1,0 +1,78 @@
+{
+  "separator": "、",
+  "apOffline": "{{names}} 没有响应，挂在上面的设备暂时看不到信号",
+  "grade": {
+    "excellent": "优",
+    "good": "良",
+    "fair": "一般",
+    "poor": "差"
+  },
+  "tag": {
+    "phone": "本机"
+  },
+  "mode": {
+    "legacy": "802.11a/b/g",
+    "ht": "Wi-Fi 4",
+    "vht": "Wi-Fi 5",
+    "he": "Wi-Fi 6"
+  },
+  "chart": {
+    "signal": "信号",
+    "rate": "下行协商速率",
+    "missing": "无数据",
+    "empty": "这段时间没有信号数据",
+    "fiveMinutesAgo": "5 分钟前",
+    "now": "现在"
+  },
+  "signal": {
+    "title": "信号监测",
+    "sort": {
+      "weakest": "信号从弱到强",
+      "name": "按名称"
+    },
+    "summary": "{{count}} 台无线设备，其中 {{weak}} 台信号一般或较差",
+    "summaryGood": "{{count}} 台无线设备，信号都不错",
+    "empty": "没有在线的无线设备",
+    "footer": "这里是 AP 收到的设备信号，页面打开时每 2 秒刷新。",
+    "rates": "↓{{down}} ↑{{up}} Mbps",
+    "snr": "信噪比 {{value}} dB"
+  },
+  "detail": {
+    "notFound": "找不到这台设备",
+    "notOnAp": "现在没有连在 {{ap}} 上",
+    "snr": "信噪比",
+    "noise": "底噪",
+    "down": "下行协商速率",
+    "up": "上行协商速率",
+    "connected": "已连接",
+    "link": "频宽和协议",
+    "retries": "重传率（连接以来）",
+    "phoneNote": "这是本机。这里显示的是 AP 收到的手机信号，和手机自己显示的可能不一样。",
+    "live": "最近 5 分钟",
+    "everySecond": "每秒刷新",
+    "every2s": "每 2 秒刷新，只保留打开页面以来的数据",
+    "tips": "建议",
+    "needsPlugin": "安装 RouteLink 插件后，可以查看信号历史、漫游记录和重传率。",
+    "installPlugin": "安装",
+    "history": "信号历史",
+    "average": "平均信号",
+    "weakest": "最弱信号",
+    "retried": "重传",
+    "retriedValue": "重传 {{retries}} 次，失败 {{failed}} 次",
+    "roaming": "漫游记录",
+    "roamingNote": "汇总组内各台路由器记录的连接和断开。"
+  },
+  "tip": {
+    "move-closer": "信号偏弱。可以让设备靠近 AP，或者把 AP 放到更开阔的位置。",
+    "add-ap": "如果这个位置经常信号差，可以考虑在附近增加一台 AP。",
+    "rate-low": "协商速率不到这个频段常见水平的一半，可能是距离远、干扰多或者设备较旧。",
+    "none": "信号正常，不需要处理。",
+    "unknown": "暂时没有这台设备的信号数据。"
+  },
+  "roam": {
+    "connect": "连上 {{ap}}",
+    "disconnect": "从 {{ap}} 断开",
+    "roamed": "漫游",
+    "none": "这段时间没有连接或断开的记录"
+  }
+}

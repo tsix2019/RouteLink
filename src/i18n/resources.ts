@@ -12,6 +12,7 @@ import enRouters from './locales/en/routers.json';
 import enSettings from './locales/en/settings.json';
 import enTerminal from './locales/en/terminal.json';
 import enTraffic from './locales/en/traffic.json';
+import enWifitools from './locales/en/wifitools.json';
 import enWireless from './locales/en/wireless.json';
 import zhAgent from './locales/zh-CN/agent.json';
 import zhAssistant from './locales/zh-CN/assistant.json';
@@ -27,6 +28,7 @@ import zhRouters from './locales/zh-CN/routers.json';
 import zhSettings from './locales/zh-CN/settings.json';
 import zhTerminal from './locales/zh-CN/terminal.json';
 import zhTraffic from './locales/zh-CN/traffic.json';
+import zhWifitools from './locales/zh-CN/wifitools.json';
 import zhWireless from './locales/zh-CN/wireless.json';
 
 export const namespaces = [
@@ -45,6 +47,7 @@ export const namespaces = [
   'agent',
   'terminal',
   'assistant',
+  'wifitools',
 ] as const;
 
 export type Namespace = (typeof namespaces)[number];
@@ -66,6 +69,7 @@ export const resources = {
     agent: zhAgent,
     terminal: zhTerminal,
     assistant: zhAssistant,
+    wifitools: zhWifitools,
   },
   en: {
     common: enCommon,
@@ -83,5 +87,6 @@ export const resources = {
     agent: enAgent,
     terminal: enTerminal,
     assistant: enAssistant,
+    wifitools: enWifitools,
   },
 } as const;

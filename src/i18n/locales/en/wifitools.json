@@ -1,0 +1,78 @@
+{
+  "separator": ", ",
+  "apOffline": "{{names}} not responding: the signal of devices on it is unknown for now",
+  "grade": {
+    "excellent": "Excellent",
+    "good": "Good",
+    "fair": "Fair",
+    "poor": "Poor"
+  },
+  "tag": {
+    "phone": "This phone"
+  },
+  "mode": {
+    "legacy": "802.11a/b/g",
+    "ht": "Wi-Fi 4",
+    "vht": "Wi-Fi 5",
+    "he": "Wi-Fi 6"
+  },
+  "chart": {
+    "signal": "Signal",
+    "rate": "Download link rate",
+    "missing": "No data",
+    "empty": "No signal data for this period",
+    "fiveMinutesAgo": "5 min ago",
+    "now": "Now"
+  },
+  "signal": {
+    "title": "Signal Monitor",
+    "sort": {
+      "weakest": "Weakest first",
+      "name": "By name"
+    },
+    "summary": "Wireless devices: {{count}}, fair or poor: {{weak}}",
+    "summaryGood": "Wireless devices: {{count}}, all with a good signal",
+    "empty": "No wireless devices online",
+    "footer": "Signal as the access point hears each device; refreshed every 2 seconds while this page is open.",
+    "rates": "↓{{down}} ↑{{up}} Mbps",
+    "snr": "SNR {{value}} dB"
+  },
+  "detail": {
+    "notFound": "Device not found",
+    "notOnAp": "Not connected to {{ap}} right now",
+    "snr": "SNR",
+    "noise": "Noise floor",
+    "down": "Download link rate",
+    "up": "Upload link rate",
+    "connected": "Connected for",
+    "link": "Width and standard",
+    "retries": "Retries (since connecting)",
+    "phoneNote": "This is your phone. The signal shown is what the access point hears from it, which can differ from the phone's own reading.",
+    "live": "Last 5 minutes",
+    "everySecond": "Updated every second",
+    "every2s": "Updated every 2 seconds, kept only while this page is open",
+    "tips": "Advice",
+    "needsPlugin": "Install the RouteLink plugin to see signal history, roaming and retries.",
+    "installPlugin": "Install",
+    "history": "Signal history",
+    "average": "Average signal",
+    "weakest": "Weakest signal",
+    "retried": "Retries",
+    "retriedValue": "{{retries}} retried, {{failed}} failed",
+    "roaming": "Roaming",
+    "roamingNote": "Connects and disconnects recorded by every router of the group."
+  },
+  "tip": {
+    "move-closer": "The signal is weak. Move the device closer to the access point, or put the access point somewhere more open.",
+    "add-ap": "If the signal here is often poor, consider adding an access point nearby.",
+    "rate-low": "The link rate is under half of what this band usually gets: distance, interference or an older device may be the cause.",
+    "none": "The signal is fine; nothing to do.",
+    "unknown": "No signal data for this device yet."
+  },
+  "roam": {
+    "connect": "Joined {{ap}}",
+    "disconnect": "Left {{ap}}",
+    "roamed": "Roamed",
+    "none": "No connects or disconnects in this period"
+  }
+}
