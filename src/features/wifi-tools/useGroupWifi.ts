@@ -14,6 +14,7 @@ import { useMemberQuery } from '@/hooks/router-queries';
 
 import { appendSample, LIVE_WINDOW_SEC, mergeHistories, mergeLive, samplesOf, type LiveSample } from './live';
 import { roamingRecord, type RoamEntry } from './roaming';
+import { parseWifiFeatures, type WifiFeatures } from './security';
 
 /** Data hooks of the Wi-Fi tools across the routers of the active network group. */
 
@@ -244,4 +245,21 @@ export function useRoaming(
     return events ? [{ routerId: r.id, name: r.name, events }] : [];
   });
   return { entries: roamingRecord(sources, mac), isLoading: results.some((x) => x.isLoading) };
+}
+
+/** What each router's hostapd supports (`luci getFeatures`); empty where it cannot be read. */
+export function useWifiFeatures(routers: readonly GroupRouter[]): Record<string, WifiFeatures> {
+  const results = useQueries({
+    queries: routers.map((r) => ({
+      queryKey: [r.id, 'wifi-features'],
+      queryFn: () =>
+        r
+          .connection!.call('luci', 'getFeatures')
+          .then(parseWifiFeatures)
+          .catch((): WifiFeatures => ({})),
+      enabled: !!r.connection,
+      staleTime: 5 * 60_000,
+    })),
+  });
+  return Object.fromEntries(routers.flatMap((r, i) => (results[i].data ? [[r.id, results[i].data!]] : [])));
 }

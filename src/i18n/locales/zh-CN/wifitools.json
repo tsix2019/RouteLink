@@ -173,5 +173,72 @@
       "direct": "手机就连在这个射频上，DFS 检测期间无法确认，这次不会自动恢复",
       "dfs": "DFS 信道切换后可能要等 1～10 分钟才能恢复；期间如果检测到雷达，路由器会换到别的信道"
     }
+  },
+  "security": {
+    "title": "安全检查",
+    "unreachable": "{{name}} 没有连接，读不到它的 Wi-Fi 设置",
+    "empty": "没有开启的 Wi-Fi 网络",
+    "overall": "整体安全等级：{{level}}",
+    "checked": "检查了 {{count}} 个 Wi-Fi 网络",
+    "localOnly": "密码强度只在手机上判断，密码不会发到任何地方。",
+    "phone": "手机正连着",
+    "level": {
+      "high": "高",
+      "medium": "中",
+      "low": "低",
+      "danger": "危险"
+    },
+    "levelHint": {
+      "high": "加密可靠。",
+      "medium": "基本安全，还可以更好。",
+      "low": "加密方式过时，容易被破解。",
+      "danger": "没有加密或用的是 WEP，谁都能连上或者监听。"
+    },
+    "finding": {
+      "password": "密码强度：{{strength}}",
+      "passwordWithReasons": "密码强度：{{strength}}（{{reasons}}）",
+      "wps": "WPS 开着：别人可能通过 PIN 码暴力破解连进来。",
+      "mfp-off": "没有开启管理帧保护：设备容易被伪造的断开指令踢下线。",
+      "guest-not-isolated": "访客网络没有开客户端隔离：访客的设备之间可以互相访问。",
+      "hidden": "隐藏 SSID 并不能提高安全性，手机反而会到处广播这个名字。"
+    },
+    "strength": {
+      "weak": "弱",
+      "medium": "中",
+      "strong": "强"
+    },
+    "weak": {
+      "short": "少于 10 位",
+      "digits": "只有数字",
+      "common": "是常见密码",
+      "keyboard": "是键盘连续按键或顺序字符",
+      "ssid": "包含 Wi-Fi 名称",
+      "repeat": "是重复的字符",
+      "one-kind": "只有一类字符"
+    },
+    "noSae": "这台路由器不支持 WPA3（SAE），只能保持 WPA2。换成完整版 wpad（比如 wpad-mbedtls）后就可以升级。",
+    "saeUnknown": "读不到这台路由器是否支持 WPA3（SAE），所以不提供升级；确认支持后可以在 Wi-Fi 设置里手动改。",
+    "fix": "一键修复（{{count}} 项）",
+    "ok": "没有发现问题",
+    "applied": "已修复",
+    "share": "用二维码分享新密码",
+    "sheetTitle": "修复「{{ssid}}」",
+    "apply": "应用",
+    "fixes": {
+      "upgrade-wpa3": "升级到 WPA2/WPA3 混合模式",
+      "upgrade-wpa2": "升级到 WPA2（AES）",
+      "disable-wps": "关闭 WPS",
+      "enable-mfp": "开启管理帧保护",
+      "new-password": "换成强密码",
+      "isolate": "开启客户端隔离"
+    },
+    "wpa3Hint": "新设备用 WPA3，老设备仍能用 WPA2 连上",
+    "newPassword": "新密码",
+    "regenerate": "换一个",
+    "strengthIs": "强度：{{strength}}",
+    "keyLength": "密码要 8～63 位",
+    "keyWeak": "这个密码还是太弱",
+    "confirmTitle": "修复「{{ssid}}」？",
+    "consequencePhoneBrief": "你的手机正连着这个 Wi-Fi，应用后会断开几秒再自动连上"
   }
 }

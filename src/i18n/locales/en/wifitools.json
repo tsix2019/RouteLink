@@ -173,5 +173,72 @@
       "direct": "The phone is on this radio and cannot confirm during the radar check: this change is not rolled back",
       "dfs": "On a DFS channel the radio may take 1–10 minutes to come back, and it moves to another channel if it detects radar"
     }
+  },
+  "security": {
+    "title": "Security Check",
+    "unreachable": "{{name}} is not connected: its Wi-Fi settings cannot be read",
+    "empty": "No Wi-Fi network is on",
+    "overall": "Overall security: {{level}}",
+    "checked": "Wi-Fi networks checked: {{count}}",
+    "localOnly": "Password strength is judged on this phone; the password is never sent anywhere.",
+    "phone": "This phone is on it",
+    "level": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "danger": "Dangerous"
+    },
+    "levelHint": {
+      "high": "Strong encryption.",
+      "medium": "Reasonably safe, could be better.",
+      "low": "Outdated encryption that is easy to break.",
+      "danger": "No encryption or WEP: anyone can join or listen in."
+    },
+    "finding": {
+      "password": "Password strength: {{strength}}",
+      "passwordWithReasons": "Password strength: {{strength}} ({{reasons}})",
+      "wps": "WPS is on: its PIN can be brute-forced to get in.",
+      "mfp-off": "Management frame protection is off: forged disconnect frames can kick devices off.",
+      "guest-not-isolated": "The guest network does not isolate clients: guest devices can reach each other.",
+      "hidden": "Hiding the SSID adds no security; phones broadcast the name everywhere instead."
+    },
+    "strength": {
+      "weak": "weak",
+      "medium": "medium",
+      "strong": "strong"
+    },
+    "weak": {
+      "short": "under 10 characters",
+      "digits": "digits only",
+      "common": "a common password",
+      "keyboard": "a keyboard run or sequence",
+      "ssid": "contains the network name",
+      "repeat": "repeated characters",
+      "one-kind": "one kind of character only"
+    },
+    "noSae": "This router does not support WPA3 (SAE), so WPA2 stays. Installing the full wpad (e.g. wpad-mbedtls) makes the upgrade possible.",
+    "saeUnknown": "Whether this router supports WPA3 (SAE) is unknown, so no upgrade is offered; change it in the Wi-Fi settings once you know it does.",
+    "fix": "Fix ({{count}})",
+    "ok": "No problems found",
+    "applied": "Fixed",
+    "share": "Share the new password as a QR code",
+    "sheetTitle": "Fix “{{ssid}}”",
+    "apply": "Apply",
+    "fixes": {
+      "upgrade-wpa3": "Upgrade to WPA2/WPA3 mixed",
+      "upgrade-wpa2": "Upgrade to WPA2 (AES)",
+      "disable-wps": "Turn off WPS",
+      "enable-mfp": "Turn on management frame protection",
+      "new-password": "Use a strong password",
+      "isolate": "Isolate clients"
+    },
+    "wpa3Hint": "New devices use WPA3, older ones still join with WPA2",
+    "newPassword": "New password",
+    "regenerate": "Another one",
+    "strengthIs": "Strength: {{strength}}",
+    "keyLength": "The password needs 8–63 characters",
+    "keyWeak": "This password is still weak",
+    "confirmTitle": "Fix “{{ssid}}”?",
+    "consequencePhoneBrief": "Your phone is on this Wi-Fi: it drops for a few seconds and reconnects by itself"
   }
 }

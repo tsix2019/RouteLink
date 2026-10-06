@@ -13,6 +13,7 @@ import { getGroupClients } from '@/api/group';
 import { getRadios } from '@/api/services/wireless';
 import Intruders from '@/app/(tabs)/devices/intruders';
 import Channels from '@/app/(tabs)/wireless/tools/channels';
+import Security from '@/app/(tabs)/wireless/tools/security';
 import SignalDetail from '@/app/(tabs)/wireless/tools/signal/[mac]';
 import SignalMonitor from '@/app/(tabs)/wireless/tools/signal/index';
 import { ActiveRouterProvider } from '@/features/routers/ActiveRouterProvider';
@@ -59,6 +60,10 @@ jest.mock('@/ui/Segmented', () => {
   };
 });
 jest.mock('./SignalChart', () => ({ SignalChart: () => null }));
+// The native random source is not there under Jest: the password generator gets Node's.
+jest.mock('expo-crypto', () => ({
+  getRandomValues: (bytes: Uint8Array) => jest.requireActual('crypto').webcrypto.getRandomValues(bytes),
+}));
 
 function wrap(ui: ReactNode) {
   const client = new QueryClient({
@@ -169,4 +174,38 @@ describe('channel optimisation', () => {
       expect(channels).toContain(String(channel));
     });
   });
+});
+
+describe('security check', () => {
+  it('rates every network and fixes the AP’s weak one, synced to the same-name networks', async () => {
+    await render(wrap(<Security />));
+    await waitFor(() => expect(screen.getByTestId('security-summary')).toBeTruthy());
+    expect(screen.getByText(/^Overall security: /)).toBeTruthy();
+    const card = 'demo-ap-default_radio0';
+    expect(screen.getByTestId(`security-${card}`)).toBeTruthy();
+    expect(screen.getAllByText(/^Password strength: weak \(.*contains the network name/).length).toBeGreaterThan(0);
+
+    await fireEvent.press(screen.getByTestId(`security-fix-${card}`));
+    expect(screen.getByText('Upgrade to WPA2/WPA3 mixed')).toBeTruthy();
+    const key = String(screen.getByTestId('security-key').props.value);
+    expect(key).toMatch(/^[\w]{4}-[\w]{4}-[\w]{4}-[\w]{4}$/);
+    expect(screen.getByTestId('security-sync')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('security-sheet-save'));
+    await fireEvent.press(screen.getByText('Confirm'));
+
+    await waitFor(
+      async () => {
+        const ap = (await getRadios(getDemoApConnection()))[0].networks[0];
+        expect(ap).toMatchObject({ encryption: 'sae-mixed', key, wps: false });
+        // The gateway's network of the same name follows (one safe apply per router).
+        const gw = (await getRadios(getDemoConnection()))
+          .flatMap((r) => r.networks)
+          .find((n) => n.ssid === 'RouteLink');
+        expect(gw).toMatchObject({ encryption: 'sae-mixed', key });
+        // Each safe apply waits 1.5 s before confirming.
+      },
+      { timeout: 8_000 },
+    );
+    await waitFor(() => expect(screen.getByTestId('security-share')).toBeTruthy(), { timeout: 5_000 });
+  }, 20_000);
 });
