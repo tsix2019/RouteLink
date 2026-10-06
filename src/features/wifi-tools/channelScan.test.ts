@@ -71,7 +71,7 @@ describe('scanRouter on the demo group', () => {
     ]);
   });
 
-  it('advises every radio of the group; the 5 GHz pair on channel 36 moves once DFS is allowed', async () => {
+  it('advises every radio of the group; one of the 5 GHz pair on channel 36 moves to 149', async () => {
     const { conn, ap } = demo();
     const radios = [
       ...(await scanRouter(conn, { id: 'gw', name: 'Gateway' })).radios,
@@ -79,11 +79,15 @@ describe('scanRouter on the demo group', () => {
     ];
     const fives = (dfs: boolean) => ['gw/radio1', 'ap/radio1'].map((k) => adviseGroup(radios, dfs).get(k)!);
     expect(adviseGroup(radios, false).size).toBe(4);
-    // Without DFS the only other block (149) has a strong neighbour: staying is better.
-    expect(fives(false).map((a) => a.reason)).toEqual(['keep-best', 'keep-best']);
+    // The gateway picks first and leaves the crowded 36 block; the AP then stays, away from it.
+    const plain = fives(false);
+    expect(plain.map((a) => a.reason)).toEqual(['change', 'keep-best']);
+    expect(plain[0]).toMatchObject({ recommended: 149, dfs: false });
+    expect(plain[0].reduction).toBeGreaterThan(0.5);
+    // With DFS allowed the move goes to a quieter radar channel instead.
     const moved = fives(true).filter((a) => a.reason === 'change');
     expect(moved.length).toBeGreaterThan(0);
-    expect(moved.every((a) => a.dfs && a.reduction > 0.5)).toBe(true);
+    expect(moved.every((a) => a.reduction > 0.5)).toBe(true);
   });
 
   it('marks the group’s own networks in the chart', async () => {

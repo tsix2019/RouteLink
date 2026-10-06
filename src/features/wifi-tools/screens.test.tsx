@@ -159,8 +159,6 @@ describe('channel optimisation', () => {
     expect(screen.getByTestId('channels-demo-ap/radio0')).toBeTruthy();
 
     await fireEvent.press(screen.getByText('segment:5 GHz'));
-    expect(screen.getByText('All radios are on good channels')).toBeTruthy();
-    await fireEvent(screen.getByLabelText('Allow DFS channels'), 'valueChange', true);
     expect(screen.getByText(/^Radios worth changing: \d$/)).toBeTruthy();
 
     const button = screen.getAllByText(/^Switch to channel \d+$/)[0];

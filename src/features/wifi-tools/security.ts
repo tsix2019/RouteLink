@@ -112,7 +112,8 @@ const ALPHABET = LOWER + UPPER + DIGITS;
 
 /** 16 random characters in four groups ("Kx7m-Qp3t-Wn8r-Hd2v"); always all three kinds. */
 export function generatePassword(random: (bytes: Uint8Array) => Uint8Array = getRandomValues): string {
-  for (;;) {
+  // A random source that gives no randomness (all zeros in some test environments) must not spin forever.
+  for (let attempt = 0; attempt < 64; attempt++) {
     const bytes = random(new Uint8Array(32));
     const chars: string[] = [];
     // Rejection sampling keeps every character equally likely.
@@ -123,6 +124,7 @@ export function generatePassword(random: (bytes: Uint8Array) => Uint8Array = get
     if ([LOWER, UPPER, DIGITS].every((set) => [...pw].some((c) => set.includes(c))))
       return pw.match(/.{4}/g)!.join('-');
   }
+  throw new Error('generatePassword: the random source gives no randomness');
 }
 
 export type SecurityFinding =

@@ -97,6 +97,10 @@ describe('generatePassword', () => {
   });
 });
 
+it('gives up instead of spinning when the random source is broken', () => {
+  expect(() => generatePassword((b) => b.fill(0))).toThrow('no randomness');
+});
+
 describe('checkNetwork', () => {
   it('reports a strong WPA3 network without findings', () => {
     const r = checkNetwork(net({ encryption: 'sae-mixed' }), { sae: true });

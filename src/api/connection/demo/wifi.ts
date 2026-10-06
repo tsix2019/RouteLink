@@ -352,7 +352,8 @@ export function wifiEvents(ctx: Ctx, side: Side, from: number, to: number): Wifi
 
 /** Neighbours: SSID, primary channel, signal at the gateway, encryption, width (MHz), secondary offset. */
 const NEIGHBOURS = [
-  ['ChinaNet-5G-8A2F', 149, -58, 'WPA2 PSK (CCMP)', 80],
+  // Far enough that the 149 block is the better place for one of the two radios now sharing 36.
+  ['ChinaNet-5G-8A2F', 149, -78, 'WPA2 PSK (CCMP)', 80],
   ['TP-LINK_3C9E', 1, -63, 'WPA2 PSK (CCMP)', 20],
   ['Xiaomi_AX6000', 44, -67, 'WPA3 SAE (CCMP)', 80],
   ['CMCC-Home', 11, -71, 'WPA2 PSK (CCMP)', 40],
