@@ -184,6 +184,35 @@ function AgentContent({ status }: { status: AgentStatus }) {
         </GlassCard>
       ) : null}
 
+      {installed && info?.capabilities.includes('notify') ? (
+        <ListSection>
+          <ListRow
+            icon="bell"
+            title={t('control:notify.row')}
+            chevron
+            onPress={() => nav.push('/more/agent/notify')}
+            testID="agent-notify"
+          />
+          {info.capabilities.includes('limits') ? (
+            <ListRow
+              icon="speed"
+              title={t('control:rules.entry')}
+              chevron
+              onPress={() => nav.push('/network/traffic/rules', { withAnchor: true })}
+            />
+          ) : null}
+          {info.capabilities.includes('dns') ? (
+            <ListRow
+              icon="search"
+              title={t('control:dns.row')}
+              value={info.dnsEnabled ? undefined : t('control:rules.off')}
+              chevron
+              onPress={() => nav.push('/network/traffic/dns', { withAnchor: true })}
+            />
+          ) : null}
+        </ListSection>
+      ) : null}
+
       {installed ? (
         <ListSection title={t('agent:page.actions')}>
           {update.state === 'newer' ? (
