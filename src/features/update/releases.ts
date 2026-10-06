@@ -23,11 +23,23 @@ export interface AppRelease {
   apk?: { name: string; url: string; size: number; sha256?: string };
 }
 
-export type UpdateErrorCode = 'network' | 'rate-limited' | 'no-release';
+export type UpdateErrorCode =
+  | 'network'
+  | 'rate-limited'
+  | 'no-release'
+  /** The APK download failed (not cancelled); `detail` says why. */
+  | 'download'
+  /** The APK's size or SHA-256 is not the release's. */
+  | 'verify'
+  /** The system would not open the installer. */
+  | 'installer';
 
 export class UpdateError extends Error {
-  constructor(readonly code: UpdateErrorCode) {
-    super(code);
+  constructor(
+    readonly code: UpdateErrorCode,
+    readonly detail?: string,
+  ) {
+    super(detail ? `${code}: ${detail}` : code);
     this.name = 'UpdateError';
   }
 }

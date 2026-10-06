@@ -36,6 +36,8 @@ const config: ExpoConfig = {
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    // Software update: hand the downloaded APK to the system installer (added to the manifest's own).
+    permissions: ['android.permission.REQUEST_INSTALL_PACKAGES'],
   },
   locales: {
     en: './src/i18n/native/en.json',
