@@ -259,6 +259,10 @@
     "notWifi": "The phone is not on Wi-Fi: the phone test runs over mobile data.",
     "already": "The router is already testing; following that run",
     "failed": "Speed test failed: {{reason}}",
+    "error": {
+      "timeout": "no result in time",
+      "failed": "the plugin gave no reason"
+    },
     "stopped": "Stopped",
     "needsPlugin": "The router test needs the RouteLink plugin",
     "demoNote": "Demo mode: the phone test is simulated and uses no data.",

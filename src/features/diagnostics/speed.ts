@@ -187,7 +187,9 @@ async function measure(
   streams: number,
 ): Promise<number | null> {
   const controller = new AbortController();
-  o.signal?.addEventListener('abort', () => controller.abort());
+  // A signal aborted in an earlier phase fires no more events.
+  if (o.signal?.aborted) controller.abort();
+  else o.signal?.addEventListener('abort', () => controller.abort());
   const start = deps.now();
   const until = start + duration;
   let bytes = 0;

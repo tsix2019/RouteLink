@@ -259,6 +259,10 @@
     "notWifi": "手机现在没连 Wi-Fi，手机测速走的是移动数据。",
     "already": "路由器已经在测速，接着显示这次的进度",
     "failed": "测速失败：{{reason}}",
+    "error": {
+      "timeout": "等了很久没有结果",
+      "failed": "插件没有给出原因"
+    },
     "stopped": "已停止",
     "needsPlugin": "路由器测速需要 RouteLink 插件",
     "demoNote": "演示模式：手机测速是模拟的，不消耗流量。",

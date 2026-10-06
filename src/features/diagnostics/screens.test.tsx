@@ -3,7 +3,7 @@
  * installed): they load, run and wire up their actions. Navigation chrome is stubbed.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { Share } from 'react-native';
 import RouteLinkNative from 'routelink-native';
@@ -12,6 +12,7 @@ import { DEMO_AP_NAME } from '@/api/connection/demo/connection';
 import { resetDemoConnection } from '@/api/connection/manager';
 import Diagnosis from '@/app/(tabs)/network/diagnostics/index';
 import Latency from '@/app/(tabs)/network/diagnostics/latency';
+import SpeedTest from '@/app/(tabs)/network/diagnostics/speed';
 import DiagnosticTools from '@/app/(tabs)/network/diagnostics/tools';
 import { ActiveRouterProvider } from '@/features/routers/ActiveRouterProvider';
 import { initI18n } from '@/i18n';
@@ -160,5 +161,38 @@ describe('outages and latency', () => {
     expect(share.mock.calls[0][0]).toMatchObject({
       message: expect.stringMatching(/^Demo router outages and latency \(/),
     });
+  });
+});
+
+describe('speed test', () => {
+  afterEach(() => jest.useRealTimers());
+
+  it('compares the simulated phone with the demo router and blames the Wi-Fi', async () => {
+    jest.useFakeTimers();
+    await render(wrap(<SpeedTest />));
+    await waitFor(() => expect(screen.getByText('Router tests')).toBeTruthy());
+    expect(screen.getByText('Demo mode: the phone test is simulated and uses no data.')).toBeTruthy();
+    await fireEvent.press(screen.getByText('segment:Compare'));
+    await fireEvent.press(screen.getByTestId('speed-start'));
+    expect(screen.getByTestId('speed-meter')).toBeTruthy();
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(70_000);
+    });
+    await waitFor(() => expect(screen.getByTestId('speed-verdict')).toBeTruthy());
+    expect(screen.getByText(/^The phone reached only \d+% of the router: the Wi-Fi is the bottleneck\.$/)).toBeTruthy();
+    expect(screen.getByTestId('speed-phone-result')).toBeTruthy();
+    expect(screen.getByTestId('speed-router-result')).toBeTruthy();
+    await fireEvent.press(screen.getByText('Run channel optimisation'));
+    expect(mockPush).toHaveBeenCalledWith('/wireless/tools/channels', { withAnchor: true });
+    // The phone's result is kept on the phone; the router's comes back from the plugin.
+    expect(screen.getAllByText(/^↓ 1\d\d(\.\d)? Mbps · ↑ \d+(\.\d)? Mbps$/).length).toBeGreaterThan(0);
+  });
+
+  it('keeps the plan bandwidth', async () => {
+    await render(wrap(<SpeedTest />));
+    await fireEvent.press(screen.getByTestId('speed-contract-down'));
+    await fireEvent.changeText(screen.getByDisplayValue(''), '500');
+    await fireEvent.press(screen.getByText('Save'));
+    expect(screen.getByText('500 Mbps')).toBeTruthy();
   });
 });
