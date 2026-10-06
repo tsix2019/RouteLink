@@ -6,7 +6,7 @@ pages and an API for the RouteLink app.
 **Manual install** (pick the files for your OpenWrt version and architecture; `manifest.json` lists them):
 
 ```sh
-# OpenWrt 23.05 / 24.10 (opkg)
+# OpenWrt 23.05 / 24.10 (opkg), and 25.12 firmware that kept opkg such as Kwrt (the 25.12 .ipk files)
 opkg update
 opkg install routelinkd_*.ipk luci-app-routelink_*.ipk luci-i18n-routelink-zh-cn_*.ipk
 

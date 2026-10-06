@@ -431,11 +431,13 @@ AP 角色只显示"无线"和"设置"两页。
 
 - **CI 工作流**：用 `openwrt/gh-action-sdk` 编译，矩阵放在可复用的 `.github/workflows/openwrt-build.yml` 里。
   - 版本：23.05、24.10、25.12。前两个出 ipk，25.12 出 apk。
+  - 25.12 另外出一套 ipk，给仍用 opkg 的第三方固件（Kwrt）：它的库和官方 25.12 是同一个 ABI 版本（`libubox20260213` 等），24.10 的包装不上。25.12 的 SDK 里 `USE_APK` 是隐藏选项，`gh-action-sdk` 又改不了 make 变量，所以这一组用 `scripts/agent-build.sh … ipk` 编译（在 make 命令行上写 `CONFIG_USE_APK=`）。
   - 架构：x86_64、aarch64_cortex-a53、aarch64_cortex-a72、aarch64_generic、arm_cortex-a7_neon-vfpv4、arm_cortex-a9_vfpv3-d16、arm_cortex-a15_neon-vfpv4、mipsel_24kc、mips_24kc。
   - `openwrt.yml`：每次推送时运行，内容是单元测试、init 脚本格式检查、不签名的编译，以及 Docker 上的准确性集成测试（§21）。
 - **发布**（`openwrt-release.yml`，打 `agent-v*` 标签时触发）：
   - 带签名编译，然后把安装包上传到 GitHub Releases。文件名带上 OpenWrt 版本和架构，保证不重名。
-  - 同时生成 `manifest.json`，内容包括：版本、接口版本号、每个"版本 × 架构"对应的文件名和 SHA-256。
+  - 同时生成 `manifest.json`，内容包括：版本、接口版本号、每个"版本 × 架构"对应的文件名和 SHA-256。键是 `<版本>/<架构>`；版本自己不用的格式加上格式，比如 `25.12/x86_64/ipk`。
+  - 25.12 的 ipk 和 apk 软件源放在同一个目录（`Packages.gz` 和 `packages.adb` 并存）。
 - **签名**：
   - **opkg**：opkg 不检查本地包的签名；软件源索引由 SDK 生成，并用 usign 签名。
   - **apk**：OpenWrt 的 SDK 不给 apk 包签名，而 apk 会拒绝安装未签名的本地包，LuCI 的辅助程序也不放行 `--allow-untrusted`。所以用 `apk adbsign` 逐个给包签名，然后用 `apk mkndx` 生成带签名的索引。签名会改变包的哈希，所以索引必须在签名之后生成。
@@ -451,9 +453,9 @@ AP 角色只显示"无线"和"设置"两页。
 rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管理页本来就有的权限。以下做法都在 23.05.6、24.10.8、25.12.5 上实测过（P1 计划"执行记录"的 T28）。
 
 1. **识别**：
-   - OpenWrt 版本：从 `system board` 读。
+   - OpenWrt 版本：从 `system board` 读，取开头的"主.次"。Kwrt 报的是 `25.12-SNAPSHOT`。
    - CPU 架构：`/etc/os-release` 没有读权限，所以从可读的 `distfeeds` 文件里的软件源 URL 取（`…/packages/<架构>/base`）。
-   - 包管理器：用 `file stat` 检查。23.05 是 `opkg-call`（luci-app-opkg），24.10 起是 `package-manager-call`（luci-app-package-manager）。
+   - 包管理器：用 `file stat` 检查。23.05 是 `opkg-call`（luci-app-opkg），24.10 起是 `package-manager-call`（luci-app-package-manager）。opkg 还是 apk 看有没有 `/usr/bin/apk`，不按版本推断：Kwrt 25.12 仍用 opkg。
    - 剩余空间：读 `/overlay`（或 `/`）所在分区。
 2. **取清单**：手机下载 `manifest.json`，找到匹配的安装包。找不到时，说明"暂不支持这种架构"。
 3. **下载**：手机下载安装包，并用 SHA-256 校验。

@@ -179,7 +179,7 @@ The RouteLink plugin runs on the router, counts what every device uploads and do
 - **How it counts**: connection-tracking counters summed per device MAC, IPv4 and IPv6; accurate with software flow offloading on. In the Docker lab it matches the byte counts of the client's network card exactly.
 - **How long**: per minute for 48 hours, per hour for 90 days, per day for 2 years. Data lives in `/etc/routelink` on the router, written to flash every 10 minutes by default, capped at 32 MB, kept across firmware upgrades.
 - **Cost**: on x86 (measured in Docker), with 52 devices and 5000 connections, 0.04% of one core and 1.7 MB of memory.
-- **Runs on**: OpenWrt 23.05, 24.10 and 25.12; x86_64, aarch64 (cortex-a53, cortex-a72, generic), arm (cortex-a7, cortex-a9, cortex-a15), mipsel_24kc, mips_24kc.
+- **Runs on**: OpenWrt 23.05, 24.10 and 25.12, and firmware based on 25.12 that kept opkg (such as Kwrt); x86_64, aarch64 (cortex-a53, cortex-a72, generic), arm (cortex-a7, cortex-a9, cortex-a15), mipsel_24kc, mips_24kc.
 
 **Install**
 
@@ -187,7 +187,7 @@ The RouteLink plugin runs on the router, counts what every device uploads and do
 - **By hand**: download the packages for your release and architecture from [Releases](https://github.com/tsix2019/RouteLink/releases) (`manifest.json` lists them) and install them on the router. `. /etc/openwrt_release; echo $DISTRIB_ARCH` shows the architecture.
 
   ```sh
-  # OpenWrt 23.05 / 24.10
+  # OpenWrt 23.05 / 24.10, and 25.12 firmware that kept opkg (Kwrt: the 25.12 .ipk packages)
   opkg update
   opkg install routelinkd_*.ipk luci-app-routelink_*.ipk luci-i18n-routelink-zh-cn_*.ipk
 
@@ -200,7 +200,7 @@ The RouteLink plugin runs on the router, counts what every device uploads and do
 - **As a package feed** (later updates through LuCI's software page). Replace `24.10` and `x86_64` with your release and architecture:
 
   ```sh
-  # OpenWrt 23.05 / 24.10
+  # OpenWrt 23.05 / 24.10, and 25.12 firmware that kept opkg (with 25.12 in the URL)
   wget -O /etc/opkg/keys/a276fe73982c5f59 https://tsix2019.github.io/RouteLink/agent/keys/a276fe73982c5f59
   echo 'src/gz routelink https://tsix2019.github.io/RouteLink/agent/24.10/x86_64' >> /etc/opkg/customfeeds.conf
   opkg update && opkg install routelinkd luci-app-routelink

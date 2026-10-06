@@ -153,6 +153,17 @@ describe('installAgent', () => {
     expect(opkg.conn.calls.some((c) => c.params?.path === '/etc/apk/keys/routelink.pem')).toBe(false);
   });
 
+  it('installs the 25.12 ipk packages on Kwrt, which reports "25.12-SNAPSHOT" and kept opkg', async () => {
+    const apk = manifest('25.12', 'x86_64', 'apk');
+    const ipk = manifest('25.12', 'x86_64', 'ipk');
+    const both = { ...apk, targets: { ...apk.targets, '25.12/x86_64/ipk': ipk.targets['25.12/x86_64'] } };
+    const h = harness({ release: '25.12-SNAPSHOT', manifestJson: both });
+    await expect(installAgent(h.deps)).resolves.toEqual({ step: 'done', version: '0.1.0' });
+    expect(h.downloads.every((u) => u.endsWith('.ipk'))).toBe(true);
+    expect(h.conn.execs.map((a) => a.slice(1).join(' '))).toEqual(Array(3).fill('install /tmp/upload.ipk'));
+    expect(h.conn.calls.some((c) => c.params?.path === '/etc/apk/keys/routelink.pem')).toBe(false);
+  });
+
   it('puts the mirror in front of the manifest and every download', async () => {
     const h = harness();
     await installAgent(h.deps, 'https://mirror.example/');

@@ -4,6 +4,9 @@
 # so LuCI is reachable through the port mapping and opkg/apk can download.
 # Usage: scripts/pm-router.sh up <version> <port> <host-octet> | down <version>
 #   e.g. scripts/pm-router.sh up 23.05.6 18380 23   -> 172.42.0.23, http://127.0.0.1:18380
+# PM_IMAGE runs another rootfs under that name, e.g. a fork imported with `docker import`:
+#   docker import https://dl.openwrt.ai/releases/25.12/targets/x86/64/kwrt-<date>-x86-64-generic-rootfs.tar.gz kwrt:25.12
+#   PM_IMAGE=kwrt:25.12 scripts/pm-router.sh up kwrt-25.12 18390 25
 set -euo pipefail
 export MSYS_NO_PATHCONV=1
 V="${2:?version}"
@@ -16,7 +19,7 @@ case "${1:-}" in
     docker rm -f "$NAME" >/dev/null 2>&1 || true
     docker network create --subnet 172.42.0.0/24 "$NET" >/dev/null 2>&1 || true
     docker create --name "$NAME" --cap-add NET_ADMIN --cap-add NET_RAW --network "$NET" --ip "$IP" \
-      -p "127.0.0.1:$PORT:80" "openwrt/rootfs:x86-64-v$V" /sbin/init >/dev/null
+      -p "127.0.0.1:$PORT:80" "${PM_IMAGE:-openwrt/rootfs:x86-64-v$V}" /sbin/init >/dev/null
     TMP="$(mktemp)"
     cat >"$TMP" <<EOF
 config interface 'loopback'
