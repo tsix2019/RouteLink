@@ -1,6 +1,7 @@
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { useState } from 'react';
+import { StyleSheet } from 'react-native';
 
 import { getOpenvpn, importOvpn, inspectOvpn, validateImport, type OvpnInstance } from '@/api/services/openvpn';
 import type { ApplyOutcome } from '@/api/uci';
@@ -9,9 +10,11 @@ import { useT } from '@/i18n';
 import { AppText } from '@/ui/AppText';
 import { describeError } from '@/ui/errorText';
 import { FormPlaceholder, FormScreen, useFormExit } from '@/ui/FormScreen';
+import { GlassCard } from '@/ui/GlassCard';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { RiskConfirm } from '@/ui/RiskConfirm';
 import { TextField } from '@/ui/TextField';
+import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
 
 /** "My VPN.ovpn" → "My_VPN" (a uci section name). */
@@ -116,18 +119,20 @@ function ImportForm({ title, instances }: { title: string; instances: OvpnInstan
         </ListSection>
         {file && profile ? (
           <>
-            <TextField
-              label={t('network:openvpn.name')}
-              value={name}
-              onChangeText={(v) => {
-                setName(v);
-                setError(null);
-              }}
-              hint={t('network:openvpn.nameHint')}
-              autoCapitalize="none"
-              autoCorrect={false}
-              testID="ovpn-name"
-            />
+            <GlassCard contentStyle={styles.card}>
+              <TextField
+                label={t('network:openvpn.name')}
+                value={name}
+                onChangeText={(v) => {
+                  setName(v);
+                  setError(null);
+                }}
+                hint={t('network:openvpn.nameHint')}
+                autoCapitalize="none"
+                autoCorrect={false}
+                testID="ovpn-name"
+              />
+            </GlassCard>
             {profile.remote ? (
               <ListSection>
                 <ListRow
@@ -137,7 +142,7 @@ function ImportForm({ title, instances }: { title: string; instances: OvpnInstan
               </ListSection>
             ) : null}
             {profile.needsLogin ? (
-              <>
+              <GlassCard contentStyle={styles.card}>
                 <TextField
                   label={t('network:openvpn.username')}
                   value={username}
@@ -157,7 +162,7 @@ function ImportForm({ title, instances }: { title: string; instances: OvpnInstan
                   }}
                   secret
                 />
-              </>
+              </GlassCard>
             ) : null}
           </>
         ) : null}
@@ -181,3 +186,7 @@ function ImportForm({ title, instances }: { title: string; instances: OvpnInstan
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  card: { gap: spacing.m },
+});

@@ -1,5 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
+import { StyleSheet } from 'react-native';
 
 import {
   ddnsChanges,
@@ -18,11 +19,13 @@ import { useT } from '@/i18n';
 import { AppText } from '@/ui/AppText';
 import { describeError } from '@/ui/errorText';
 import { differs, FormPlaceholder, FormScreen, useFormExit, useLoaded } from '@/ui/FormScreen';
+import { GlassCard } from '@/ui/GlassCard';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { RiskConfirm } from '@/ui/RiskConfirm';
 import { Segmented } from '@/ui/Segmented';
 import { SelectSheet } from '@/ui/SelectSheet';
 import { TextField } from '@/ui/TextField';
+import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
 import { isPrivateIPv4 } from '@/utils/net';
 
@@ -140,50 +143,52 @@ function DdnsForm({
             testID="ddns-provider"
           />
         </ListSection>
-        {custom ? (
+        <GlassCard contentStyle={styles.card}>
+          {custom ? (
+            <TextField
+              label={t('network:ddns.updateUrl')}
+              value={input.updateUrl}
+              onChangeText={(updateUrl) => set({ updateUrl })}
+              hint={t('network:ddns.updateUrlHint')}
+              autoCapitalize="none"
+              autoCorrect={false}
+              monospace
+              error={err('updateUrl')}
+            />
+          ) : null}
           <TextField
-            label={t('network:ddns.updateUrl')}
-            value={input.updateUrl}
-            onChangeText={(updateUrl) => set({ updateUrl })}
-            hint={t('network:ddns.updateUrlHint')}
+            label={t('network:ddns.domain')}
+            value={input.domain}
+            onChangeText={(domain) => set({ domain: domain.trim() })}
+            hint={t('network:ddns.domainHint')}
+            placeholder="myhome.duckdns.org"
             autoCapitalize="none"
             autoCorrect={false}
-            monospace
-            error={err('updateUrl')}
+            keyboardType="url"
+            error={err('domain')}
+            testID="ddns-domain"
           />
-        ) : null}
-        <TextField
-          label={t('network:ddns.domain')}
-          value={input.domain}
-          onChangeText={(domain) => set({ domain: domain.trim() })}
-          hint={t('network:ddns.domainHint')}
-          placeholder="myhome.duckdns.org"
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="url"
-          error={err('domain')}
-          testID="ddns-domain"
-        />
-        {askUser ? (
-          <TextField
-            label={t('network:ddns.username')}
-            value={input.username}
-            onChangeText={(username) => set({ username })}
-            autoCapitalize="none"
-            autoCorrect={false}
-            error={err('username')}
-          />
-        ) : null}
-        {askPassword ? (
-          <TextField
-            label={t('network:ddns.password')}
-            value={input.password}
-            onChangeText={(password) => set({ password })}
-            secret
-            error={err('password')}
-            testID="ddns-password"
-          />
-        ) : null}
+          {askUser ? (
+            <TextField
+              label={t('network:ddns.username')}
+              value={input.username}
+              onChangeText={(username) => set({ username })}
+              autoCapitalize="none"
+              autoCorrect={false}
+              error={err('username')}
+            />
+          ) : null}
+          {askPassword ? (
+            <TextField
+              label={t('network:ddns.password')}
+              value={input.password}
+              onChangeText={(password) => set({ password })}
+              secret
+              error={err('password')}
+              testID="ddns-password"
+            />
+          ) : null}
+        </GlassCard>
         <ListSection>
           <ListRow title={t('network:ddns.ipv6')} switchValue={input.ipv6} onSwitch={(ipv6) => set({ ipv6 })} />
           <ListRow
@@ -197,21 +202,23 @@ function DdnsForm({
             {err('ipv6')}
           </AppText>
         ) : null}
-        <AppText variant="footnote" tone="secondary">
-          {t('network:ddns.source')}
-        </AppText>
-        {input.source === 'other' ? (
-          <AppText variant="body">{t('network:ddns.sourceOther')}</AppText>
-        ) : (
-          <Segmented
-            values={[t('network:ddns.sourceWan'), t('network:ddns.sourceWeb')]}
-            selectedIndex={SOURCES.indexOf(input.source)}
-            onChange={(e) => set({ source: SOURCES[e.nativeEvent.selectedSegmentIndex] })}
-          />
-        )}
-        <AppText variant="footnote" tone="secondary">
-          {t('network:ddns.sourceHint')}
-        </AppText>
+        <GlassCard contentStyle={styles.card}>
+          <AppText variant="footnote" tone="secondary">
+            {t('network:ddns.source')}
+          </AppText>
+          {input.source === 'other' ? (
+            <AppText variant="body">{t('network:ddns.sourceOther')}</AppText>
+          ) : (
+            <Segmented
+              values={[t('network:ddns.sourceWan'), t('network:ddns.sourceWeb')]}
+              selectedIndex={SOURCES.indexOf(input.source)}
+              onChange={(e) => set({ source: SOURCES[e.nativeEvent.selectedSegmentIndex] })}
+            />
+          )}
+          <AppText variant="footnote" tone="secondary">
+            {t('network:ddns.sourceHint')}
+          </AppText>
+        </GlassCard>
       </FormScreen>
 
       <SelectSheet
@@ -243,3 +250,7 @@ function DdnsForm({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  card: { gap: spacing.m },
+});
