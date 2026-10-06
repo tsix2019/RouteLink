@@ -3,6 +3,7 @@ import { UbusError } from '../../ubus/errors';
 import type { UciSection } from '../../uci';
 import { adminHandlers, demoKill, demoLocaltime } from './admin';
 import { agentHandlers } from './agent';
+import { controlAgentHandlers } from './control';
 import { diagAgentHandlers, diagCommands } from './diag';
 import { demoConntrack, demoReverseDns } from './connections';
 import { addonHandlers, demoAddonFile, demoAddonList, demoSqmDevices } from './addons';
@@ -280,6 +281,7 @@ export const handlers: Record<string, Handler> = {
 
   ...agentHandlers,
   ...diagAgentHandlers,
+  ...controlAgentHandlers,
   ...adminHandlers,
   ...addonHandlers,
   'luci.getConntrackList': (s, _p, now) => demoConntrack(s, now),

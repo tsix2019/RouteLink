@@ -15,6 +15,7 @@ import {
 } from './presence';
 import { hash01 } from './random';
 import type { DemoState } from './state';
+import { demoDnsEnabled } from './control';
 import { LATENCY_RETENTION, wanEvents } from './diag';
 import { SIGNAL_RETENTION, wifiEvents } from './wifi';
 
@@ -31,7 +32,7 @@ export const AGENT_DATA_DAYS = 120;
 const WAN_OVERHEAD = 1.03;
 const RETENTION = { minute_hours: 48, hour_days: 90, day_days: 730, event_days: 90 };
 /** Modules of this plugin build (P2): `info.capabilities`. */
-export const DEMO_CAPABILITIES = ['traffic', 'wifi', 'latency', 'speedtest'];
+export const DEMO_CAPABILITIES = ['traffic', 'wifi', 'latency', 'speedtest', 'limits', 'quotas', 'dns', 'notify'];
 
 /** The trust list in the plugin's UCI (`device` sections), as the daemon reads it. */
 export function deviceMarks(state: DemoState): Map<string, { trusted: boolean; watch: boolean }> {
@@ -142,7 +143,7 @@ function deviceBytes(ctx: Ctx, i: number, a: number, b: number, kind: Kind): Byt
 const dataStart = (ctx: Ctx) => Math.max(ctx.state.agent.dataSince, ctx.state.agent.resetAt);
 
 /** Bytes of a target and class in [a, b), clipped to when data exists; null when there is none. */
-function bytesFor(ctx: Ctx, target: Target, cls: Cls, a: number, b: number): Bytes | null {
+export function bytesFor(ctx: Ctx, target: Target, cls: Cls, a: number, b: number): Bytes | null {
   const from = Math.max(a, dataStart(ctx));
   const to = Math.min(b, ctx.now);
   if (to <= from) return null;
@@ -180,7 +181,7 @@ function maskedBytes(ctx: Ctx, target: Target, cls: Cls, a: number, b: number, m
 const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
 const invalid = () => new UbusError('INVALID_ARGUMENT', 'routelink');
 
-function deviceIndex(state: DemoState, mac: unknown): number {
+export function deviceIndex(state: DemoState, mac: unknown): number {
   if (typeof mac !== 'string' || !/^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/.test(mac)) throw invalid();
   const i = state.devices.findIndex((d) => d.mac === mac.toUpperCase());
   if (i < 0) throw new UbusError('NOT_FOUND', 'routelink');
@@ -334,6 +335,9 @@ const EVENT_TYPES = [
   'wifi_disconnect',
   'wan_down',
   'wan_up',
+  'quota_warn',
+  'quota_exceeded',
+  'quota_reset',
 ];
 
 /** The `events` method over a list of events (the gateway's, or the demo AP's). */
@@ -396,7 +400,18 @@ export const agentHandlers: Record<string, Handler> = {
     version: '0.1.0',
     api: 1,
     roles: ['gateway', 'ap'],
-    modules: ['traffic', 'wifi', 'latency', 'speedtest'],
+    modules: [
+      'traffic',
+      'wifi',
+      'latency',
+      'speedtest',
+      'limits',
+      'quotas',
+      ...(demoDnsEnabled(state) ? ['dns'] : []),
+      'notify',
+    ],
+    limits_error: '',
+    dns_enabled: demoDnsEnabled(state),
     capabilities: DEMO_CAPABILITIES,
     offload: 'software',
     offload_warning: false,

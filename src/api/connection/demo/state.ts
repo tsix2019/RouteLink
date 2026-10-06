@@ -2,6 +2,7 @@ import type { UciSection } from '../../uci';
 import { createAddonUci } from './addons';
 import { createDemoAdmin, type DemoAdmin } from './admin';
 import { createDemoAgent, type DemoAgent } from './agent';
+import { createDemoControl, demoRuleSections, type DemoControl } from './control';
 import { createDemoDiag, type DemoDiag } from './diag';
 import { createDemoPackages, type DemoPackages } from './packages';
 import { createRandom, type Random } from './random';
@@ -60,6 +61,8 @@ export interface DemoState {
   ap: DemoApState;
   /** Router-side speed tests started in this session (P3). */
   diag: DemoDiag;
+  /** Quota allowances and push results (P4). */
+  control: DemoControl;
 }
 
 /** An imported OpenVPN client profile (NW-8). */
@@ -348,6 +351,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
           return [name, section(name, 'device', { mac, trusted: '1', watch: watch ? '1' : '0' }, true)];
         }),
       ),
+      ...demoRuleSections(devices),
     },
     dhcp: {
       lan: section('lan', 'dhcp', { interface: 'lan', start: '100', limit: '150', leasetime: '12h' }),
@@ -482,6 +486,7 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     },
     ap: createDemoAp(now),
     diag: createDemoDiag(),
+    control: createDemoControl(),
   };
 }
 
