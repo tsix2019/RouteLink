@@ -11,6 +11,7 @@ import RouteLinkNative from 'routelink-native';
 import { DEMO_AP_NAME } from '@/api/connection/demo/connection';
 import { resetDemoConnection } from '@/api/connection/manager';
 import Diagnosis from '@/app/(tabs)/network/diagnostics/index';
+import Latency from '@/app/(tabs)/network/diagnostics/latency';
 import DiagnosticTools from '@/app/(tabs)/network/diagnostics/tools';
 import { ActiveRouterProvider } from '@/features/routers/ActiveRouterProvider';
 import { initI18n } from '@/i18n';
@@ -101,6 +102,7 @@ describe('one-click diagnosis', () => {
     expect(mockPush).toHaveBeenCalledWith('/network/diagnostics/latency', { withAnchor: true });
 
     const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' });
+    share.mockClear();
     await fireEvent.press(screen.getByText('header:Share the results'));
     expect(share.mock.calls[0][0]).toMatchObject({
       message: expect.stringMatching(/^RouteLink network diagnosis · RouteLink Demo|^RouteLink network diagnosis · /),
@@ -137,5 +139,26 @@ describe('diagnostic tools', () => {
     await fireEvent.changeText(screen.getByTestId('tools-target'), 'nothing.invalid');
     await fireEvent.press(screen.getByTestId('tools-run'));
     await waitFor(() => expect(screen.getByText(/^Answers · /)).toBeTruthy());
+  });
+});
+
+describe('outages and latency', () => {
+  it('shows availability, the curve of a custom target and the demo redial, and shares a summary', async () => {
+    await render(wrap(<Latency />));
+    await waitFor(() => expect(screen.getByText(/^Reconnect · /)).toBeTruthy(), { timeout: 6_000 });
+    expect(screen.getByText(/^\d+(\.\d+)?%$/)).toBeTruthy();
+    // The first custom target is charted (title) and listed.
+    await waitFor(() => expect(screen.getAllByText('223.5.5.5')).toHaveLength(2));
+    await fireEvent.press(screen.getByTestId('latency-target-203.0.113.1'));
+    expect(screen.getAllByText('203.0.113.1').length).toBe(2);
+
+    const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' });
+    share.mockClear();
+    await fireEvent.press(screen.getByText('header:Export'));
+    await fireEvent.press(screen.getByText('Share a text summary'));
+    await waitFor(() => expect(share).toHaveBeenCalled());
+    expect(share.mock.calls[0][0]).toMatchObject({
+      message: expect.stringMatching(/^Demo router outages and latency \(/),
+    });
   });
 });
