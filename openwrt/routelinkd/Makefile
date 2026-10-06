@@ -12,15 +12,16 @@ include $(INCLUDE_DIR)/cmake.mk
 define Package/routelinkd
   SECTION:=net
   CATEGORY:=Network
-  TITLE:=RouteLink per-device traffic monitor
+  TITLE:=RouteLink per-device traffic and wireless monitor
   URL:=https://github.com/tsix2019/RouteLink
   DEPENDS:=+libubox +libubus +libuci +libblobmsg-json +libjson-c +libmnl +kmod-nf-conntrack-netlink
 endef
 
 define Package/routelinkd/description
   Records upload and download traffic of every LAN device from conntrack
-  accounting and serves it over ubus (object "routelink") for LuCI and the
-  RouteLink app.
+  accounting, and on access points the signal, rates and channel busy time
+  of wireless stations (nl80211), and serves them over ubus (object
+  "routelink") for LuCI and the RouteLink app.
 endef
 
 define Package/routelinkd/conffiles

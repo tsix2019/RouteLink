@@ -199,9 +199,18 @@ static int m_devices(struct ubus_context *ctx, struct ubus_object *obj, struct u
 		}
 		blobmsg_add_u64(&b, "first_seen", (uint64_t)d->first_seen);
 		blobmsg_add_u64(&b, "last_seen", (uint64_t)d->last_seen);
-		blobmsg_add_u8(&b, "online", d->online);
+		const rl_wifi_sta *st = rl_daemon_wifi_on(D) ? rl_wifi_find(D->wifi, &d->mac) : NULL;
+		const rl_devflag *flag = rl_daemon_devflag(D, &d->mac);
+		/* without traffic accounting (an access point) a station is online while it is associated */
+		blobmsg_add_u8(&b, "online", st && !rl_daemon_traffic_on(D) ? st->associated : d->online);
 		blobmsg_add_u8(&b, "random_mac", rl_mac_is_random(&d->mac));
-		blobmsg_add_u8(&b, "trusted", false);
+		blobmsg_add_u8(&b, "trusted", flag && flag->trusted);
+		blobmsg_add_u8(&b, "watch", flag && flag->watch);
+		if (st && st->associated) {
+			blobmsg_add_string(&b, "ifname", st->ifname);
+			if (st->s.has & RL_STA_SIGNAL)
+				blobmsg_add_u32(&b, "signal", (uint32_t)(int32_t)st->s.signal);
+		}
 		blobmsg_add_u64(&b, "today_rx", t.rx[i]);
 		blobmsg_add_u64(&b, "today_tx", t.tx[i]);
 		blobmsg_add_u64(&b, "rx_rate", rate ? rate->rx_rate : 0);
@@ -460,6 +469,276 @@ static int m_events(struct ubus_context *ctx, struct ubus_object *obj, struct ub
 	return ubus_send_reply(ctx, req, b.head);
 }
 
+/* ---- wireless (AP role) ---- */
+
+/* blobmsg prints INT32 signed: dBm values go out as negative numbers */
+static void add_int(const char *name, int v)
+{
+	blobmsg_add_u32(&b, name, (uint32_t)(int32_t)v);
+}
+
+static void add_null(const char *name)
+{
+	blobmsg_add_field(&b, BLOBMSG_TYPE_UNSPEC, name, NULL, 0);
+}
+
+/* The survey entry of the radio behind an interface. */
+static const rl_survey_entry *radio_survey(const rl_nl_iface *ifc)
+{
+	return rl_wifi_survey_radio(D->wifi, ifc->wiphy, ifc->freq);
+}
+
+/* AP interfaces in sampling order, the first one of each radio flagged. */
+static bool first_of_radio(int i)
+{
+	for (int j = 0; j < i; j++)
+		if (D->ifaces[j].wiphy == D->ifaces[i].wiphy)
+			return false;
+	return true;
+}
+
+enum { ST_LIVE, __ST_MAX };
+static const struct blobmsg_policy stations_policy[__ST_MAX] = { [ST_LIVE] = { "live", BLOBMSG_TYPE_BOOL } };
+
+static int m_stations(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+		      const char *method, struct blob_attr *msg)
+{
+	struct blob_attr *tb[__ST_MAX];
+	char s[RL_MAC_STRLEN];
+	blobmsg_parse(stations_policy, __ST_MAX, tb, blob_data(msg), blob_len(msg));
+	if (tb[ST_LIVE] && blobmsg_get_bool(tb[ST_LIVE]))
+		rl_daemon_wifi_live(D);
+	bool on = rl_daemon_wifi_on(D);
+
+	blob_buf_init(&b, 0);
+	blobmsg_add_u64(&b, "ts", (uint64_t)rl_daemon_now());
+	blobmsg_add_u64(&b, "live_until", (uint64_t)D->wifi_live_until);
+	blobmsg_add_u32(&b, "interval", (uint32_t)rl_daemon_wifi_interval(D));
+	void *list = blobmsg_open_array(&b, "interfaces");
+	for (int i = 0; on && i < D->n_ifaces; i++) {
+		const rl_nl_iface *ifc = &D->ifaces[i];
+		const rl_survey_entry *sv = radio_survey(ifc);
+		if (!ifc->freq)
+			continue; /* not operating */
+		void *e = blobmsg_open_table(&b, NULL);
+		blobmsg_add_string(&b, "ifname", ifc->ifname);
+		blobmsg_add_string(&b, "phy", ifc->phy);
+		blobmsg_add_string(&b, "ssid", ifc->ssid);
+		rl_mac_format(&ifc->bssid, s);
+		blobmsg_add_string(&b, "bssid", s);
+		blobmsg_add_u32(&b, "freq", ifc->freq);
+		blobmsg_add_u32(&b, "channel", (uint32_t)rl_wifi_channel(ifc->freq));
+		if (ifc->width)
+			blobmsg_add_u32(&b, "width", ifc->width);
+		if (sv && (sv->s.has & RL_SV_NOISE))
+			add_int("noise", sv->s.noise);
+		blobmsg_add_u32(&b, "stations", (uint32_t)rl_wifi_count_on(D->wifi, ifc->ifindex));
+		blobmsg_close_table(&b, e);
+	}
+	blobmsg_close_array(&b, list);
+
+	list = blobmsg_open_array(&b, "stations");
+	for (size_t i = 0, k = 0; on && i < rl_wifi_count(D->wifi) && k < MAX_DEVICES_OUT; i++) {
+		const rl_wifi_sta *st = rl_wifi_at(D->wifi, i);
+		const rl_sta_sample *x = &st->s;
+		if (!st->associated)
+			continue;
+		const rl_survey_entry *sv = NULL;
+		for (int j = 0; j < D->n_ifaces && !sv; j++)
+			if (D->ifaces[j].ifindex == st->ifindex)
+				sv = radio_survey(&D->ifaces[j]);
+		void *e = blobmsg_open_table(&b, NULL);
+		rl_mac_format(&st->mac, s);
+		blobmsg_add_string(&b, "mac", s);
+		blobmsg_add_string(&b, "ifname", st->ifname);
+		blobmsg_add_u32(&b, "freq", st->freq);
+		if (x->has & RL_STA_SIGNAL)
+			add_int("signal", x->signal);
+		if (x->has & RL_STA_SIGNAL_AVG)
+			add_int("signal_avg", x->signal_avg);
+		if (sv && (sv->s.has & RL_SV_NOISE))
+			add_int("noise", sv->s.noise);
+		if (x->has & RL_STA_INACTIVE)
+			blobmsg_add_u32(&b, "inactive_ms", x->inactive_ms);
+		if (x->has & RL_STA_CONNECTED)
+			blobmsg_add_u32(&b, "connected_sec", x->connected_sec);
+		if (x->has & RL_STA_RX_RATE)
+			blobmsg_add_u32(&b, "rx_rate", x->rx_rate);
+		if (x->has & RL_STA_TX_RATE)
+			blobmsg_add_u32(&b, "tx_rate", x->tx_rate);
+		if (x->has & RL_STA_RX_MCS)
+			blobmsg_add_u32(&b, "rx_mcs", x->rx_mcs);
+		if (x->has & RL_STA_TX_MCS)
+			blobmsg_add_u32(&b, "tx_mcs", x->tx_mcs);
+		if (x->has & RL_STA_RX_NSS)
+			blobmsg_add_u32(&b, "rx_nss", x->rx_nss);
+		if (x->has & RL_STA_TX_NSS)
+			blobmsg_add_u32(&b, "tx_nss", x->tx_nss);
+		if (x->has & RL_STA_WIDTH)
+			blobmsg_add_u32(&b, "width", x->width);
+		if (x->has & RL_STA_MODE)
+			blobmsg_add_string(&b, "mode", rl_wifi_mode_name(x->mode));
+		if (x->has & RL_STA_BYTES) {
+			blobmsg_add_u64(&b, "rx_bytes", x->rx_bytes);
+			blobmsg_add_u64(&b, "tx_bytes", x->tx_bytes);
+		}
+		if (x->has & RL_STA_PACKETS) {
+			blobmsg_add_u64(&b, "rx_packets", x->rx_packets);
+			blobmsg_add_u64(&b, "tx_packets", x->tx_packets);
+		}
+		if (x->has & RL_STA_RETRIES)
+			blobmsg_add_u32(&b, "tx_retries", x->tx_retries);
+		if (x->has & RL_STA_FAILED)
+			blobmsg_add_u32(&b, "tx_failed", x->tx_failed);
+		blobmsg_close_table(&b, e);
+		k++;
+	}
+	blobmsg_close_array(&b, list);
+	return ubus_send_reply(ctx, req, b.head);
+}
+
+enum { G_MAC, G_START, G_END, G_POINTS, __G_MAX };
+static const struct blobmsg_policy signal_policy[__G_MAX] = {
+	[G_MAC] = { "mac", BLOBMSG_TYPE_STRING }, [G_START] = { "start", BLOBMSG_CAST_INT64 },
+	[G_END] = { "end", BLOBMSG_CAST_INT64 },  [G_POINTS] = { "max_points", BLOBMSG_CAST_INT64 },
+};
+
+static int m_signal(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+		    const char *method, struct blob_attr *msg)
+{
+	struct blob_attr *tb[__G_MAX];
+	rl_mac mac;
+	blobmsg_parse(signal_policy, __G_MAX, tb, blob_data(msg), blob_len(msg));
+	if (!tb[G_MAC] || !tb[G_START] || !tb[G_END] || !rl_mac_parse(blobmsg_get_string(tb[G_MAC]), &mac))
+		return UBUS_STATUS_INVALID_ARGUMENT;
+	rl_device *dev = rl_devtab_find(D->devs, &mac);
+	if (!dev)
+		return UBUS_STATUS_NOT_FOUND;
+	int64_t start = get_i64(tb[G_START], 0), end = get_i64(tb[G_END], 0);
+	rl_sigq_ctx c = {
+		.minute = D->sig_minute,
+		.hour = D->sig_hour,
+		.wifi = rl_daemon_wifi_on(D) ? D->wifi : NULL,
+		.now = rl_daemon_now(),
+		.minute_days = D->cfg.signal_minute_days,
+		.hour_days = D->cfg.signal_hour_days,
+		.live_step = rl_daemon_wifi_interval(D),
+	};
+	rl_sig_history h;
+	if (rl_sig_query(&c, dev->idx, start, end, (int)get_i64(tb[G_POINTS], 0), &h) != 0)
+		return UBUS_STATUS_INVALID_ARGUMENT;
+
+	blob_buf_init(&b, 0);
+	blobmsg_add_u64(&b, "start", (uint64_t)start);
+	blobmsg_add_u64(&b, "end", (uint64_t)end);
+	blobmsg_add_u64(&b, "step", (uint64_t)h.step);
+	blobmsg_add_string(&b, "tier", rl_sigq_tier_name(h.tier));
+	void *list = blobmsg_open_array(&b, "points");
+	for (size_t i = 0; i < h.n; i++) {
+		const rl_sig_point *p = &h.pts[i];
+		void *a = blobmsg_open_array(&b, NULL);
+		blobmsg_add_u64(&b, NULL, (uint64_t)p->ts);
+		if (p->flags & RL_SIG_F_SIGNAL) {
+			add_int(NULL, p->avg_signal);
+			add_int(NULL, p->min_signal);
+		} else {
+			add_null(NULL);
+			add_null(NULL);
+		}
+		if (p->flags & RL_SIG_F_TX_RATE)
+			blobmsg_add_u32(&b, NULL, p->avg_tx_rate);
+		else
+			add_null(NULL);
+		if (p->flags & RL_SIG_F_RX_RATE)
+			blobmsg_add_u32(&b, NULL, p->avg_rx_rate);
+		else
+			add_null(NULL);
+		if (p->flags & RL_SIG_F_COUNTERS) {
+			blobmsg_add_u64(&b, NULL, p->tx_retries);
+			blobmsg_add_u64(&b, NULL, p->tx_failed);
+		} else {
+			add_null(NULL);
+			add_null(NULL);
+		}
+		blobmsg_close_array(&b, a);
+	}
+	blobmsg_close_array(&b, list);
+	rl_sig_history_free(&h);
+	return ubus_send_reply(ctx, req, b.head);
+}
+
+static void add_busy(int pct)
+{
+	if (pct >= 0)
+		blobmsg_add_u32(&b, "busy_pct", (uint32_t)pct);
+	else
+		add_null("busy_pct");
+}
+
+static int m_survey(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+		    const char *method, struct blob_attr *msg)
+{
+	const rl_survey_entry *used[RL_NL_MAX_IFACES];
+	int n_used = 0;
+	bool on = rl_daemon_wifi_on(D);
+
+	blob_buf_init(&b, 0);
+	void *list = blobmsg_open_array(&b, "radios");
+	for (int i = 0; on && i < D->n_ifaces; i++) {
+		const rl_nl_iface *ifc = &D->ifaces[i];
+		if (!first_of_radio(i))
+			continue;
+		const rl_survey_entry *sv = radio_survey(ifc);
+		uint32_t freq = ifc->freq ? ifc->freq : sv ? sv->s.freq : 0;
+		if (sv)
+			used[n_used++] = sv;
+		void *e = blobmsg_open_table(&b, NULL);
+		blobmsg_add_string(&b, "ifname", ifc->ifname);
+		blobmsg_add_string(&b, "phy", ifc->phy);
+		blobmsg_add_u32(&b, "freq", freq);
+		blobmsg_add_u32(&b, "channel", (uint32_t)rl_wifi_channel(freq));
+		if (sv && (sv->s.has & RL_SV_NOISE))
+			add_int("noise", sv->s.noise);
+		if (sv && (sv->s.has & RL_SV_ACTIVE))
+			blobmsg_add_u64(&b, "active_ms", sv->s.active_ms);
+		if (sv && (sv->s.has & RL_SV_BUSY))
+			blobmsg_add_u64(&b, "busy_ms", sv->s.busy_ms);
+		if (sv && (sv->s.has & RL_SV_RX))
+			blobmsg_add_u64(&b, "rx_ms", sv->s.rx_ms);
+		if (sv && (sv->s.has & RL_SV_TX))
+			blobmsg_add_u64(&b, "tx_ms", sv->s.tx_ms);
+		add_busy(sv ? sv->busy_pct : -1);
+		blobmsg_add_u64(&b, "updated", sv ? (uint64_t)sv->updated : 0);
+		blobmsg_close_table(&b, e);
+	}
+	blobmsg_close_array(&b, list);
+
+	/* other channels: what the driver kept from scans (busy share since the last sample, else overall) */
+	list = blobmsg_open_array(&b, "channels");
+	for (size_t i = 0; on && i < rl_wifi_survey_count(D->wifi); i++) {
+		const rl_survey_entry *sv = rl_wifi_survey_at(D->wifi, i);
+		bool skip = !(sv->s.has & RL_SV_NOISE) && sv->busy_pct < 0 && sv->busy_pct_total < 0;
+		for (int j = 0; j < n_used && !skip; j++)
+			skip = used[j] == sv;
+		if (skip)
+			continue;
+		const char *phy = "";
+		for (int j = 0; j < D->n_ifaces && !*phy; j++)
+			if (D->ifaces[j].wiphy == sv->s.wiphy)
+				phy = D->ifaces[j].phy;
+		void *e = blobmsg_open_table(&b, NULL);
+		blobmsg_add_string(&b, "phy", phy);
+		blobmsg_add_u32(&b, "freq", sv->s.freq);
+		blobmsg_add_u32(&b, "channel", (uint32_t)rl_wifi_channel(sv->s.freq));
+		if (sv->s.has & RL_SV_NOISE)
+			add_int("noise", sv->s.noise);
+		add_busy(sv->busy_pct >= 0 ? sv->busy_pct : sv->busy_pct_total);
+		blobmsg_close_table(&b, e);
+	}
+	blobmsg_close_array(&b, list);
+	return ubus_send_reply(ctx, req, b.head);
+}
+
 /* ---- maintenance ---- */
 
 static const struct blobmsg_policy reset_policy[] = { { "scope", BLOBMSG_TYPE_STRING } };
@@ -514,6 +793,9 @@ static const struct ubus_method methods[] = {
 	UBUS_METHOD("history", m_history, history_policy),
 	UBUS_METHOD("summary", m_summary, summary_policy),
 	UBUS_METHOD("events", m_events, events_policy),
+	UBUS_METHOD("stations", m_stations, stations_policy),
+	UBUS_METHOD("signal", m_signal, signal_policy),
+	UBUS_METHOD_NOARG("survey", m_survey),
 	UBUS_METHOD("reset", m_reset, reset_policy),
 	UBUS_METHOD_NOARG("commit", m_commit),
 	UBUS_METHOD_NOARG("ntp_synced", m_ntp_synced),

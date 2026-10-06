@@ -1,9 +1,9 @@
 {
 	"routelink": {
-		"description": "Grant access to RouteLink traffic statistics",
+		"description": "Grant access to RouteLink traffic and wireless statistics",
 		"read": {
 			"ubus": {
-				"routelink": [ "info", "devices", "live", "history", "summary", "events" ]
+				"routelink": [ "info", "devices", "live", "history", "summary", "events", "stations", "signal", "survey" ]
 			},
 			"uci": [ "routelink" ]
 		},
