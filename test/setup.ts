@@ -13,6 +13,8 @@ jest.mock('routelink-native', () => {
     jest.fn(async () => {
       throw new Error(`routelink-native.${name} is not mocked in this test`);
     });
+  // Native events: tests fire them with __emit(name, payload).
+  const listeners = new Map<string, Set<(payload: unknown) => void>>();
   return {
     __esModule: true,
     default: {
@@ -20,9 +22,35 @@ jest.mock('routelink-native', () => {
       fetchServerCertificate: notMocked('fetchServerCertificate'),
       getNetworkInfo: notMocked('getNetworkInfo'),
       sendWakeOnLan: notMocked('sendWakeOnLan'),
+      sleep: jest.fn(async () => undefined),
+      sshGenerateKey: notMocked('sshGenerateKey'),
+      sshPublicKey: notMocked('sshPublicKey'),
+      sshHostKey: notMocked('sshHostKey'),
+      sshOpen: notMocked('sshOpen'),
+      sshWrite: notMocked('sshWrite'),
+      sshResize: notMocked('sshResize'),
+      sshClose: notMocked('sshClose'),
+      sshExec: notMocked('sshExec'),
+      addListener: jest.fn((name: string, listener: (payload: unknown) => void) => {
+        const set = listeners.get(name) ?? new Set();
+        set.add(listener);
+        listeners.set(name, set);
+        return { remove: () => set.delete(listener) };
+      }),
+      __emit: (name: string, payload: unknown) => listeners.get(name)?.forEach((l) => l(payload)),
     },
   };
 });
+
+// Home-screen widgets (M4): createWidget hands back an object whose updates tests can check.
+jest.mock('expo-widgets', () => ({
+  createWidget: jest.fn((name: string) => ({
+    name,
+    updateSnapshot: jest.fn(),
+    updateTimeline: jest.fn(),
+    reload: jest.fn(),
+  })),
+}));
 
 jest.mock('expo-secure-store', () => {
   const store = new Map<string, string>();

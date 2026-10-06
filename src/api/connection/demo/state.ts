@@ -45,6 +45,8 @@ export interface DemoState {
   uploads: Record<string, number>;
   /** Counter behind the demo's WireGuard keys; OpenVPN profiles under /etc/openvpn. */
   vpn: { keys: number; files: Record<string, string> };
+  /** dropbear's /etc/dropbear/authorized_keys. */
+  ssh: { authorizedKeys: string };
 }
 
 /** An imported OpenVPN client profile (NW-8). */
@@ -441,6 +443,9 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     packages: createDemoPackages(),
     vpn: { keys: 0, files: { '/etc/openvpn/office.ovpn': OFFICE_OVPN } },
     uploads: {},
+    ssh: {
+      authorizedKeys: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDemoLaptopKeyDemoLaptopKeyDemoLaptopKey00 alex@laptop\n',
+    },
   };
 }
 

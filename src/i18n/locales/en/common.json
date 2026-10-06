@@ -32,5 +32,16 @@
     "unavailable": "Not available on this router",
     "needsPackages": "Install {{packages}} on the router to use this (LuCI: System → Software).",
     "unsupported": "This router doesn't offer it."
+  },
+  "listSeparator": ", ",
+  "widget": {
+    "online": "Online",
+    "offline": "Unreachable",
+    "noRouter": "Open the app to add a router",
+    "devices_one": "{{count}} device online",
+    "devices_other": "{{count}} devices online",
+    "updated": "Updated {{time}}",
+    "name": "Router Status",
+    "description": "The current router's state, speed and devices online"
   }
 }

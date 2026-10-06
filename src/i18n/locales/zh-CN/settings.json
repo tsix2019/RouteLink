@@ -1,8 +1,47 @@
 {
   "title": "设置",
-  "language": { "title": "语言", "system": "跟随系统", "zh-CN": "中文", "en": "English" },
-  "theme": { "title": "外观", "system": "跟随系统", "light": "浅色", "dark": "深色" },
-  "refresh": { "title": "刷新间隔", "value": "{{count}} 秒" },
-  "reduceTransparency": { "title": "降低透明度", "hint": "关闭模糊效果，玻璃改为不透明，适合性能较弱的手机。" },
-  "demo": { "title": "演示模式", "hint": "使用内置的演示路由器，不连接真实设备。演示里的改动在重启 App 后还原。" }
+  "language": {
+    "title": "语言",
+    "system": "跟随系统",
+    "zh-CN": "中文",
+    "en": "English"
+  },
+  "theme": {
+    "title": "外观",
+    "system": "跟随系统",
+    "light": "浅色",
+    "dark": "深色"
+  },
+  "refresh": {
+    "title": "刷新间隔",
+    "value": "{{count}} 秒"
+  },
+  "reduceTransparency": {
+    "title": "降低透明度",
+    "hint": "关闭模糊效果，玻璃改为不透明，适合性能较弱的手机。"
+  },
+  "demo": {
+    "title": "演示模式",
+    "hint": "使用内置的演示路由器，不连接真实设备。演示里的改动在重启 App 后还原。"
+  },
+  "notify": {
+    "title": "通知与小组件",
+    "section": "掉线和新设备通知",
+    "footer": "App 在后台大约每 15 分钟检查一次开了通知的路由器。具体什么时候运行由系统决定：iOS 上可能好几个小时才运行一次，省电模式下也会推迟。只有保存了密码的路由器才能开。",
+    "needsPassword": "没有保存密码，不能在后台检查",
+    "permissionDenied": "系统没有允许 RouteLink 发通知，到系统设置里打开",
+    "test": "发送测试通知",
+    "testTitle": "RouteLink 测试通知",
+    "testBody": "通知可以正常显示。",
+    "widgetSection": "桌面小组件",
+    "widgetFooter": "在桌面添加 RouteLink 小组件，显示当前路由器的在线状态、速率和在线设备数。数据在打开 App 和后台检查时更新，可能有延迟。",
+    "pin": "添加到桌面",
+    "pinUnsupported": "这个桌面不支持从 App 里添加小组件：请长按桌面空白处，在小组件列表里找到 RouteLink。",
+    "offlineTitle": "{{router}} 连不上了",
+    "offlineBody": "后台检查时连不上路由器：可能停电、断网，或者路由器在重启。",
+    "onlineTitle": "{{router}} 恢复了",
+    "onlineBody": "路由器又能连上了。",
+    "newDeviceTitle": "{{router}} 有新设备接入",
+    "newDeviceBody": "{{name}}（{{mac}}）第一次出现在这台路由器上。"
+  }
 }

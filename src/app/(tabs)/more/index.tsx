@@ -91,6 +91,22 @@ export default function More() {
             testID="more-logs"
           />
           <ListRow
+            title={t('assistant:title')}
+            icon="assistant"
+            chevron
+            disabled={!hasRouter}
+            onPress={() => nav.push('/assistant')}
+            testID="more-assistant"
+          />
+          <ListRow
+            title={t('terminal:entry')}
+            icon="terminal"
+            chevron
+            disabled={!hasRouter}
+            onPress={() => nav.push('/terminal')}
+            testID="more-terminal"
+          />
+          <ListRow
             title={t('agent:title')}
             icon="plugin"
             chevron
@@ -159,6 +175,20 @@ export default function More() {
             chevron
             onPress={() => nav.push('/more/routers')}
             testID="more-routers"
+          />
+          <ListRow
+            title={t('settings:notify.title')}
+            icon="bell"
+            chevron
+            onPress={() => nav.push('/more/notifications')}
+            testID="more-notifications"
+          />
+          <ListRow
+            title={t('assistant:settings')}
+            icon="assistant"
+            chevron
+            onPress={() => nav.push('/more/assistant')}
+            testID="more-assistant-settings"
           />
           <ListRow
             title={t('settings:language.title')}

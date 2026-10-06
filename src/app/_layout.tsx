@@ -9,6 +9,7 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { setupNotifications, syncBackgroundCheck } from '@/features/background/task';
 import { ActiveRouterProvider } from '@/features/routers/ActiveRouterProvider';
 import { createQueryClient, useAppStateFocus } from '@/hooks/query-client';
 import { i18n, initI18n, setLanguage } from '@/i18n';
@@ -39,6 +40,14 @@ export default function RootLayout() {
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
+
+  // Background checks run while at least one router is watched (design §19).
+  const watching = useSettings((s) => s.notifyRouters.length > 0);
+  useEffect(() => {
+    if (!settingsReady) return;
+    void setupNotifications().catch(() => undefined);
+    void syncBackgroundCheck(watching).catch(() => undefined);
+  }, [settingsReady, watching]);
 
   if (!ready) return null;
 
@@ -93,6 +102,8 @@ function RootStack() {
         <Stack.Screen name="wireguard-export" options={sheetOptions([0.92, 1])} />
         <Stack.Screen name="reboot" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
         <Stack.Screen name="maintenance" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
+        <Stack.Screen name="terminal" options={{ presentation: 'fullScreenModal' }} />
+        <Stack.Screen name="assistant" options={{ presentation: 'fullScreenModal' }} />
       </Stack>
     </View>
   );

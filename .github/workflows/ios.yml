@@ -44,9 +44,18 @@ jobs:
       - name: Toolchain
         run: xcodebuild -version && xcrun simctl list runtimes | grep -i ios
       - name: Prebuild
-        run: npx expo prebuild -p ios --no-install
+        run: |
+          npx expo prebuild -p ios --no-install
+          # Local notifications only: no push entitlement (plugins/without-push-entitlement.js).
+          cat ios/RouteLink/RouteLink.entitlements
+          ! grep -q aps-environment ios/RouteLink/RouteLink.entitlements
       - name: CocoaPods
-        run: cd ios && pod install
+        run: |
+          cd ios && pod install
+          # A damaged Pods.xcodeproj only surfaces later as "no such module" (plugins/with-unique-pods-uuids.js).
+          pbx=Pods/Pods.xcodeproj/project.pbxproj
+          isa=$(plutil -extract "objects.$(plutil -extract rootObject raw -o - "$pbx").isa" raw -o - "$pbx")
+          [ "$isa" = PBXProject ] || { echo "::error::Pods.xcodeproj is damaged: its root object is a $isa"; exit 1; }
       - name: Build (simulator, Release, self-test enabled)
         env:
           EXPO_PUBLIC_SELFTEST: '1'
@@ -76,6 +85,7 @@ jobs:
             docs/screenshots/**/ios-*.png
             ${{ runner.temp }}/selftest/selftest-report.json
             ${{ runner.temp }}/selftest/selftest.png
+            ${{ runner.temp }}/selftest/ssh.log
           if-no-files-found: ignore
       - name: Upload build log on failure
         if: failure()

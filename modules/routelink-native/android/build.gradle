@@ -20,4 +20,7 @@ android {
 dependencies {
   // Same version React Native 0.86 ships, so the app resolves a single OkHttp.
   implementation "com.squareup.okhttp3:okhttp:4.9.2"
+  // SSH (design §17). sshj brings BouncyCastle; the app swaps it in for Android's cut-down "BC" (SshKeys.kt).
+  implementation "com.hierynomus:sshj:0.41.1"
+  implementation "org.bouncycastle:bcprov-jdk18on:1.84"
 }

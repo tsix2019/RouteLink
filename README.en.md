@@ -20,10 +20,13 @@ RouteLink is a phone app for managing OpenWrt routers, for iOS and Android, in E
 - **Several routers**: add as many as you like and switch from the capsule in the top-left corner.
 - **Traffic per device**: with the router plugin, live rates per device and usage for any period, per day and per month; the app installs the plugin in one tap.
 - **Safe changes**: every change goes through OpenWrt's own apply-and-confirm mechanism — if the app can't reach the router afterwards, the router undoes the change after 90 seconds. Anything that can cut connections asks first, with graded risk warnings.
+- **SSH terminal**: the router's command line inside the app; you confirm the host key on first connection and the app stops if it ever changes; installs the app's own key on the router in one tap.
+- **AI assistant**: ask about your router with your own API key (Claude, OpenAI, DeepSeek, Qwen, or a local Ollama); it asks you before changing anything.
+- **Home-screen widget and alerts**: the current router's state, speed and devices online on your home screen; a notification when a router can't be reached, comes back, or sees a new device.
 - **Demo mode**: try everything without a router, against a built-in simulated OpenWrt.
-- **Private**: no data collection; the app talks only to the routers you add.
+- **Private**: no data collection; the app talks only to the routers you add, and to the AI provider you choose once you turn the assistant on.
 
-> The app's first three milestones (M1–M3) and the router plugin's first phase (P1) are complete; what comes next is in the feature list below.
+> The app's four milestones (M1–M4) and the router plugin's first phase (P1) are complete; what comes next is in the feature list below.
 
 ## Screenshots
 
@@ -71,6 +74,14 @@ All screenshots use demo mode. The iOS ones are taken automatically by CI on an 
 | Ad blocking | <img src="docs/screenshots/en/ios-adblock-light.png" width="240"> | <img src="docs/screenshots/en/android-adblock-light.png" width="240"> |
 | Firmware upgrade | <img src="docs/screenshots/en/ios-firmware-light.png" width="240"> | <img src="docs/screenshots/en/android-firmware-light.png" width="240"> |
 
+**Terminal, AI assistant and widget**
+
+| | iOS | Android |
+|---|---|---|
+| SSH terminal | <img src="docs/screenshots/en/ios-terminal-dark.png" width="240"> | <img src="docs/screenshots/en/android-terminal-dark.png" width="240"> |
+| AI assistant | <img src="docs/screenshots/en/ios-assistant-light.png" width="240"> | <img src="docs/screenshots/en/android-assistant-light.png" width="240"> |
+| Notifications & widget | <img src="docs/screenshots/en/ios-notifications-light.png" width="240"> | <img src="docs/screenshots/en/android-widget-light.png" width="240"> |
+
 More screenshots in [docs/screenshots/en](docs/screenshots/en).
 
 ## Features
@@ -86,7 +97,7 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Reboot, with progress and a check that the router is back
 - ✅ Today's traffic card: today's download and upload and the busiest devices (needs the plugin)
 - ✅ Wi-Fi QR codes (from the overview and each network's page)
-- 🚧 Ask AI (M4)
+- ✅ Ask AI: opens the AI assistant in one tap
 
 **Devices**
 
@@ -129,13 +140,17 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Router plugin: one-tap install, update check, restart, clear data, remove
 - ✅ Processes (stop, reload), packages (search, install, remove), scheduled tasks, LEDs, system (time zone, set the router clock, admin password)
 - ✅ Backup and restore, firmware upgrade (online for official OpenWrt and ImmortalWrt releases, or from a file), factory reset. All high-risk: a backup is offered first, a checkbox and the router's name confirm, and a full-screen page asks to keep the power on
-- 🚧 SSH terminal, AI assistant, home-screen widgets, offline alerts (M4)
+- ✅ SSH terminal: password or key login, host key confirmed and pinned, a key bar (Esc, Tab, Ctrl, arrows), adjustable font size; installs the app's public key on the router in one tap
+- ✅ AI assistant: Claude, OpenAI, DeepSeek, Qwen, Ollama or any OpenAI-compatible service, with your own API key; looks up status, devices and logs, and asks you in the chat before changing anything (kick or block a device, change Wi-Fi, add a port forward, restart a service or the router); you choose what is sent and whether it is masked
+- ✅ Home-screen widget (iOS, Android): the current router's state, speed and devices online; tap to open the app
+- ✅ Background alerts: a router can't be reached, comes back, or sees a new device (per router, needs a saved password)
 - 🚧 Rate limits and quotas, destinations and DNS log, online/offline push notifications, Android live monitor (P4)
 
 ## Install
 
-- **Android**: download `RouteLink-<version>.apk` from [Releases](https://github.com/tsix2019/RouteLink/releases). Needs Android 7.0 or later on an ARM processor (every phone and tablet on the market).
-- **iOS**: not on the App Store. Releases include an unsigned `RouteLink-unsigned.ipa`; sign and install it with your own Apple ID using [AltStore](https://altstore.io), [SideStore](https://sidestore.io) or Sideloadly, or with TrollStore on iOS versions it supports.
+- **Android**: download `RouteLink-<version>.apk` from [Releases](https://github.com/tsix2019/RouteLink/releases). Needs Android 8.0 or later on an ARM processor (every phone and tablet on the market).
+- **iOS**: needs iOS 17 or later (Liquid Glass needs iOS 26). Not on the App Store. Releases include an unsigned `RouteLink-unsigned.ipa`; sign and install it with your own Apple ID using [AltStore](https://altstore.io), [SideStore](https://sidestore.io) or Sideloadly, or with TrollStore on iOS versions it supports.
+  - The IPA carries a home-screen widget extension, so signing it takes two App IDs (a free Apple ID may register 10 every 7 days). The app and the widget share data through the App Group `group.io.github.tsix2019.routelink`, which signing has to replace with one of your account (AltStore and SideStore do it for you). If the widget never shows any data, the App Group was most likely lost in signing; the app itself is not affected.
 
 ## Router requirements
 
@@ -209,6 +224,8 @@ The RouteLink plugin runs on the router, counts what every device uploads and do
 
 - Router passwords live only in the system keychain (iOS Keychain / Android Keystore) and are never logged. You can also choose not to save a password and enter it when the app starts.
 - Discovery probes never carry credentials.
+- The SSH private key the app creates lives in the keychain and never leaves the phone; only the public key goes on the router.
+- The AI assistant is off until you enter your own API key, read what it sends and agree. Then your question and the router data needed to answer it (status, device list, wireless and firewall settings, system log) go to the provider you chose. MAC addresses and public IPs are masked by default, each kind of data can be turned off, and passwords and keys are never sent. Conversations stay on the phone.
 - No analytics, no ads; the app contacts no server of its own.
 - Test data in this repository comes only from demo mode and throw-away virtual routers (Docker / QEMU), never from real routers.
 

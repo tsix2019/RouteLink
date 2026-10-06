@@ -490,7 +490,7 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 
 ## 17. SSH 与终端
 
-- **原生实现**：Android 用 sshj，iOS 用 Citadel（通过 podspec 引入 SPM 依赖）。没有用现成的 React Native SSH 库，因为它们不校验主机指纹，iOS 端也不支持模拟器。（M1 已验证：在本地 Expo 模块的 podspec 里用 React Native 的 `spm_dependency` 引入 Citadel，在 Xcode 26 上编译通过。）
+- **原生实现**：Android 用 sshj，iOS 用 Citadel（通过 podspec 引入 SPM 依赖）。没有用现成的 React Native SSH 库，因为它们不校验主机指纹，iOS 端也不支持模拟器。（在本地 Expo 模块的 podspec 里用 React Native 的 `spm_dependency` 引入 Citadel。M1 记录的"在 Xcode 26 上编译通过"是误判：当时的 CI 吞掉了编译失败。Citadel 0.12 要求 iOS 17，所以 M4 起 App 的最低版本是 iOS 17，见 M4 计划 §0。）
 - **认证**：支持密码和私钥。App 可以生成一对 ed25519 密钥，再一键把公钥写进路由器的 `/etc/dropbear/authorized_keys`。
 - **主机指纹**：第一次连接时确认并固定，之后指纹变化就拦截。
 - **终端界面**：xterm.js 跑在 WebView 里，键盘上方加一排快捷键：Esc、Tab、Ctrl、方向键、`|`、`/`、`-`、`~`。支持复制粘贴、调整字号。每台路由器同时只开一个会话，断开后可以重连。
@@ -594,7 +594,7 @@ HTTP 请求统一走原生模块，而不用 React Native 自带的 `fetch`，�
 
 M1 之后插入插件设计的 P1～P4 四期（插件设计 §22）。DV-7、NW-12 移到 P1，NW-13、MO-13 移到 P3，所以从 M2、M4 里去掉了。
 
-**进度（2026-10-06）**：M1 完成，发布 v0.1.0。P1 的 App 部分完成，插件 0.1.0 已发布（Releases 和 Pages 上的软件源）；和用户路由器的联调暂停，见 P1 执行记录的 T45。M2、M3 完成，一起发布 v0.3.0：M2 的功能在演示路由器、Docker 和 QEMU（23.05、24.10、25.12）上验证；M3 的高风险功能（VLAN 回滚、恢复备份、在线刷机、恢复出厂）在 QEMU 三个版本上完整执行通过，结论见 M3 执行记录；在用户路由器上的走查等用户在场时进行。M4 进行中，见 M4 计划。
+**进度（2026-10-06）**：M1 完成，发布 v0.1.0。P1 的 App 部分完成，插件 0.1.0 已发布（Releases 和 Pages 上的软件源）；和用户路由器的联调暂停，见 P1 执行记录的 T45。M2、M3 完成，一起发布 v0.3.0：M2 的功能在演示路由器、Docker 和 QEMU（23.05、24.10、25.12）上验证；M3 的高风险功能（VLAN 回滚、恢复备份、在线刷机、恢复出厂）在 QEMU 三个版本上完整执行通过，结论见 M3 执行记录；在用户路由器上的走查等用户在场时进行。v0.3.1 修复了 Wi-Fi 二维码页的报错。M4 完成：Android 在模拟器上实测（SSH 连 Docker 路由器、后台检查的掉线/恢复/新设备、两种尺寸的小组件），iOS 自检通过；在用户路由器上的走查等用户在场时进行，结论见 M4 执行记录。
 
 ## 25. 风险与应对
 

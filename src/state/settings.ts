@@ -28,6 +28,10 @@ interface SettingsData {
   wanResetDay: Record<string, number>;
   /** Routers whose "install the plugin" card on the overview was closed. */
   dismissedAgentCard: string[];
+  /** SSH terminal font size (points). */
+  terminalFontSize: number;
+  /** Routers the background check watches (offline, back online, new devices). */
+  notifyRouters: string[];
 }
 
 interface SettingsState extends SettingsData {
@@ -49,6 +53,9 @@ export const DEFAULT_SETTINGS: SettingsData = {
   agentMirror: '',
   wanResetDay: {},
   dismissedAgentCard: [],
+  // OpenWrt's 53-column banner fits a phone at 12.
+  terminalFontSize: 12,
+  notifyRouters: [],
 };
 
 export const useSettings = create<SettingsState>()(
@@ -88,6 +95,8 @@ export const useSettings = create<SettingsState>()(
         agentMirror,
         wanResetDay,
         dismissedAgentCard,
+        terminalFontSize,
+        notifyRouters,
       }) => ({
         language,
         theme,
@@ -98,6 +107,8 @@ export const useSettings = create<SettingsState>()(
         agentMirror,
         wanResetDay,
         dismissedAgentCard,
+        terminalFontSize,
+        notifyRouters,
       }),
       onRehydrateStorage: () => () => useSettings.setState({ hydrated: true }),
     },

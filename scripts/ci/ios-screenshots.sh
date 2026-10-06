@@ -8,7 +8,8 @@ PAGES=(overview devices device wireless network more traffic:network/traffic tra
   traffic-device:traffic-device wan:network/traffic/wan agent:more/agent guest:wireless/guest
   firewall:network/firewall connections:network/connections packages:more/packages processes:more/processes
   parental:device-schedule wifi-schedule:wireless/schedule vlan:network/vlan wireguard:network/wireguard
-  adblock:network/adblock ddns:network/ddns firmware:more/firmware backup:more/backup)
+  adblock:network/adblock ddns:network/ddns firmware:more/firmware backup:more/backup
+  terminal:terminal assistant:assistant ai-settings:more/assistant notifications:more/notifications)
 xcrun simctl status_bar "$UDID" override --time 9:41 --dataNetwork wifi --wifiMode active --wifiBars 3 \
   --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
 
@@ -34,6 +35,8 @@ for lang in zh en; do
         sleep "$wait"
         # Live rates draw their little curves as samples arrive (one every 2 s): give them time to grow.
         if [ "$page" = traffic-live ]; then sleep 40; fi
+        # The demo assistant answers its first suggested question, typing it out with a lookup or two.
+        if [ "$page" = assistant ]; then sleep 25; fi
         xcrun simctl io "$UDID" screenshot "$shot" >/dev/null
         [ "$(wc -c <"$shot")" -gt 150000 ] && break
         echo "$shot looks blank, retrying" >&2

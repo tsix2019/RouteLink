@@ -22,10 +22,15 @@ export interface RouterProfile {
   lastUsedAt?: number;
   /** Last known model, for the switcher list. */
   model?: string;
+  /** SSH (MO-12): port (22), user (root), how to log in (the router password), pinned host key "SHA256:…". */
+  sshPort?: number;
+  sshUser?: string;
+  sshAuth?: 'password' | 'key';
+  sshHostKey?: string;
 }
 
 export type NewRouter = Pick<RouterProfile, 'name' | 'baseUrl' | 'username' | 'savePassword'> &
-  Partial<Pick<RouterProfile, 'tlsSha256' | 'authMode' | 'model'>>;
+  Partial<Pick<RouterProfile, 'tlsSha256' | 'authMode' | 'model' | 'sshPort' | 'sshUser' | 'sshAuth' | 'sshHostKey'>>;
 
 export const passwordKey = (id: string) => `router.${id}.password`;
 const SECURE_OPTIONS = { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK };

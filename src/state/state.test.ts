@@ -1,5 +1,9 @@
 import * as SecureStore from 'expo-secure-store';
+import Storage from 'expo-sqlite/kv-store';
 
+import { DEMO_ROUTER_ID } from '@/api/connection/demo/connection';
+
+import { useAssistant } from './assistant';
 import { passwordKey, sortedRouters, useRouters } from './routers';
 import { useSettings } from './settings';
 import { useSnapshots } from './snapshots';
@@ -94,5 +98,20 @@ describe('snapshots', () => {
     expect(useSnapshots.getState().byRouter.r1).toMatchObject({ model: 'X', clientsOnline: 3 });
     useSnapshots.getState().forget('r1');
     expect(useSnapshots.getState().byRouter.r1).toBeUndefined();
+  });
+});
+
+describe('assistant', () => {
+  it("keeps real routers' conversations, but not the demo's: demo changes reset with the app", () => {
+    const kv = Storage as unknown as { __store: Map<string, string> };
+    const say = (text: string) => ({ messages: [{ role: 'user' as const, text }], refs: {} });
+    useAssistant.getState().save('r1', say('hello'));
+    useAssistant.getState().save(DEMO_ROUTER_ID, say('how is the demo?'));
+    const saved = JSON.parse(kv.__store.get('routelink.assistant') ?? '{}') as {
+      state: { conversations: Record<string, unknown> };
+    };
+    expect(Object.keys(saved.state.conversations)).toEqual(['r1']);
+    // Still there for this session.
+    expect(useAssistant.getState().conversations[DEMO_ROUTER_ID]?.messages).toHaveLength(1);
   });
 });

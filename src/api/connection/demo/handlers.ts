@@ -1,3 +1,4 @@
+import { AUTHORIZED_KEYS } from '../../services/ssh-keys';
 import { UbusError } from '../../ubus/errors';
 import type { UciSection } from '../../uci';
 import { adminHandlers, demoKill, demoLocaltime } from './admin';
@@ -147,6 +148,7 @@ export const handlers: Record<string, Handler> = {
     const files: Record<string, number> = {
       '/usr/bin/etherwake': 10512,
       '/usr/libexec/package-manager-call': 2391,
+      '/usr/sbin/dropbear': 223_648,
       ...(s.agent.installed ? { '/usr/sbin/routelinkd': 92_416 } : {}),
     };
     const size = files[String(p.path)];
@@ -172,20 +174,26 @@ export const handlers: Record<string, Handler> = {
         ? { data: demoAddonFile(String(p.path)) }
         : p.path === CRONTAB
           ? { data: s.admin.crontab }
-          : p.path === '/etc/opkg/distfeeds.conf'
-            ? {
-                data: ['core', 'base', 'luci', 'packages']
-                  .map((feed) =>
-                    feed === 'core'
-                      ? 'src/gz openwrt_core https://downloads.openwrt.org/releases/24.10.8/targets/mediatek/filogic/packages'
-                      : `src/gz openwrt_${feed} https://downloads.openwrt.org/releases/24.10.8/packages/aarch64_cortex-a53/${feed}`,
-                  )
-                  .join('\n'),
-              }
-            : notFound('file.read'),
+          : p.path === AUTHORIZED_KEYS && s.ssh.authorizedKeys
+            ? { data: s.ssh.authorizedKeys }
+            : p.path === '/etc/opkg/distfeeds.conf'
+              ? {
+                  data: ['core', 'base', 'luci', 'packages']
+                    .map((feed) =>
+                      feed === 'core'
+                        ? 'src/gz openwrt_core https://downloads.openwrt.org/releases/24.10.8/targets/mediatek/filogic/packages'
+                        : `src/gz openwrt_${feed} https://downloads.openwrt.org/releases/24.10.8/packages/aarch64_cortex-a53/${feed}`,
+                    )
+                    .join('\n'),
+                }
+              : notFound('file.read'),
   'file.write': (s, p) => {
     if (p.path === CRONTAB) {
       s.admin.crontab = String(p.data ?? '');
+      return {};
+    }
+    if (p.path === AUTHORIZED_KEYS) {
+      s.ssh.authorizedKeys = String(p.data ?? '');
       return {};
     }
     const size = typeof p.data === 'string' ? Math.floor((p.data.length * 3) / 4) : 0;

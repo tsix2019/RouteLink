@@ -20,10 +20,13 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - **多路由器**：添加多台路由器，在页面左上角一键切换。
 - **按设备统计流量**：配合路由器插件，看每台设备的实时速率，以及任意时间段、按天、按月的用量；插件可以在 App 里一键安装。
 - **改配置更安全**：所有改动都走 OpenWrt 自带的"应用 + 确认"机制，App 联系不上路由器时，路由器会在 90 秒后自动撤销改动；会断网的操作都有分级的风险提示。
+- **SSH 终端**：在 App 里直接用路由器的命令行；第一次连接时确认主机指纹，之后指纹变了会拦下来；可以一键把 App 的密钥装到路由器上。
+- **AI 助手**：用你自己的 API Key（Claude、OpenAI、DeepSeek、通义千问，或本地的 Ollama）问路由器的情况；需要改设置时先请你确认。
+- **桌面小组件和掉线通知**：桌面上看当前路由器的状态、速率和在线设备数；路由器连不上、恢复、有新设备接入时发通知。
 - **演示模式**：没有路由器也能先试用，内置一台模拟的 OpenWrt 路由器。
-- **隐私**：不收集任何数据，App 只和你添加的路由器通信。
+- **隐私**：不收集任何数据，App 只和你添加的路由器通信；AI 助手只在你自己启用后，才联系你选的服务商。
 
-> App 的前三个里程碑（M1～M3）和路由器插件的第一期（P1）已完成，后续功能见下面的功能清单。
+> App 的四个里程碑（M1～M4）和路由器插件的第一期（P1）已完成，后续功能见下面的功能清单。
 
 ## 截图
 
@@ -71,6 +74,14 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 | 广告过滤 | <img src="docs/screenshots/zh/ios-adblock-light.png" width="240"> | <img src="docs/screenshots/zh/android-adblock-light.png" width="240"> |
 | 固件升级 | <img src="docs/screenshots/zh/ios-firmware-light.png" width="240"> | <img src="docs/screenshots/zh/android-firmware-light.png" width="240"> |
 
+**终端、AI 助手和小组件**
+
+| | iOS | Android |
+|---|---|---|
+| SSH 终端 | <img src="docs/screenshots/zh/ios-terminal-dark.png" width="240"> | <img src="docs/screenshots/zh/android-terminal-dark.png" width="240"> |
+| AI 助手 | <img src="docs/screenshots/zh/ios-assistant-light.png" width="240"> | <img src="docs/screenshots/zh/android-assistant-light.png" width="240"> |
+| 通知与小组件 | <img src="docs/screenshots/zh/ios-notifications-light.png" width="240"> | <img src="docs/screenshots/zh/android-widget-light.png" width="240"> |
+
 其余截图在 [docs/screenshots/zh](docs/screenshots/zh)。
 
 ## 功能
@@ -86,7 +97,7 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - ✅ 重启路由器（带进度和恢复检测）
 - ✅ 今日流量卡片：今天的上下行和用得最多的设备（需要插件）
 - ✅ Wi-Fi 二维码分享（概览和每个 Wi-Fi 的页面）
-- 🚧 问 AI（M4）
+- ✅ 问 AI：一键打开 AI 助手
 
 **设备**
 
@@ -129,13 +140,17 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - ✅ 路由器插件：一键安装、检查更新、重启、清空数据、卸载
 - ✅ 进程（结束、重新加载）、软件包（搜索、安装、卸载）、计划任务、LED、系统（时区、同步手机时间、修改管理密码）
 - ✅ 备份与恢复、固件升级（官方 OpenWrt 和 ImmortalWrt 可以在线升级，也可以用本地文件）、恢复出厂。这几项都是高风险操作：先提示备份，勾选并输入路由器名称才能继续，执行时全屏提示不要断电
-- 🚧 SSH 终端、AI 助手、桌面小组件、掉线通知（M4）
+- ✅ SSH 终端：密码或密钥登录、主机指纹确认和固定、快捷键栏（Esc、Tab、Ctrl、方向键）、调整字号；一键把 App 的公钥装到路由器
+- ✅ AI 助手：Claude、OpenAI、DeepSeek、通义千问、Ollama 或任意 OpenAI 兼容的服务，用你自己的 API Key；查状态、设备、日志，改设置（踢掉或拉黑设备、改 Wi-Fi、加端口转发、重启服务或路由器）前在对话里请你确认；可以选择发送哪些数据、是否打码
+- ✅ 桌面小组件（iOS、Android）：当前路由器的在线状态、速率、在线设备数，点按打开 App
+- ✅ 后台通知：路由器连不上、恢复、有新设备接入（按路由器开关，需要保存密码）
 - 🚧 限速和流量配额、访问去向和 DNS 记录、上下线推送、Android 实时监控（P4）
 
 ## 安装
 
-- **Android**：从 [Releases](https://github.com/tsix2019/RouteLink/releases) 下载 `RouteLink-<版本>.apk` 安装。需要 Android 7.0 或更新版本、ARM 处理器（市面上的手机和平板都是）。
-- **iOS**：没有上架 App Store。Releases 里提供未签名的 `RouteLink-unsigned.ipa`，可以用 [AltStore](https://altstore.io)、[SideStore](https://sidestore.io)、Sideloadly 用自己的 Apple ID 签名安装；支持 TrollStore 的 iOS 版本也可以用 TrollStore 安装。
+- **Android**：从 [Releases](https://github.com/tsix2019/RouteLink/releases) 下载 `RouteLink-<版本>.apk` 安装。需要 Android 8.0 或更新版本、ARM 处理器（市面上的手机和平板都是）。
+- **iOS**：需要 iOS 17 或更新版本（液态玻璃效果需要 iOS 26）。没有上架 App Store。Releases 里提供未签名的 `RouteLink-unsigned.ipa`，可以用 [AltStore](https://altstore.io)、[SideStore](https://sidestore.io)、Sideloadly 用自己的 Apple ID 签名安装；支持 TrollStore 的 iOS 版本也可以用 TrollStore 安装。
+  - IPA 里带一个桌面小组件扩展，签名时要算两个 App ID（免费 Apple ID 每 7 天最多注册 10 个）。App 和小组件通过 App Group `group.io.github.tsix2019.routelink` 共享数据，签名时要换成你账号下的 App Group（AltStore、SideStore 会自动处理）。如果小组件一直没有数据，多半是签名时丢了 App Group，App 本身不受影响。
 
 ## 路由器要求
 
@@ -209,6 +224,8 @@ RouteLink 插件装在路由器上，统计每台设备的上传和下载并保�
 
 - 路由器密码只存在系统钥匙串（iOS Keychain / Android Keystore），不写日志。也可以选择不保存密码，每次打开 App 时输入。
 - 自动发现的探测请求不带任何账号信息。
+- App 生成的 SSH 私钥存在钥匙串里，不会离开手机；装到路由器上的只是公钥。
+- AI 助手默认不启用。只有你填了自己的 API Key、看过说明并同意后，才会把你的问题和回答需要的路由器数据（状态、设备列表、无线和防火墙设置、系统日志）发给你选的服务商。MAC 地址和公网 IP 默认打码，每类数据都可以单独关闭，密码和密钥永远不会发送。对话只存在手机上。
 - 不收集任何统计数据，没有广告，App 不联系任何自有服务器。
 - 仓库里的测试数据只来自演示模式和一次性的虚拟路由器（Docker / QEMU），不包含任何真实路由器的数据。
 

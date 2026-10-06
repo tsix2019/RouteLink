@@ -1,8 +1,21 @@
 {
   "title": "Settings",
-  "language": { "title": "Language", "system": "System", "zh-CN": "中文", "en": "English" },
-  "theme": { "title": "Appearance", "system": "System", "light": "Light", "dark": "Dark" },
-  "refresh": { "title": "Refresh Interval", "value": "{{count}} s" },
+  "language": {
+    "title": "Language",
+    "system": "System",
+    "zh-CN": "中文",
+    "en": "English"
+  },
+  "theme": {
+    "title": "Appearance",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "refresh": {
+    "title": "Refresh Interval",
+    "value": "{{count}} s"
+  },
   "reduceTransparency": {
     "title": "Reduce Transparency",
     "hint": "Turns off blur and makes glass opaque; easier on slower phones."
@@ -10,5 +23,25 @@
   "demo": {
     "title": "Demo Mode",
     "hint": "Uses a built-in demo router instead of a real one. Demo changes reset when the app restarts."
+  },
+  "notify": {
+    "title": "Notifications & Widget",
+    "section": "Offline and New Device Alerts",
+    "footer": "In the background, the app checks the routers with alerts on about every 15 minutes. The system decides when: on iOS it may be hours apart, and battery saving delays it too. Only routers with a saved password can be watched.",
+    "needsPassword": "No saved password, so it can't be checked in the background",
+    "permissionDenied": "RouteLink may not send notifications: allow it in the system settings",
+    "test": "Send a Test Notification",
+    "testTitle": "RouteLink test notification",
+    "testBody": "Notifications work.",
+    "widgetSection": "Home Screen Widget",
+    "widgetFooter": "Add the RouteLink widget to your home screen for the current router's state, speed and devices online. It updates when the app is open and on background checks, so it may lag behind.",
+    "pin": "Add to Home Screen",
+    "pinUnsupported": "This launcher can't add widgets from the app: long-press an empty spot on the home screen and pick RouteLink from the widgets.",
+    "offlineTitle": "{{router}} is unreachable",
+    "offlineBody": "The background check could not reach the router: a power cut, no internet, or a restart.",
+    "onlineTitle": "{{router}} is back",
+    "onlineBody": "The router can be reached again.",
+    "newDeviceTitle": "New device on {{router}}",
+    "newDeviceBody": "{{name}} ({{mac}}) appeared on this router for the first time."
   }
 }

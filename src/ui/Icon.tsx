@@ -103,6 +103,13 @@ export const ICONS = {
   firmware: { sf: 'arrow.up.circle', ion: 'arrow-up-circle-outline' },
   reset: { sf: 'arrow.counterclockwise.circle', ion: 'refresh-circle-outline' },
   import: { sf: 'doc.badge.plus', ion: 'document-attach-outline' },
+  terminal: { sf: 'apple.terminal', ion: 'terminal-outline' },
+  paste: { sf: 'doc.on.clipboard', ion: 'clipboard-outline' },
+  textSize: { sf: 'textformat.size', ion: 'text-outline' },
+  assistant: { sf: 'bubble.left.and.text.bubble.right', ion: 'chatbubbles-outline' },
+  send: { sf: 'arrow.up', ion: 'arrow-up' },
+  bell: { sf: 'bell', ion: 'notifications-outline' },
+  widget: { sf: 'square.grid.2x2', ion: 'grid-outline' },
 } as const satisfies Record<string, { sf: string; ion: IonName } | { sf: string; mci: MciName }>;
 
 export type IconName = keyof typeof ICONS;

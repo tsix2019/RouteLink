@@ -1,7 +1,9 @@
 import type { CertificateInfo, HttpRequestOptions, HttpResponse, NetworkInfo } from 'routelink-native';
 
+import { sshChecks, type SshApi, type SshParams } from './ssh';
+
 /** The native surface under test (RouteLinkNative in the app, a fake in unit tests). */
-export interface NativeApi {
+export interface NativeApi extends Partial<Omit<SshApi, 'httpRequest'>> {
   httpRequest(options: HttpRequestOptions): Promise<HttpResponse>;
   fetchServerCertificate(url: string, timeoutMs?: number): Promise<CertificateInfo>;
   getNetworkInfo(): Promise<NetworkInfo>;
@@ -16,6 +18,8 @@ export interface SelfTestParams {
   /** SHA-256 of that server's certificate, lower-case hex. */
   fp: string;
   platform: 'ios' | 'android';
+  /** The SSH checks run when an SSH server is given (M4). */
+  ssh?: SshParams;
 }
 
 export interface CheckResult {
@@ -107,6 +111,11 @@ export async function runSelfTest(api: NativeApi, p: SelfTestParams): Promise<Ch
   if (p.platform === 'ios') {
     checks.push(['wol-unsupported', () => expectCode(api.sendWakeOnLan('00:11:22:33:44:55'), 'ERR_UNSUPPORTED')]);
   }
+  if (p.ssh) {
+    const ssh = sshApi(api);
+    if (ssh) checks.push(...sshChecks(ssh, p.ssh));
+    else checks.push(['ssh', async () => 'the native module has no SSH functions']);
+  }
 
   const results: CheckResult[] = [];
   for (const [name, check] of checks) {
@@ -118,4 +127,11 @@ export async function runSelfTest(api: NativeApi, p: SelfTestParams): Promise<Ch
     }
   }
   return results;
+}
+
+const SSH_FUNCTIONS = ['sshGenerateKey', 'sshHostKey', 'sshOpen', 'sshWrite', 'sshResize', 'sshClose', 'sshExec'];
+
+function sshApi(api: NativeApi): SshApi | null {
+  const all = SSH_FUNCTIONS.every((f) => typeof (api as unknown as Record<string, unknown>)[f] === 'function');
+  return all && typeof api.addListener === 'function' ? (api as SshApi) : null;
 }

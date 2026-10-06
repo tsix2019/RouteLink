@@ -14,7 +14,8 @@ const ENABLED = process.env.EXPO_PUBLIC_SELFTEST === '1';
 
 /**
  * routelink://selftest?http=&https=&fp=&report= — runs the native networking checks against the CI's
- * local servers and POSTs { passed, results } to `report`.
+ * local servers and POSTs { passed, results } to `report`. With ssh=host:port&sshFp=&sshUser=&sshPassword=
+ * (and optionally sshAuthorize=) the SSH checks run too.
  */
 export default function SelfTest() {
   if (!ENABLED) return <Redirect href="/" />;
@@ -24,35 +25,57 @@ export default function SelfTest() {
 function SelfTestRunner() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { http, https, fp, report } = useLocalSearchParams<{
+  const { http, https, fp, report, ssh, sshFp, sshUser, sshPassword, sshAuthorize } = useLocalSearchParams<{
     http?: string;
     https?: string;
     fp?: string;
     report?: string;
+    ssh?: string;
+    sshFp?: string;
+    sshUser?: string;
+    sshPassword?: string;
+    sshAuthorize?: string;
   }>();
   const [results, setResults] = useState<CheckResult[] | null>(null);
 
   useEffect(() => {
     if (!http || !https || !fp) return;
     let cancelled = false;
-    void runSelfTest(RouteLinkNative, { http, https, fp, platform: Platform.OS === 'ios' ? 'ios' : 'android' }).then(
-      async (r) => {
-        if (cancelled) return;
-        setResults(r);
-        if (report) {
-          await RouteLinkNative.httpRequest({
-            url: report,
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ passed: r.every((x) => x.passed), results: r }),
-          }).catch(() => {});
-        }
-      },
-    );
+    const [host, port] = (ssh ?? '').split(':');
+    const sshParams =
+      host && sshFp
+        ? {
+            host,
+            port: Number(port) || 22,
+            // Sent in base64url ("-", "_"), as "+" and "/" do not survive the deep link reliably.
+            fp: sshFp.replace(/-/g, '+').replace(/_/g, '/'),
+            user: sshUser ?? 'root',
+            password: sshPassword ?? '',
+            authorize: sshAuthorize,
+          }
+        : undefined;
+    void runSelfTest(RouteLinkNative, {
+      http,
+      https,
+      fp,
+      platform: Platform.OS === 'ios' ? 'ios' : 'android',
+      ssh: sshParams,
+    }).then(async (r) => {
+      if (cancelled) return;
+      setResults(r);
+      if (report) {
+        await RouteLinkNative.httpRequest({
+          url: report,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passed: r.every((x) => x.passed), results: r }),
+        }).catch(() => {});
+      }
+    });
     return () => {
       cancelled = true;
     };
-  }, [http, https, fp, report]);
+  }, [http, https, fp, report, ssh, sshFp, sshUser, sshPassword, sshAuthorize]);
 
   return (
     <ScrollView
