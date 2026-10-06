@@ -66,7 +66,7 @@
 
 `availability` 只在这段时间都有探测数据的部分里计算。
 
-### 1.3 `speedtest_start`（参数 `server?`）→ `{ "id": 17 }`；已经在测时返回 `UBUS_STATUS_BUSY`。
+### 1.3 `speedtest_start`（参数 `server?`）→ `{ "id": 17 }`；已经在测时返回正在进行的那次：`{ "id": 16, "already": true }`（libubus 没有"忙"这个状态码）。
 
 ### 1.4 `speedtest_status`（参数 `id?`）
 

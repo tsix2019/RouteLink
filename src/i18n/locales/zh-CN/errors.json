@@ -36,7 +36,8 @@
     "reset-failed": "恢复出厂设置失败：{{message}}",
     "no-space": "路由器内存不够放下这个固件文件",
     "flash-failed": "刷写固件失败：{{message}}",
-    "ap-unreachable": "这台设备所在的 AP 连接不上"
+    "ap-unreachable": "这台设备所在的 AP 连接不上",
+    "target-invalid": "请输入域名或 IP 地址"
   },
   "offlineNamed": "无法连接「{{name}}」",
   "relogin": {
