@@ -19,6 +19,12 @@ export interface WifiNetwork {
   network: string[];
   mode: string;
   up: boolean;
+  /** Management frame protection as configured ('0' off, '1' optional, '2' required); unset = driver default. */
+  ieee80211w?: string;
+  /** WPS push button or PIN label is on. */
+  wps?: boolean;
+  /** Client isolation. */
+  isolate?: boolean;
 }
 
 export interface Radio {
@@ -88,6 +94,9 @@ export function parseRadios(status: Record<string, RawRadio>, config: Record<str
             network: strings(i.network),
             mode: String(i.mode ?? 'ap'),
             up: !!rt?.ifname && (st.up ?? false),
+            ieee80211w: i.ieee80211w !== undefined && i.ieee80211w !== '' ? String(i.ieee80211w) : undefined,
+            wps: bool(i.wps_pushbutton) || bool(i.wps_label),
+            isolate: bool(i.isolate),
           };
         }),
     };
