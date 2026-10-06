@@ -41,7 +41,8 @@ import { formatDuration } from '@/utils/format';
 const PAGE = 50;
 /** Points per target for the chart; exports ask for more. */
 const CHART_POINTS = 240;
-const EXPORT_POINTS = 1_440;
+// The plugin answers at most 1000 points per target (like `history`).
+const EXPORT_POINTS = 1_000;
 
 /** Outages and latency (design §18.3, DG-3): the plugin's probes for a time range, exportable as evidence. */
 export default function Latency() {
