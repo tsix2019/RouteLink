@@ -345,3 +345,56 @@
 - `src/ui/FormScreen.tsx`：`FormScreen`、`useFormExit`（`leaving`、`back()`、`replace(href)`），以及 `FormPlaceholder`。计划里的 `FormMissing` 合进了 `FormPlaceholder`：加载中、加载失败、条目不存在三种状态共用一个页面。
 - `ActionSheet` 加了可选的 `cancelLabel`，"放弃修改？"的取消按钮显示"继续编辑"。
 - `expo-router/testing-library` 的 `renderRouter` 在 jest-expo 里可以用，测试覆盖了四种情况：没改动直接返回、继续编辑、放弃修改、保存后不再拦截。去掉拦截或忽略 `leaving` 时，对应的测试都会失败。
+
+### T2（完成）
+
+- `FormScreen.tsx` 加了两个小工具：`useLoaded`（记下页面打开时读到的条目，保存或删除后列表重新读取时，页面不会闪一下"这一项已经不存在"）和 `differs`（比较表单内容是否改过）。
+- 防火墙列表页只保留开关和它的确认；点条目、"添加"直接进页面。
+
+### T3（完成）
+
+- 按计划完成。
+
+### T4（完成）
+
+- 密钥在页面里生成：`src/features/network/useWgKeys.ts`，查询键带上 `useId()`，每次打开页面生成一次，`gcTime: 0`。`useRouterQuery` 为此加了 `gcTime` 参数。
+- 导出页的地址抽成 `wgExportHref`（`src/features/network/wireguardHrefs.ts`），列表页和新建对端后的 `router.replace` 共用。
+
+### T5（完成）
+
+- 按计划完成。保存不弹确认；删除弹确认。
+
+### T6（完成）
+
+- "选择 .ovpn 文件"一行选好后显示文件名，再点可以换一个文件。没有选文件时"导入"按钮不可用。
+- 新增翻译键 `network:openvpn.pickFile`。
+
+### T7（完成）
+
+- 计划里"路由器上的 crontab 被改过时沿用 `cron-changed` 提示并刷新数据"：提示后重新读取，页面换成新读到的内容，并按"时间 + 命令"重新找到正在编辑的那一条（`findEntry`，离原来位置最近的一条），用户可以直接再保存一次。找不到时显示"这一项已经不存在"。
+- `findEntry` 有单元测试：原位置、上面插入了行、同一任务出现两次、被改掉或删掉、App 管理的任务。
+
+### T8（完成）
+
+- `filterZones` 另外把空格和下划线当成一样：LuCI 的时区名用空格（"America/New York"），而用户常按 IANA 的写法输入下划线。
+- 新增翻译键 `more:systemScreen.zoneSearch`、`zoneNone`。
+
+### T9（完成）
+
+- `src/utils/list-edit.ts` 除了 `withEntry`，还加了 `findNearest`（列表重新读取后找回正在编辑的那一项，离原位置最近的）。T7 的 `findEntry` 改为用它实现。
+- Wi-Fi 定时保存时写回打开页面时读到的 crontab。在这之间 crontab 被别处改过（`cron-changed`）时，和 T7 一样重新读取、找回这一条，可以再保存一次。
+- 删除弹确认（新增翻译键 `deleteTitle`、`deleteConsequence`），删除不算会断网的操作。去掉了翻译键 `wireless:schedule.unsaved`。
+
+### T10（完成）
+
+- `saveSchedule` 每次都重新读取防火墙和 crontab，没有 T9 那样的冲突，页面不需要重新读取。
+- 设备还没有时段时，"启用"开关不可用：启用状态写在时段生成的防火墙规则里，没有时段就没有可开关的东西。第一次保存时段时自动启用。
+- 关闭"启用"时，确认里只列"重新加载防火墙规则"，不列"断开正在进行的连接"。
+- 删除弹确认（新增翻译键 `devices:parental.deleteTitle`）。去掉了翻译键 `devices:parental.unsaved`。
+
+### T11（完成）
+
+- 删除 `src/ui/EditSheet.tsx`。
+- 翻译键：对比 M5 开始前后"源代码里找不到引用的键"，M5 没有新增这类键（T9、T10 已经删掉了两个"有修改还没保存"）。顺手删掉了这几个页面里早就没用的 `network:ddns.running`、`network:ddns.save`、`network:wireguard.generating`。其余找不到引用的键（各个 Tab 的 `title` 等）不属于 M5，没有动。
+- 主设计 §8.3 按 M5 设计 §2.1 改写，并写明修改管理密码、添加唤醒设备这两个小表单保留弹窗（M5 设计 §1.1）。
+- 二级页面在模拟器上的走查放到阶段 C 编译开发版之后一起做（T14 本来就要重新编译）。

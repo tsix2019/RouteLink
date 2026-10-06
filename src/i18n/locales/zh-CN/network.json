@@ -127,7 +127,6 @@
     "consequence": "隧道会重新建立，正在用隧道的设备会断开几秒。",
     "deleteConsequence": "靠这个隧道连回家的设备都会连不上。",
     "applied": "已应用 WireGuard 设置",
-    "generating": "正在生成密钥…",
     "error": {
       "name-invalid": "名称只能用字母、数字和下划线，最长 12 个字符",
       "name-taken": "这个名称已经被别的接口用了",
@@ -410,8 +409,6 @@
       "stopped": "未运行"
     },
     "nextAt": "下次更新 {{time}}",
-    "running": "运行中",
-    "save": "保存",
     "delete": "删除",
     "deleteTitle": "删除 {{name}}？",
     "deleteConsequence": "这个域名以后不再自动更新。",
