@@ -171,3 +171,17 @@ config device
 
 | 项目 | 结论 |
 |---|---|
+| 磁盘满（10-06） | 实施中 C、D 两盘同时被占满，子任务中断；腾出空间后从 `core/series` 起继续，已写的文件都完好 |
+| T1–T7 守护进程和 LuCI | 完成。单元测试 17 组（ASan、UBSan、-Werror）。Docker 路由器没有 nl80211，只验证了非无线路径；QEMU 无线测试（`scripts/ci/plugin-wireless.sh`，第 4 个 hwsim 射频跑 `wpa_supplicant`）在本机 Docker 里用 KVM 跑通 24.10.8，23.05、25.12 留给 CI |
+| `stations` 和计划的差别 | 多一个 `interval`（当前采样间隔）；没在运行的接口不列出；驱动不报的字段省略，包括 `signal`（App 用 `signal_avg` 代替，再没有按 0）；EHT 速率不报 `mode`；HT 的 MCS 按每流报（MCS 15 → `mcs 7`、`nss 2`） |
+| `signal` 和计划的差别 | 实时层返回原始采样点，不是等间距的格子；分钟、小时层从包含 `start` 的那一格开始，和 `history` 一致；实时层要求 `start` 在路由器时钟的 600 秒以内，所以 App 用路由器的时间（`stations.ts`）算实时范围（本机测试时主机和路由器差了约 130 秒） |
+| `survey` | `radios` 每个射频一项，按接口频率匹配（hwsim 不设 in-use 标志）；扫描到的信道在第一次采样后就有值（累计繁忙比例），之后是增量。hwsim 只在扫描时更新计数，所以 QEMU 里射频的 `busy_pct` 一直是 null，真机路径只有单元测试覆盖 |
+| AP 上的 `devices` | 没有流量统计时，无线终端的 `online` 表示"已连接"；只有已连接的终端带 `ifname`、`signal`；AP 不产生上下线事件，但新终端仍产生 `device_new`。终端认证完成才算连接，输错密码不产生设备和事件；同一台路由器上换频段是先断开再连接 |
+| AP 角色识别 | nl80211 有 AP 模式接口，或者 UCI 里有开着的射频上开着的 AP 接口，就算 AP（Wi-Fi 关着时角色不变）。守护进程写 `/var/run/routelink/ap`、`ap-only` 并清 LuCI 菜单缓存；浏览器按会话缓存菜单，角色变化要重新登录才看得到 |
+| 存储分配 | 信号分钟数据最多占上限的 1/4，小时数据 1/8，其余给流量（至少一半） |
+| `agent-router.sh` | 增加 `RL_AGENT_NAME`、`RL_AGENT_NET`、`RL_AGENT_PORT`，可以和默认实例同时跑第二台 |
+| 遗留 | CI 的无线测试还没跑过；`integration.yml` 现在也在 `openwrt/routelinkd/**` 变化时触发（main 上会连带跑整套 App 集成测试）；AP_VLAN（WDS）接口上的终端不采样；LuCI 设置页在测试浏览器里因为会话问题停在加载中，需要人工看一眼 |
+| T13 安全检查的规则细节 | `sae-mixed` 没写 `ieee80211w` 时按 hostapd 的默认值算作开启了管理帧保护（可选）；单一字符类型、少于 16 位的密码也算弱；修复项：插件报告支持 SAE 时给"升级到 WPA2/WPA3"，不确定时只对低、危险两级给"升级到 WPA2（AES）" |
+| T15 演示 AP | 和演示主路由共用设备：客厅电视、Echo、摄像头、iPad 挂在 AP 上，iPhone 每天 7:30–7:50 漫游到 AP。AP 的 2.4 GHz 是 WPA2、开着 WPS、密码含 SSID；5 GHz 和主路由同在 36 信道 |
+| T16 建组 | 自动建议在登录成功、保存之后判断（最多等 6 秒）：默认路由的下一跳是某台已保存的路由器并且有无线，或者插件角色只有 AP |
+| T19 同名 SSID 同步 | 同步名称、加密方式和密码三项；每台路由器一次应用；手机所在的那台最后应用、不回滚 |
