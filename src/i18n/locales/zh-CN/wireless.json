@@ -196,5 +196,25 @@
       "same": "关闭和开启不能是同一时间"
     },
     "summary": "{{off}}，{{on}}"
+  },
+  "sync": {
+    "title": "同时修改 {{count}} 个同名网络",
+    "hint": "名称、加密方式和密码在各台 AP 上都一致，设备才能在 AP 之间无缝切换。",
+    "consequence": "{{count}} 台路由器依次应用这次修改",
+    "done": "已在 {{count}} 台路由器上应用",
+    "partial": "{{count}} 台路由器没有改成功：{{names}}"
+  },
+  "tools": {
+    "section": "无线工具",
+    "signal": "信号监测",
+    "channels": "信道扫描与优化",
+    "security": "安全检查"
+  },
+  "group": {
+    "needsPassword": "输入这台 AP 的密码",
+    "needsPasswordHint": "没有保存它的密码，App 读不到它的信息。",
+    "offline": "连接不上",
+    "offlineHint": "暂时不知道它的无线信息，点按重试。",
+    "loading": "正在读取…"
   }
 }

@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { getRadioCapabilities, radioChanges, type Radio, type RadioCapabilities } from '@/api/services/wireless';
+import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { bandLabel, widthLabel } from '@/features/wireless/labels';
 import { useWirelessActions } from '@/features/wireless/useWirelessActions';
-import { useRadios, useRouterQuery } from '@/hooks/router-queries';
+import { useMemberQuery, useRadios } from '@/hooks/router-queries';
 import { useT } from '@/i18n';
 import { ErrorState, Skeleton } from '@/ui/Feedback';
 import { GlassButton } from '@/ui/GlassButton';
@@ -21,15 +22,17 @@ import { useToast } from '@/ui/Toast';
 const DEFAULT_POWER = 'default';
 
 export default function RadioScreen() {
-  const { name } = useLocalSearchParams<{ name: string }>();
-  const radios = useRadios();
+  // `router`: a router of the active network group (an AP); default is the active router.
+  const { name, router } = useLocalSearchParams<{ name: string; router?: string }>();
+  const radios = useRadios(router);
   const radio = radios.data?.find((r) => r.name === name);
-  const caps = useRouterQuery(['radio-caps', name], (conn) => getRadioCapabilities(conn, name), {
+  const { router: active } = useActiveRouter();
+  const caps = useMemberQuery(router || active?.id, ['radio-caps', name], (conn) => getRadioCapabilities(conn, name), {
     enabled: !!name,
     staleTime: 60_000,
   });
 
-  if (radio) return <RadioForm radio={radio} caps={caps.data} />;
+  if (radio) return <RadioForm radio={radio} caps={caps.data} routerId={router} />;
   return (
     <Screen title={name} inTabs>
       {radios.isError ? (
@@ -46,11 +49,11 @@ export default function RadioScreen() {
 
 type Picker = 'channel' | 'width' | 'power' | null;
 
-function RadioForm({ radio, caps }: { radio: Radio; caps?: RadioCapabilities }) {
+function RadioForm({ radio, caps, routerId }: { radio: Radio; caps?: RadioCapabilities; routerId?: string }) {
   const t = useT();
   const nav = useRouter();
   const toast = useToast();
-  const actions = useWirelessActions();
+  const actions = useWirelessActions(routerId);
   const [enabled, setEnabled] = useState(!radio.disabled);
   const [channel, setChannel] = useState(radio.channel);
   const [htmode, setHtmode] = useState(radio.htmode ?? '');

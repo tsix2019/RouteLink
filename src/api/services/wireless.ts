@@ -194,10 +194,17 @@ export async function scan(conn: RouterConnection, ifname: string): Promise<Scan
  * Design §11: only when the phone itself is associated to this network will changing its SSID or key
  * cut us off — then the change is applied without rollback.
  */
-export function isPhoneOnNetwork(phoneIp: string | null | undefined, clients: Client[], ifname?: string): boolean {
+export function isPhoneOnNetwork(
+  phoneIp: string | null | undefined,
+  clients: Client[],
+  ifname?: string,
+  /** In a network group the same ifname exists on every AP: the router the network belongs to. */
+  routerId?: string,
+): boolean {
   if (!phoneIp || !ifname) return false;
   const me = clients.find((c) => c.ipv4 === phoneIp);
-  return !!me?.wifi && me.wifi.ifname === ifname;
+  if (!me?.wifi || me.wifi.ifname !== ifname) return false;
+  return !routerId || !me.ap || me.ap.routerId === routerId;
 }
 
 export interface RadioCapabilities {

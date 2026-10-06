@@ -196,5 +196,25 @@
       "same": "Off and on can't be the same time"
     },
     "summary": "{{off}}, {{on}}"
+  },
+  "sync": {
+    "title": "Also change {{count}} networks of the same name",
+    "hint": "Devices move between access points without dropping only when name, security and password match everywhere.",
+    "consequence": "{{count}} routers apply the change one after another",
+    "done": "Applied on {{count}} routers",
+    "partial": "Not applied on {{count}} routers: {{names}}"
+  },
+  "tools": {
+    "section": "Wi-Fi Tools",
+    "signal": "Signal Monitor",
+    "channels": "Channel Scan & Optimization",
+    "security": "Security Check"
+  },
+  "group": {
+    "needsPassword": "Enter the password of this access point",
+    "needsPasswordHint": "Its password is not saved, so the app cannot read it.",
+    "offline": "Not reachable",
+    "offlineHint": "Its Wi-Fi details are unknown for now. Tap to try again.",
+    "loading": "Loading…"
   }
 }

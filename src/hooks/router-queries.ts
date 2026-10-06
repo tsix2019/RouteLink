@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useIsFocused } from 'expo-router';
 
 import { detectCapabilities } from '@/api/capabilities';
@@ -12,7 +12,7 @@ import { listProcesses } from '@/api/services/processes';
 import { listServices } from '@/api/services/services';
 import { getSystem, getTemperature } from '@/api/services/system';
 import { RateTracker, type RatePoint } from '@/api/services/traffic';
-import { getRadios } from '@/api/services/wireless';
+import { getRadios, type Radio } from '@/api/services/wireless';
 import { useActiveRouter, useMemberConnection } from '@/features/routers/ActiveRouterProvider';
 import { useSettings } from '@/state/settings';
 
@@ -82,7 +82,56 @@ const clientsOf = (g: GroupClients) => g.clients;
 export const useClients = () => useGroupClients(clientsOf);
 export const useDeviceCounters = () =>
   useRouterQuery(['device-counters'], getDeviceCounters, { refetchInterval: 10_000 });
-export const useRadios = () => useRouterQuery(['radios'], getRadios);
+/** Radios of the active router, or of one router of its group (wireless pages take a `router` param). */
+export function useRadios(routerId?: string) {
+  const { router } = useActiveRouter();
+  return useMemberQuery(routerId || router?.id, ['radios'], getRadios);
+}
+
+export interface GroupRadios {
+  routerId: string;
+  name: string;
+  role: 'gateway' | 'ap' | 'standalone';
+  /** No connection: the AP's password is not known. */
+  needsPassword: boolean;
+  radios?: Radio[];
+  error: unknown;
+  isLoading: boolean;
+  updatedAt: number;
+  refetch: () => void;
+}
+
+/** Radios of every router in the active group (just the active router when it has no APs). */
+export function useGroupRadios(): GroupRadios[] {
+  const { router, connection, group } = useActiveRouter();
+  const routers = [
+    {
+      id: router?.id ?? 'none',
+      name: router?.name ?? '',
+      role: group.gateway ? ('gateway' as const) : ('standalone' as const),
+      connection,
+    },
+    ...group.members.map((m) => ({ id: m.id, name: m.name, role: 'ap' as const, connection: m.connection })),
+  ];
+  const results = useQueries({
+    queries: routers.map((r) => ({
+      queryKey: [r.id, 'radios'],
+      queryFn: () => getRadios(r.connection!),
+      enabled: !!r.connection,
+    })),
+  });
+  return routers.map((r, i) => ({
+    routerId: r.id,
+    name: r.name,
+    role: r.role,
+    needsPassword: !r.connection,
+    radios: results[i].data,
+    error: results[i].error,
+    isLoading: results[i].isLoading,
+    updatedAt: results[i].dataUpdatedAt,
+    refetch: () => void results[i].refetch(),
+  }));
+}
 export const useServices = () => useRouterQuery(['services'], listServices);
 export const useProcesses = () => useRouterQuery(['processes'], listProcesses, { refetchInterval: 5_000 });
 export const useSystemLog = () => useRouterQuery(['logs', 'system'], systemLog);
