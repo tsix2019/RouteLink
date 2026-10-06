@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <uci.h>
 
 #include "core/util.h"
@@ -21,6 +22,17 @@ void rl_config_defaults(rl_config *c)
 	c->ret = (rl_retention){ .minute_hours = 48, .hour_days = 90, .day_days = 730, .event_days = 90 };
 	c->signal_minute_days = 7;
 	c->signal_hour_days = 30;
+	c->latency_minute_days = 7;
+	c->latency_hour_days = 90;
+	c->outage_days = 365;
+	c->probe = true;
+	c->probe_gateway = true;
+	/* used when the config has no probe section (kept from a version before 0.2) */
+	static const char *const targets[] = { "223.5.5.5", "119.29.29.29", "1.1.1.1" };
+	for (size_t i = 0; i < RL_ARRAY_SIZE(targets); i++)
+		rl_ip_parse(targets[i], &c->probe_targets[c->n_probe_targets++]);
+	c->speed_streams = 4;
+	c->speed_duration = 10;
 }
 
 static int clamp(int v, int lo, int hi)
@@ -44,6 +56,42 @@ static bool get_bool(struct uci_context *ctx, struct uci_section *s, const char 
 	if (!v)
 		return def;
 	return !strcmp(v, "1") || !strcmp(v, "on") || !strcmp(v, "true") || !strcmp(v, "yes") || !strcmp(v, "enabled");
+}
+
+static void add_target(rl_config *c, const char *v)
+{
+	rl_ip ip;
+	if (!rl_ip_parse(v, &ip)) {
+		/* names would need a blocking lookup in the event loop */
+		syslog(LOG_WARNING, "probe target %s ignored: only IP addresses are probed", v);
+		return;
+	}
+	for (int i = 0; i < c->n_probe_targets; i++)
+		if (rl_ip_eq(&c->probe_targets[i], &ip))
+			return;
+	if (c->n_probe_targets < RL_PROBE_MAX_TARGETS)
+		c->probe_targets[c->n_probe_targets++] = ip;
+	else
+		syslog(LOG_WARNING, "probe target %s ignored: at most %d targets", v, RL_PROBE_MAX_TARGETS);
+}
+
+/* config probe 'probe': list target (or a space-separated option) */
+static void load_targets(rl_config *c, struct uci_context *ctx, struct uci_section *s)
+{
+	struct uci_option *o = uci_lookup_option(ctx, s, "target");
+	c->n_probe_targets = 0;
+	if (!o)
+		return;
+	if (o->type == UCI_TYPE_LIST) {
+		struct uci_element *e;
+		uci_foreach_element(&o->v.list, e)
+			add_target(c, e->name);
+	} else {
+		char buf[512];
+		snprintf(buf, sizeof(buf), "%s", o->v.string);
+		for (char *save, *tok = strtok_r(buf, " \t", &save); tok; tok = strtok_r(NULL, " \t", &save))
+			add_target(c, tok);
+	}
 }
 
 void rl_config_load(rl_config *c)
@@ -80,6 +128,27 @@ void rl_config_load(rl_config *c)
 		/* signal hours are rebuilt from minutes after a restart: a day of minutes is plenty */
 		c->signal_minute_days = clamp(get_int(ctx, r, "signal_minute_days", c->signal_minute_days), 1, 90);
 		c->signal_hour_days = clamp(get_int(ctx, r, "signal_hour_days", c->signal_hour_days), 1, 3660);
+		/* the open latency hour is rebuilt from its minutes after a restart: a day of minutes is plenty */
+		c->latency_minute_days = clamp(get_int(ctx, r, "latency_minute_days", c->latency_minute_days), 1, 90);
+		c->latency_hour_days = clamp(get_int(ctx, r, "latency_hour_days", c->latency_hour_days), 1, 3660);
+		c->outage_days = clamp(get_int(ctx, r, "outage_days", c->outage_days), 1, 3660);
+
+		struct uci_section *p = uci_lookup_section(ctx, pkg, "probe");
+		if (p) {
+			c->probe = get_bool(ctx, p, "enabled", c->probe);
+			c->probe_gateway = get_bool(ctx, p, "gateway", c->probe_gateway);
+			load_targets(c, ctx, p);
+		}
+		struct uci_section *st = uci_lookup_section(ctx, pkg, "speedtest");
+		const char *server = st ? uci_lookup_option_string(ctx, st, "server") : NULL;
+		if (server) {
+			while (*server == ' ')
+				server++;
+			snprintf(c->speed_server, sizeof(c->speed_server), "%s", server);
+			c->speed_server[strcspn(c->speed_server, " \t\r\n")] = '\0';
+		}
+		c->speed_streams = clamp(get_int(ctx, st, "streams", c->speed_streams), 1, 8);
+		c->speed_duration = clamp(get_int(ctx, st, "duration", c->speed_duration), 5, 30);
 	}
 	uci_free_context(ctx);
 }

@@ -124,6 +124,11 @@ void rl_outage_wan(rl_outage *o, bool up, int64_t ts)
 		o->wan_down_at = ts;
 }
 
+rl_outage_cause rl_outage_cause_at(const rl_outage *o, int64_t ts)
+{
+	return cause_of(o, ts);
+}
+
 rl_outage_event rl_outage_stop(rl_outage *o, int64_t ts)
 {
 	rl_outage_event none = { 0 };

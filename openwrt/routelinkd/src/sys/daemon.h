@@ -12,11 +12,13 @@
 #include "core/devtab.h"
 #include "core/events.h"
 #include "core/flows.h"
+#include "core/latency.h"
 #include "core/series.h"
 #include "core/store.h"
 #include "core/wifi.h"
 #include "sys/config.h"
 #include "sys/ct.h"
+#include "sys/icmp.h"
 #include "sys/neigh.h"
 #include "sys/netinfo.h"
 #include "sys/nl80211.h"
@@ -36,6 +38,7 @@ typedef enum {
 	RL_RESET_EVENTS = 2,
 	RL_RESET_DEVICES = 4,
 	RL_RESET_SIGNAL = 8,
+	RL_RESET_LATENCY = 16, /* latency history and outages */
 } rl_reset_scope;
 
 typedef struct rl_daemon {
@@ -61,10 +64,26 @@ typedef struct rl_daemon {
 	rl_devflag *devflags; /* config device sections */
 	size_t n_devflags;
 
+	/* latency probes and outages (gateway role) */
+	rl_icmp *icmp;                              /* open while probing runs */
+	rl_series *lat_minute, *lat_hour, *outages; /* opened when the module first runs */
+	rl_lat lat;
+	rl_lat_targets targets;
+	int probe_ids[RL_PROBE_MAX_TARGETS]; /* ids of the configured custom targets */
+	int n_probe_ids;
+	rl_outage outage;
+	int64_t round_ts;
+	int gw_scope;                     /* ifindex for a link-local IPv6 next hop */
+	char wan_iface[RL_IFACE_NAMELEN]; /* netifd interface whose ifup/ifdown are the WAN's */
+	char targets_path[256];
+	bool probe_on, icmp_missing_logged;
+	int8_t wan_state; /* -1 unknown, 0 down, 1 up: netifd repeats ifdown */
+	struct ubus_event_handler wan_ev;
+
 	struct ubus_auto_conn ubus;
 	struct ubus_context *ubus_ctx; /* NULL while disconnected */
 
-	struct uloop_timeout sample_timer, names_timer, commit_timer, wifi_timer, survey_timer;
+	struct uloop_timeout sample_timer, names_timer, commit_timer, wifi_timer, survey_timer, probe_timer;
 	struct uloop_fd ct_fd, neigh_fd, nl_fd;
 
 	int64_t started, last_sample, last_commit, last_compact_day, live_until, wifi_live_until, last_clock;
@@ -92,7 +111,11 @@ bool rl_daemon_wifi_on(const rl_daemon *d);
 void rl_daemon_wifi_live(rl_daemon *d);
 /* Current station sampling interval in seconds. */
 int rl_daemon_wifi_interval(const rl_daemon *d);
-/* Bytes of every data file (traffic and signal). */
+/* Latency probes run (gateway role, module on). */
+bool rl_daemon_probe_on(const rl_daemon *d);
+/* Target ids being probed (bit per id): the configured custom targets and the next hop when known. */
+uint64_t rl_daemon_probe_targets(const rl_daemon *d);
+/* Bytes of every data file (traffic, signal, latency). */
 uint64_t rl_daemon_storage(const rl_daemon *d);
 /* The config device section of a MAC, or NULL. */
 const rl_devflag *rl_daemon_devflag(const rl_daemon *d, const rl_mac *mac);

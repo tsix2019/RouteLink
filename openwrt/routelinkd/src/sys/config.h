@@ -6,6 +6,7 @@
 #include <stddef.h>
 
 #include "core/addr.h"
+#include "core/probe.h"
 #include "core/store.h"
 
 typedef struct {
@@ -20,6 +21,17 @@ typedef struct {
 	int live_interval;
 	rl_retention ret;
 	int signal_minute_days, signal_hour_days;
+	int latency_minute_days, latency_hour_days, outage_days;
+
+	/* latency probes (gateway role) */
+	bool probe;
+	bool probe_gateway; /* the WAN's next hop too */
+	rl_ip probe_targets[RL_PROBE_MAX_TARGETS];
+	int n_probe_targets;
+
+	/* router-side speed test: "" = Cloudflare, else a LibreSpeed base URL */
+	char speed_server[256];
+	int speed_streams, speed_duration;
 } rl_config;
 
 /* A `config device` section: flags the app and LuCI keep per MAC. */

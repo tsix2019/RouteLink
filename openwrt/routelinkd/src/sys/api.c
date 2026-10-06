@@ -12,7 +12,7 @@
 #define MAX_EVENTS_OUT 1000
 #define MAX_IPS 8
 
-static const char *const CAPABILITIES[] = { "traffic", "wifi" };
+static const char *const CAPABILITIES[] = { "traffic", "wifi", "latency" };
 
 static struct rl_daemon *D;
 static struct blob_buf b;
@@ -117,6 +117,8 @@ static int m_info(struct ubus_context *ctx, struct ubus_object *obj, struct ubus
 		blobmsg_add_string(&b, NULL, "traffic");
 	if (rl_daemon_wifi_on(D))
 		blobmsg_add_string(&b, NULL, "wifi");
+	if (rl_daemon_probe_on(D))
+		blobmsg_add_string(&b, NULL, "latency");
 	blobmsg_close_array(&b, c);
 	/* every module this build has, switched on or not (modules only lists the running ones) */
 	c = blobmsg_open_array(&b, "capabilities");
@@ -146,6 +148,9 @@ static int m_info(struct ubus_context *ctx, struct ubus_object *obj, struct ubus
 	blobmsg_add_u32(&b, "event_days", (uint32_t)D->cfg.ret.event_days);
 	blobmsg_add_u32(&b, "signal_minute_days", (uint32_t)D->cfg.signal_minute_days);
 	blobmsg_add_u32(&b, "signal_hour_days", (uint32_t)D->cfg.signal_hour_days);
+	blobmsg_add_u32(&b, "latency_minute_days", (uint32_t)D->cfg.latency_minute_days);
+	blobmsg_add_u32(&b, "latency_hour_days", (uint32_t)D->cfg.latency_hour_days);
+	blobmsg_add_u32(&b, "outage_days", (uint32_t)D->cfg.outage_days);
 	blobmsg_close_table(&b, c);
 	return ubus_send_reply(ctx, req, b.head);
 }
@@ -741,6 +746,170 @@ static int m_survey(struct ubus_context *ctx, struct ubus_object *obj, struct ub
 	return ubus_send_reply(ctx, req, b.head);
 }
 
+/* ---- latency and outages (gateway role) ---- */
+
+/* Round trip in ms with one decimal. */
+static void add_ms(const char *name, uint32_t us)
+{
+	blobmsg_add_double(&b, name, (double)((us + 50) / 100) / 10.0);
+}
+
+/* Percent with one decimal. */
+static void add_pct(const char *name, uint32_t part, uint32_t whole)
+{
+	blobmsg_add_double(&b, name, (double)(((uint64_t)part * 2000 + whole) / (2 * (uint64_t)whole)) / 10.0);
+}
+
+static rl_latq_ctx latq_ctx(void)
+{
+	return (rl_latq_ctx){
+		.minute = D->lat_minute,
+		.hour = D->lat_hour,
+		.outages = D->outages,
+		.open = D->lat_minute ? &D->lat : NULL,
+		.targets = &D->targets,
+		.now = rl_daemon_now(),
+		.minute_days = D->cfg.latency_minute_days,
+	};
+}
+
+enum { L_START, L_END, L_TARGET, L_POINTS, __L_MAX };
+static const struct blobmsg_policy latency_policy[__L_MAX] = {
+	[L_START] = { "start", BLOBMSG_CAST_INT64 },   [L_END] = { "end", BLOBMSG_CAST_INT64 },
+	[L_TARGET] = { "target", BLOBMSG_TYPE_STRING }, [L_POINTS] = { "max_points", BLOBMSG_CAST_INT64 },
+};
+
+static int m_latency(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+		     const char *method, struct blob_attr *msg)
+{
+	struct blob_attr *tb[__L_MAX];
+	char s[RL_IP_STRLEN];
+	blobmsg_parse(latency_policy, __L_MAX, tb, blob_data(msg), blob_len(msg));
+	if (!tb[L_START] || !tb[L_END] || (tb[L_POINTS] && get_i64(tb[L_POINTS], 0) < 1))
+		return UBUS_STATUS_INVALID_ARGUMENT;
+	uint64_t want = ~0ULL;
+	if (tb[L_TARGET]) {
+		rl_ip ip;
+		if (!rl_ip_parse(blobmsg_get_string(tb[L_TARGET]), &ip))
+			return UBUS_STATUS_INVALID_ARGUMENT;
+		want = rl_lat_targets_find(&D->targets, &ip);
+		if (!want)
+			return UBUS_STATUS_NOT_FOUND;
+	}
+	int64_t start = get_i64(tb[L_START], 0), end = get_i64(tb[L_END], 0);
+	rl_latq_ctx c = latq_ctx();
+	rl_lat_history h;
+	if (rl_lat_query(&c, start, end, (int)get_i64(tb[L_POINTS], 0), want, rl_daemon_probe_targets(D), &h) != 0)
+		return UBUS_STATUS_INVALID_ARGUMENT;
+
+	blob_buf_init(&b, 0);
+	blobmsg_add_u64(&b, "start", (uint64_t)start);
+	blobmsg_add_u64(&b, "end", (uint64_t)end);
+	blobmsg_add_u64(&b, "step", (uint64_t)h.step);
+	blobmsg_add_string(&b, "tier", rl_tier_name(h.tier));
+	void *list = blobmsg_open_array(&b, "targets");
+	for (int i = 0; i < h.n_ids; i++) {
+		const rl_lat_slot *slot = &D->targets.slot[h.ids[i]];
+		void *e = blobmsg_open_table(&b, NULL);
+		s[0] = '\0';
+		if (slot->ip.family)
+			rl_ip_format(&slot->ip, s);
+		blobmsg_add_u32(&b, "id", h.ids[i]);
+		blobmsg_add_string(&b, "ip", s);
+		blobmsg_add_string(&b, "kind", h.ids[i] == RL_LAT_GATEWAY ? "gateway" : "custom");
+		blobmsg_close_table(&b, e);
+	}
+	blobmsg_close_array(&b, list);
+	list = blobmsg_open_array(&b, "series");
+	for (int i = 0; i < h.n_ids; i++) {
+		void *e = blobmsg_open_table(&b, NULL);
+		blobmsg_add_u32(&b, "target", h.ids[i]);
+		void *pts = blobmsg_open_array(&b, "points");
+		for (size_t k = 0; k < h.n; k++) {
+			const rl_probe_agg *a = &h.pts[i][k];
+			void *p = blobmsg_open_array(&b, NULL);
+			blobmsg_add_u64(&b, NULL, (uint64_t)(h.first + (int64_t)k * h.step));
+			if (a->sent > a->lost) {
+				add_ms(NULL, rl_probe_agg_avg(a));
+				add_ms(NULL, a->max_us);
+			} else {
+				add_null(NULL);
+				add_null(NULL);
+			}
+			if (a->sent)
+				add_pct(NULL, a->lost, a->sent);
+			else
+				add_null(NULL);
+			blobmsg_close_array(&b, p);
+		}
+		blobmsg_close_array(&b, pts);
+		blobmsg_close_table(&b, e);
+	}
+	blobmsg_close_array(&b, list);
+	list = blobmsg_open_array(&b, "summary");
+	for (int i = 0; i < h.n_ids; i++) {
+		const rl_probe_agg *a = &h.sum[i];
+		void *e = blobmsg_open_table(&b, NULL);
+		blobmsg_add_u32(&b, "target", h.ids[i]);
+		blobmsg_add_u32(&b, "sent", a->sent);
+		blobmsg_add_u32(&b, "lost", a->lost);
+		if (a->sent > a->lost) {
+			add_ms("avg_ms", rl_probe_agg_avg(a));
+			add_ms("max_ms", a->max_us);
+		} else {
+			add_null("avg_ms");
+			add_null("max_ms");
+		}
+		blobmsg_close_table(&b, e);
+	}
+	blobmsg_close_array(&b, list);
+	rl_lat_history_free(&h);
+	return ubus_send_reply(ctx, req, b.head);
+}
+
+enum { O_START, O_END, __O_MAX };
+static const struct blobmsg_policy outages_policy[__O_MAX] = {
+	[O_START] = { "start", BLOBMSG_CAST_INT64 },
+	[O_END] = { "end", BLOBMSG_CAST_INT64 },
+};
+
+static int m_outages(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+		     const char *method, struct blob_attr *msg)
+{
+	struct blob_attr *tb[__O_MAX];
+	blobmsg_parse(outages_policy, __O_MAX, tb, blob_data(msg), blob_len(msg));
+	if (!tb[O_START] || !tb[O_END])
+		return UBUS_STATUS_INVALID_ARGUMENT;
+	rl_latq_ctx c = latq_ctx();
+	rl_outage_list l;
+	if (rl_outage_query(&c, rl_daemon_probe_on(D) ? &D->outage : NULL, get_i64(tb[O_START], 0),
+			    get_i64(tb[O_END], 0), &l) != 0)
+		return UBUS_STATUS_INVALID_ARGUMENT;
+
+	blob_buf_init(&b, 0);
+	blobmsg_add_u32(&b, "count", (uint32_t)l.count);
+	blobmsg_add_u64(&b, "total_sec", (uint64_t)l.total_sec);
+	double availability = rl_outage_availability(&l);
+	if (availability >= 0)
+		blobmsg_add_double(&b, "availability", availability);
+	else
+		add_null("availability");
+	void *list = blobmsg_open_array(&b, "outages");
+	for (size_t i = 0; i < l.n; i++) {
+		const rl_outage_item *o = &l.items[i];
+		void *e = blobmsg_open_table(&b, NULL);
+		blobmsg_add_u64(&b, "start", (uint64_t)o->start);
+		blobmsg_add_u64(&b, "end", (uint64_t)o->end);
+		blobmsg_add_u64(&b, "duration", (uint64_t)(o->end - o->start));
+		blobmsg_add_string(&b, "cause", rl_outage_cause_name(o->cause));
+		blobmsg_add_u8(&b, "ongoing", o->ongoing);
+		blobmsg_close_table(&b, e);
+	}
+	blobmsg_close_array(&b, list);
+	rl_outage_list_free(&l);
+	return ubus_send_reply(ctx, req, b.head);
+}
+
 /* ---- maintenance ---- */
 
 static const struct blobmsg_policy reset_policy[] = { { "scope", BLOBMSG_TYPE_STRING } };
@@ -762,8 +931,10 @@ static int m_reset(struct ubus_context *ctx, struct ubus_object *obj, struct ubu
 		scope = RL_RESET_SIGNAL;
 	else if (!strcmp(s, "devices"))
 		scope = RL_RESET_DEVICES;
+	else if (!strcmp(s, "latency"))
+		scope = RL_RESET_LATENCY;
 	else if (!strcmp(s, "all"))
-		scope = RL_RESET_TRAFFIC | RL_RESET_EVENTS | RL_RESET_DEVICES | RL_RESET_SIGNAL;
+		scope = RL_RESET_TRAFFIC | RL_RESET_EVENTS | RL_RESET_DEVICES | RL_RESET_SIGNAL | RL_RESET_LATENCY;
 	else
 		return UBUS_STATUS_INVALID_ARGUMENT;
 	rl_daemon_reset(D, scope);
@@ -798,6 +969,8 @@ static const struct ubus_method methods[] = {
 	UBUS_METHOD("stations", m_stations, stations_policy),
 	UBUS_METHOD("signal", m_signal, signal_policy),
 	UBUS_METHOD_NOARG("survey", m_survey),
+	UBUS_METHOD("latency", m_latency, latency_policy),
+	UBUS_METHOD("outages", m_outages, outages_policy),
 	UBUS_METHOD("reset", m_reset, reset_policy),
 	UBUS_METHOD_NOARG("commit", m_commit),
 	UBUS_METHOD_NOARG("ntp_synced", m_ntp_synced),

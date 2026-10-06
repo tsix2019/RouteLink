@@ -61,6 +61,8 @@ rl_outage_event rl_outage_round(rl_outage *o, int64_t ts, int custom_targets, in
 void rl_outage_wan(rl_outage *o, bool up, int64_t ts);
 /* The daemon is stopping (or probing is switched off): an ongoing outage ends at ts. */
 rl_outage_event rl_outage_stop(rl_outage *o, int64_t ts);
+/* The cause the ongoing outage would get if it ended at ts. */
+rl_outage_cause rl_outage_cause_at(const rl_outage *o, int64_t ts);
 
 /* Outage record (32 bytes): start u32 | end u32 | cause u8 | 23 reserved. */
 void rl_outage_encode(uint8_t rec[32], int64_t start, int64_t end, rl_outage_cause cause);

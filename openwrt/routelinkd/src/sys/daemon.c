@@ -235,6 +235,14 @@ static void handle_time_jump(rl_daemon *d, int64_t now)
 			rl_series_discard_pending(d->sig_hour);
 			rl_wifi_recover(d->wifi, d->sig_minute, d->sig_hour, now, mac_of, d);
 		}
+		if (d->lat_minute) {
+			rl_lat_reset(&d->lat);
+			rl_series_discard_pending(d->lat_minute);
+			rl_series_discard_pending(d->lat_hour);
+			rl_series_discard_pending(d->outages);
+			rl_lat_recover(&d->lat, d->lat_minute, d->lat_hour, now);
+			d->outage = (rl_outage){ 0 };
+		}
 		d->synced = true;
 	}
 	event(d, RL_EV_TIME_JUMP, RL_EV_NO_DEV, jump);
@@ -602,6 +610,253 @@ static void detect_ap(rl_daemon *d)
 		stop_wifi(d, true);
 }
 
+/* ---- latency probes and outages (gateway role) ---- */
+
+bool rl_daemon_probe_on(const rl_daemon *d)
+{
+	return d->probe_on;
+}
+
+uint64_t rl_daemon_probe_targets(const rl_daemon *d)
+{
+	uint64_t mask = 0;
+	if (!d->probe_on)
+		return 0;
+	if (d->cfg.probe_gateway && d->targets.slot[RL_LAT_GATEWAY].ip.family)
+		mask |= 1ULL << RL_LAT_GATEWAY;
+	for (int i = 0; i < d->n_probe_ids; i++)
+		mask |= 1ULL << d->probe_ids[i];
+	return mask;
+}
+
+static void on_lat_rec(rl_tier tier, const uint8_t rec[RL_SERIES_REC_SIZE], void *ctx)
+{
+	rl_daemon *d = ctx;
+	rl_series *s = tier == RL_TIER_HOUR ? d->lat_hour : d->lat_minute;
+	if (s)
+		rl_series_append(s, rec);
+}
+
+/* An outage only reaches the log when it ends; until then it lives in d->outage. */
+static void on_outage(rl_daemon *d, const rl_outage_event *ev)
+{
+	if (ev->started)
+		syslog(LOG_NOTICE, "internet unreachable (no probe target answered since %lld)", (long long)ev->start);
+	if (!ev->ended)
+		return;
+	syslog(LOG_NOTICE, "internet reachable again after %lld s (%s)", (long long)(ev->end - ev->start),
+	       rl_outage_cause_name(ev->cause));
+	uint8_t rec[RL_SERIES_REC_SIZE];
+	rl_outage_encode(rec, ev->start, ev->end, ev->cause);
+	if (d->outages)
+		rl_series_append(d->outages, rec);
+}
+
+static void save_targets(rl_daemon *d)
+{
+	if (rl_lat_targets_save(&d->targets, d->targets_path) != 0)
+		syslog(LOG_WARNING, "cannot write %s: %s", d->targets_path, strerror(errno));
+}
+
+/* Ids for the configured custom targets: an address probed before keeps its id (and its history). */
+static void assign_targets(rl_daemon *d)
+{
+	bool changed = false;
+	uint64_t keep = 0;
+	for (int i = 0; i < d->cfg.n_probe_targets; i++)
+		keep |= rl_lat_targets_find(&d->targets, &d->cfg.probe_targets[i]) & ~(1ULL << RL_LAT_GATEWAY);
+	d->n_probe_ids = 0;
+	for (int i = 0; i < d->cfg.n_probe_targets; i++) {
+		int id = rl_lat_targets_assign(&d->targets, &d->cfg.probe_targets[i], keep, rl_daemon_now(), &changed);
+		if (id < 0)
+			continue;
+		keep |= 1ULL << id;
+		d->probe_ids[d->n_probe_ids++] = id;
+	}
+	if (changed)
+		save_targets(d);
+}
+
+/* The WAN's next hop and the interface whose ifup/ifdown count as the WAN's, from the latest netinfo. */
+static void update_wan(rl_daemon *d)
+{
+	const rl_netinfo *ni = &d->net;
+	if (ni->gw_iface[0]) {
+		snprintf(d->wan_iface, sizeof(d->wan_iface), "%s", ni->gw_iface);
+		if (d->wan_state < 0)
+			d->wan_state = 1;
+		d->gw_scope = ni->gw_scope;
+		if (d->lat_minute && rl_lat_targets_gateway(&d->targets, &ni->gw)) {
+			char s[RL_IP_STRLEN];
+			rl_ip_format(&ni->gw, s);
+			syslog(LOG_INFO, "WAN next hop %s (%s)", s, ni->gw_iface);
+			save_targets(d);
+		}
+	} else if (!d->wan_iface[0] && ni->n_wan_names) {
+		/* not up since the daemon started: "wan" when it is in a WAN zone, else the first such interface */
+		int pick = 0;
+		for (int i = 0; i < ni->n_wan_names; i++)
+			if (!strcmp(ni->wan_names[i], "wan"))
+				pick = i;
+		snprintf(d->wan_iface, sizeof(d->wan_iface), "%s", ni->wan_names[pick]);
+	}
+}
+
+static void probe_done(const rl_icmp_probe *p, int n, void *ctx)
+{
+	rl_daemon *d = ctx;
+	int custom = 0, answered = 0;
+	for (int i = 0; i < n; i++) {
+		rl_lat_add(&d->lat, d->round_ts, p[i].tag, p[i].answered, p[i].rtt_us);
+		if (p[i].tag != RL_LAT_GATEWAY) {
+			custom++;
+			answered += p[i].answered;
+		}
+	}
+	rl_outage_event ev = rl_outage_round(&d->outage, d->round_ts, custom, answered);
+	on_outage(d, &ev);
+}
+
+static void probe_timer_cb(struct uloop_timeout *t)
+{
+	rl_daemon *d = container_of(t, rl_daemon, probe_timer);
+	rl_icmp_probe p[RL_ICMP_MAX];
+	int n = 0;
+	int64_t now = rl_daemon_now();
+	if (!d->probe_on)
+		return;
+	uloop_timeout_set(t, RL_LAT_INTERVAL * 1000);
+	check_clock(d, now);
+	rl_lat_tick(&d->lat, now);
+	const rl_lat_slot *gw = &d->targets.slot[RL_LAT_GATEWAY];
+	/* the last known next hop while the WAN is down: its loss shows the WAN outage */
+	if (d->cfg.probe_gateway && gw->ip.family)
+		p[n++] = (rl_icmp_probe){ .ip = gw->ip, .scope = d->gw_scope, .tag = RL_LAT_GATEWAY };
+	for (int i = 0; i < d->n_probe_ids && n < RL_ICMP_MAX; i++)
+		p[n++] = (rl_icmp_probe){ .ip = d->targets.slot[d->probe_ids[i]].ip, .tag = d->probe_ids[i] };
+	d->round_ts = now;
+	rl_icmp_round(d->icmp, p, n, RL_LAT_TIMEOUT_MS);
+}
+
+static int open_latency(rl_daemon *d)
+{
+	char path[256];
+	bool bad_m = false, bad_h = false, bad_o = false;
+	if (d->lat_minute)
+		return 0;
+	snprintf(path, sizeof(path), "%s/latency.minute", d->cfg.data_dir);
+	d->lat_minute = rl_series_open(path, RL_LAT_KIND_MINUTE, &bad_m);
+	snprintf(path, sizeof(path), "%s/latency.hour", d->cfg.data_dir);
+	d->lat_hour = rl_series_open(path, RL_LAT_KIND_HOUR, &bad_h);
+	snprintf(path, sizeof(path), "%s/outages", d->cfg.data_dir);
+	d->outages = rl_series_open(path, RL_OUTAGE_KIND, &bad_o);
+	snprintf(d->targets_path, sizeof(d->targets_path), "%s/latency.targets.json", d->cfg.data_dir);
+	bool bad_t = rl_lat_targets_load(&d->targets, d->targets_path) != 0;
+	if (!d->lat_minute || !d->lat_hour || !d->outages) {
+		syslog(LOG_ERR, "cannot open the latency files in %s", d->cfg.data_dir);
+		rl_series_close(d->lat_minute);
+		rl_series_close(d->lat_hour);
+		rl_series_close(d->outages);
+		d->lat_minute = d->lat_hour = d->outages = NULL;
+		return -1;
+	}
+	if (bad_m || bad_h || bad_o || bad_t) {
+		syslog(LOG_WARNING, "damaged latency files were replaced");
+		event(d, RL_EV_DATA_RECOVERED, RL_EV_NO_DEV, 0);
+	}
+	assign_targets(d);
+	rl_lat_reset(&d->lat);
+	int n = rl_lat_recover(&d->lat, d->lat_minute, d->lat_hour, rl_daemon_now());
+	if (n)
+		syslog(LOG_INFO, "rebuilt %d hourly latency records after downtime", n);
+	return 0;
+}
+
+static void close_latency(rl_daemon *d)
+{
+	rl_series_close(d->lat_minute);
+	rl_series_close(d->lat_hour);
+	rl_series_close(d->outages);
+	d->lat_minute = d->lat_hour = d->outages = NULL;
+	rl_lat_reset(&d->lat);
+}
+
+static void start_probe(rl_daemon *d)
+{
+	if (d->probe_on || open_latency(d) != 0)
+		return;
+	d->icmp = rl_icmp_open(probe_done, d);
+	if (!d->icmp) {
+		if (!d->icmp_missing_logged)
+			syslog(LOG_ERR, "no raw ICMP socket (%s): latency probes unavailable", strerror(errno));
+		d->icmp_missing_logged = true;
+		return;
+	}
+	d->probe_on = true;
+	uloop_timeout_set(&d->probe_timer, 1000);
+	syslog(LOG_INFO, "latency probes started: %d targets%s", d->n_probe_ids,
+	       d->cfg.probe_gateway ? " and the WAN's next hop" : "");
+}
+
+/*
+ * An ongoing outage ends now. flush: write the open buckets, the open hour too (nothing rebuilds it while
+ * the daemon keeps running); without, the open minute is left for the commit that follows (shutdown).
+ */
+static void stop_probe(rl_daemon *d, bool flush)
+{
+	if (!d->probe_on)
+		return;
+	uloop_timeout_cancel(&d->probe_timer);
+	rl_icmp_close(d->icmp);
+	d->icmp = NULL;
+	rl_outage_event ev = rl_outage_stop(&d->outage, rl_daemon_now());
+	on_outage(d, &ev);
+	if (flush) {
+		rl_lat_flush(&d->lat, true);
+		rl_lat_reset(&d->lat);
+	}
+	d->probe_on = false;
+	syslog(LOG_INFO, "latency probes stopped");
+}
+
+static void detect_probe(rl_daemon *d)
+{
+	if (d->cfg.probe && d->role.gateway)
+		start_probe(d);
+	else
+		stop_probe(d, true);
+	update_wan(d);
+}
+
+/* netifd's ifup / ifdown: WAN events for the outage cause and the event log, then a fresh network view. */
+static void on_netifd_event(struct ubus_context *ctx, struct ubus_event_handler *ev, const char *type,
+			    struct blob_attr *msg)
+{
+	rl_daemon *d = container_of(ev, rl_daemon, wan_ev);
+	enum { N_ACTION, N_IFACE, __N_MAX };
+	static const struct blobmsg_policy policy[__N_MAX] = {
+		[N_ACTION] = { "action", BLOBMSG_TYPE_STRING },
+		[N_IFACE] = { "interface", BLOBMSG_TYPE_STRING },
+	};
+	struct blob_attr *tb[__N_MAX];
+	blobmsg_parse(policy, __N_MAX, tb, blob_data(msg), blob_len(msg));
+	if (!tb[N_ACTION] || !tb[N_IFACE])
+		return;
+	const char *action = blobmsg_get_string(tb[N_ACTION]), *iface = blobmsg_get_string(tb[N_IFACE]);
+	bool up = !strcmp(action, "ifup");
+	if (!up && strcmp(action, "ifdown"))
+		return;
+	if (d->role.gateway && d->wan_iface[0] && !strcmp(iface, d->wan_iface) && d->wan_state != up) {
+		d->wan_state = up;
+		rl_outage_wan(&d->outage, up, rl_daemon_now());
+		event(d, up ? RL_EV_WAN_UP : RL_EV_WAN_DOWN, RL_EV_NO_DEV, 0);
+		syslog(LOG_INFO, "WAN interface %s is %s", iface, up ? "up" : "down");
+	}
+	/* addresses, routes and the next hop changed: refresh soon (not from within a ubus callback) */
+	if (!d->names_timer.pending || uloop_timeout_remaining64(&d->names_timer) > 1000)
+		uloop_timeout_set(&d->names_timer, 1000);
+}
+
 /* ---- LuCI menu: an access point only shows Wireless and Settings ---- */
 
 static bool set_marker(const char *name, bool on)
@@ -665,6 +920,7 @@ static void names_timer_cb(struct uloop_timeout *t)
 		else
 			close_traffic(d);
 		detect_ap(d);
+		detect_probe(d);
 		update_menu(d, true);
 		if (first) {
 			rl_daemon_sample(d);
@@ -693,9 +949,16 @@ static uint64_t signal_bytes(const rl_daemon *d)
 	return d->sig_minute ? rl_series_bytes(d->sig_minute) + rl_series_bytes(d->sig_hour) : 0;
 }
 
+static uint64_t latency_bytes(const rl_daemon *d)
+{
+	return d->lat_minute ? rl_series_bytes(d->lat_minute) + rl_series_bytes(d->lat_hour) +
+				       rl_series_bytes(d->outages)
+			     : 0;
+}
+
 uint64_t rl_daemon_storage(const rl_daemon *d)
 {
-	return rl_store_bytes(d->store) + signal_bytes(d);
+	return rl_store_bytes(d->store) + signal_bytes(d) + latency_bytes(d);
 }
 
 static void compute_limits(rl_daemon *d)
@@ -724,10 +987,14 @@ int rl_daemon_commit(rl_daemon *d, bool flush_minute)
 	if (flush_minute) {
 		rl_agg_flush(d->agg, RL_TIER_MINUTE); /* the partial minute; rl_recover adds it back after a restart */
 		rl_wifi_flush(d->wifi, false);        /* likewise; rl_wifi_recover rebuilds the open hour from it */
+		rl_lat_flush(&d->lat, false);         /* likewise (rl_lat_recover) */
 	}
 	if (rl_store_commit(d->store) != 0)
 		rc = -1;
 	if (d->sig_minute && (rl_series_commit(d->sig_minute) != 0 || rl_series_commit(d->sig_hour) != 0))
+		rc = -1;
+	if (d->lat_minute && (rl_series_commit(d->lat_minute) != 0 || rl_series_commit(d->lat_hour) != 0 ||
+			      rl_series_commit(d->outages) != 0))
 		rc = -1;
 	if (rl_devtab_save(d->devs, d->devtab_path) != 0)
 		rc = -1;
@@ -738,7 +1005,13 @@ int rl_daemon_commit(rl_daemon *d, bool flush_minute)
 			rl_series_compact(d->sig_minute, now - (int64_t)d->cfg.signal_minute_days * 86400, d->max_bytes / 4);
 			rl_series_compact(d->sig_hour, now - (int64_t)d->cfg.signal_hour_days * 86400, d->max_bytes / 8);
 		}
-		uint64_t sig = signal_bytes(d), store_max = d->max_bytes > sig ? d->max_bytes - sig : 0;
+		/* latency at most 7/32: minutes 1/8, hours 1/16, outages 1/32 */
+		if (d->lat_minute) {
+			rl_series_compact(d->lat_minute, now - (int64_t)d->cfg.latency_minute_days * 86400, d->max_bytes / 8);
+			rl_series_compact(d->lat_hour, now - (int64_t)d->cfg.latency_hour_days * 86400, d->max_bytes / 16);
+			rl_series_compact(d->outages, now - (int64_t)d->cfg.outage_days * 86400, d->max_bytes / 32);
+		}
+		uint64_t sig = signal_bytes(d) + latency_bytes(d), store_max = d->max_bytes > sig ? d->max_bytes - sig : 0;
 		rl_store_compact(d->store, now, &d->cfg.ret, RL_MAX(store_max, d->max_bytes / 2));
 		rl_events_compact(d->events, now, d->cfg.ret.event_days, RL_EVENTS_CAP);
 		d->last_compact_day = day;
@@ -786,6 +1059,16 @@ void rl_daemon_reset(rl_daemon *d, unsigned scope)
 			rl_series_reset(d->sig_hour);
 		}
 		rl_wifi_reset_data(d->wifi);
+	}
+	if (scope & RL_RESET_LATENCY) {
+		if (d->lat_minute) {
+			rl_series_reset(d->lat_minute);
+			rl_series_reset(d->lat_hour);
+			rl_series_reset(d->outages);
+		}
+		rl_lat_reset(&d->lat);
+		/* an ongoing outage is dropped too; the WAN's latest ifdown / ifup still count */
+		d->outage = (rl_outage){ .wan_down_at = d->outage.wan_down_at, .wan_up_at = d->outage.wan_up_at };
 	}
 	if (scope & RL_RESET_DEVICES) {
 		rl_wifi_clear(d->wifi); /* stations refer to device indexes */
@@ -895,6 +1178,9 @@ static void on_ubus_connect(struct ubus_context *ctx)
 	rl_daemon *d = container_of(ctx, rl_daemon, ubus.ctx);
 	d->ubus_ctx = ctx;
 	rl_api_register(ctx);
+	d->wan_ev.cb = on_netifd_event;
+	if (ubus_register_event_handler(ctx, &d->wan_ev, "network.interface") != 0)
+		syslog(LOG_WARNING, "cannot subscribe to network.interface events: no WAN events");
 	uloop_timeout_set(&d->names_timer, 0);
 }
 
@@ -917,6 +1203,9 @@ int rl_daemon_init(rl_daemon *d)
 	d->agg = rl_agg_new(on_close, d);
 	d->wifi = rl_wifi_new(on_sig_rec, on_assoc, d);
 	d->nl_fd.fd = -1;
+	rl_lat_init(&d->lat, on_lat_rec, d);
+	rl_lat_targets_init(&d->targets);
+	d->wan_state = -1;
 	load_devflags(d);
 	d->conn_count = calloc(65536, sizeof(uint32_t));
 	if (!d->conn_count)
@@ -944,6 +1233,7 @@ int rl_daemon_init(rl_daemon *d)
 	d->commit_timer.cb = commit_timer_cb;
 	d->wifi_timer.cb = wifi_timer_cb;
 	d->survey_timer.cb = survey_timer_cb;
+	d->probe_timer.cb = probe_timer_cb;
 	uloop_timeout_set(&d->commit_timer, d->commit_interval * 1000);
 
 	rl_api_init(d);
@@ -961,13 +1251,17 @@ void rl_daemon_reload(rl_daemon *d)
 	rl_config_load(&d->cfg);
 	apply_timezone(d);
 	load_devflags(d);
+	if (d->lat_minute)
+		assign_targets(d); /* the probe targets may have changed */
 	if (strcmp(old.data_dir, d->cfg.data_dir) != 0) {
 		/* data is not migrated: close the old directory after a final write */
 		rl_config moved = d->cfg;
 		d->cfg = old;
+		stop_probe(d, true);
 		rl_daemon_commit(d, true);
 		d->cfg = moved;
 		close_data(d);
+		close_latency(d);
 		/* the minutes were flushed above; the next names refresh restarts sampling in the new directory */
 		stop_wifi(d, false);
 		close_signal(d);
@@ -994,11 +1288,13 @@ void rl_daemon_reload(rl_daemon *d)
 
 void rl_daemon_shutdown(rl_daemon *d)
 {
+	stop_probe(d, false); /* an ongoing outage ends here; the commit writes the open minute */
 	rl_daemon_commit(d, true);
 	update_menu(d, false);
 	close_traffic(d);
 	close_nl(d);
 	close_signal(d);
+	close_latency(d);
 	rl_wifi_free(d->wifi);
 	free(d->devflags);
 	if (d->neigh) {

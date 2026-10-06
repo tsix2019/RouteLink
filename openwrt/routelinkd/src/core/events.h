@@ -18,6 +18,8 @@ typedef enum {
 	RL_EV_DATA_RECOVERED,
 	RL_EV_WIFI_CONNECT,    /* a = frequency (MHz) of the interface it joined */
 	RL_EV_WIFI_DISCONNECT, /* a = frequency (MHz) of the interface it left */
+	RL_EV_WAN_DOWN,        /* netifd: the WAN interface went down */
+	RL_EV_WAN_UP,          /* netifd: the WAN interface came up */
 	RL_EV_TYPE_END
 } rl_event_type;
 
