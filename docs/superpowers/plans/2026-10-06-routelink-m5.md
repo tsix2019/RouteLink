@@ -339,3 +339,9 @@
 ## 执行记录
 
 （按任务填写：做了什么、和计划不同的地方、验证结果。）
+
+### T1（完成）
+
+- `src/ui/FormScreen.tsx`：`FormScreen`、`useFormExit`（`leaving`、`back()`、`replace(href)`），以及 `FormPlaceholder`。计划里的 `FormMissing` 合进了 `FormPlaceholder`：加载中、加载失败、条目不存在三种状态共用一个页面。
+- `ActionSheet` 加了可选的 `cancelLabel`，"放弃修改？"的取消按钮显示"继续编辑"。
+- `expo-router/testing-library` 的 `renderRouter` 在 jest-expo 里可以用，测试覆盖了四种情况：没改动直接返回、继续编辑、放弃修改、保存后不再拦截。去掉拦截或忽略 `leaving` 时，对应的测试都会失败。
