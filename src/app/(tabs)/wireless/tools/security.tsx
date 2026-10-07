@@ -342,7 +342,8 @@ function FixSheet({
         ? t('wifitools:security.keyWeak')
         : undefined
     : undefined;
-  const result = plan(fixes, needsKey ? key : undefined, sync);
+  // An emptied field must not throw mid-typing (planning needs some key); saving waits for a valid one.
+  const result = plan(fixes, needsKey ? key || '-' : undefined, sync);
   const toggle = (fix: SecurityFix, on: boolean) =>
     setChosen((s) => {
       const next = new Set(s);
