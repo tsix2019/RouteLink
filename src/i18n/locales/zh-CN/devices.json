@@ -28,7 +28,9 @@
     "connectedFor": "已连接",
     "lease": "租约剩余",
     "staticIp": "静态 IP",
-    "notFound": "这台设备已不在列表中"
+    "notFound": "这台设备已不在列表中",
+    "apUnknown": "「{{name}}」离线，无线信息未知",
+    "signalRow": "信号"
   },
   "actions": {
     "title": "操作",
@@ -96,5 +98,12 @@
       "time": "时间格式不对",
       "same": "开始和结束不能相同"
     }
-  }
+  },
+  "group": {
+    "offline": "「{{name}}」连接不上，它上面设备的无线信息暂时未知。",
+    "needsPassword": "没有保存「{{name}}」的密码，它上面的设备暂时看不到无线信息。",
+    "enterPassword": "输入密码",
+    "retry": "重试"
+  },
+  "intruders": "查蹭网"
 }

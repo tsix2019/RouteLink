@@ -25,14 +25,16 @@ return view.extend({
 			E('h3', {}, _('Status')),
 			E('table', { 'class': 'table' }, [
 				[ _('Version'), info.version ],
-				[ _('Role'), info.roles.indexOf('gateway') >= 0 ? _('Gateway (traffic accounting)') : _('Not a gateway') ],
+				[ _('Role'), [ info.roles.indexOf('gateway') >= 0 ? _('Gateway (traffic accounting)') : _('Not a gateway'),
+					info.roles.indexOf('ap') >= 0 ? _('Access point') : null ].filter(function(r) { return r; }).join(', ') ],
 				[ _('Flow offloading'), { none: _('Off'), software: _('Software'), hardware: _('Hardware'), sfe: 'SFE' }[info.offload] || info.offload ],
 				[ _('Clock'), info.time_synced ? _('Synchronised') : _('Not synchronised') ],
 				[ _('Storage'), '%s / %s'.format(rl.formatBytes(info.storage_used), rl.formatBytes(info.storage_limit)) ],
 				[ _('Last write to disk'), info.last_commit ? rl.formatTime(info.last_commit) : _('Not yet') ],
 				[ _('Data directory'), info.data_dir ]
 			].map(function(r) {
-				return E('tr', { 'class': 'tr' }, [ E('td', { 'class': 'td left', width: '33%' }, r[0]), E('td', { 'class': 'td left' }, r[1]) ]);
+				return E('tr', { 'class': 'tr' }, [ E('td', { 'class': 'td left', width: '33%' }, r[0]),
+					E('td', { 'class': 'td left' }, [ r[1] != null ? r[1] : '-' ]) ]);
 			}))
 		]);
 
@@ -71,7 +73,7 @@ return view.extend({
 				var dev = byMac[d.mac] || d;
 				return E('tr', { 'class': 'tr' }, [
 					E('td', { 'class': 'td left' }, E('a', { href: L.url('admin/services/routelink/traffic') + '?mac=' + encodeURIComponent(d.mac) },
-						rl.deviceLabel(dev))),
+						[ rl.deviceLabel(dev) ])),
 					E('td', { 'class': 'td left' }, '↓ ' + rl.formatBytes(d.rx)),
 					E('td', { 'class': 'td left' }, '↑ ' + rl.formatBytes(d.tx)),
 					E('td', { 'class': 'td left', width: '30%' }, rl.bar(d.rx + d.tx, total))

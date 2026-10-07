@@ -95,6 +95,9 @@ static void names(void)
 		T_EQ_I64(rl_event_parse(rl_event_name((rl_event_type)t)), t);
 	T_EQ_I64(rl_event_parse("nope"), 0);
 	T_EQ_STR(rl_event_name(RL_EV_DEVICE_NEW), "device_new");
+	/* stored as numbers: new types only go at the end */
+	T_EQ_I64(RL_EV_WIFI_CONNECT, 8);
+	T_EQ_STR(rl_event_name(RL_EV_WIFI_DISCONNECT), "wifi_disconnect");
 }
 
 int main(void)

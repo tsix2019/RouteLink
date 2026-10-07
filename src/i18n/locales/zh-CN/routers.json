@@ -70,5 +70,23 @@
     "loadFailed": "无法读取路由器的证书",
     "view": "查看证书",
     "trusted": "已信任新证书"
+  },
+  "group": {
+    "apTag": "AP",
+    "gatewayTag": "主路由",
+    "section": "网络组",
+    "role": "角色",
+    "standalone": "独立路由器",
+    "gateway": "主路由",
+    "apOf": "「{{name}}」的 AP",
+    "joinAs": "作为 AP 加入「{{name}}」",
+    "footer": "主路由和它的 AP 组成一个网络组：设备列表合在一起显示，无线设置按 AP 分开，同名 SSID 可以一起修改。",
+    "saved": "网络组已更新",
+    "suggestTitle": "加入网络组？",
+    "suggestMessage": "「{{name}}」看起来是「{{gateway}}」下面的 AP。加入后，它的无线设备会合并到主路由的设备列表里。",
+    "suggestJoin": "作为 AP 加入",
+    "suggestSkip": "保持独立",
+    "usePassword": "使用已保存路由器的密码",
+    "usePasswordNone": "没有已保存的密码"
   }
 }

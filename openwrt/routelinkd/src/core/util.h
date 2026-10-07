@@ -2,6 +2,7 @@
 #ifndef RL_UTIL_H
 #define RL_UTIL_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -9,6 +10,15 @@
 #define RL_ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 #define RL_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define RL_MAX(a, b) ((a) > (b) ? (a) : (b))
+
+/*
+ * A query range from ubus: start before end and at most max seconds long. The difference is taken unsigned,
+ * so callers' values near INT64_MIN cannot overflow it into a negative length that passes.
+ */
+static inline bool rl_range_ok(int64_t start, int64_t end, int64_t max)
+{
+	return start < end && (uint64_t)end - (uint64_t)start <= (uint64_t)max;
+}
 
 /* 32-bit finaliser (murmur3 fmix32): good spread for open addressing. */
 static inline uint32_t rl_mix32(uint32_t h)

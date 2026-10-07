@@ -1,0 +1,244 @@
+{
+  "separator": "、",
+  "grade": {
+    "excellent": "优",
+    "good": "良",
+    "fair": "一般",
+    "poor": "差"
+  },
+  "tag": {
+    "stranger": "陌生",
+    "trusted": "已信任",
+    "phone": "本机",
+    "random": "随机 MAC",
+    "router": "组内路由器"
+  },
+  "mode": {
+    "legacy": "802.11a/b/g",
+    "ht": "Wi-Fi 4",
+    "vht": "Wi-Fi 5",
+    "he": "Wi-Fi 6"
+  },
+  "chart": {
+    "signal": "信号",
+    "rate": "下行协商速率",
+    "missing": "无数据",
+    "empty": "这段时间没有信号数据",
+    "fiveMinutesAgo": "5 分钟前",
+    "now": "现在"
+  },
+  "signal": {
+    "title": "信号监测",
+    "sort": {
+      "weakest": "信号从弱到强",
+      "name": "按名称"
+    },
+    "summary": "{{count}} 台无线设备，其中 {{weak}} 台信号一般或较差",
+    "summaryGood": "{{count}} 台无线设备，信号都不错",
+    "empty": "没有在线的无线设备",
+    "footer": "这里是 AP 收到的设备信号，页面打开时每 2 秒刷新。",
+    "rates": "↓{{down}} ↑{{up}} Mbps",
+    "snr": "信噪比 {{value}} dB"
+  },
+  "detail": {
+    "notFound": "找不到这台设备",
+    "notOnAp": "现在没有连在 {{ap}} 上",
+    "snr": "信噪比",
+    "noise": "底噪",
+    "down": "下行协商速率",
+    "up": "上行协商速率",
+    "connected": "已连接",
+    "link": "频宽和协议",
+    "retries": "重传率（连接以来）",
+    "phoneNote": "这是本机。这里显示的是 AP 收到的手机信号，和手机自己显示的可能不一样。",
+    "live": "最近 5 分钟",
+    "everySecond": "每秒刷新",
+    "every2s": "每 2 秒刷新，只保留打开页面以来的数据",
+    "tips": "建议",
+    "needsPlugin": "安装 RouteLink 插件后，可以查看信号历史、漫游记录和重传率。",
+    "installPlugin": "安装",
+    "history": "信号历史",
+    "average": "平均信号",
+    "weakest": "最弱信号",
+    "retried": "重传",
+    "retriedValue": "重传 {{retries}} 次，失败 {{failed}} 次",
+    "roaming": "漫游记录",
+    "roamingNote": "汇总组内各台路由器记录的连接和断开。"
+  },
+  "tip": {
+    "move-closer": "信号偏弱。可以让设备靠近 AP，或者把 AP 放到更开阔的位置。",
+    "add-ap": "如果这个位置经常信号差，可以考虑在附近增加一台 AP。",
+    "rate-low": "协商速率不到这个频段常见水平的一半，可能是距离远、干扰多或者设备较旧。",
+    "none": "信号正常，不需要处理。",
+    "unknown": "暂时没有这台设备的信号数据。"
+  },
+  "roam": {
+    "connect": "连上 {{ap}}",
+    "disconnect": "从 {{ap}} 断开",
+    "roamed": "漫游",
+    "none": "这段时间没有连接或断开的记录"
+  },
+  "intruders": {
+    "title": "查蹭网",
+    "rescan": "重新扫描",
+    "scanning": "正在扫描…",
+    "scanningDetail": "读取 {{names}} 上的设备",
+    "readingTrust": "正在读取信任列表…",
+    "summary": {
+      "ssid": "「{{ssid}}」下 {{online}} 台在线",
+      "wifi": "Wi-Fi 下 {{online}} 台在线",
+      "all": "共 {{online}} 台在线",
+      "strangers": "，其中 {{count}} 台陌生",
+      "clean": "，没有陌生设备"
+    },
+    "scope": {
+      "ssid": "「{{ssid}}」",
+      "wifi": "全部 Wi-Fi",
+      "all": "全部设备"
+    },
+    "empty": "这个范围内没有在线设备",
+    "setup": {
+      "title": "先标记你的设备",
+      "message": "第一次使用时，所有设备都算陌生。勾选你认识的设备并标记为信任，以后新出现的设备才会显示为陌生。",
+      "start": "开始勾选"
+    },
+    "pick": {
+      "start": "批量标记信任",
+      "hint": "已勾选 {{count}} 台。勾选的设备标记为信任，没勾选的取消信任。",
+      "all": "全选",
+      "confirm": "完成",
+      "saved": "信任列表已更新"
+    },
+    "trust": "标记为信任",
+    "untrust": "取消信任",
+    "trusted": "已信任 {{count}} 台设备",
+    "untrusted": "已取消信任",
+    "changePassword": "修改 Wi-Fi 密码",
+    "details": "设备详情",
+    "signalUnknown": "信号未知",
+    "connectedFor": "已连接 {{duration}}",
+    "kickTemporary": "踢下线只是暂时的，对方知道密码还会再连上",
+    "localTrust": "信任列表保存在这台手机上，装上插件后会自动移到路由器。",
+    "note": {
+      "kick": "踢下线只是暂时的：对方知道密码还会再连上，要彻底解决请修改 Wi-Fi 密码。",
+      "private": "开了私有地址（随机 MAC）的手机显示不出厂商，不一定是蹭网的。"
+    }
+  },
+  "channels": {
+    "title": "信道优化",
+    "introTitle": "信道扫描",
+    "intro": "扫描组内每台 AP 的每个射频，看看周围的网络占了哪些信道，再给出换信道的建议。",
+    "scanWarning": "扫描时 AP 会短暂离开当前信道，连着的设备可能卡顿一两秒。",
+    "start": "开始扫描",
+    "rescan": "重新扫描",
+    "scanning": "正在扫描 {{count}} 台路由器…",
+    "unreachable": "{{name}} 没有连接，未能扫描",
+    "failed": "{{name}} 扫描失败：{{error}}",
+    "none": "组内没有可以扫描的射频",
+    "summaryChange": "建议调整 {{count}} 个射频",
+    "summaryKeep": "当前的信道都合适，不需要调整",
+    "allowDfs": "允许 DFS 信道",
+    "dfsHint": "DFS 信道（52～144；160 MHz 下 36～48 也算，因为整块覆盖到 64）要先检测雷达：切换后要等 1～10 分钟才能用，检测到雷达时还会自动换走。",
+    "legend": {
+      "own": "自家网络",
+      "other": "邻居网络",
+      "current": "当前信道",
+      "target": "建议信道"
+    },
+    "channel": "信道 {{channel}}",
+    "busy": "繁忙 {{pct}}%",
+    "dfs": "DFS 信道",
+    "reason": {
+      "keep-best": "当前信道已经是干扰最小的。",
+      "keep-small-gain": "别的信道好不了多少（干扰降不到一半），不建议更换。",
+      "change": "换到信道 {{to}}，干扰可以降低 {{pct}}%。",
+      "crowded-24": "2.4 GHz 很拥挤，建议把频宽改成 20 MHz。",
+      "no-candidates": "没有可选的信道。"
+    },
+    "switchTo": "切换到信道 {{channel}}",
+    "toWidth20": "改为 20 MHz",
+    "scanFailed": "这个射频没能完成扫描，结果可能不全。",
+    "noChannel": "读不到这个射频当前的信道，无法给出建议。",
+    "table": "各信道情况",
+    "heard": "听到 {{count}} 个网络",
+    "networks": "{{count}} 个网络",
+    "strongest": "最强 {{signal}} dBm",
+    "own": "自家 {{count}} 个",
+    "quiet": "没有听到网络",
+    "confirm": {
+      "channel": "把 {{router}} 的 {{band}} 换到信道 {{channel}}？",
+      "width": "把 {{router}} 的 {{band}} 改为 20 MHz？",
+      "drop": "这个射频上的 Wi-Fi 会断开几秒，设备会自动重新连接",
+      "rollback": "修改通过安全应用提交：手机重新连上后完成确认，否则路由器会自动恢复原设置",
+      "direct": "手机就连在这个射频上，DFS 检测期间无法确认，这次不会自动恢复",
+      "dfs": "DFS 信道切换后可能要等 1～10 分钟才能恢复；期间如果检测到雷达，路由器会换到别的信道"
+    }
+  },
+  "security": {
+    "title": "安全检查",
+    "unreachable": "{{name}} 没有连接，读不到它的 Wi-Fi 设置",
+    "empty": "没有开启的 Wi-Fi 网络",
+    "overall": "整体安全等级：{{level}}",
+    "checked": "检查了 {{count}} 个 Wi-Fi 网络",
+    "localOnly": "密码强度只在手机上判断，密码不会发到任何地方。",
+    "phone": "手机正连着",
+    "level": {
+      "high": "高",
+      "medium": "中",
+      "low": "低",
+      "danger": "危险"
+    },
+    "levelHint": {
+      "high": "加密可靠。",
+      "medium": "基本安全，还可以更好。",
+      "low": "加密方式过时，容易被破解。",
+      "danger": "没有加密或用的是 WEP，谁都能连上或者监听。"
+    },
+    "finding": {
+      "password": "密码强度：{{strength}}",
+      "passwordWithReasons": "密码强度：{{strength}}（{{reasons}}）",
+      "wps": "WPS 开着：别人可能通过 PIN 码暴力破解连进来。",
+      "mfp-off": "没有开启管理帧保护：设备容易被伪造的断开指令踢下线。",
+      "guest-not-isolated": "访客网络没有开客户端隔离：访客的设备之间可以互相访问。",
+      "hidden": "隐藏 SSID 并不能提高安全性，手机反而会到处广播这个名字。"
+    },
+    "strength": {
+      "weak": "弱",
+      "medium": "中",
+      "strong": "强"
+    },
+    "weak": {
+      "short": "少于 10 位",
+      "digits": "只有数字",
+      "common": "是常见密码",
+      "keyboard": "是键盘连续按键或顺序字符",
+      "ssid": "包含 Wi-Fi 名称",
+      "repeat": "是重复的字符",
+      "one-kind": "只有一类字符"
+    },
+    "noSae": "这台路由器不支持 WPA3（SAE），只能保持 WPA2。换成完整版 wpad（比如 wpad-mbedtls）后就可以升级。",
+    "saeUnknown": "读不到这台路由器是否支持 WPA3（SAE），所以不提供升级；确认支持后可以在 Wi-Fi 设置里手动改。",
+    "fix": "一键修复（{{count}} 项）",
+    "ok": "没有发现问题",
+    "applied": "已修复",
+    "share": "用二维码分享新密码",
+    "sheetTitle": "修复「{{ssid}}」",
+    "apply": "应用",
+    "fixes": {
+      "upgrade-wpa3": "升级到 WPA2/WPA3 混合模式",
+      "upgrade-wpa2": "升级到 WPA2（AES）",
+      "disable-wps": "关闭 WPS",
+      "enable-mfp": "开启管理帧保护",
+      "new-password": "换成强密码",
+      "isolate": "开启客户端隔离"
+    },
+    "wpa3Hint": "新设备用 WPA3，老设备仍能用 WPA2 连上",
+    "newPassword": "新密码",
+    "regenerate": "换一个",
+    "strengthIs": "强度：{{strength}}",
+    "keyLength": "密码要 8～63 位",
+    "keyWeak": "这个密码还是太弱",
+    "confirmTitle": "修复「{{ssid}}」？",
+    "consequencePhoneBrief": "你的手机正连着这个 Wi-Fi，应用后会断开几秒再自动连上"
+  }
+}

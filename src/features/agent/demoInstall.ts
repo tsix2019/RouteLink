@@ -10,7 +10,7 @@ const SIZES: Record<string, number> = {
 
 const bytesOf = (pkg: string) => new Uint8Array(SIZES[pkg] ?? 1024).map((_, i) => (i * 31 + pkg.length) & 0xff);
 const urlOf = (pkg: string) =>
-  `https://github.com/tsix2019/RouteLink/releases/download/agent-v0.1.0/${pkg}_0.1.0-r1_24.10_aarch64_cortex-a53.ipk`;
+  `https://github.com/tsix2019/RouteLink/releases/download/agent-v1.0.0/${pkg}_1.0.0-r1_24.10_aarch64_cortex-a53.ipk`;
 
 /** Manifest and downloads for the demo router (24.10, aarch64_cortex-a53); `sha256` is the app's real hash. */
 export function demoInstallDeps(
@@ -24,16 +24,16 @@ export function demoInstallDeps(
       const files = await Promise.all(
         INSTALL_ORDER.map(async (pkg) => ({
           package: pkg,
-          name: `${pkg}_0.1.0-r1_24.10_aarch64_cortex-a53.ipk`,
+          name: `${pkg}_1.0.0-r1_24.10_aarch64_cortex-a53.ipk`,
           url: urlOf(pkg),
           sha256: await sha256(bytesOf(pkg)),
           size: SIZES[pkg],
         })),
       );
       return {
-        version: '0.1.0',
+        version: '1.0.0',
         api: 1,
-        tag: 'agent-v0.1.0',
+        tag: 'agent-v1.0.0',
         targets: { '24.10/aarch64_cortex-a53': { format: 'ipk', files } },
       };
     },

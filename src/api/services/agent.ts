@@ -1,7 +1,6 @@
-import { normalizeMac } from '@/utils/mac';
-
 import type { RouterConnection } from '../connection/types';
 import { UbusError } from '../ubus/errors';
+import { bool, bps, list, mac, nullable, num, obj, optional, str, strings } from './agent-parse';
 
 /** Plugin API versions (`info.api`) this app understands; outside the range the user upgrades one side. */
 export const AGENT_API = { min: 1, max: 1 } as const;
@@ -10,12 +9,16 @@ export const AGENT_BINARY = '/usr/sbin/routelinkd';
 
 export type AgentOffload = 'none' | 'software' | 'hardware' | 'sfe';
 export type AgentRole = 'gateway' | 'ap';
+/** Modules of the plugin; `capabilities` lists what a build supports, `modules` what is switched on. */
+export type AgentModule = 'traffic' | 'wifi' | 'latency' | 'speedtest' | 'limits' | 'quotas' | 'dns' | 'notify';
 
 export interface AgentInfo {
   version: string;
   api: number;
   roles: AgentRole[];
   modules: string[];
+  /** Every module this plugin build supports (P2 on); 0.1.0 only knew traffic and did not report it. */
+  capabilities: string[];
   offload: AgentOffload;
   /** Hardware offloading (or similar) hides traffic from conntrack: totals may come out low. */
   offloadWarning: boolean;
@@ -33,7 +36,18 @@ export interface AgentInfo {
   liveIntervalSec: number;
   liveUntil: number;
   started: number;
-  retention: { minuteHours: number; hourDays: number; dayDays: number; eventDays: number };
+  /** P4: why speed limits could not be set up (e.g. missing kernel modules); empty when fine. */
+  limitsError: string;
+  /** P4: DNS logging is on. */
+  dnsEnabled: boolean;
+  retention: {
+    minuteHours: number;
+    hourDays: number;
+    dayDays: number;
+    eventDays: number;
+    signalMinuteDays?: number;
+    signalHourDays?: number;
+  };
 }
 
 export interface AgentDevice {
@@ -47,6 +61,11 @@ export interface AgentDevice {
   online: boolean;
   randomMac: boolean;
   trusted: boolean;
+  /** Push a notice when it comes and goes (UCI `device.watch`). */
+  watch: boolean;
+  /** On an access point: the interface the station is associated with, and its signal. */
+  ifname?: string;
+  signal?: number;
   /** Bytes since local midnight. */
   today: { rx: number; tx: number };
   /** Bits per second. */
@@ -118,7 +137,19 @@ export interface Live {
 }
 
 export type AgentEventType =
-  'device_new' | 'device_online' | 'device_offline' | 'daemon_start' | 'time_jump' | 'commit_failed' | 'data_recovered';
+  | 'device_new'
+  | 'device_online'
+  | 'device_offline'
+  | 'daemon_start'
+  | 'time_jump'
+  | 'commit_failed'
+  | 'data_recovered'
+  /** value: frequency (MHz) of the interface */
+  | 'wifi_connect'
+  | 'wifi_disconnect'
+  /** The WAN interface went down / came up (netifd), P3 */
+  | 'wan_down'
+  | 'wan_up';
 
 export interface AgentEvent {
   ts: number;
@@ -138,19 +169,6 @@ export interface EventsQuery {
 
 // ---- parsing: never throw on odd input, fall back to safe defaults ----
 
-type Raw = Record<string, unknown>;
-const obj = (v: unknown): Raw => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Raw) : {});
-const num = (v: unknown, fallback = 0): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
-const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
-const bool = (v: unknown): boolean => v === true || v === 1;
-const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
-const strings = (v: unknown): string[] => list(v).filter((x): x is string => typeof x === 'string');
-const mac = (v: unknown): string => normalizeMac(str(v)) ?? str(v).toUpperCase();
-const optional = (v: unknown): string | undefined => (typeof v === 'string' && v ? v : undefined);
-/** The plugin reports bytes per second; the app shows bits per second like the rest of the UI. */
-const bps = (bytesPerSec: unknown): number => Math.max(0, num(bytesPerSec)) * 8;
-const nullable = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
-
 const OFFLOADS: readonly AgentOffload[] = ['none', 'software', 'hardware', 'sfe'];
 const TIERS: readonly Tier[] = ['minute', 'hour', 'day', 'month'];
 const tier = (v: unknown): Tier => (TIERS.includes(v as Tier) ? (v as Tier) : 'minute');
@@ -163,6 +181,7 @@ export function parseInfo(raw: unknown): AgentInfo {
     api: num(r.api),
     roles: strings(r.roles).filter((x): x is AgentRole => x === 'gateway' || x === 'ap'),
     modules: strings(r.modules),
+    capabilities: r.capabilities === undefined ? ['traffic'] : strings(r.capabilities),
     offload: OFFLOADS.includes(r.offload as AgentOffload) ? (r.offload as AgentOffload) : 'none',
     offloadWarning: bool(r.offload_warning),
     nlbwmonRunning: bool(r.nlbwmon_running),
@@ -178,11 +197,15 @@ export function parseInfo(raw: unknown): AgentInfo {
     liveIntervalSec: num(r.live_interval, 2),
     liveUntil: num(r.live_until),
     started: num(r.started),
+    limitsError: str(r.limits_error),
+    dnsEnabled: bool(r.dns_enabled),
     retention: {
       minuteHours: num(ret.minute_hours),
       hourDays: num(ret.hour_days),
       dayDays: num(ret.day_days),
       eventDays: num(ret.event_days),
+      signalMinuteDays: ret.signal_minute_days === undefined ? undefined : num(ret.signal_minute_days),
+      signalHourDays: ret.signal_hour_days === undefined ? undefined : num(ret.signal_hour_days),
     },
   };
 }
@@ -201,6 +224,9 @@ export function parseDevices(raw: unknown): AgentDevice[] {
       online: bool(r.online),
       randomMac: bool(r.random_mac),
       trusted: bool(r.trusted),
+      watch: bool(r.watch),
+      ifname: optional(r.ifname),
+      signal: typeof r.signal === 'number' ? r.signal : undefined,
       today: { rx: num(r.today_rx), tx: num(r.today_tx) },
       rate: { rxBps: bps(r.rx_rate), txBps: bps(r.tx_rate) },
     };

@@ -42,7 +42,7 @@
   },
   "restarted": "插件已重启",
   "page": {
-    "about": "在路由器上统计每台设备的上传和下载并保存历史，App 据此按设备、按天、按月显示流量。",
+    "about": "装在路由器上：记录每台设备的流量历史、它所连终端的 Wi-Fi 信号、延迟探测和断网记录，可以在路由器上测速、给设备限速和设流量配额、记录 DNS 查询，并由路由器直接发推送。",
     "status": "状态",
     "version": "版本",
     "role": "角色",
@@ -77,7 +77,9 @@
     "requirements": "需要约 {{size}} 的剩余空间、root 账号，并且路由器要能连上 OpenWrt 官方软件源（用来补装依赖）。",
     "mirror": "GitHub 下载镜像",
     "mirrorHint": "可以不填。填写后会加在 GitHub 下载地址前面，适合访问 GitHub 慢的网络。",
-    "manual": "手动安装说明"
+    "manual": "手动安装说明",
+    "roleGatewayAp": "主路由 + AP",
+    "roleAp": "AP"
   },
   "clear": {
     "title": "清空全部流量数据？",

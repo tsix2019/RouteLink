@@ -20,11 +20,22 @@ export interface WifiIface {
 export interface Station {
   mac: string;
   signal: number;
+  noise?: number;
   inactiveMs: number;
   connectedSec?: number;
   /** kbit/s */
   rxRate?: number;
   txRate?: number;
+}
+
+/** The access point a wireless client is associated with (network groups, NG-3). */
+export interface ClientAp {
+  routerId: string;
+  name: string;
+  band?: Band;
+  ssid?: string;
+  /** The AP did not answer: this is where the client was last seen, its Wi-Fi details are unknown. */
+  stale?: boolean;
 }
 
 export interface Neighbor {
@@ -58,7 +69,13 @@ export interface Client {
     rxRate?: number;
     txRate?: number;
     connectedSec?: number;
+    /** How long the AP has not heard from it; decides between two APs while roaming. */
+    inactiveMs?: number;
+    /** dBm, when the driver reports it */
+    noise?: number;
   };
+  /** Set when the client list merges a network group. */
+  ap?: ClientAp;
   isStatic: boolean;
   staticIp?: string;
   /** dhcp host section holding this MAC (alias and/or static IP). */
@@ -89,6 +106,13 @@ const ONLINE_STATES = new Set(['REACHABLE', 'STALE', 'DELAY', 'PROBE']);
 
 const listOf = (v: unknown): string[] =>
   (Array.isArray(v) ? v : typeof v === 'string' ? v.split(/\s+/) : []).filter((s): s is string => !!s);
+
+/** Band of a frequency in MHz. */
+export function bandOfFreq(mhz: number): Band {
+  if (mhz >= 5925) return '6G';
+  if (mhz >= 4900) return '5G';
+  return '2.4G';
+}
 
 export function bandOf(config: { band?: string; hwmode?: string; channel?: string | number }): Band {
   if (config.band === '6g') return '6G';
@@ -122,6 +146,7 @@ export function parseStations(raw: { results?: Record<string, unknown>[] } | und
   return (raw?.results ?? []).map((s) => ({
     mac: String(s.mac),
     signal: Number(s.signal ?? 0),
+    noise: typeof s.noise === 'number' && s.noise !== 0 ? s.noise : undefined,
     inactiveMs: Number(s.inactive ?? 0),
     connectedSec: s.connected_time === undefined ? undefined : Number(s.connected_time),
     rxRate: (s.rx as { rate?: number } | undefined)?.rate,
@@ -219,6 +244,8 @@ export function mergeClients(input: ClientInputs): Client[] {
         rxRate: s.rxRate,
         txRate: s.txRate,
         connectedSec: s.connectedSec,
+        inactiveMs: s.inactiveMs,
+        noise: s.noise,
       };
     }
   }

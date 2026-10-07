@@ -20,6 +20,22 @@ var callEvents = rpc.declare({
 	object: 'routelink', method: 'events',
 	params: [ 'start', 'end', 'types', 'mac', 'limit', 'offset' ]
 });
+var callStations = rpc.declare({ object: 'routelink', method: 'stations', params: [ 'live' ] });
+var callSignal = rpc.declare({ object: 'routelink', method: 'signal', params: [ 'mac', 'start', 'end', 'max_points' ] });
+var callSurvey = rpc.declare({ object: 'routelink', method: 'survey' });
+var callLatency = rpc.declare({ object: 'routelink', method: 'latency', params: [ 'start', 'end', 'target', 'max_points' ] });
+var callOutages = rpc.declare({ object: 'routelink', method: 'outages', params: [ 'start', 'end' ] });
+var callSpeedtestStart = rpc.declare({ object: 'routelink', method: 'speedtest_start', params: [ 'server' ] });
+var callSpeedtestStatus = rpc.declare({ object: 'routelink', method: 'speedtest_status', params: [ 'id' ] });
+var callQuotas = rpc.declare({ object: 'routelink', method: 'quotas', expect: { quotas: [] } });
+var callQuotaAllow = rpc.declare({ object: 'routelink', method: 'quota_allow', params: [ 'section', 'until' ] });
+var callDestinations = rpc.declare({
+	object: 'routelink', method: 'destinations',
+	params: [ 'mac', 'start', 'end', 'limit' ]
+});
+var callDns = rpc.declare({ object: 'routelink', method: 'dns', params: [ 'mac', 'start', 'end', 'q', 'limit', 'offset' ] });
+var callNotifyTest = rpc.declare({ object: 'routelink', method: 'notify_test', params: [ 'section' ] });
+var callNotifyStatus = rpc.declare({ object: 'routelink', method: 'notify_status' });
 var callReset = rpc.declare({ object: 'routelink', method: 'reset', params: [ 'scope' ] });
 var callCommit = rpc.declare({ object: 'routelink', method: 'commit' });
 var callInit = rpc.declare({ object: 'rc', method: 'init', params: [ 'name', 'action' ] });
@@ -175,6 +191,104 @@ function chart(points, step, height) {
 	return root;
 }
 
+/* ---- wireless ---- */
+
+/* Signal grades of the app (design §17.1): >= -60 dBm excellent, >= -70 good, >= -80 fair, else poor;
+ * a signal-to-noise ratio under 20 dB costs a grade. */
+var GRADES = [
+	[ _('Excellent'), '#2e9e44' ],
+	[ _('Good'), '#7cb342' ],
+	[ _('Fair'), '#f39c12' ],
+	[ _('Poor'), '#d9534f' ]
+];
+
+function signalGrade(signal, noise) {
+	var g = signal >= -60 ? 0 : signal >= -70 ? 1 : signal >= -80 ? 2 : 3;
+	if (noise != null && noise < 0 && signal - noise < 20 && g < 3)
+		g++;
+	return g;
+}
+
+function gradeBadge(signal, noise) {
+	if (signal == null)
+		return E('span', {}, '-');
+	var g = GRADES[signalGrade(signal, noise)];
+	return E('span', { style: 'white-space:nowrap' }, [
+		E('span', { style: 'display:inline-block;width:10px;height:10px;border-radius:5px;margin-right:6px;background:' + g[1] }),
+		'%d dBm '.format(signal),
+		E('span', { style: 'color:' + g[1] }, g[0])
+	]);
+}
+
+function bandOf(freq) {
+	return freq >= 5925 ? '6 GHz' : freq >= 4900 ? '5 GHz' : freq >= 2400 ? '2.4 GHz' : '-';
+}
+
+/* Negotiated rates come in kbit/s. */
+function formatKbit(kbit) {
+	if (kbit == null)
+		return '-';
+	return kbit >= 1000 ? (kbit / 1000).toFixed(kbit >= 100000 ? 0 : 1) + ' Mbit/s' : kbit + ' kbit/s';
+}
+
+function formatDuration(sec) {
+	if (sec == null)
+		return '-';
+	var d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60);
+	return d ? '%dd %dh'.format(d, h) : h ? '%dh %dm'.format(h, m) : m ? '%dm'.format(m) : '%ds'.format(sec);
+}
+
+/*
+ * Signal history line chart. points: [ [ts, avg, min, ...] ] from the signal method, null for no data
+ * (drawn as a gap). Bands at -60/-70/-80 dBm show the grades.
+ */
+function signalChart(points, height) {
+	var width = 800, h = height || 160, pad = 28, top = -10, bottom = -100;
+	var root = svg('svg', { viewBox: '0 0 ' + width + ' ' + (h + pad), width: '100%', preserveAspectRatio: 'none',
+		style: 'max-height:' + (h + pad) + 'px' });
+	var n = Math.max(points.length, 2);
+	var x = function(i) { return i * width / (n - 1); };
+	var y = function(v) { return (top - Math.max(bottom, Math.min(top, v))) / (top - bottom) * h; };
+
+	[ [ -60, 0 ], [ -70, 1 ], [ -80, 2 ] ].forEach(function(l) {
+		root.appendChild(svg('line', { x1: 0, x2: width, y1: y(l[0]), y2: y(l[0]), stroke: GRADES[l[1]][1],
+			'stroke-opacity': '0.5', 'stroke-dasharray': '4 4' }));
+		var t = svg('text', { x: width - 4, y: y(l[0]) - 2, 'font-size': '10', fill: '#888', 'text-anchor': 'end' });
+		t.textContent = l[0] + ' dBm';
+		root.appendChild(t);
+	});
+
+	[ [ 2, '#2f7ef6', '1', '0.45' ], [ 1, '#2f7ef6', '2', '1' ] ].forEach(function(series) {
+		var d = '', open = false;
+		points.forEach(function(p, i) {
+			if (p[series[0]] == null) {
+				open = false;
+				return;
+			}
+			d += (open ? 'L' : 'M') + x(i) + ',' + y(p[series[0]]);
+			open = true;
+		});
+		root.appendChild(svg('path', { d: d, fill: 'none', stroke: series[1], 'stroke-width': series[2],
+			'stroke-opacity': series[3] }));
+	});
+
+	points.forEach(function(p, i) {
+		if (p[1] == null)
+			root.appendChild(svg('rect', { x: x(i) - width / n / 2, y: 0, width: width / n, height: h,
+				fill: '#888', 'fill-opacity': '0.12' }));
+	});
+
+	[ 0, Math.floor((points.length - 1) / 2), points.length - 1 ].forEach(function(i, k) {
+		if (!points[i])
+			return;
+		var t = svg('text', { x: x(i), y: h + 18, 'font-size': '11', fill: '#888',
+			'text-anchor': k === 0 ? 'start' : k === 1 ? 'middle' : 'end' });
+		t.textContent = formatTime(points[i][0], points[points.length - 1][0] - points[0][0] > 86400);
+		root.appendChild(t);
+	});
+	return root;
+}
+
 /* Rate sparkline from an array of numbers. */
 function sparkline(values, color) {
 	var width = 120, h = 24, max = Math.max.apply(null, values.concat([ 1 ]));
@@ -194,12 +308,80 @@ function bar(value, total, color) {
 	]);
 }
 
+/* ---- limits, DNS log, destinations (P4) ---- */
+
+/* Limit rates are configured in kbit/s. */
+function formatKbps(kbps) {
+	kbps = +kbps || 0;
+	if (!kbps)
+		return _('unlimited');
+	return kbps >= 1000 ? (kbps / 1000).toFixed(kbps % 1000 ? 1 : 0) + ' Mbit/s' : kbps + ' kbit/s';
+}
+
+/* Known devices as choices of a MAC field (it still takes any address). */
+function deviceChoices(o, devices) {
+	(devices || []).forEach(function(d) {
+		var label = deviceLabel(d);
+		if (d.mac && d.mac.indexOf(':') > 0)
+			o.value(d.mac, label === d.mac ? d.mac : '%s (%s)'.format(label, d.mac));
+	});
+}
+
+/* Busiest destinations: host or address, traffic, connections. */
+function destinationTable(list, limit) {
+	var total = 0;
+	list.forEach(function(d) { total += d.rx + d.tx; });
+	var rows = list.slice(0, limit || list.length).map(function(d) {
+		return E('tr', { 'class': 'tr' }, [
+			E('td', { 'class': 'td left' }, d.host ? [ E('strong', {}, [ d.host ]), E('br'), E('small', {}, [ d.ip ]) ] : [ d.ip ]),
+			E('td', { 'class': 'td left' }, formatBytes(d.rx)),
+			E('td', { 'class': 'td left' }, formatBytes(d.tx)),
+			E('td', { 'class': 'td left' }, String(d.conns)),
+			E('td', { 'class': 'td left', width: '20%' }, bar(d.rx + d.tx, total))
+		]);
+	});
+	return E('table', { 'class': 'table' }, [
+		E('tr', { 'class': 'tr table-titles' }, [
+			E('th', { 'class': 'th' }, _('Destination')),
+			E('th', { 'class': 'th' }, _('Download')),
+			E('th', { 'class': 'th' }, _('Upload')),
+			E('th', { 'class': 'th' }, _('Connections')),
+			E('th', { 'class': 'th' }, _('Share'))
+		])
+	].concat(rows.length ? rows : [ E('tr', { 'class': 'tr placeholder' }, E('td', { 'class': 'td' }, _('No destinations in this range.'))) ]));
+}
+
+/* DNS records, newest first; byMac labels the devices (omit to leave the device column out). */
+function dnsTable(records, byMac) {
+	var rows = records.map(function(r) {
+		var result = r.rcode !== 'NOERROR' ? r.rcode : r.answers.length ? r.answers.join(', ') : _('no address');
+		return E('tr', { 'class': 'tr' }, [
+			E('td', { 'class': 'td left', style: 'white-space:nowrap' }, formatTime(r.ts)),
+			byMac ? E('td', { 'class': 'td left' }, [ deviceLabel(byMac[r.mac] || { mac: r.mac }) ]) : E([]),
+			E('td', { 'class': 'td left', style: 'word-break:break-all' }, [ r.name ]),
+			E('td', { 'class': 'td left' }, [ r.type ]),
+			E('td', { 'class': 'td left', style: 'word-break:break-all' }, [ result ])
+		]);
+	});
+	return E('table', { 'class': 'table' }, [
+		E('tr', { 'class': 'tr table-titles' }, [
+			E('th', { 'class': 'th' }, _('Time')),
+			byMac ? E('th', { 'class': 'th' }, _('Device')) : E([]),
+			E('th', { 'class': 'th' }, _('Name')),
+			E('th', { 'class': 'th' }, _('Type')),
+			E('th', { 'class': 'th' }, _('Answer'))
+		])
+	].concat(rows.length ? rows : [ E('tr', { 'class': 'tr placeholder' }, E('td', { 'class': 'td' }, _('No lookups in this range.'))) ]));
+}
+
 function csv(rows) {
 	var bom = String.fromCharCode(0xfeff); /* Excel only reads UTF-8 with a BOM */
 	return bom + rows.map(function(r) {
 		return r.map(function(c) {
 			c = c == null ? '' : String(c);
-			return /[",\r\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c;
+			/* jsmin in the LuCI build reads a regular expression right after return as a division */
+			var quote = /[",\r\n]/.test(c);
+			return quote ? '"' + c.replace(/"/g, '""') + '"' : c;
 		}).join(',');
 	}).join('\r\n') + '\r\n';
 }
@@ -218,6 +400,19 @@ return baseclass.extend({
 	history: callHistory,
 	summary: callSummary,
 	events: callEvents,
+	stations: callStations,
+	signal: callSignal,
+	survey: callSurvey,
+	latency: callLatency,
+	outages: callOutages,
+	speedtestStart: callSpeedtestStart,
+	speedtestStatus: callSpeedtestStatus,
+	quotas: callQuotas,
+	quotaAllow: callQuotaAllow,
+	destinations: callDestinations,
+	dns: callDns,
+	notifyTest: callNotifyTest,
+	notifyStatus: callNotifyStatus,
 	reset: callReset,
 	commit: callCommit,
 	initAction: callInit,
@@ -234,13 +429,24 @@ return baseclass.extend({
 	bar: bar,
 	csv: csv,
 	download: download,
+	GRADES: GRADES,
+	signalGrade: signalGrade,
+	gradeBadge: gradeBadge,
+	bandOf: bandOf,
+	formatKbit: formatKbit,
+	formatDuration: formatDuration,
+	signalChart: signalChart,
+	formatKbps: formatKbps,
+	deviceChoices: deviceChoices,
+	destinationTable: destinationTable,
+	dnsTable: dnsTable,
 
 	/* nlbwmon zeroes conntrack counters: offer to stop it. */
 	stopNlbwmon: function() {
 		return callInit('nlbwmon', 'stop')
 			.then(function() { return callInit('nlbwmon', 'disable'); })
 			.then(function() { location.reload(); })
-			.catch(function(e) { ui.addNotification(null, E('p', {}, e.message), 'error'); });
+			.catch(function(e) { ui.addNotification(null, E('p', {}, [ e.message ]), 'error'); });
 	},
 
 	/* Warnings shared by the overview and traffic pages. */

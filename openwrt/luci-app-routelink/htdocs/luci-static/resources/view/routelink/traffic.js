@@ -178,7 +178,7 @@ return view.extend({
 			if (s.tab === 'ranking')
 				self.renderRanking();
 		}).catch(function(e) {
-			ui.addNotification(null, E('p', {}, _('Query failed: %s').format(e.message)), 'error');
+			ui.addNotification(null, E('p', {}, [ _('Query failed: %s').format(e.message) ]), 'error');
 		});
 	},
 
@@ -213,7 +213,7 @@ return view.extend({
 			var details = (label !== d.mac && d.mac.indexOf(':') > 0 ? [ d.mac ] : [])
 				.concat(dev.ipv4 && dev.ipv4.length ? [ dev.ipv4[0] ] : []);
 			return E('tr', { 'class': 'tr', style: 'cursor:pointer', click: function() { self.showDevice(d.mac); } }, [
-				E('td', { 'class': 'td left' }, [ E('strong', {}, label), E('br'), E('small', {}, details.join(' · ')) ]),
+				E('td', { 'class': 'td left' }, [ E('strong', {}, [ label ]), E('br'), E('small', {}, [ details.join(' · ') ]) ]),
 				E('td', { 'class': 'td left' }, rl.formatBytes(d.rx)),
 				E('td', { 'class': 'td left' }, rl.formatBytes(d.tx)),
 				E('td', { 'class': 'td left' }, rl.formatBytes(d.rx + d.tx)),
@@ -260,7 +260,7 @@ return view.extend({
 				return;
 			var rows = l.devices.map(function(d) {
 				return E('tr', { 'class': 'tr', style: 'cursor:pointer', click: function() { self.showDevice(d.mac); } }, [
-					E('td', { 'class': 'td left' }, rl.deviceLabel(self.byMac[d.mac] || d)),
+					E('td', { 'class': 'td left' }, [ rl.deviceLabel(self.byMac[d.mac] || d) ]),
 					E('td', { 'class': 'td left' }, '↓ ' + rl.formatRate(d.rx_rate)),
 					E('td', { 'class': 'td left' }, '↑ ' + rl.formatRate(d.tx_rate)),
 					E('td', { 'class': 'td left' }, rl.sparkline(self.liveSeries[d.mac] || []))
@@ -277,21 +277,31 @@ return view.extend({
 	},
 
 	showDevice: function(mac) {
-		var self = this, r = this.range(), dev = this.byMac[mac] || { mac: mac };
+		var self = this, r = this.range(), dev = this.byMac[mac] || { mac: mac }, title = [ rl.deviceLabel(dev) ];
 		var hours = this.state.preset === 'custom' && this.state.hours ? this.state.hours : undefined;
-		ui.showModal(rl.deviceLabel(dev), [ E('p', { 'class': 'spinning' }, _('Loading…')) ]);
+		ui.showModal(title, [ E('p', { 'class': 'spinning' }, _('Loading…')) ]);
+		/* P4: where it went and what it looked up (DNS logging); the 0.1 daemon lists no capabilities */
+		var access = (this.info.capabilities || []).indexOf('dns') >= 0 && mac.indexOf(':') > 0;
 		return Promise.all([
 			rl.history(mac, r[0], r[1], 'all', hours, 200),
-			L.resolveDefault(rl.events(r[0], r[1] + 60, [ 'device_online', 'device_offline', 'device_new' ], mac, 50, 0), { events: [] })
+			L.resolveDefault(rl.events(r[0], r[1] + 60, [ 'device_online', 'device_offline', 'device_new' ], mac, 50, 0), { events: [] }),
+			access ? L.resolveDefault(rl.destinations(mac, r[0], r[1], 10), { destinations: [] }) : null,
+			access ? L.resolveDefault(rl.dns(mac, r[0], r[1], undefined, 20, 0), { count: 0, records: [] }) : null
 		]).then(function(res) {
-			var h = res[0], ev = res[1].events || [];
+			var h = res[0], ev = res[1].events || [], dest = res[2] && res[2].destinations || [], dns = res[3];
+			var accessNodes = !access ? [] : !self.info.dns_enabled && !dest.length && !(dns && dns.count) ?
+				[ E('h4', {}, _('Destinations and DNS lookups')),
+					E('p', {}, [ _('DNS logging is off.') + ' ', E('a', { href: L.url('admin/services/routelink/access') }, _('Access log')) ]) ] :
+				[ E('h4', {}, _('Destinations')), rl.destinationTable(dest),
+					E('h4', {}, _('Latest DNS lookups')), rl.dnsTable(dns.records || []),
+					E('p', {}, E('a', { href: L.url('admin/services/routelink/access') }, _('Access log'))) ];
 			var rx = 0, tx = 0, peak = 0;
 			h.points.forEach(function(p) {
 				rx += p[1] || 0;
 				tx += p[2] || 0;
 				peak = Math.max(peak, (p[1] || 0) / h.step);
 			});
-			ui.showModal(rl.deviceLabel(dev), [
+			ui.showModal(title, [
 				E('p', {}, [ mac ].concat(dev.ipv4 && dev.ipv4.length ? [ ' · ' + dev.ipv4.join(', ') ] : [])
 					.concat(dev.ipv6 && dev.ipv6.length ? [ ' · ' + dev.ipv6.join(', ') ] : [])),
 				E('p', {}, '%s ↓ %s ↑ %s · %s %s (%s)'.format(rl.formatTime(r[0]) + ' – ' + rl.formatTime(r[1]) + ':',
@@ -301,12 +311,13 @@ return view.extend({
 				E('h4', {}, _('Online history')),
 				ev.length ? E('ul', {}, ev.map(function(e) {
 					var label = { device_online: _('came online'), device_offline: _('went offline'), device_new: _('first seen') }[e.type] || e.type;
-					return E('li', {}, rl.formatTime(e.ts) + ' — ' + label);
-				})) : E('p', {}, _('No changes in this range.')),
+					return E('li', {}, [ rl.formatTime(e.ts) + ' — ' + label ]);
+				})) : E('p', {}, _('No changes in this range.'))
+			].concat(accessNodes, [
 				E('div', { 'class': 'right' }, E('button', { 'class': 'btn', click: ui.hideModal }, _('Close')))
-			]);
+			]));
 		}).catch(function(e) {
-			ui.showModal(rl.deviceLabel(dev), [ E('p', {}, _('Query failed: %s').format(e.message)),
+			ui.showModal(title, [ E('p', {}, [ _('Query failed: %s').format(e.message) ]),
 				E('div', { 'class': 'right' }, E('button', { 'class': 'btn', click: ui.hideModal }, _('Close'))) ]);
 		});
 	},

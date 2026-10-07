@@ -66,6 +66,16 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
   const close = () => setDialog(null);
   const vendor = client.vendor ?? (client.randomizedMac ? t('devices:privateAddress') : undefined);
   const wifi = client.wifi;
+  const ap = client.ap;
+  // In a network group: which access point, or that its AP is offline and the Wi-Fi details unknown.
+  const linkText = ap?.stale
+    ? t('devices:detail.apUnknown', { name: ap.name })
+    : wifi
+      ? [ap?.name, `${wifi.ssid} ${wifi.band}`].filter(Boolean).join(' · ')
+      : t('devices:detail.wired');
+  const signalHref = `/wireless/tools/signal/${encodeURIComponent(client.mac)}${
+    ap ? `?router=${encodeURIComponent(ap.routerId)}` : ''
+  }`;
   const copy = (value: string) => {
     void Clipboard.setStringAsync(value);
     toast(t('copied'));
@@ -90,7 +100,7 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
           <View style={styles.statusRow}>
             <StatusDot status={client.online ? 'online' : 'offline'} />
             <AppText variant="subhead" tone="secondary">
-              {`${client.online ? t('online') : t('offline')} · ${wifi ? `${wifi.ssid} ${wifi.band}` : t('devices:detail.wired')}`}
+              {`${client.online ? t('online') : t('offline')} · ${linkText}`}
             </AppText>
             {wifi && client.online ? <SignalBars dbm={wifi.signal} size={14} /> : null}
             {client.isStatic ? <Badge label={t('devices:badge.static')} tone="accent" /> : null}
@@ -144,6 +154,20 @@ function DeviceContent({ client, clients }: { client: Client; clients: Client[] 
       </GlassCard>
 
       <DeviceTrafficEntry mac={client.mac} />
+
+      {wifi ? (
+        <ListSection>
+          <ListRow
+            icon="antenna"
+            title={t('devices:detail.signalRow')}
+            subtitle={ap ? `${ap.name} · ${wifi.band}` : undefined}
+            value={client.online ? `${wifi.signal} dBm` : undefined}
+            chevron
+            onPress={() => nav.dismissTo(signalHref, { withAnchor: true })}
+            testID="device-signal"
+          />
+        </ListSection>
+      ) : null}
 
       {/* Rows opening a tab's page use dismissTo: it closes this sheet, while navigate would stack a
           second copy of the tabs above it. */}

@@ -35,7 +35,9 @@
     "restore-failed": "Restoring the backup failed: {{message}}",
     "reset-failed": "The factory reset failed: {{message}}",
     "no-space": "The router does not have enough free memory for this firmware file",
-    "flash-failed": "Flashing the firmware failed: {{message}}"
+    "flash-failed": "Flashing the firmware failed: {{message}}",
+    "ap-unreachable": "The access point this device is on is not reachable",
+    "target-invalid": "Enter a host name or an IP address"
   },
   "offlineNamed": "Can't reach {{name}}",
   "relogin": {

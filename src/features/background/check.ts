@@ -5,6 +5,7 @@ import { LiveConnection } from '@/api/connection/live';
 import type { RouterConnection } from '@/api/connection/types';
 import { isConnectivityError } from '@/api/http/errors';
 import { nativeHttpClient } from '@/api/http/native';
+import { pluginPushesNewDevices } from '@/api/services/agent-rules';
 import { getClients } from '@/api/services/clients';
 import { i18n, initI18n, setLanguage } from '@/i18n';
 import { activeProfile, useRouters, type RouterProfile } from '@/state/routers';
@@ -108,7 +109,10 @@ export async function checkRouters(deps: CheckDeps): Promise<{ checked: number; 
     if (password === null) continue;
     const conn = connect(profile, password);
     const reading = await read(conn, sleep);
-    const { alerts, next } = compare(memory[profile.id], reading, now());
+    const { alerts: all, next } = compare(memory[profile.id], reading, now());
+    // When the router's plugin already pushes new devices, the app does not tell them a second time.
+    const pushed = all.some((a) => a.kind === 'new-device') && (await pluginPushesNewDevices(conn).catch(() => false));
+    const alerts = pushed ? all.filter((a) => a.kind !== 'new-device') : all;
     memory[profile.id] = next;
     checked++;
     for (const alert of alerts) {

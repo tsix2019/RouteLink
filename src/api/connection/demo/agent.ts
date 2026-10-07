@@ -1,6 +1,23 @@
 import { UbusError } from '../../ubus/errors';
+import {
+  DAY,
+  HOUR,
+  MINUTE,
+  OFFLINE_FOR,
+  SLEEPERS,
+  TZ_OFFSET,
+  localDay,
+  localHour,
+  localMidnight,
+  present,
+  sleepWindow,
+  type Ctx,
+} from './presence';
 import { hash01 } from './random';
 import type { DemoState } from './state';
+import { demoDnsEnabled } from './control';
+import { LATENCY_RETENTION, wanEvents } from './diag';
+import { SIGNAL_RETENTION, wifiEvents } from './wifi';
 
 /**
  * The router plugin on the demo router (`routelink` ubus object). Traffic comes from a deterministic model
@@ -9,16 +26,23 @@ import type { DemoState } from './state';
  * answer every time, and totals agree at every resolution (summary = sum of history).
  */
 
-const MINUTE = 60;
-const HOUR = 3_600;
-const DAY = 86_400;
-/** The demo router lives in Asia/Shanghai (uci system zonename). */
-const TZ_OFFSET = 8 * HOUR;
 /** How long the demo plugin has been collecting. */
 export const AGENT_DATA_DAYS = 120;
 /** WAN counts headers and retransmissions the per-device totals don't. */
 const WAN_OVERHEAD = 1.03;
 const RETENTION = { minute_hours: 48, hour_days: 90, day_days: 730, event_days: 90 };
+/** Modules of this plugin build (P2): `info.capabilities`. */
+export const DEMO_CAPABILITIES = ['traffic', 'wifi', 'latency', 'speedtest', 'limits', 'quotas', 'dns', 'notify'];
+
+/** The trust list in the plugin's UCI (`device` sections), as the daemon reads it. */
+export function deviceMarks(state: DemoState): Map<string, { trusted: boolean; watch: boolean }> {
+  const marks = new Map<string, { trusted: boolean; watch: boolean }>();
+  for (const s of Object.values(state.uci.routelink ?? {})) {
+    if (s['.type'] !== 'device' || typeof s.mac !== 'string') continue;
+    marks.set(s.mac.toUpperCase(), { trusted: s.trusted === '1', watch: s.watch === '1' });
+  }
+  return marks;
+}
 
 export interface DemoAgent {
   installed: boolean;
@@ -62,25 +86,11 @@ const DAILY = [
   1, 0.86, 0.45,
 ];
 
-/** Laptops and computers sleep at night: offline from about 00:30 to 08:30 local time. */
-const SLEEPERS = new Set(['MacBook-Air', 'Desk-PC', 'ThinkPad', 'iPad']);
-/** The two devices the demo lists as offline went away this long ago. */
-const OFFLINE_FOR = 2 * HOUR + 53 * MINUTE;
-
-const localHour = (t: number) => Math.floor((t + TZ_OFFSET) / HOUR) % 24;
-const localDay = (t: number) => Math.floor((t + TZ_OFFSET) / DAY);
-const localMidnight = (t: number) => localDay(t) * DAY - TZ_OFFSET;
-
 type Kind = 'internet' | 'lan';
 type Cls = 'internet' | 'lan' | 'router' | 'all' | 'wan';
 /** A device index, every device of a class, or the WAN interface. */
 type Target = number | 'all' | 'wan';
 type Bytes = [rx: number, tx: number];
-
-interface Ctx {
-  state: DemoState;
-  now: number;
-}
 
 /** Bytes per second (download, upload) of device `i` during hour `h` (hours since the epoch). */
 function hourRate(ctx: Ctx, i: number, h: number, kind: Kind): Bytes {
@@ -96,22 +106,6 @@ function minuteShape(i: number, h: number, minuteOfHour: number): number {
   const k = 1 + Math.floor(hash01(i, h, 11) * 3);
   const phase = hash01(i, h, 13) * 2 * Math.PI;
   return 1 + 0.6 * Math.sin((2 * Math.PI * k * minuteOfHour) / 60 + phase);
-}
-
-function sleepWindow(i: number, day: number): [number, number] {
-  return [30 * MINUTE + hash01(i, day, 17) * 40 * MINUTE, 8 * HOUR + hash01(i, day, 19) * 50 * MINUTE];
-}
-
-/** Whether device `i` is connected at `t` (sleeping laptops, the devices shown as offline). */
-function present(ctx: Ctx, i: number, t: number): boolean {
-  const d = ctx.state.devices[i];
-  if (!d.online && t >= ctx.now - OFFLINE_FOR) return false;
-  if (SLEEPERS.has(d.hostname)) {
-    const [sleep, wake] = sleepWindow(i, localDay(t));
-    const sinceMidnight = t - localMidnight(t);
-    if (sinceMidnight >= sleep && sinceMidnight < wake) return false;
-  }
-  return true;
 }
 
 /** Bytes of device `i` in [a, b): whole hours at once when present throughout, otherwise minute by minute. */
@@ -149,7 +143,7 @@ function deviceBytes(ctx: Ctx, i: number, a: number, b: number, kind: Kind): Byt
 const dataStart = (ctx: Ctx) => Math.max(ctx.state.agent.dataSince, ctx.state.agent.resetAt);
 
 /** Bytes of a target and class in [a, b), clipped to when data exists; null when there is none. */
-function bytesFor(ctx: Ctx, target: Target, cls: Cls, a: number, b: number): Bytes | null {
+export function bytesFor(ctx: Ctx, target: Target, cls: Cls, a: number, b: number): Bytes | null {
   const from = Math.max(a, dataStart(ctx));
   const to = Math.min(b, ctx.now);
   if (to <= from) return null;
@@ -187,7 +181,7 @@ function maskedBytes(ctx: Ctx, target: Target, cls: Cls, a: number, b: number, m
 const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
 const invalid = () => new UbusError('INVALID_ARGUMENT', 'routelink');
 
-function deviceIndex(state: DemoState, mac: unknown): number {
+export function deviceIndex(state: DemoState, mac: unknown): number {
   if (typeof mac !== 'string' || !/^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/.test(mac)) throw invalid();
   const i = state.devices.findIndex((d) => d.mac === mac.toUpperCase());
   if (i < 0) throw new UbusError('NOT_FOUND', 'routelink');
@@ -298,10 +292,11 @@ function summary(ctx: Ctx, p: Record<string, unknown>) {
   };
 }
 
-interface Ev {
+export interface Ev {
   ts: number;
   type: string;
   mac?: string;
+  value?: number;
 }
 
 /** Joins, the laptops' nightly sleep, the two devices that left, and plugin starts. */
@@ -321,6 +316,8 @@ function eventList(ctx: Ctx, start: number, end: number): Ev[] {
     }
     if (!d.online) out.push({ ts: ctx.now - OFFLINE_FOR, type: 'device_offline', mac: d.mac });
   });
+  out.push(...wifiEvents(ctx, 'gateway', from, to));
+  out.push(...wanEvents(ctx, from, to));
   out.push({ ts: ctx.state.agent.dataSince, type: 'daemon_start' });
   out.push({ ts: Math.floor(ctx.state.bootTime / 1000) + 41, type: 'daemon_start' });
   return out.filter((e) => e.ts >= from && e.ts < to).sort((a, b) => b.ts - a.ts);
@@ -334,24 +331,34 @@ const EVENT_TYPES = [
   'time_jump',
   'commit_failed',
   'data_recovered',
+  'wifi_connect',
+  'wifi_disconnect',
+  'wan_down',
+  'wan_up',
+  'quota_warn',
+  'quota_exceeded',
+  'quota_reset',
 ];
 
-function events(ctx: Ctx, p: Record<string, unknown>) {
-  const start = num(p.start) ?? 0;
-  const end = num(p.end) ?? ctx.now + 1;
-  const limit = num(p.limit) ?? 200;
-  const offset = num(p.offset) ?? 0;
-  if (start >= end || limit < 1 || limit > 1000 || offset < 0) throw invalid();
-  const types = Array.isArray(p.types) ? p.types.map(String) : undefined;
-  if (types?.some((t) => !EVENT_TYPES.includes(t))) throw invalid();
-  let list = eventList(ctx, start, end);
-  if (types) list = list.filter((e) => types.includes(e.type));
-  if (p.mac !== undefined) {
-    const mac = ctx.state.devices[deviceIndex(ctx.state, p.mac)].mac;
-    list = list.filter((e) => e.mac === mac);
-  }
-  return { count: list.length, events: list.slice(offset, offset + limit) };
-}
+/** The `events` method over a list of events (the gateway's, or the demo AP's). */
+export const eventsOf =
+  (listOf: (ctx: Ctx, start: number, end: number) => Ev[]) => (ctx: Ctx, p: Record<string, unknown>) => {
+    const start = num(p.start) ?? 0;
+    const end = num(p.end) ?? ctx.now + 1;
+    const limit = num(p.limit) ?? 200;
+    const offset = num(p.offset) ?? 0;
+    if (start >= end || limit < 1 || limit > 1000 || offset < 0) throw invalid();
+    const types = Array.isArray(p.types) ? p.types.map(String) : undefined;
+    if (types?.some((t) => !EVENT_TYPES.includes(t))) throw invalid();
+    let list = listOf(ctx, start, end);
+    if (types) list = list.filter((e) => types.includes(e.type));
+    if (p.mac !== undefined) {
+      const mac = ctx.state.devices[deviceIndex(ctx.state, p.mac)].mac;
+      list = list.filter((e) => e.mac === mac);
+    }
+    return { count: list.length, events: list.slice(offset, offset + limit) };
+  };
+const events = eventsOf(eventList);
 
 /** Each device's download/upload right now in bytes/s: the demo WAN rate split by the devices' current shares. */
 function currentRates(ctx: Ctx): { mac: string; rx: number; tx: number }[] {
@@ -390,10 +397,22 @@ const installed =
 
 export const agentHandlers: Record<string, Handler> = {
   'routelink.info': installed(({ state, now }) => ({
-    version: '0.1.0',
+    version: '1.0.0',
     api: 1,
-    roles: ['gateway'],
-    modules: ['traffic'],
+    roles: ['gateway', 'ap'],
+    modules: [
+      'traffic',
+      'wifi',
+      'latency',
+      'speedtest',
+      'limits',
+      'quotas',
+      ...(demoDnsEnabled(state) ? ['dns'] : []),
+      'notify',
+    ],
+    limits_error: '',
+    dns_enabled: demoDnsEnabled(state),
+    capabilities: DEMO_CAPABILITIES,
     offload: 'software',
     offload_warning: false,
     nlbwmon_running: false,
@@ -410,11 +429,12 @@ export const agentHandlers: Record<string, Handler> = {
     live_until: now + 30,
     started: Math.floor(state.bootTime / 1000) + 41,
     events_lost: 0,
-    retention: RETENTION,
+    retention: { ...RETENTION, ...SIGNAL_RETENTION, ...LATENCY_RETENTION },
   })),
   'routelink.devices': installed((ctx) => {
     const rates = currentRates(ctx);
     const today = localMidnight(ctx.now);
+    const marks = deviceMarks(ctx.state);
     return {
       devices: ctx.state.devices.map((d, i) => {
         const used = bytesFor(ctx, i, 'internet', today, ctx.now) ?? [0, 0];
@@ -429,7 +449,8 @@ export const agentHandlers: Record<string, Handler> = {
           last_seen: online ? ctx.now : ctx.now - OFFLINE_FOR,
           online,
           random_mac: (parseInt(d.mac.slice(0, 2), 16) & 2) === 2,
-          trusted: false,
+          trusted: marks.get(d.mac)?.trusted ?? false,
+          watch: marks.get(d.mac)?.watch ?? false,
           today_rx: used[0],
           today_tx: used[1],
           rx_rate: rates[i].rx,
@@ -453,7 +474,7 @@ export const agentHandlers: Record<string, Handler> = {
   'routelink.summary': installed(summary),
   'routelink.events': installed(events),
   'routelink.reset': installed(({ state, now }, p) => {
-    if (!['traffic', 'events', 'devices', 'all'].includes(String(p.scope))) throw invalid();
+    if (!['traffic', 'events', 'devices', 'signal', 'all'].includes(String(p.scope))) throw invalid();
     if (p.scope === 'traffic' || p.scope === 'all') state.agent.resetAt = now;
     return {};
   }),

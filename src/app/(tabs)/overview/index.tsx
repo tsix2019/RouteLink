@@ -5,6 +5,7 @@ import { StyleSheet } from 'react-native';
 import { isAvailable } from '@/api/capabilities';
 import { pickWan } from '@/api/services/network';
 import { loadRatio } from '@/api/services/system';
+import { LiveMonitorButton, LiveMonitorNotice } from '@/features/live/LiveMonitor';
 import { DevicesCard, ResourcesCard, SystemCard, TrafficCard, WanCard } from '@/features/overview/cards';
 import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
@@ -105,6 +106,7 @@ export default function Overview() {
           updatedAt={system.data ? system.dataUpdatedAt : undefined}
         />
       }>
+      <LiveMonitorNotice />
       <TrafficCard series={traffic.series} latest={traffic.latest} intervalSec={intervalSec} />
       <TodayTrafficCard />
       <DevicesCard clients={clients.data} />
@@ -112,12 +114,32 @@ export default function Overview() {
       <ResourcesCard system={system.data} temperature={temperature.data} />
       <SystemCard system={system.data} />
       <GlassCard title={t('overview:actions.title')} icon="bolt" contentStyle={styles.actions}>
+        <LiveMonitorButton
+          latest={traffic.latest}
+          devicesOnline={clients.data?.filter((c) => c.online).length}
+          clients={clients.data}
+          wanDevice={wan?.device}
+        />
+        <GlassButton
+          label={t('diagnostics:entries.diagnose')}
+          icon="pulse"
+          onPress={() => nav.navigate('/network/diagnostics', { withAnchor: true })}
+          testID="action-diagnose"
+        />
         {isAvailable(caps.data, 'wireless') ? (
           <GlassButton
             label={t('overview:actions.wifiQr')}
             icon="qrcode"
             onPress={() => nav.push('/wifi-qr')}
             testID="action-wifi-qr"
+          />
+        ) : null}
+        {isAvailable(caps.data, 'wireless') ? (
+          <GlassButton
+            label={t('devices:intruders')}
+            icon="shield"
+            onPress={() => nav.navigate('/devices/intruders')}
+            testID="action-intruders"
           />
         ) : null}
         <GlassButton

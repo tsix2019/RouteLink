@@ -12,10 +12,12 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.EOFException
 import java.io.InterruptedIOException
 import java.net.ConnectException
 import java.net.NoRouteToHostException
 import java.net.PortUnreachableException
+import java.net.SocketException
 import java.net.UnknownHostException
 import java.security.cert.CertificateException
 import java.text.SimpleDateFormat
@@ -45,6 +47,8 @@ class HttpRequestRecord : Record {
 }
 
 private val SHA256_HEX = Regex("^[0-9a-fA-F]{64}$")
+
+internal class HttpResult(val status: Int, val headers: Map<String, List<String>>, val body: String)
 
 internal class HttpEngine {
   // No redirects (LuCI login needs the 302 + Set-Cookie) and no cookie jar (routers must not share cookies).
@@ -83,39 +87,62 @@ internal class HttpEngine {
     }
   }
 
-  suspend fun execute(req: HttpRequestRecord): Map<String, Any> = withContext(Dispatchers.IO) {
-    val url = req.url.toHttpUrlOrNull() ?: throw NativeError("ERR_INVALID_ARGUMENT", "invalid url: ${req.url}")
-    val mode = req.tls?.mode ?: "system"
-    val timeout = req.timeoutMs.toLong().coerceAtLeast(500L)
-    val client = clientFor(mode, req.tls?.sha256).newBuilder()
+  suspend fun execute(req: HttpRequestRecord): Map<String, Any> {
+    val res = perform(
+      url = req.url,
+      method = req.method,
+      headers = req.headers,
+      body = req.body,
+      timeoutMs = req.timeoutMs.toLong(),
+      tlsMode = req.tls?.mode ?: "system",
+      sha256 = req.tls?.sha256,
+      base64 = req.responseEncoding == "base64",
+    )
+    return mapOf("status" to res.status, "headers" to res.headers, "body" to res.body)
+  }
+
+  /** One request; failures are NativeErrors with the codes the JS side knows. Also used by the live monitor. */
+  suspend fun perform(
+    url: String,
+    method: String,
+    headers: Map<String, String>,
+    body: String?,
+    timeoutMs: Long,
+    tlsMode: String = "system",
+    sha256: String? = null,
+    base64: Boolean = false,
+  ): HttpResult = withContext(Dispatchers.IO) {
+    val target = url.toHttpUrlOrNull() ?: throw NativeError("ERR_INVALID_ARGUMENT", "invalid url: $url")
+    val timeout = timeoutMs.coerceAtLeast(500L)
+    val client = clientFor(tlsMode, sha256).newBuilder()
       .callTimeout(timeout, TimeUnit.MILLISECONDS)
       .connectTimeout(minOf(timeout, 5_000L), TimeUnit.MILLISECONDS)
       .readTimeout(timeout, TimeUnit.MILLISECONDS)
       .build()
 
-    val method = req.method.uppercase(Locale.US)
-    val contentType = req.headers.entries.firstOrNull { it.key.equals("content-type", ignoreCase = true) }?.value
-    val body = if (method == "POST") (req.body ?: "").toRequestBody(contentType?.toMediaTypeOrNull()) else null
-    val request = Request.Builder().url(url).apply {
-      req.headers.forEach { (name, value) -> header(name, value) }
-      method(method, body)
+    val verb = method.uppercase(Locale.US)
+    val contentType = headers.entries.firstOrNull { it.key.equals("content-type", ignoreCase = true) }?.value
+    val payload = if (verb == "POST") (body ?: "").toRequestBody(contentType?.toMediaTypeOrNull()) else null
+    val request = Request.Builder().url(target).apply {
+      headers.forEach { (name, value) -> header(name, value) }
+      method(verb, payload)
     }.build()
 
     try {
       client.newCall(request).execute().use { res ->
-        val headers = LinkedHashMap<String, MutableList<String>>()
-        for ((name, value) in res.headers) headers.getOrPut(name.lowercase(Locale.US)) { mutableListOf() }.add(value)
-        val body = if (req.responseEncoding == "base64") {
+        val names = LinkedHashMap<String, MutableList<String>>()
+        for ((name, value) in res.headers) names.getOrPut(name.lowercase(Locale.US)) { mutableListOf() }.add(value)
+        val text = if (base64) {
           Base64.encodeToString(res.body?.bytes() ?: ByteArray(0), Base64.NO_WRAP)
         } else {
           res.body?.string() ?: ""
         }
-        mapOf("status" to res.code, "headers" to headers, "body" to body)
+        HttpResult(res.code, names, text)
       }
     } catch (e: NativeError) {
       throw e
     } catch (e: Throwable) {
-      throw mapError(e, mode)
+      throw mapError(e, tlsMode)
     }
   }
 
@@ -155,7 +182,9 @@ internal class HttpEngine {
     return when {
       any { it is CertificateException && it.message == PIN_MISMATCH } || any { it.message?.contains(PIN_MISMATCH) == true } ->
         NativeError("ERR_TLS_PIN_MISMATCH", "certificate does not match the pinned fingerprint", e)
-      mode == "system" && any { it is SSLHandshakeException || it is SSLPeerUnverifiedException } ->
+      // A handshake the network cut short (router rebooting, Wi-Fi flapping) says nothing about the certificate.
+      mode == "system" && any { it is SSLHandshakeException || it is SSLPeerUnverifiedException } &&
+        !any { it is EOFException || it is SocketException } ->
         NativeError("ERR_TLS_UNTRUSTED", "server certificate is not trusted", e)
       any { it is UnknownHostException } -> NativeError("ERR_DNS", message, e)
       any { it is InterruptedIOException } -> NativeError("ERR_TIMEOUT", "request timed out", e)

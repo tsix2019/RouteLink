@@ -27,10 +27,21 @@ export interface RouterProfile {
   sshUser?: string;
   sshAuth?: 'password' | 'key';
   sshHostKey?: string;
+  /** Network group (NG-1): a gateway with access points. Unset = standalone. */
+  role?: RouterRole;
+  /** For role 'ap': the gateway it belongs to. */
+  gatewayId?: string;
 }
 
+export type RouterRole = 'gateway' | 'ap' | 'standalone';
+
 export type NewRouter = Pick<RouterProfile, 'name' | 'baseUrl' | 'username' | 'savePassword'> &
-  Partial<Pick<RouterProfile, 'tlsSha256' | 'authMode' | 'model' | 'sshPort' | 'sshUser' | 'sshAuth' | 'sshHostKey'>>;
+  Partial<
+    Pick<
+      RouterProfile,
+      'tlsSha256' | 'authMode' | 'model' | 'sshPort' | 'sshUser' | 'sshAuth' | 'sshHostKey' | 'role' | 'gatewayId'
+    >
+  >;
 
 export const passwordKey = (id: string) => `router.${id}.password`;
 const SECURE_OPTIONS = { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK };
@@ -108,7 +119,11 @@ export const useRouters = create<RoutersState>()(
         sessionPasswords.delete(id);
         await SecureStore.deleteItemAsync(passwordKey(id));
         set((s) => {
-          const routers = s.routers.filter((r) => r.id !== id).map((r, order) => ({ ...r, order }));
+          const routers = s.routers
+            .filter((r) => r.id !== id)
+            // Its access points become standalone routers again.
+            .map((r) => (r.gatewayId === id ? { ...r, role: 'standalone' as const, gatewayId: undefined } : r))
+            .map((r, order) => ({ ...r, order }));
           return { routers, activeId: s.activeId === id ? (routers[0]?.id ?? null) : s.activeId };
         });
       },

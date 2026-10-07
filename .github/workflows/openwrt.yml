@@ -70,6 +70,12 @@ jobs:
         with:
           name: pkg-${{ matrix.release }}-x86_64
           path: openwrt/out/${{ matrix.release }}/x86_64
+      # Speed limits (P4) need these in the host kernel the router container shares (test/agent/limits.agent.ts
+      # fails without them in CI); software offloading is optional: the tests measure without it then.
+      - name: Kernel modules for limits
+        run: |
+          sudo modprobe -a sch_htb cls_flower act_mirred ifb
+          sudo modprobe -a nf_flow_table nf_flow_table_inet nft_flow_offload || true
       - run: scripts/agent-router.sh up ${{ matrix.release }}
       - run: scripts/agent-dev-install.sh ${{ matrix.release }} x86_64
       - run: scripts/traffic-lab.sh up

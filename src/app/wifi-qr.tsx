@@ -19,8 +19,8 @@ import { spacing } from '@/ui/theme/tokens';
 /** OV-6 / WL-4: a Wi-Fi network as a QR code phones join from. `?section=` picks the network. */
 export default function WifiQr() {
   const t = useT();
-  const params = useLocalSearchParams<{ section?: string }>();
-  const radios = useRadios();
+  const params = useLocalSearchParams<{ section?: string; router?: string }>();
+  const radios = useRadios(params.router);
   const [chosen, setChosen] = useState<string | undefined>(params.section);
   const [reveal, setReveal] = useState(false);
 

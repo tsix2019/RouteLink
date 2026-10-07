@@ -42,7 +42,7 @@
   },
   "restarted": "Plugin restarted",
   "page": {
-    "about": "Counts what every device uploads and downloads on this router and keeps the history, so the app can show traffic by device, day and month.",
+    "about": "Runs on the router: per-device traffic history, Wi-Fi signal of the stations it serves, latency probes and an outage log, speed tests, speed limits and data quotas, a DNS log, and push notices sent by the router itself.",
     "status": "Status",
     "version": "Version",
     "role": "Role",
@@ -77,7 +77,9 @@
     "requirements": "Needs about {{size}} of free space, the root account, and a router that can reach the official OpenWrt package servers (for dependencies).",
     "mirror": "GitHub Download Mirror",
     "mirrorHint": "Optional. A prefix put in front of GitHub download links, for networks where GitHub is slow.",
-    "manual": "Manual installation"
+    "manual": "Manual installation",
+    "roleGatewayAp": "Main router + access point",
+    "roleAp": "Access point"
   },
   "clear": {
     "title": "Clear all traffic data?",

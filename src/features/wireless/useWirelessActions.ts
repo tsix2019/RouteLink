@@ -1,6 +1,7 @@
 import { networkChanges, radioChanges, type Radio, type WifiNetwork } from '@/api/services/wireless';
 import { stageAndApply, type ApplyMode, type ApplyOutcome } from '@/api/uci';
-import { useRouterMutation } from '@/hooks/router-queries';
+import { useMemberMutation } from '@/hooks/router-queries';
+import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { useT } from '@/i18n';
 import { describeError } from '@/ui/errorText';
 import { useToast } from '@/ui/Toast';
@@ -10,8 +11,13 @@ type NetworkPatch = Parameters<typeof networkChanges>[1];
 
 const RADIOS = [['radios']] as const;
 
-/** Wireless edits: staged as one uci change set and applied safely (rollback) unless told otherwise. */
-export function useWirelessActions() {
+/**
+ * Wireless edits: staged as one uci change set and applied safely (rollback) unless told otherwise.
+ * `routerId` picks a router of the active group (an AP); default is the active router.
+ */
+export function useWirelessActions(routerId?: string) {
+  const { router } = useActiveRouter();
+  const target = routerId || router?.id;
   const t = useT();
   const toast = useToast();
 
@@ -21,12 +27,14 @@ export function useWirelessActions() {
       : toast(t('wireless:result.applied'));
   const fail = (error: unknown) => toast(describeError(t, error).title, 'error');
 
-  const radio = useRouterMutation(
+  const radio = useMemberMutation(
+    target,
     (conn, a: { radio: Radio; patch: RadioPatch }) =>
       stageAndApply(conn, radioChanges(a.radio, a.patch), { mode: 'rollback' }),
     RADIOS,
   );
-  const network = useRouterMutation(
+  const network = useMemberMutation(
+    target,
     (conn, a: { network: WifiNetwork; patch: NetworkPatch; mode: ApplyMode }) =>
       stageAndApply(conn, networkChanges(a.network, a.patch), { mode: a.mode }),
     RADIOS,

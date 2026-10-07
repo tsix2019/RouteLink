@@ -7,7 +7,8 @@ import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
 import { RouterSwitcherCapsule } from '@/features/routers/RouterSwitcherCapsule';
 import { bandLabel, channelLabel, encryptionLabel, widthLabel } from '@/features/wireless/labels';
 import { getWifiSchedules } from '@/api/services/wifi-schedule';
-import { useClients, useRadios, useRouterQuery } from '@/hooks/router-queries';
+import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
+import { useClients, useGroupRadios, useRouterQuery, type GroupRadios } from '@/hooks/router-queries';
 import { useT } from '@/i18n';
 import { EmptyState, ErrorState, Skeleton } from '@/ui/Feedback';
 import { ListRow, ListSection } from '@/ui/ListSection';
@@ -15,14 +16,21 @@ import { HeaderButton, Screen } from '@/ui/Screen';
 import { useTheme } from '@/ui/theme/ThemeProvider';
 import { spacing } from '@/ui/theme/tokens';
 
-/** Wi-Fi tab: one grouped section per radio — its settings row, then its networks. */
+/**
+ * Wi-Fi tab: one grouped section per radio — its settings row, then its networks. In a network group
+ * (NG-4) the gateway's radios come first, then each access point's under its name.
+ */
 export default function Wireless() {
   const t = useT();
   const nav = useRouter();
-  const radios = useRadios();
+  const { router: active } = useActiveRouter();
+  const groups = useGroupRadios();
+  const radios = groups[0];
+  const members = groups.slice(1);
   const clients = useClients();
   const schedules = useRouterQuery(['wifi-schedule'], getWifiSchedules);
-  const hasRadios = !!radios.data?.length;
+  const hasRadios = !!radios.radios?.length || members.length > 0;
+  const grouped = members.length > 0;
 
   return (
     <Screen
@@ -37,22 +45,49 @@ export default function Wireless() {
           />
         ) : undefined
       }
-      onRefresh={() => radios.refetch()}
+      onRefresh={() => groups.forEach((g) => g.refetch())}
       top={
-        radios.data ? (
-          <ConnectionBanner
-            error={radios.error}
-            onRetry={() => void radios.refetch()}
-            updatedAt={radios.dataUpdatedAt}
-          />
+        radios.radios ? (
+          <ConnectionBanner error={radios.error} onRetry={radios.refetch} updatedAt={radios.updatedAt} />
         ) : null
       }>
-      {radios.data ? (
+      {radios.radios ? (
         hasRadios ? (
           <>
-            {radios.data.map((radio) => (
-              <RadioSection key={radio.name} radio={radio} clients={clients.data ?? []} />
+            {radios.radios.map((radio) => (
+              <RadioSection
+                key={radio.name}
+                radio={radio}
+                clients={clients.data ?? []}
+                owner={grouped ? { id: active?.id ?? '', name: radios.name } : undefined}
+              />
             ))}
+            {members.map((m) => (
+              <MemberSections key={m.routerId} member={m} clients={clients.data ?? []} />
+            ))}
+            <ListSection title={t('wireless:tools.section')}>
+              <ListRow
+                title={t('wireless:tools.signal')}
+                icon="antenna"
+                chevron
+                onPress={() => nav.push('/wireless/tools/signal')}
+                testID="wireless-signal"
+              />
+              <ListRow
+                title={t('wireless:tools.channels')}
+                icon="chart"
+                chevron
+                onPress={() => nav.push('/wireless/tools/channels')}
+                testID="wireless-channels"
+              />
+              <ListRow
+                title={t('wireless:tools.security')}
+                icon="shield"
+                chevron
+                onPress={() => nav.push('/wireless/tools/security')}
+                testID="wireless-security"
+              />
+            </ListSection>
             <ListSection title={t('wireless:guest.section')}>
               <ListRow
                 title={t('wireless:guest.row')}
@@ -82,8 +117,8 @@ export default function Wireless() {
         ) : (
           <EmptyState icon="wifiOff" title={t('wireless:noRadios')} message={t('wireless:noRadiosHint')} />
         )
-      ) : radios.isError ? (
-        <ErrorState error={radios.error} onRetry={() => void radios.refetch()} />
+      ) : radios.error ? (
+        <ErrorState error={radios.error} onRetry={radios.refetch} />
       ) : (
         <View style={styles.loading}>
           {[0, 1, 2].map((i) => (
@@ -95,24 +130,86 @@ export default function Wireless() {
   );
 }
 
-function RadioSection({ radio, clients }: { radio: Radio; clients: Client[] }) {
+/** An access point of the group: its radios, or why they can't be shown. */
+function MemberSections({ member, clients }: { member: GroupRadios; clients: Client[] }) {
+  const t = useT();
+  const nav = useRouter();
+  if (member.radios) {
+    return (
+      <>
+        {member.radios.map((radio) => (
+          <RadioSection
+            key={radio.name}
+            radio={radio}
+            clients={clients}
+            owner={{ id: member.routerId, name: member.name, ap: true }}
+          />
+        ))}
+        {member.radios.length === 0 ? (
+          <ListSection title={member.name}>
+            <ListRow title={t('wireless:noRadios')} disabled />
+          </ListSection>
+        ) : null}
+      </>
+    );
+  }
+  return (
+    <ListSection title={member.name}>
+      {member.needsPassword ? (
+        <ListRow
+          title={t('wireless:group.needsPassword')}
+          subtitle={t('wireless:group.needsPasswordHint')}
+          icon="key"
+          chevron
+          onPress={() => nav.push(`/more/router/${encodeURIComponent(member.routerId)}`)}
+          testID={`member-password-${member.routerId}`}
+        />
+      ) : member.error ? (
+        <ListRow
+          title={t('wireless:group.offline')}
+          subtitle={t('wireless:group.offlineHint')}
+          icon="warning"
+          onPress={member.refetch}
+        />
+      ) : (
+        <ListRow title={t('wireless:group.loading')} disabled />
+      )}
+    </ListSection>
+  );
+}
+
+function RadioSection({
+  radio,
+  clients,
+  owner,
+}: {
+  radio: Radio;
+  clients: Client[];
+  /** Set in a network group: the router the radio belongs to (`ap` for an access point). */
+  owner?: { id: string; name: string; ap?: boolean };
+}) {
   const t = useT();
   const nav = useRouter();
   const { colors } = useTheme();
   const status = radio.disabled ? t('wireless:off') : radio.up ? undefined : t('wireless:down');
+  const routerParam = owner?.ap ? `?router=${encodeURIComponent(owner.id)}` : '';
+  const prefix = owner?.ap ? `${owner.id}-` : '';
+  const title = `${bandLabel(t, radio.band)} · ${radio.name}`;
   return (
-    <ListSection title={`${bandLabel(t, radio.band)} · ${radio.name}`}>
+    <ListSection title={owner ? `${owner.name} · ${title}` : title}>
       <ListRow
         title={t('wireless:radioSettings')}
         subtitle={[channelLabel(t, radio.channel), widthLabel(radio.htmode)].join(' · ')}
         value={status}
         icon="antenna"
         chevron
-        onPress={() => nav.push(`/wireless/radio/${encodeURIComponent(radio.name)}`)}
-        testID={`radio-${radio.name}`}
+        onPress={() => nav.push(`/wireless/radio/${encodeURIComponent(radio.name)}${routerParam}`)}
+        testID={`radio-${prefix}${radio.name}`}
       />
       {radio.networks.map((n) => {
-        const count = clients.filter((c) => c.online && c.wifi && c.wifi.ifname === n.ifname).length;
+        const count = clients.filter(
+          (c) => c.online && c.wifi && c.wifi.ifname === n.ifname && (!owner || !c.ap || c.ap.routerId === owner.id),
+        ).length;
         const details = [
           encryptionLabel(t, n.encryption),
           n.hidden ? t('wireless:hidden') : null,
@@ -126,8 +223,8 @@ function RadioSection({ radio, clients }: { radio: Radio; clients: Client[] }) {
             icon={n.up ? 'wifi' : 'wifiOff'}
             iconColor={n.up ? colors.success : colors.textTertiary}
             chevron
-            onPress={() => nav.push(`/wireless/network/${encodeURIComponent(n.section)}`)}
-            testID={`wifi-${n.section}`}
+            onPress={() => nav.push(`/wireless/network/${encodeURIComponent(n.section)}${routerParam}`)}
+            testID={`wifi-${prefix}${n.section}`}
           />
         );
       })}

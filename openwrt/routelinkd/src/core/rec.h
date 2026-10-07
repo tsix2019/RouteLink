@@ -9,7 +9,7 @@
 #define RL_DEV_MAX 0xFFFC
 #define RL_DEV_UNKNOWN 0xFFFD /* LAN address whose MAC could not be resolved */
 #define RL_DEV_ROUTER 0xFFFE  /* traffic of the router itself */
-#define RL_DEV_WAN 0xFFFF     /* WAN interface counters; one record per bucket marks "data present" */
+#define RL_DEV_WAN 0xFFFF     /* WAN interface counters: one record per bucket with a sample in it */
 
 typedef struct {
 	int64_t ts;     /* bucket start */

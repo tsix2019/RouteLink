@@ -1,0 +1,62 @@
+{
+  "button": "实时监控",
+  "stop": "停止监控 · 剩余 {{remaining}}",
+  "stopUnlimited": "停止实时监控",
+  "elsewhere": "正在监控「{{name}}」",
+  "starting": "正在开启…",
+  "pick": {
+    "title": "实时监控",
+    "message": "在通知栏和状态栏显示网速和在线设备，到时自动结束。",
+    "replace": "会结束「{{name}}」的监控，同一时间只能监控一台路由器。",
+    "min30": "30 分钟",
+    "hour1": "1 小时",
+    "hour4": "4 小时",
+    "unlimited": "不限时长"
+  },
+  "noWan": "还没读到外网接口，稍后再试。",
+  "startFailed": "没能开启实时监控",
+  "stoppedError": "实时监控已停止：路由器的证书和保存的不一致",
+  "stoppedSystem": "实时监控被系统结束了",
+  "tips": {
+    "notifications": "实时监控显示在通知里，需要先允许通知。",
+    "promotion": "状态栏胶囊已被关闭，可以在系统设置里打开。",
+    "battery": "关闭这个 App 的电池优化，避免监控被系统中断。",
+    "session": "登录已失效，正在重新连接…",
+    "open": "去设置",
+    "allow": "去允许"
+  },
+  "interrupted": {
+    "text": "上次对「{{name}}」的实时监控被系统中断了。关闭电池优化可以避免。",
+    "battery": "关闭电池优化",
+    "dismiss": "知道了"
+  },
+  "brand": {
+    "oneplus": "一加：在系统设置里为 RouteLink 打开流体云开关，网速才会显示在流体云上。",
+    "oppo": "OPPO：ColorOS 16 起，网速会显示在流体云上。",
+    "xiaomi": "小米：HyperOS 可能只显示成状态栏的小胶囊，不一定进超级岛。",
+    "vivo": "vivo：原子岛是否显示还不确定，通知栏里一定能看到。",
+    "honor": "荣耀：状态栏胶囊只对预装应用开放，网速显示在通知栏里。",
+    "huawei": "华为：状态栏胶囊不对第三方应用开放，网速显示在通知栏里。",
+    "samsung": "三星：Now Bar 默认不显示第三方应用，可以在开发者选项里打开“所有应用的实时通知”。"
+  },
+  "notification": {
+    "channel": "实时监控",
+    "line": "↓ {rx} ↑ {tx} · {online} 台在线",
+    "lineNoCount": "↓ {rx} ↑ {tx}",
+    "top": "占用最多：{name} {rate}",
+    "connecting": "正在连接路由器…",
+    "offlineTitle": "路由器已离线",
+    "offlineText": "连不上「{name}」，正在重试",
+    "offlineChip": "离线",
+    "recovered": "已恢复（离线 {duration}）",
+    "sessionExpired": "登录已失效，请打开 App 重新连接",
+    "error": "暂时读不到数据，正在重试",
+    "stop": "停止",
+    "stoppedTitle": "实时监控已停止",
+    "stoppedTls": "路由器的证书和保存的不一致",
+    "sec": "{s} 秒",
+    "minSec": "{m} 分 {s} 秒",
+    "hourMin": "{h} 小时 {m} 分",
+    "onlineLabel": "在线"
+  }
+}

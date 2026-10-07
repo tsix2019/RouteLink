@@ -8,8 +8,11 @@
 # Afterwards: three mac80211_hwsim radios — RouteLink (2.4 GHz), RouteLink-5G (5 GHz) and a
 # "Neighbor-Test" AP for scans — luci-app-wol, the M3 packages (DDNS, SQM, adblock-fast, adblock
 # (off), OpenVPN) and root password routelink-test.
+# HWSIM_RADIOS=4 adds a spare fourth radio without configuration, for a station that joins RouteLink
+# (scripts/ci/plugin-wireless.sh).
 set -euo pipefail
 V="$1"
+RADIOS="${HWSIM_RADIOS:-3}"
 WORK="${2:-$PWD/.qemu}"
 mkdir -p "$WORK"
 IMG="$WORK/openwrt-$V.img"
@@ -56,7 +59,7 @@ wait_for_ssh
 
 # Phase 1: packages and three hwsim radios from boot on, then a reboot: netifd only picks up the
 # wireless handler that the packages install when it starts.
-ssh_root 'sh -s' <<'REMOTE'
+ssh_root "RADIOS=$RADIOS sh -s" <<'REMOTE'
 set -e
 # The WAN may take a moment to get its DHCP lease.
 for i in $(seq 1 30); do ping -c1 -W2 downloads.openwrt.org >/dev/null 2>&1 && break; sleep 2; done
@@ -80,10 +83,10 @@ fi
 found=0
 for f in /etc/modules.d/*hwsim*; do
   [ -f "$f" ] || continue
-  echo 'mac80211_hwsim radios=3' > "$f"
+  echo "mac80211_hwsim radios=$RADIOS" > "$f"
   found=1
 done
-[ "$found" = 1 ] || echo 'mac80211_hwsim radios=3' > /etc/modules.d/99-mac80211-hwsim
+[ "$found" = 1 ] || echo "mac80211_hwsim radios=$RADIOS" > /etc/modules.d/99-mac80211-hwsim
 rm -f /etc/config/wireless
 sync
 (sleep 1; reboot) >/dev/null 2>&1 &
@@ -96,7 +99,7 @@ wait_for_ssh
 
 # Phase 2: radio configuration. `wifi config` would choose 6 GHz for hwsim radios, where an open
 # network can't start, so bands, channels and WPA2 keys are set explicitly.
-ssh_root 'sh -s' <<'REMOTE'
+ssh_root "RADIOS=$RADIOS sh -s" <<'REMOTE'
 set -e
 for i in $(seq 1 15); do wifi config >/dev/null 2>&1; [ -s /etc/config/wireless ] && break; sleep 2; done
 setup_radio() { # radio band channel htmode ssid
@@ -113,6 +116,11 @@ setup_radio() { # radio band channel htmode ssid
 setup_radio radio0 2g 1 HT20 RouteLink || true
 setup_radio radio1 5g 36 VHT80 RouteLink-5G || true
 setup_radio radio2 2g 11 HT20 Neighbor-Test || true
+# A spare radio stays out of the configuration: netifd leaves it alone and a test can use it as a station.
+if [ "$RADIOS" -gt 3 ]; then
+  uci -q delete wireless.radio3 || true
+  uci -q delete wireless.default_radio3 || true
+fi
 uci commit wireless
 wifi up 2>/dev/null || wifi 2>/dev/null || true
 # Up means an AP interface exists, not just a radio marked up.

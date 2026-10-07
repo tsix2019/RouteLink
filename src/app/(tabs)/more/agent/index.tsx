@@ -111,7 +111,7 @@ function AgentContent({ status }: { status: AgentStatus }) {
       const { networkInstallDeps } = await import('@/features/agent/download');
       const manifest = parseManifest(
         connection?.kind === 'demo'
-          ? { version: info?.version ?? '0.1.0', api: 1, targets: {} }
+          ? { version: info?.version ?? '1.0.0', api: 1, targets: {} }
           : await networkInstallDeps.fetchManifest(applyMirror(MANIFEST_URL, mirror)),
       );
       setUpdate(
@@ -164,7 +164,13 @@ function AgentContent({ status }: { status: AgentStatus }) {
               { label: t('agent:page.version'), value: info.version },
               {
                 label: t('agent:page.role'),
-                value: info.roles.includes('gateway') ? t('agent:page.roleGateway') : t('agent:page.roleOther'),
+                value: info.roles.includes('gateway')
+                  ? info.roles.includes('ap')
+                    ? t('agent:page.roleGatewayAp')
+                    : t('agent:page.roleGateway')
+                  : info.roles.includes('ap')
+                    ? t('agent:page.roleAp')
+                    : t('agent:page.roleOther'),
               },
               { label: t('agent:page.offload'), value: t(`agent:page.offloadNames.${info.offload}`) },
               {
@@ -182,6 +188,35 @@ function AgentContent({ status }: { status: AgentStatus }) {
             ]}
           />
         </GlassCard>
+      ) : null}
+
+      {installed && info?.capabilities.includes('notify') ? (
+        <ListSection>
+          <ListRow
+            icon="bell"
+            title={t('control:notify.row')}
+            chevron
+            onPress={() => nav.push('/more/agent/notify')}
+            testID="agent-notify"
+          />
+          {info.capabilities.includes('limits') ? (
+            <ListRow
+              icon="speed"
+              title={t('control:rules.entry')}
+              chevron
+              onPress={() => nav.push('/network/traffic/rules', { withAnchor: true })}
+            />
+          ) : null}
+          {info.capabilities.includes('dns') ? (
+            <ListRow
+              icon="search"
+              title={t('control:dns.row')}
+              value={info.dnsEnabled ? undefined : t('control:rules.off')}
+              chevron
+              onPress={() => nav.push('/network/traffic/dns', { withAnchor: true })}
+            />
+          ) : null}
+        </ListSection>
       ) : null}
 
       {installed ? (

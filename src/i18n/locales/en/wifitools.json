@@ -1,0 +1,244 @@
+{
+  "separator": ", ",
+  "grade": {
+    "excellent": "Excellent",
+    "good": "Good",
+    "fair": "Fair",
+    "poor": "Poor"
+  },
+  "tag": {
+    "stranger": "Unknown",
+    "trusted": "Trusted",
+    "phone": "This phone",
+    "random": "Random MAC",
+    "router": "Group router"
+  },
+  "mode": {
+    "legacy": "802.11a/b/g",
+    "ht": "Wi-Fi 4",
+    "vht": "Wi-Fi 5",
+    "he": "Wi-Fi 6"
+  },
+  "chart": {
+    "signal": "Signal",
+    "rate": "Download link rate",
+    "missing": "No data",
+    "empty": "No signal data for this period",
+    "fiveMinutesAgo": "5 min ago",
+    "now": "Now"
+  },
+  "signal": {
+    "title": "Signal Monitor",
+    "sort": {
+      "weakest": "Weakest first",
+      "name": "By name"
+    },
+    "summary": "Wireless devices: {{count}}, fair or poor: {{weak}}",
+    "summaryGood": "Wireless devices: {{count}}, all with a good signal",
+    "empty": "No wireless devices online",
+    "footer": "Signal as the access point hears each device; refreshed every 2 seconds while this page is open.",
+    "rates": "↓{{down}} ↑{{up}} Mbps",
+    "snr": "SNR {{value}} dB"
+  },
+  "detail": {
+    "notFound": "Device not found",
+    "notOnAp": "Not connected to {{ap}} right now",
+    "snr": "SNR",
+    "noise": "Noise floor",
+    "down": "Download link rate",
+    "up": "Upload link rate",
+    "connected": "Connected for",
+    "link": "Width and standard",
+    "retries": "Retries (since connecting)",
+    "phoneNote": "This is your phone. The signal shown is what the access point hears from it, which can differ from the phone's own reading.",
+    "live": "Last 5 minutes",
+    "everySecond": "Updated every second",
+    "every2s": "Updated every 2 seconds, kept only while this page is open",
+    "tips": "Advice",
+    "needsPlugin": "Install the RouteLink plugin to see signal history, roaming and retries.",
+    "installPlugin": "Install",
+    "history": "Signal history",
+    "average": "Average signal",
+    "weakest": "Weakest signal",
+    "retried": "Retries",
+    "retriedValue": "{{retries}} retried, {{failed}} failed",
+    "roaming": "Roaming",
+    "roamingNote": "Connects and disconnects recorded by every router of the group."
+  },
+  "tip": {
+    "move-closer": "The signal is weak. Move the device closer to the access point, or put the access point somewhere more open.",
+    "add-ap": "If the signal here is often poor, consider adding an access point nearby.",
+    "rate-low": "The link rate is under half of what this band usually gets: distance, interference or an older device may be the cause.",
+    "none": "The signal is fine; nothing to do.",
+    "unknown": "No signal data for this device yet."
+  },
+  "roam": {
+    "connect": "Joined {{ap}}",
+    "disconnect": "Left {{ap}}",
+    "roamed": "Roamed",
+    "none": "No connects or disconnects in this period"
+  },
+  "intruders": {
+    "title": "Who's on My Wi-Fi",
+    "rescan": "Scan again",
+    "scanning": "Scanning…",
+    "scanningDetail": "Reading the devices of {{names}}",
+    "readingTrust": "Reading the trust list…",
+    "summary": {
+      "ssid": "Online on “{{ssid}}”: {{online}}",
+      "wifi": "Online on Wi-Fi: {{online}}",
+      "all": "Online: {{online}}",
+      "strangers": ", unknown: {{count}}",
+      "clean": ", none unknown"
+    },
+    "scope": {
+      "ssid": "“{{ssid}}”",
+      "wifi": "All Wi-Fi",
+      "all": "All devices"
+    },
+    "empty": "No devices online in this scope",
+    "setup": {
+      "title": "Mark your devices first",
+      "message": "At first every device counts as unknown. Tick the devices you recognise and trust them; from then on only new devices show as unknown.",
+      "start": "Start"
+    },
+    "pick": {
+      "start": "Mark trusted devices",
+      "hint": "{{count}} ticked. Ticked devices become trusted, unticked ones are no longer trusted.",
+      "all": "All",
+      "confirm": "Done",
+      "saved": "Trust list updated"
+    },
+    "trust": "Trust this device",
+    "untrust": "Stop trusting",
+    "trusted": "Trusted devices added: {{count}}",
+    "untrusted": "No longer trusted",
+    "changePassword": "Change Wi-Fi password",
+    "details": "Device details",
+    "signalUnknown": "Signal unknown",
+    "connectedFor": "connected {{duration}}",
+    "kickTemporary": "Kicking is temporary: anyone who knows the password can join again",
+    "localTrust": "The trust list is kept on this phone and moves to the router once the plugin is installed.",
+    "note": {
+      "kick": "Kicking a device off is temporary: if it knows the password it will join again. Change the Wi-Fi password to keep it out.",
+      "private": "Phones using a private (random) address show no vendor; that alone does not make them intruders."
+    }
+  },
+  "channels": {
+    "title": "Channel Optimisation",
+    "introTitle": "Channel scan",
+    "intro": "Every radio of every access point in the group scans the air: see which channels nearby networks use and where yours would be better off.",
+    "scanWarning": "While scanning, an access point briefly leaves its channel: connected devices may stall for a second or two.",
+    "start": "Start scan",
+    "rescan": "Scan again",
+    "scanning": "Scanning {{count}} routers…",
+    "unreachable": "{{name}} is not connected and was not scanned",
+    "failed": "{{name}} could not scan: {{error}}",
+    "none": "No radio in the group can scan",
+    "summaryChange": "Radios worth changing: {{count}}",
+    "summaryKeep": "All radios are on good channels",
+    "allowDfs": "Allow DFS channels",
+    "dfsHint": "DFS channels (52–144, and 36–48 at 160 MHz, whose block reaches 64) need a radar check first: after a switch the radio takes 1–10 minutes to come back, and it moves away by itself when it detects radar.",
+    "legend": {
+      "own": "Your networks",
+      "other": "Neighbours",
+      "current": "Current",
+      "target": "Suggested"
+    },
+    "channel": "Channel {{channel}}",
+    "busy": "{{pct}}% busy",
+    "dfs": "DFS channel",
+    "reason": {
+      "keep-best": "The current channel already has the least interference.",
+      "keep-small-gain": "No other channel is much better (interference would not even halve): better to stay.",
+      "change": "Channel {{to}} has {{pct}}% less interference.",
+      "crowded-24": "2.4 GHz is crowded here: a 20 MHz channel is more robust.",
+      "no-candidates": "No channel to choose from."
+    },
+    "switchTo": "Switch to channel {{channel}}",
+    "toWidth20": "Use 20 MHz",
+    "scanFailed": "This radio did not finish its scan; the picture may be incomplete.",
+    "noChannel": "The radio's current channel is unknown, so there is no advice.",
+    "table": "Channels",
+    "heard": "{{count}} networks heard",
+    "networks": "Networks: {{count}}",
+    "strongest": "strongest {{signal}} dBm",
+    "own": "yours: {{count}}",
+    "quiet": "No networks heard",
+    "confirm": {
+      "channel": "Move {{router}} {{band}} to channel {{channel}}?",
+      "width": "Switch {{router}} {{band}} to 20 MHz?",
+      "drop": "Wi-Fi on this radio drops for a few seconds; devices reconnect by themselves",
+      "rollback": "Applied safely: confirmed once the phone is back, otherwise the router restores the old setting",
+      "direct": "The phone is on this radio and cannot confirm during the radar check: this change is not rolled back",
+      "dfs": "On a DFS channel the radio may take 1–10 minutes to come back, and it moves to another channel if it detects radar"
+    }
+  },
+  "security": {
+    "title": "Security Check",
+    "unreachable": "{{name}} is not connected: its Wi-Fi settings cannot be read",
+    "empty": "No Wi-Fi network is on",
+    "overall": "Overall security: {{level}}",
+    "checked": "Wi-Fi networks checked: {{count}}",
+    "localOnly": "Password strength is judged on this phone; the password is never sent anywhere.",
+    "phone": "This phone is on it",
+    "level": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "danger": "Dangerous"
+    },
+    "levelHint": {
+      "high": "Strong encryption.",
+      "medium": "Reasonably safe, could be better.",
+      "low": "Outdated encryption that is easy to break.",
+      "danger": "No encryption or WEP: anyone can join or listen in."
+    },
+    "finding": {
+      "password": "Password strength: {{strength}}",
+      "passwordWithReasons": "Password strength: {{strength}} ({{reasons}})",
+      "wps": "WPS is on: its PIN can be brute-forced to get in.",
+      "mfp-off": "Management frame protection is off: forged disconnect frames can kick devices off.",
+      "guest-not-isolated": "The guest network does not isolate clients: guest devices can reach each other.",
+      "hidden": "Hiding the SSID adds no security; phones broadcast the name everywhere instead."
+    },
+    "strength": {
+      "weak": "weak",
+      "medium": "medium",
+      "strong": "strong"
+    },
+    "weak": {
+      "short": "under 10 characters",
+      "digits": "digits only",
+      "common": "a common password",
+      "keyboard": "a keyboard run or sequence",
+      "ssid": "contains the network name",
+      "repeat": "repeated characters",
+      "one-kind": "one kind of character only"
+    },
+    "noSae": "This router does not support WPA3 (SAE), so WPA2 stays. Installing the full wpad (e.g. wpad-mbedtls) makes the upgrade possible.",
+    "saeUnknown": "Whether this router supports WPA3 (SAE) is unknown, so no upgrade is offered; change it in the Wi-Fi settings once you know it does.",
+    "fix": "Fix ({{count}})",
+    "ok": "No problems found",
+    "applied": "Fixed",
+    "share": "Share the new password as a QR code",
+    "sheetTitle": "Fix “{{ssid}}”",
+    "apply": "Apply",
+    "fixes": {
+      "upgrade-wpa3": "Upgrade to WPA2/WPA3 mixed",
+      "upgrade-wpa2": "Upgrade to WPA2 (AES)",
+      "disable-wps": "Turn off WPS",
+      "enable-mfp": "Turn on management frame protection",
+      "new-password": "Use a strong password",
+      "isolate": "Isolate clients"
+    },
+    "wpa3Hint": "New devices use WPA3, older ones still join with WPA2",
+    "newPassword": "New password",
+    "regenerate": "Another one",
+    "strengthIs": "Strength: {{strength}}",
+    "keyLength": "The password needs 8–63 characters",
+    "keyWeak": "This password is still weak",
+    "confirmTitle": "Fix “{{ssid}}”?",
+    "consequencePhoneBrief": "Your phone is on this Wi-Fi: it drops for a few seconds and reconnects by itself"
+  }
+}

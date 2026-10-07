@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=routelinkd
-PKG_VERSION:=0.1.0
+PKG_VERSION:=1.0.0
 PKG_RELEASE:=1
 PKG_LICENSE:=MIT
 PKG_MAINTAINER:=tsix2019 <tsix2019@users.noreply.github.com>
@@ -12,15 +12,19 @@ include $(INCLUDE_DIR)/cmake.mk
 define Package/routelinkd
   SECTION:=net
   CATEGORY:=Network
-  TITLE:=RouteLink per-device traffic monitor
+  TITLE:=RouteLink per-device traffic, wireless, latency and limits
   URL:=https://github.com/tsix2019/RouteLink
-  DEPENDS:=+libubox +libubus +libuci +libblobmsg-json +libjson-c +libmnl +kmod-nf-conntrack-netlink
+  DEPENDS:=+libubox +libubus +libuci +libblobmsg-json +libjson-c +libmnl +kmod-nf-conntrack-netlink +uclient-fetch +tc-tiny +kmod-sched-core +kmod-sched-flower +kmod-ifb +ca-bundle
 endef
 
 define Package/routelinkd/description
   Records upload and download traffic of every LAN device from conntrack
-  accounting and serves it over ubus (object "routelink") for LuCI and the
-  RouteLink app.
+  accounting, and on access points the signal, rates and channel busy time
+  of wireless stations (nl80211), the latency to probe targets with an
+  outage log, and runs router-side speed tests (uclient-fetch). Sets
+  per-device speed limits (tc) and data quotas (nftables), logs DNS answers
+  and where devices go, and sends push messages. Serves everything over
+  ubus (object "routelink") for LuCI and the RouteLink app.
 endef
 
 define Package/routelinkd/conffiles

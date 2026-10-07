@@ -26,7 +26,11 @@ static const char *const NAMES[RL_EV_TYPE_END] = {
 	[RL_EV_DEVICE_NEW] = "device_new",       [RL_EV_DEVICE_ONLINE] = "device_online",
 	[RL_EV_DEVICE_OFFLINE] = "device_offline", [RL_EV_DAEMON_START] = "daemon_start",
 	[RL_EV_TIME_JUMP] = "time_jump",         [RL_EV_COMMIT_FAILED] = "commit_failed",
-	[RL_EV_DATA_RECOVERED] = "data_recovered",
+	[RL_EV_DATA_RECOVERED] = "data_recovered", [RL_EV_WIFI_CONNECT] = "wifi_connect",
+	[RL_EV_WIFI_DISCONNECT] = "wifi_disconnect", [RL_EV_WAN_DOWN] = "wan_down",
+	[RL_EV_WAN_UP] = "wan_up",
+	[RL_EV_QUOTA_WARN] = "quota_warn",       [RL_EV_QUOTA_EXCEEDED] = "quota_exceeded",
+	[RL_EV_QUOTA_RESET] = "quota_reset",     [RL_EV_LIMIT_APPLIED] = "limit_applied",
 };
 
 const char *rl_event_name(rl_event_type t)

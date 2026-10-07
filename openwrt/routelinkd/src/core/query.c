@@ -97,8 +97,12 @@ static bool hist_cb(const rl_rec *r, void *x)
 	}
 	if (r->ts < h->bounds[0] || r->ts >= h->bounds[h->n])
 		return true;
-	if (r->dev == RL_DEV_WAN)
-		h->covered[lo] = true;
+	/*
+	 * Any record shows that the daemon was recording. Not only the WAN's: that one comes with a sample, and
+	 * a minute without one (sample_interval over 60 s, samples put off) can still hold the bytes of
+	 * connections that closed in it, which the summary counts.
+	 */
+	h->covered[lo] = true;
 	if (!hour_ok(h->q->hours_mask, r->ts) || !matches(h->q->dev, h->q->cls, r))
 		return true;
 	h->pts[lo].rx += r->rx;
@@ -112,7 +116,7 @@ int rl_query_history(const rl_qctx *c, const rl_history_q *q, rl_history *out)
 	int max_points = q->max_points ? q->max_points : RL_QUERY_DEFAULT_POINTS;
 	if (q->start >= q->end)
 		return fail("start must be before end");
-	if (q->end - q->start > RL_QUERY_MAX_RANGE)
+	if (!rl_range_ok(q->start, q->end, RL_QUERY_MAX_RANGE))
 		return fail("range too long");
 	if (max_points < 1 || max_points > RL_QUERY_MAX_POINTS)
 		return fail("max_points out of range");
@@ -212,7 +216,7 @@ int rl_query_summary(const rl_qctx *c, const rl_summary_q *q, rl_summary *out)
 	memset(out, 0, sizeof(*out));
 	if (q->start >= q->end)
 		return fail("start must be before end");
-	if (q->end - q->start > RL_QUERY_MAX_RANGE)
+	if (!rl_range_ok(q->start, q->end, RL_QUERY_MAX_RANGE))
 		return fail("range too long");
 	if (q->hours_mask >> 24)
 		return fail("hours out of range");

@@ -115,6 +115,8 @@ export const ICONS = {
   rotate: { sf: 'rotate.right', ion: 'phone-landscape-outline' },
   bell: { sf: 'bell', ion: 'notifications-outline' },
   widget: { sf: 'square.grid.2x2', ion: 'grid-outline' },
+  sync: { sf: 'arrow.triangle.2.circlepath', ion: 'sync-outline' },
+  accessPoint: { sf: 'wifi.router', mci: 'access-point' },
 } as const satisfies Record<string, { sf: string; ion: IonName } | { sf: string; mci: MciName }>;
 
 export type IconName = keyof typeof ICONS;

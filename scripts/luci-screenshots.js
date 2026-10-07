@@ -33,7 +33,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const shoot = async (name) => {
     await page.screenshot({ path: `${OUT}/${LANG}-${name}.png`, fullPage: true });
   };
-  for (const view of ['overview', 'traffic', 'settings']) {
+  for (const view of ['overview', 'traffic', 'latency', 'limits', 'access', 'notify', 'settings']) {
     errors.length = 0;
     await page.goto(`${BASE}/cgi-bin/luci/admin/services/routelink/${view}`, { waitUntil: 'domcontentloaded' });
     try {

@@ -16,7 +16,7 @@ public class RouteLinkNativeModule: Module {
   public func definition() -> ModuleDefinition {
     Name("RouteLinkNative")
 
-    Events("onSshData", "onSshClosed")
+    Events("onSshData", "onSshClosed", "onLiveMonitorStopped", "onLiveMonitorStatus")
 
     OnCreate {
       self.events.module = self
@@ -76,10 +76,46 @@ public class RouteLinkNativeModule: Module {
       return try await self.ssh.exec(options, command: command, timeoutMs: timeoutMs ?? 30_000)
     }
 
+    // The live monitor is an Android foreground service (design §16); iOS would need a Live Activity.
+    AsyncFunction("startLiveMonitor") { (config: [String: Any]) throws in
+      throw liveUnsupported()
+    }
+    AsyncFunction("updateLiveMonitor") { (update: [String: Any]) throws in
+      throw liveUnsupported()
+    }
+    AsyncFunction("stopLiveMonitor") { () throws in
+      throw liveUnsupported()
+    }
+    AsyncFunction("getLiveMonitorState") { () throws in
+      throw liveUnsupported()
+    }
+    AsyncFunction("clearLiveMonitorInterruption") { () throws in
+      throw liveUnsupported()
+    }
+    AsyncFunction("getLiveMonitorSupport") { () throws in
+      throw liveUnsupported()
+    }
+    AsyncFunction("canPostPromotedNotifications") { () throws in
+      throw liveUnsupported()
+    }
+    AsyncFunction("openPromotedNotificationSettings") { () throws in
+      throw liveUnsupported()
+    }
+    AsyncFunction("openNotificationSettings") { () throws in
+      throw liveUnsupported()
+    }
+    AsyncFunction("openBatteryOptimizationSettings") { () throws in
+      throw liveUnsupported()
+    }
+
     OnDestroy {
       Task { await self.ssh.closeAll() }
     }
   }
+}
+
+private func liveUnsupported() -> Exception {
+  return nativeError("ERR_UNSUPPORTED", "The live monitor is only available on Android")
 }
 
 /// Creates the engine once, on first use, whichever thread gets there first.

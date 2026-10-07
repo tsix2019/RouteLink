@@ -75,7 +75,7 @@ static void load_zones(zone_map *m)
 	uci_free_context(ctx);
 }
 
-enum { IF_NAME, IF_UP, IF_L3, IF_V4, IF_V6, IF_V6PFX, __IF_MAX };
+enum { IF_NAME, IF_UP, IF_L3, IF_V4, IF_V6, IF_V6PFX, IF_ROUTE, __IF_MAX };
 static const struct blobmsg_policy if_policy[__IF_MAX] = {
 	[IF_NAME] = { "interface", BLOBMSG_TYPE_STRING },
 	[IF_UP] = { "up", BLOBMSG_TYPE_BOOL },
@@ -83,6 +83,7 @@ static const struct blobmsg_policy if_policy[__IF_MAX] = {
 	[IF_V4] = { "ipv4-address", BLOBMSG_TYPE_ARRAY },
 	[IF_V6] = { "ipv6-address", BLOBMSG_TYPE_ARRAY },
 	[IF_V6PFX] = { "ipv6-prefix-assignment", BLOBMSG_TYPE_ARRAY },
+	[IF_ROUTE] = { "route", BLOBMSG_TYPE_ARRAY },
 };
 
 enum { A_ADDR, A_MASK, A_LOCAL, __A_MAX };
@@ -91,6 +92,38 @@ static const struct blobmsg_policy addr_policy[__A_MAX] = {
 	[A_MASK] = { "mask", BLOBMSG_TYPE_INT32 },
 	[A_LOCAL] = { "local-address", BLOBMSG_TYPE_TABLE },
 };
+
+enum { R_TARGET, R_MASK, R_NEXTHOP, __R_MAX };
+static const struct blobmsg_policy route_policy[__R_MAX] = {
+	[R_TARGET] = { "target", BLOBMSG_TYPE_STRING },
+	[R_MASK] = { "mask", BLOBMSG_TYPE_INT32 },
+	[R_NEXTHOP] = { "nexthop", BLOBMSG_TYPE_STRING },
+};
+
+static bool ip_unspecified(const rl_ip *ip)
+{
+	static const uint8_t zero[16];
+	return memcmp(ip->a, zero, sizeof(zero)) == 0;
+}
+
+/* The next hop of a default route (family 4 or 6) in netifd's route list. */
+static bool default_nexthop(struct blob_attr *routes, int family, rl_ip *out)
+{
+	struct blob_attr *cur;
+	int rem;
+	if (routes)
+		blobmsg_for_each_attr(cur, routes, rem) {
+			struct blob_attr *tb[__R_MAX];
+			rl_ip target;
+			blobmsg_parse(route_policy, __R_MAX, tb, blobmsg_data(cur), blobmsg_len(cur));
+			if (!tb[R_TARGET] || !tb[R_MASK] || blobmsg_get_u32(tb[R_MASK]) != 0 || !tb[R_NEXTHOP] ||
+			    !rl_ip_parse(blobmsg_get_string(tb[R_TARGET]), &target) || target.family != family ||
+			    !rl_ip_parse(blobmsg_get_string(tb[R_NEXTHOP]), out) || ip_unspecified(out))
+				continue;
+			return true;
+		}
+	return false;
+}
 
 typedef struct {
 	rl_netinfo *ni;
@@ -153,11 +186,23 @@ static void dump_cb(struct ubus_request *req, int type, struct blob_attr *msg)
 		add_addrs(ni, tb[IF_V4], kind == 0, false);
 		add_addrs(ni, tb[IF_V6], kind == 0, false);
 		add_addrs(ni, tb[IF_V6PFX], kind == 0, true);
-		if (kind == 1)
+		if (kind == 1) {
 			ni->has_wan = true; /* configured, even while PPPoE is still dialling */
+			if (ni->n_wan_names < RL_MAX_WAN_NAMES)
+				snprintf(ni->wan_names[ni->n_wan_names++], RL_IFACE_NAMELEN, "%s", name);
+		}
 		if (!up || !l3)
 			continue;
 		if (kind == 1) {
+			/* the default route: IPv4 wins over IPv6, the first interface over later ones */
+			rl_ip gw;
+			bool v4 = default_nexthop(tb[IF_ROUTE], 4, &gw);
+			bool better = !ni->gw_iface[0] || (v4 && ni->gw.family == 6);
+			if (better && (v4 || default_nexthop(tb[IF_ROUTE], 6, &gw))) {
+				snprintf(ni->gw_iface, sizeof(ni->gw_iface), "%s", name);
+				ni->gw = gw;
+				ni->gw_scope = (int)if_nametoindex(l3);
+			}
 			bool dup = false;
 			for (int i = 0; i < ni->n_wan; i++)
 				dup |= !strcmp(ni->wan_devs[i], l3);

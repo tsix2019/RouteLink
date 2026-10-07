@@ -3,19 +3,28 @@ import type { RouterProfile } from '@/state/routers';
 import { nativeHttpClient } from '../http/native';
 import type { HttpClient } from '../http/types';
 import type { Session } from '../ubus/login';
-import { DemoConnection } from './demo/connection';
+import { DemoApConnection, DemoConnection } from './demo/connection';
 import { LiveConnection } from './live';
 
 const live = new Map<string, { connection: LiveConnection; key: string }>();
 let demo: DemoConnection | null = null;
+let demoAp: DemoApConnection | null = null;
 
 /** One demo router per app session; its edits are lost on restart (design §16). */
 export function getDemoConnection(): DemoConnection {
   return (demo ??= new DemoConnection());
 }
 
+/** The demo router's access point (network group demo). */
+export function getDemoApConnection(): DemoApConnection {
+  const gateway = getDemoConnection();
+  if (!demoAp || demoAp.state !== gateway.state) demoAp = new DemoApConnection(gateway);
+  return demoAp;
+}
+
 export function resetDemoConnection(): void {
   demo = null;
+  demoAp = null;
 }
 
 /**

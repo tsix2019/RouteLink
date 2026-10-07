@@ -4,7 +4,7 @@
 set -euo pipefail
 REL="${1:-24.10.8}"
 ARCH="${2:-x86_64}"
-NAME="routelink-agent-owrt"
+NAME="${RL_AGENT_NAME:-routelink-agent}-owrt"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIR="$ROOT/openwrt/out/$REL/$ARCH"
 ls "$DIR"/*.[ia]pk >/dev/null
