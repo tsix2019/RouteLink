@@ -86,6 +86,25 @@ bool rl_dest_add(rl_dest_map *m, uint8_t family, const uint8_t *addr, const char
 	return true;
 }
 
+bool rl_dest_merge(rl_dest_map *m, const rl_dest_entry *e)
+{
+	size_t size = m->cap * 2;
+	if (e->family != 4 && e->family != 6)
+		return false;
+	size_t at = rl_mix32(rl_fnv1a(e->addr, alen(e->family), RL_FNV_SEED ^ e->family)) % size;
+	while (m->used[at]) {
+		rl_dest_entry *x = &m->slots[at];
+		if (x->family == e->family && memcmp(x->addr, e->addr, alen(e->family)) == 0) {
+			if (!x->host[0])
+				memcpy(x->host, e->host, sizeof(x->host));
+			break;
+		}
+		at = (at + 1) % size;
+	}
+	/* counters (and the name of a new peer) through the usual path */
+	return rl_dest_add(m, e->family, e->addr, m->used[at] ? NULL : e->host, e->rx, e->tx, e->conns);
+}
+
 static int busier(const void *a, const void *b)
 {
 	const rl_dest_entry *x = a, *y = b;

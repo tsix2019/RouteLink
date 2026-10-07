@@ -28,11 +28,14 @@ void rl_dest_map_free(rl_dest_map *m);
 void rl_dest_map_clear(rl_dest_map *m);
 size_t rl_dest_map_count(const rl_dest_map *m);
 /*
- * Adds traffic to a peer (host may be NULL; a known one is kept). When the map is full, peers it has not
+ * Adds traffic to a peer (host may be NULL, which keeps the known name; a name replaces it: the latest DNS
+ * answer is the best guess). When the map is full, peers it has not
  * seen go uncounted and false is returned.
  */
 bool rl_dest_add(rl_dest_map *m, uint8_t family, const uint8_t *addr, const char *host, uint64_t rx, uint64_t tx,
 		 uint32_t conns);
+/* Adds an entry of another hour (queries merge newest first): its name only where none is known yet. */
+bool rl_dest_merge(rl_dest_map *m, const rl_dest_entry *e);
 /* The n busiest peers (rx + tx), busiest first. */
 size_t rl_dest_top(const rl_dest_map *m, rl_dest_entry *out, size_t n);
 

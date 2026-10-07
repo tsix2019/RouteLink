@@ -66,6 +66,28 @@ static bool keep(const rl_dest_entry *e, void *ctx)
 	return true;
 }
 
+/* Queries merge hours newest first: counters add up, the newest known name stays. */
+static void test_merge(void)
+{
+	rl_dest_map *m = rl_dest_map_new(16);
+	rl_dest_entry e = { .family = 4, .addr = { 10, 0, 0, 1 }, .rx = 100, .tx = 10, .conns = 1 };
+	T_ASSERT(rl_dest_merge(m, &e)); /* newest hour: no name */
+	snprintf(e.host, sizeof(e.host), "new.example");
+	T_ASSERT(rl_dest_merge(m, &e));
+	snprintf(e.host, sizeof(e.host), "old.example");
+	T_ASSERT(rl_dest_merge(m, &e));
+	rl_dest_entry top[2];
+	T_EQ_U64(rl_dest_top(m, top, 2), 1);
+	T_EQ_STR(top[0].host, "new.example");
+	T_EQ_U64(top[0].rx, 300);
+	T_EQ_U64(top[0].conns, 3);
+	/* adding live traffic, the latest name wins */
+	rl_dest_add(m, 4, e.addr, "latest.example", 1, 1, 0);
+	rl_dest_top(m, top, 2);
+	T_EQ_STR(top[0].host, "latest.example");
+	rl_dest_map_free(m);
+}
+
 static void test_record(void)
 {
 	rl_dest_entry e[3];
@@ -130,6 +152,7 @@ static void test_worst_case_fits(void)
 int main(void)
 {
 	T_RUN(test_sum_and_top);
+	T_RUN(test_merge);
 	T_RUN(test_record);
 	T_RUN(test_worst_case_fits);
 	T_DONE();

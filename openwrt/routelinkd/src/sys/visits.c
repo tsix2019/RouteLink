@@ -275,10 +275,10 @@ typedef struct {
 	const rl_mac *mac;
 } dest_scan_ctx;
 
+/* Newest first: the name of the latest hour that had one stays. */
 static bool merge_entry(const rl_dest_entry *e, void *x)
 {
-	rl_dest_map *m = x;
-	rl_dest_add(m, e->family, e->addr, e->host[0] ? e->host : NULL, e->rx, e->tx, e->conns);
+	rl_dest_merge(x, e);
 	return true;
 }
 
@@ -299,8 +299,7 @@ int rl_visits_destinations(rl_visits *v, const rl_mac *mac, int64_t start, int64
 {
 	rl_dest_map *m = rl_dest_map_new(MERGE_PEERS);
 	dest_scan_ctx c = { m, mac };
-	/* records carry the start of their hour */
-	int rc = rl_vlog_scan_newest(v->dest, start - 3599, end, dest_scan_cb, &c);
+	/* the open hour first, then the log newest first (records carry the start of their hour) */
 	if (v->hour && v->hour + 3600 > start && v->hour < end)
 		for (int i = 0; i < v->n_devs; i++) {
 			if (!rl_mac_eq(&v->devs[i].mac, mac))
@@ -310,6 +309,7 @@ int rl_visits_destinations(rl_visits *v, const rl_mac *mac, int64_t start, int64
 			for (size_t j = 0; j < k; j++)
 				merge_entry(&top[j], m);
 		}
+	int rc = rl_vlog_scan_newest(v->dest, start - 3599, end, dest_scan_cb, &c);
 	*found = rl_dest_map_count(m);
 	size_t k = rl_dest_top(m, out, n);
 	rl_dest_map_free(m);
