@@ -271,11 +271,18 @@ describe('quota', () => {
 
   it('sends the quota notice to the push channel', async () => {
     if (!supported || !section) return;
-    // the batch goes a minute after its first event
-    const hook = await waitFor('the quota notice', 90, () =>
-      hooks().find((h) => /used up its data|流量用完了/.test(h.body)),
+    // the batch goes a minute after its first event; the failing channel gets it too (and answers 500)
+    const sent = await waitFor('the quota notice', 90, () => {
+      const got = hooks().filter((h) => /used up its data|流量用完了/.test(h.body));
+      const paths = got.map((h) => h.path);
+      return paths.includes(`/hook/${RUN}`) && paths.includes(`/hook/fail-${RUN}`) ? got : undefined;
+    });
+    expect(sent.length).toBeGreaterThanOrEqual(2);
+    // a failure is tried again later (after 10 s)
+    const status = await call<{ channels: { section: string; last_error: string }[]; pending: number }>(
+      'notify_status',
     );
-    expect(hook.path).toBe(`/hook/${RUN}`);
+    expect(status.channels.find((c) => c.section === 'rlfail')?.last_error).toBe('HTTP error 500');
   });
 
   it('lets the device through again with quota_allow', async () => {
