@@ -12,7 +12,7 @@
 #define MAX_EVENTS_OUT 1000
 #define MAX_IPS 8
 
-static const char *const CAPABILITIES[] = { "traffic", "wifi", "latency" };
+static const char *const CAPABILITIES[] = { "traffic", "wifi", "latency", "speedtest" };
 
 static struct rl_daemon *D;
 static struct blob_buf b;
@@ -119,6 +119,8 @@ static int m_info(struct ubus_context *ctx, struct ubus_object *obj, struct ubus
 		blobmsg_add_string(&b, NULL, "wifi");
 	if (rl_daemon_probe_on(D))
 		blobmsg_add_string(&b, NULL, "latency");
+	if (D->role.gateway)
+		blobmsg_add_string(&b, NULL, "speedtest"); /* WAN counters: gateway only */
 	blobmsg_close_array(&b, c);
 	/* every module this build has, switched on or not (modules only lists the running ones) */
 	c = blobmsg_open_array(&b, "capabilities");
@@ -910,6 +912,108 @@ static int m_outages(struct ubus_context *ctx, struct ubus_object *obj, struct u
 	return ubus_send_reply(ctx, req, b.head);
 }
 
+/* ---- router-side speed test ---- */
+
+static const struct blobmsg_policy speed_start_policy[] = { { "server", BLOBMSG_TYPE_STRING } };
+
+static int m_speedtest_start(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+			     const char *method, struct blob_attr *msg)
+{
+	struct blob_attr *tb[1];
+	rl_speed_target t;
+	blobmsg_parse(speed_start_policy, 1, tb, blob_data(msg), blob_len(msg));
+	const char *server = tb[0] ? blobmsg_get_string(tb[0]) : D->cfg.speed_server;
+	if (!rl_speed_target_of(server, &t))
+		return UBUS_STATUS_INVALID_ARGUMENT;
+	if (!D->role.gateway)
+		return UBUS_STATUS_NOT_SUPPORTED;
+	bool already;
+	int id = rl_daemon_speedtest(D, server, &already);
+	if (id < 0)
+		return UBUS_STATUS_UNKNOWN_ERROR;
+	blob_buf_init(&b, 0);
+	blobmsg_add_u32(&b, "id", (uint32_t)id);
+	if (already)
+		blobmsg_add_u8(&b, "already", true); /* libubus has no "busy" status */
+	return ubus_send_reply(ctx, req, b.head);
+}
+
+/* One decimal (ms). */
+static void add_ms1(const char *name, double ms)
+{
+	blobmsg_add_double(&b, name, (double)(int64_t)(ms * 10 + 0.5) / 10.0);
+}
+
+static void add_speed_result(const rl_speed_result *r)
+{
+	blobmsg_add_u32(&b, "id", (uint32_t)r->id);
+	blobmsg_add_u64(&b, "ts", (uint64_t)r->ts);
+	blobmsg_add_string(&b, "server", r->server);
+	if (r->latency_ms >= 0) {
+		add_ms1("latency_ms", r->latency_ms);
+		add_ms1("jitter_ms", r->jitter_ms);
+	} else {
+		add_null("latency_ms");
+		add_null("jitter_ms");
+	}
+	if (r->down_bps >= 0)
+		blobmsg_add_u64(&b, "down_bps", (uint64_t)r->down_bps);
+	else
+		add_null("down_bps");
+	if (r->up_bps >= 0)
+		blobmsg_add_u64(&b, "up_bps", (uint64_t)r->up_bps);
+	else
+		add_null("up_bps");
+	if (r->error[0])
+		blobmsg_add_string(&b, "error", r->error);
+}
+
+static const struct blobmsg_policy speed_status_policy[] = { { "id", BLOBMSG_CAST_INT64 } };
+
+static int m_speedtest_status(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+			      const char *method, struct blob_attr *msg)
+{
+	struct blob_attr *tb[1];
+	blobmsg_parse(speed_status_policy, 1, tb, blob_data(msg), blob_len(msg));
+	const rl_speed_run *run = rl_speedtest_current(D->speed);
+	const rl_speed_log *log = rl_speedtest_log(D->speed);
+	blob_buf_init(&b, 0);
+	if (tb[0]) {
+		int64_t id = get_i64(tb[0], 0);
+		if (run && run->id == id) {
+			blobmsg_add_u32(&b, "id", (uint32_t)id);
+			blobmsg_add_u8(&b, "running", true);
+			blobmsg_add_string(&b, "phase", rl_speed_phase_name(run->phase));
+			blobmsg_add_double(&b, "progress", (double)(int)(run->progress * 100 + 0.5) / 100.0);
+			return ubus_send_reply(ctx, req, b.head);
+		}
+		const rl_speed_result *r = id > 0 && id <= INT32_MAX ? rl_speed_log_find(log, (int)id) : NULL;
+		if (!r)
+			return UBUS_STATUS_NOT_FOUND;
+		blobmsg_add_u32(&b, "id", (uint32_t)id);
+		blobmsg_add_u8(&b, "running", false);
+		blobmsg_add_string(&b, "phase", r->error[0] ? "failed" : "done");
+		blobmsg_add_double(&b, "progress", 1);
+		void *t = blobmsg_open_table(&b, "result");
+		add_speed_result(r);
+		blobmsg_close_table(&b, t);
+		if (r->error[0])
+			blobmsg_add_string(&b, "error", r->error);
+		return ubus_send_reply(ctx, req, b.head);
+	}
+	blobmsg_add_u8(&b, "running", run != NULL);
+	if (run)
+		blobmsg_add_u32(&b, "current", (uint32_t)run->id);
+	void *list = blobmsg_open_array(&b, "results");
+	for (size_t i = log->n; i-- > 0;) {
+		void *t = blobmsg_open_table(&b, NULL);
+		add_speed_result(&log->items[i]);
+		blobmsg_close_table(&b, t);
+	}
+	blobmsg_close_array(&b, list);
+	return ubus_send_reply(ctx, req, b.head);
+}
+
 /* ---- maintenance ---- */
 
 static const struct blobmsg_policy reset_policy[] = { { "scope", BLOBMSG_TYPE_STRING } };
@@ -971,6 +1075,8 @@ static const struct ubus_method methods[] = {
 	UBUS_METHOD_NOARG("survey", m_survey),
 	UBUS_METHOD("latency", m_latency, latency_policy),
 	UBUS_METHOD("outages", m_outages, outages_policy),
+	UBUS_METHOD("speedtest_start", m_speedtest_start, speed_start_policy),
+	UBUS_METHOD("speedtest_status", m_speedtest_status, speed_status_policy),
 	UBUS_METHOD("reset", m_reset, reset_policy),
 	UBUS_METHOD_NOARG("commit", m_commit),
 	UBUS_METHOD_NOARG("ntp_synced", m_ntp_synced),

@@ -857,6 +857,25 @@ static void on_netifd_event(struct ubus_context *ctx, struct ubus_event_handler 
 		uloop_timeout_set(&d->names_timer, 1000);
 }
 
+/* ---- router-side speed test ---- */
+
+static void open_speedtest(rl_daemon *d)
+{
+	char path[256];
+	snprintf(path, sizeof(path), "%s/speedtest.json", d->cfg.data_dir);
+	d->speed = rl_speedtest_open(path);
+}
+
+int rl_daemon_speedtest(rl_daemon *d, const char *server, bool *already)
+{
+	rl_speed_params p = { .streams = d->cfg.speed_streams, .duration = d->cfg.speed_duration };
+	snprintf(p.server, sizeof(p.server), "%s", server);
+	/* the WAN devices that are up now; the child reads their counters */
+	p.n_wan = d->net.n_wan;
+	memcpy(p.wan_devs, d->net.wan_devs, sizeof(p.wan_devs));
+	return rl_speedtest_start(d->speed, &p, rl_daemon_now(), already);
+}
+
 /* ---- LuCI menu: an access point only shows Wireless and Settings ---- */
 
 static bool set_marker(const char *name, bool on)
@@ -1212,6 +1231,7 @@ int rl_daemon_init(rl_daemon *d)
 		abort();
 	if (open_data(d) != 0)
 		return -1;
+	open_speedtest(d);
 	int caught_up = rl_recover(d->store, d->agg, d->started);
 	if (caught_up)
 		syslog(LOG_INFO, "rebuilt %d hour/day/month records after downtime", caught_up);
@@ -1262,6 +1282,7 @@ void rl_daemon_reload(rl_daemon *d)
 		d->cfg = moved;
 		close_data(d);
 		close_latency(d);
+		rl_speedtest_close(d->speed); /* a running test is dropped */
 		/* the minutes were flushed above; the next names refresh restarts sampling in the new directory */
 		stop_wifi(d, false);
 		close_signal(d);
@@ -1275,6 +1296,7 @@ void rl_daemon_reload(rl_daemon *d)
 			open_data(d);
 		}
 		rl_recover(d->store, d->agg, rl_daemon_now());
+		open_speedtest(d);
 		d->baseline_next = true;
 	}
 	compute_limits(d);
@@ -1295,6 +1317,7 @@ void rl_daemon_shutdown(rl_daemon *d)
 	close_nl(d);
 	close_signal(d);
 	close_latency(d);
+	rl_speedtest_close(d->speed);
 	rl_wifi_free(d->wifi);
 	free(d->devflags);
 	if (d->neigh) {

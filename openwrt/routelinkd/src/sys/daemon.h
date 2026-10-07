@@ -23,6 +23,7 @@
 #include "sys/netinfo.h"
 #include "sys/nl80211.h"
 #include "sys/role.h"
+#include "sys/speedtest.h"
 
 #define RL_API_VERSION 1
 #define RL_LIVE_LEASE 30   /* seconds a `live` call keeps fast sampling on */
@@ -80,6 +81,8 @@ typedef struct rl_daemon {
 	int8_t wan_state; /* -1 unknown, 0 down, 1 up: netifd repeats ifdown */
 	struct ubus_event_handler wan_ev;
 
+	rl_speedtest *speed; /* router-side speed test and its results */
+
 	struct ubus_auto_conn ubus;
 	struct ubus_context *ubus_ctx; /* NULL while disconnected */
 
@@ -115,6 +118,8 @@ int rl_daemon_wifi_interval(const rl_daemon *d);
 bool rl_daemon_probe_on(const rl_daemon *d);
 /* Target ids being probed (bit per id): the configured custom targets and the next hop when known. */
 uint64_t rl_daemon_probe_targets(const rl_daemon *d);
+/* Starts a speed test against server ("" = Cloudflare) unless one runs (*already, its id). -1 on failure. */
+int rl_daemon_speedtest(rl_daemon *d, const char *server, bool *already);
 /* Bytes of every data file (traffic, signal, latency). */
 uint64_t rl_daemon_storage(const rl_daemon *d);
 /* The config device section of a MAC, or NULL. */
