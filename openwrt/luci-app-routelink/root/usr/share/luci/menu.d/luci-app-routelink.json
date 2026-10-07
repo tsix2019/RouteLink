@@ -34,6 +34,18 @@
 		}
 	},
 
+	"admin/services/routelink/latency": {
+		"title": "Latency",
+		"order": 4,
+		"action": {
+			"type": "view",
+			"path": "routelink/latency"
+		},
+		"depends": {
+			"fs": { "/var/run/routelink/ap-only": "absent" }
+		}
+	},
+
 	"admin/services/routelink/wireless": {
 		"title": "Wireless",
 		"order": 3,

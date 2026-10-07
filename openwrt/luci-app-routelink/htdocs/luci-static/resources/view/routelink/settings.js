@@ -1,12 +1,26 @@
 'use strict';
 'require view';
 'require form';
+'require uci';
 'require ui';
 'require routelink.common as rl';
 
+var DEFAULT_TARGETS = [ '223.5.5.5', '119.29.29.29', '1.1.1.1' ];
+
 return view.extend({
 	load: function() {
-		return L.resolveDefault(rl.info(), null);
+		return Promise.all([ L.resolveDefault(rl.info(), null), uci.load('routelink') ]).then(function(r) {
+			/* a configuration kept from 0.1 has no probe or speedtest section: the defaults go in on save */
+			if (!uci.get('routelink', 'probe')) {
+				uci.add('routelink', 'probe', 'probe');
+				uci.set('routelink', 'probe', 'enabled', '1');
+				uci.set('routelink', 'probe', 'gateway', '1');
+				uci.set('routelink', 'probe', 'target', DEFAULT_TARGETS);
+			}
+			if (!uci.get('routelink', 'speedtest'))
+				uci.add('routelink', 'speedtest', 'speedtest');
+			return r[0];
+		});
 	},
 
 	confirmReset: function(scope, title) {
@@ -27,7 +41,7 @@ return view.extend({
 	render: function(info) {
 		var self = this;
 		var m = new form.Map('routelink', _('RouteLink settings'),
-			_('Per-device traffic accounting and wireless signal history for the RouteLink app. Changes apply after "Save & Apply".'));
+			_('Per-device traffic accounting, wireless signal history, latency probes and speed tests for the RouteLink app. Changes apply after "Save & Apply".'));
 
 		var s = m.section(form.NamedSection, 'main', 'routelink', _('General'));
 		s.addremove = false;
@@ -51,7 +65,9 @@ return view.extend({
 		o.rmempty = false;
 		/* not the "directory" datatype: it lists the file system, which needs extra rpcd permissions */
 		o.validate = function(section_id, value) {
-			return /^\/[^\s'"]*$/.test(value) ? true : _('Enter an absolute path such as /mnt/usb/routelink');
+			/* jsmin in the LuCI build reads a regular expression right after return as a division */
+			var ok = /^\/[^\s'"]*$/.test(value);
+			return ok ? true : _('Enter an absolute path such as /mnt/usb/routelink');
 		};
 
 		o = s.option(form.Value, 'commit_interval', _('Write to disk every (seconds)'),
@@ -76,6 +92,41 @@ return view.extend({
 		o.default = '2';
 		o.datatype = 'range(1,10)';
 
+		s = m.section(form.NamedSection, 'probe', 'probe', _('Latency probes'),
+			_('Only on a gateway. Every 10 seconds the router pings each target; an outage is when none of the targets answers three rounds in a row.'));
+		s.addremove = false;
+		o = s.option(form.Flag, 'enabled', _('Enable'));
+		o.default = '1';
+		o.rmempty = false;
+		o = s.option(form.Flag, 'gateway', _('Probe the WAN next hop'),
+			_("The provider's first router, taken from the default route. It shows problems of the line itself and does not count for outages."));
+		o.default = '1';
+		o.rmempty = false;
+		o = s.option(form.DynamicList, 'target', _('Targets'),
+			_('IP addresses (IPv4 or IPv6), at most 8; host names are not resolved. Without any target no outage is recorded.'));
+		o.datatype = 'or(ip4addr("nomask"),ip6addr("nomask"))';
+		o.validate = function(section_id, value) {
+			var all = this.formvalue(section_id) || [];
+			return all.length > 8 ? _('At most 8 targets') : true;
+		};
+
+		s = m.section(form.NamedSection, 'speedtest', 'speedtest', _('Speed test'));
+		s.addremove = false;
+		o = s.option(form.Value, 'server', _('Server'),
+			_('Empty: Cloudflare. Otherwise the address of a LibreSpeed server: the folder with garbage.php and empty.php, such as http://speed.example.com/backend/. Over https uploads go in small requests and read lower.'));
+		o.placeholder = 'Cloudflare';
+		o.validate = function(section_id, value) {
+			/* as the daemon checks it: no user info, spaces or quotes */
+			var ok = !value || /^https?:\/\/[^\s\/?#@'"\\]+(?:[\/?#][^\s'"\\]*)?$/i.test(value);
+			return ok ? true : _('Enter an http:// or https:// address');
+		};
+		o = s.option(form.Value, 'streams', _('Parallel connections'));
+		o.default = '4';
+		o.datatype = 'range(1,8)';
+		o = s.option(form.Value, 'duration', _('Seconds per direction'));
+		o.default = '10';
+		o.datatype = 'range(5,30)';
+
 		s = m.section(form.NamedSection, 'retention', 'retention', _('Retention'));
 		s.addremove = false;
 		o = s.option(form.Value, 'minute_hours', _('Per-minute data (hours)'));
@@ -96,6 +147,15 @@ return view.extend({
 		o = s.option(form.Value, 'signal_hour_days', _('Hourly signal data (days)'));
 		o.default = '30';
 		o.datatype = 'range(1,3660)';
+		o = s.option(form.Value, 'latency_minute_days', _('Per-minute latency data (days)'));
+		o.default = '7';
+		o.datatype = 'range(1,90)';
+		o = s.option(form.Value, 'latency_hour_days', _('Hourly latency data (days)'));
+		o.default = '90';
+		o.datatype = 'range(1,3660)';
+		o = s.option(form.Value, 'outage_days', _('Outage log (days)'));
+		o.default = '365';
+		o.datatype = 'range(1,3660)';
 
 		return m.render().then(function(node) {
 			var data = E('div', { 'class': 'cbi-section' }, [
@@ -115,6 +175,8 @@ return view.extend({
 						_('Clear events')), ' ',
 					E('button', { 'class': 'btn cbi-button-negative', click: function() { self.confirmReset('signal', _('Clear signal history?')); } },
 						_('Clear signal history')), ' ',
+					E('button', { 'class': 'btn cbi-button-negative', click: function() { self.confirmReset('latency', _('Clear latency history and outages?')); } },
+						_('Clear latency history')), ' ',
 					E('button', { 'class': 'btn cbi-button-negative', click: function() { self.confirmReset('all', _('Clear all data?')); } },
 						_('Clear everything'))
 				])

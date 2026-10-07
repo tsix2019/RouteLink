@@ -20,8 +20,14 @@ msgstr "30 天"
 msgid "5 minutes"
 msgstr "5 分钟"
 
+msgid "6 hours"
+msgstr "6 小时"
+
 msgid "7 days"
 msgstr "7 天"
+
+msgid "90 days"
+msgstr "90 天"
 
 msgid "Access point"
 msgstr "无线接入点（AP）"
@@ -34,6 +40,15 @@ msgstr "全部"
 
 msgid "Apply"
 msgstr "应用"
+
+msgid "At most 8 targets"
+msgstr "最多 8 个目标"
+
+msgid "Availability"
+msgstr "可用率"
+
+msgid "Average"
+msgstr "平均"
 
 msgid "averaged over %d min"
 msgstr "按 %d 分钟平均"
@@ -50,11 +65,20 @@ msgstr "上线"
 msgid "Cancel"
 msgstr "取消"
 
+msgid "Cause"
+msgstr "原因"
+
+msgid "Change the targets"
+msgstr "修改探测目标"
+
 msgid "Channel"
 msgstr "信道"
 
 msgid "Channel utilisation"
 msgstr "信道繁忙度"
+
+msgid "Choose the server"
+msgstr "选择测速服务器"
 
 msgid "Clear"
 msgstr "清空"
@@ -71,6 +95,12 @@ msgstr "清空事件？"
 msgid "Clear everything"
 msgstr "清空全部"
 
+msgid "Clear latency history"
+msgstr "清空延迟历史"
+
+msgid "Clear latency history and outages?"
+msgstr "清空延迟历史和断网记录？"
+
 msgid "Clear signal history"
 msgstr "清空信号历史"
 
@@ -82,6 +112,9 @@ msgstr "清空流量"
 
 msgid "Clear traffic data?"
 msgstr "清空流量数据？"
+
+msgid "Click a target to show only its curve (with its worst round trip)."
+msgstr "点击目标只显示它的曲线（同时显示最差的往返时间）。"
 
 msgid "Clock"
 msgstr "时钟"
@@ -131,14 +164,29 @@ msgstr "下载"
 msgid "Download (bytes)"
 msgstr "下载（字节）"
 
+msgid "Duration"
+msgstr "时长"
+
+msgid "Empty: Cloudflare. Otherwise the address of a LibreSpeed server: the folder with garbage.php and empty.php, such as http://speed.example.com/backend/. Over https uploads go in small requests and read lower."
+msgstr "留空使用 Cloudflare。也可以填 LibreSpeed 服务器的地址，即 garbage.php 和 empty.php 所在的目录，例如 http://speed.example.com/backend/。使用 https 时上传分成小请求发送，测得的上传速率偏低。"
+
 msgid "Enable"
 msgstr "启用"
+
+msgid "End"
+msgstr "结束"
 
 msgid "Enter an absolute path such as /mnt/usb/routelink"
 msgstr "请输入绝对路径，例如 /mnt/usb/routelink"
 
+msgid "Enter an http:// or https:// address"
+msgstr "请输入以 http:// 或 https:// 开头的地址"
+
 msgid "Events (days)"
 msgstr "事件（天）"
+
+msgid "Every 10 seconds the router pings each target; no answer within 2 seconds counts as lost. An outage is when none of the targets except the WAN next hop answers three rounds in a row. Red bars: loss, red shading: outages, grey: no data."
+msgstr "路由器每 10 秒 ping 一次每个目标，2 秒内没有回复算丢包。除 WAN 上一跳网关外的所有目标连续 3 轮都不通，记为一次断网。红色柱：丢包；红色底色：断网；灰色：没有数据。"
 
 msgid "Every sample of the last minutes."
 msgstr "最近几分钟的每一次采样。"
@@ -182,6 +230,9 @@ msgstr "小时"
 msgid "Hourly data (days)"
 msgstr "按小时数据（天）"
 
+msgid "Hourly latency data (days)"
+msgstr "按小时的延迟数据（天）"
+
 msgid "Hourly signal data (days)"
 msgstr "按小时的信号数据（天）"
 
@@ -193,6 +244,12 @@ msgstr "接口"
 
 msgid "Internet"
 msgstr "互联网"
+
+msgid "IP addresses (IPv4 or IPv6), at most 8; host names are not resolved. Without any target no outage is recorded."
+msgstr "IP 地址（IPv4 或 IPv6），最多 8 个，不解析域名。没有目标时不记录断网。"
+
+msgid "Jitter"
+msgstr "抖动"
 
 msgid "Kept across firmware upgrades. Moving it starts with empty data: existing files are not copied."
 msgstr "升级固件后保留。修改后从空数据开始，原有文件不会复制过去。"
@@ -215,6 +272,18 @@ msgstr "上月"
 msgid "Last write to disk"
 msgstr "上次写盘"
 
+msgid "Latency"
+msgstr "延迟"
+
+msgid "Latency and outages"
+msgstr "延迟与断网"
+
+msgid "Latency probes"
+msgstr "延迟探测"
+
+msgid "Latency probes are switched off."
+msgstr "延迟探测已关闭。"
+
 msgid "Latest rate to the device: %s."
 msgstr "最近的下行协商速率：%s。"
 
@@ -230,11 +299,20 @@ msgstr "加载中…"
 msgid "Local network"
 msgstr "局域网"
 
+msgid "Loss"
+msgstr "丢包"
+
 msgid "Maximum share of free space (%)"
 msgstr "最多占用剩余空间（%）"
 
 msgid "Maximum size (MB)"
 msgstr "最大占用（MB）"
+
+msgid "Measured on the router: the latency of TCP handshakes with the server, then parallel downloads and uploads of 10 seconds each. The rates come from the WAN counters, so traffic of other devices at the same time counts too."
+msgstr "在路由器上测量：先对服务器做 TCP 握手计时得到延迟，再并发下载和上传各 10 秒。速率按 WAN 口的计数器计算，同一时间其他设备的流量也会算进去。"
+
+msgid "Measuring latency"
+msgstr "正在测延迟"
 
 msgid "Mode"
 msgstr "模式"
@@ -254,8 +332,20 @@ msgstr "这个时间段内没有变化。"
 msgid "No channel data yet."
 msgstr "暂时没有信道数据。"
 
+msgid "No latency data in this range yet."
+msgstr "这段时间还没有延迟数据。"
+
+msgid "No outages in this range."
+msgstr "这段时间没有断网。"
+
 msgid "No signal data in this range."
 msgstr "这段时间没有信号数据。"
+
+msgid "No speed tests yet."
+msgstr "还没有测速记录。"
+
+msgid "No targets yet."
+msgstr "还没有探测目标。"
 
 msgid "No traffic in this range."
 msgstr "这个时间段内没有流量。"
@@ -293,32 +383,56 @@ msgstr "较早的数据按%s保存，统计从 %s 开始。"
 msgid "One point per %s."
 msgstr "每 %s 一个点。"
 
+msgid "Ongoing"
+msgstr "仍在断网"
+
 msgid "Online history"
 msgstr "上下线记录"
 
 msgid "Only active on a gateway (a zone with masquerading)."
 msgstr "只在主路由（有开启 NAT 的防火墙区域）上生效。"
 
+msgid "Only on a gateway. Every 10 seconds the router pings each target; an outage is when none of the targets answers three rounds in a row."
+msgstr "只在主路由上运行。路由器每 10 秒 ping 一次每个目标，所有目标连续 3 轮都不通记为一次断网。"
+
 msgid "Only these hours of each day"
 msgstr "只看每天的这个时段"
+
+msgid "Outage log (days)"
+msgstr "断网记录（天）"
+
+msgid "Outages"
+msgstr "断网"
 
 msgid "Overview"
 msgstr "概览"
 
+msgid "Parallel connections"
+msgstr "并发连接数"
+
 msgid "peak"
 msgstr "峰值"
 
-msgid "Per-device traffic accounting and wireless signal history for the RouteLink app. Changes apply after \"Save & Apply\"."
-msgstr "为 RouteLink App 统计每台设备的流量，并记录无线信号历史。点击“保存并应用”后生效。"
+msgid "Per-device traffic accounting, wireless signal history, latency probes and speed tests for the RouteLink app. Changes apply after \"Save & Apply\"."
+msgstr "为 RouteLink App 统计每台设备的流量，记录无线信号历史，探测延迟和断网，并在路由器上测速。点击“保存并应用”后生效。"
 
 msgid "Per-minute data (hours)"
 msgstr "按分钟数据（小时）"
+
+msgid "Per-minute latency data (days)"
+msgstr "按分钟的延迟数据（天）"
 
 msgid "Per-minute signal data (days)"
 msgstr "按分钟的信号数据（天）"
 
 msgid "Poor"
 msgstr "差"
+
+msgid "Probe the WAN next hop"
+msgstr "探测 WAN 上一跳网关"
+
+msgid "Probes"
+msgstr "探测次数"
 
 msgid "Query failed: %s"
 msgstr "查询失败：%s"
@@ -331,6 +445,9 @@ msgstr "排行"
 
 msgid "Rate (to / from device)"
 msgstr "协商速率（下行 / 上行）"
+
+msgid "Reconnect (redial)"
+msgstr "重新拨号"
 
 msgid "Retention"
 msgstr "保留期"
@@ -356,11 +473,17 @@ msgstr "采样间隔（秒）"
 msgid "Scanned"
 msgstr "扫描所得"
 
+msgid "Seconds per direction"
+msgstr "每个方向的测试时长（秒）"
+
 msgid "Select a station to see its signal history."
 msgstr "点击一台终端，查看它的信号历史。"
 
 msgid "selected hours only"
 msgstr "仅所选时段"
+
+msgid "Server"
+msgstr "服务器"
 
 msgid "Settings"
 msgstr "设置"
@@ -389,8 +512,17 @@ msgstr "信噪比"
 msgid "Software"
 msgstr "软件加速"
 
+msgid "Speed test"
+msgstr "测速"
+
 msgid "SSID"
 msgstr "SSID"
+
+msgid "Start"
+msgstr "开始"
+
+msgid "Start speed test"
+msgstr "开始测速"
 
 msgid "Stations"
 msgstr "终端"
@@ -407,14 +539,29 @@ msgstr "存储"
 msgid "Synchronised"
 msgstr "已同步"
 
+msgid "Target"
+msgstr "目标"
+
+msgid "Targets"
+msgstr "探测目标"
+
 msgid "The end must be after the start."
 msgstr "结束时间必须晚于开始时间。"
 
 msgid "The hour filter uses the router time zone and the hourly data (kept for %d days)."
 msgstr "时段筛选按路由器时区计算，使用按小时数据（保留 %d 天）。"
 
+msgid "The provider's first router, taken from the default route. It shows problems of the line itself and does not count for outages."
+msgstr "运营商一侧的第一台路由器，取自默认路由。用来查看线路本身的问题，不参与断网判定。"
+
 msgid "The router clock is not synchronised yet; data is kept in memory until it is."
 msgstr "路由器时间还没有同步，同步之前数据只保存在内存里。"
+
+msgid "The speed test could not start: %s"
+msgstr "无法开始测速：%s"
+
+msgid "The speed test failed: %s"
+msgstr "测速失败：%s"
 
 msgid "This cannot be undone."
 msgstr "此操作无法撤销。"
@@ -425,11 +572,17 @@ msgstr "本月"
 msgid "This router has no access point interface, so there is nothing to sample."
 msgstr "这台路由器没有无线接入点接口，无线采样不可用。"
 
+msgid "This router is not a gateway, so there is no WAN to probe."
+msgstr "这台路由器不是主路由，没有可以探测的 WAN 口。"
+
 msgid "This router is not a gateway, so traffic accounting is off."
 msgstr "这台路由器不是主路由，流量统计未启用。"
 
 msgid "Time"
 msgstr "时间"
+
+msgid "Time without internet"
+msgstr "断网时长"
 
 msgid "To"
 msgstr "结束"
@@ -464,6 +617,9 @@ msgstr "上传"
 msgid "Upload (bytes)"
 msgstr "上传（字节）"
 
+msgid "Upstream (provider or beyond)"
+msgstr "上游不通（运营商或更远）"
+
 msgid "Version"
 msgstr "版本"
 
@@ -473,8 +629,14 @@ msgstr "WAN"
 msgid "WAN counters include link-layer overhead (PPPoE etc.), so they read a few percent higher."
 msgstr "WAN 口计数包含链路层开销（PPPoE 等），会比各设备之和多几个百分点。"
 
+msgid "WAN disconnected"
+msgstr "WAN 口断开"
+
 msgid "WAN interface"
 msgstr "WAN 口"
+
+msgid "WAN next hop"
+msgstr "WAN 上一跳网关"
 
 msgid "WAN now"
 msgstr "WAN 实时"
@@ -496,6 +658,9 @@ msgstr "无线采样"
 
 msgid "Wireless sampling is switched off."
 msgstr "无线采样已关闭。"
+
+msgid "Worst"
+msgstr "最差"
 
 msgid "Write to disk every (seconds)"
 msgstr "写盘间隔（秒）"

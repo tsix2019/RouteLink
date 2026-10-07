@@ -23,6 +23,10 @@ var callEvents = rpc.declare({
 var callStations = rpc.declare({ object: 'routelink', method: 'stations', params: [ 'live' ] });
 var callSignal = rpc.declare({ object: 'routelink', method: 'signal', params: [ 'mac', 'start', 'end', 'max_points' ] });
 var callSurvey = rpc.declare({ object: 'routelink', method: 'survey' });
+var callLatency = rpc.declare({ object: 'routelink', method: 'latency', params: [ 'start', 'end', 'target', 'max_points' ] });
+var callOutages = rpc.declare({ object: 'routelink', method: 'outages', params: [ 'start', 'end' ] });
+var callSpeedtestStart = rpc.declare({ object: 'routelink', method: 'speedtest_start', params: [ 'server' ] });
+var callSpeedtestStatus = rpc.declare({ object: 'routelink', method: 'speedtest_status', params: [ 'id' ] });
 var callReset = rpc.declare({ object: 'routelink', method: 'reset', params: [ 'scope' ] });
 var callCommit = rpc.declare({ object: 'routelink', method: 'commit' });
 var callInit = rpc.declare({ object: 'rc', method: 'init', params: [ 'name', 'action' ] });
@@ -322,6 +326,10 @@ return baseclass.extend({
 	stations: callStations,
 	signal: callSignal,
 	survey: callSurvey,
+	latency: callLatency,
+	outages: callOutages,
+	speedtestStart: callSpeedtestStart,
+	speedtestStatus: callSpeedtestStatus,
 	reset: callReset,
 	commit: callCommit,
 	initAction: callInit,
