@@ -20,7 +20,8 @@ export function urls(s: SpeedServer) {
   if (s.kind === 'cloudflare') {
     return {
       ping: 'https://speed.cloudflare.com/__down?bytes=0',
-      download: 'https://speed.cloudflare.com/__down?bytes=100000000',
+      // Cloudflare refuses downloads above about 50 MB (403): 25 MB per request, requested again and again.
+      download: 'https://speed.cloudflare.com/__down?bytes=25000000',
       upload: 'https://speed.cloudflare.com/__up',
     };
   }

@@ -39,7 +39,7 @@ it('runs latency, download and upload against a fake network and clock', async (
   const fakeFetch = (async (url: string, init?: RequestInit) => {
     calls.push(`${init?.method ?? 'GET'} ${url.split('?')[0]}`);
     now += 5; // every request takes 5 ms
-    const download = url.includes('bytes=100000000');
+    const download = url.includes('bytes=25000000');
     let sent = 0;
     return {
       arrayBuffer: async () => new ArrayBuffer(0),
