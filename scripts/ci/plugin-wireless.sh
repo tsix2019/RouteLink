@@ -49,11 +49,15 @@ ubus call routelink info | jsonfilter -e '@.roles[*]' | grep -qx ap || fail "inf
 ubus call routelink info | jsonfilter -e '@.modules[*]' | grep -qx wifi || fail "wifi module is not running"
 [ -f /var/run/routelink/ap ] || fail "no LuCI menu marker for the ap role"
 
-# the spare radio is the phy without any interface
-used="$(iw dev | sed -n 's/^phy#\([0-9]*\)$/\1/p')"
+# the spare radio is the phy without an AP interface; 23.05 leaves hwsim's default wlanN on it
+ifaces_of() { iw dev | awk -v want="phy#$1" '/^phy#/ { cur = $1 } cur == want && $1 == "Interface" { print $2 }'; }
 STA_PHY=""
 for p in /sys/class/ieee80211/*; do
-  echo "$used" | grep -qx "$(cat "$p/index")" || { STA_PHY="$(basename "$p")"; break; }
+  idx="$(cat "$p/index")"
+  iw dev | awk -v want="phy#$idx" '/^phy#/ { cur = $1 } cur == want && /type AP/ { ap = 1 } END { exit !ap }' && continue
+  STA_PHY="$(basename "$p")"
+  for i in $(ifaces_of "$idx"); do iw dev "$i" del 2>/dev/null || true; done
+  break
 done
 [ -n "$STA_PHY" ] || fail "no spare radio (HWSIM_RADIOS=4?)"
 iw phy "$STA_PHY" interface add rlsta0 type managed

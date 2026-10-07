@@ -36,6 +36,16 @@ uint32_t rl_tc_burst(uint32_t kbps)
 #define MAC "%02x:%02x:%02x:%02x:%02x:%02x"
 #define MACV(m) (m)[0], (m)[1], (m)[2], (m)[3], (m)[4], (m)[5]
 
+size_t rl_tc_clear_script(char *buf, size_t size, const char *dev)
+{
+	out_t o = { buf, size, 0, false };
+	if (size)
+		buf[0] = '\0';
+	line(&o, "qdisc del dev %s root handle " RL_TC_HANDLE " htb", dev);
+	line(&o, "qdisc del dev %s clsact", dev);
+	return o.overflow ? (size_t)-1 : o.len;
+}
+
 size_t rl_tc_script(char *buf, size_t size, const char *dev, const rl_tc_rule *rules, size_t n)
 {
 	out_t o = { buf, size, 0, false };
@@ -46,9 +56,6 @@ size_t rl_tc_script(char *buf, size_t size, const char *dev, const rl_tc_rule *r
 		down |= rules[i].down_kbps > 0;
 		up |= rules[i].up_kbps > 0;
 	}
-	/* -force keeps going when there is nothing to delete yet. */
-	line(&o, "qdisc del dev %s root handle " RL_TC_HANDLE " htb", dev);
-	line(&o, "qdisc del dev %s clsact", dev);
 	if (down) {
 		line(&o, "qdisc add dev %s root handle " RL_TC_HANDLE " htb default 1", dev);
 		line(&o, "class add dev %s parent " RL_TC_HANDLE " classid 1:1 htb rate 10gbit quantum 1514", dev);

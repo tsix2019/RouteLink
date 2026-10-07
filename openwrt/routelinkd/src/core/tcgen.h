@@ -21,8 +21,13 @@ typedef struct {
 } rl_tc_rule;
 
 /*
- * Replaces whatever RouteLink set up on dev with these rules; with no limiting rule only the removal is
- * written. Returns the script length, or (size_t)-1 when it does not fit.
+ * Removes what RouteLink set up on dev. Run it with `tc -force -batch -` and ignore the exit status: on a
+ * port that has nothing yet the deletes fail, which is fine.
+ */
+size_t rl_tc_clear_script(char *out, size_t size, const char *dev);
+/*
+ * Sets up these rules on a cleared dev; empty when no rule limits anything. Every command must succeed (a
+ * failure means missing kernel modules or a bad rule). Returns the length, or (size_t)-1 when it does not fit.
  */
 size_t rl_tc_script(char *out, size_t size, const char *dev, const rl_tc_rule *rules, size_t n);
 

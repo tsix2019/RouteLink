@@ -31,12 +31,10 @@ const macOf = (container: string) => sh(container, 'cat /sys/class/net/eth0/addr
 const bytes = (container: string, dir: 'rx' | 'tx') =>
   Number(sh(container, `cat /sys/class/net/eth0/statistics/${dir}_bytes`));
 
-/** The script core/tcgen writes for one device (kept in step with test_gen.c). */
+/** The setup script core/tcgen writes for one device (kept in step with test_gen.c). */
 function tcScript(mac: string, downKbps: number, upKbps: number): string {
   const d = LAN_DEV;
   return [
-    `qdisc del dev ${d} root handle 1: htb`,
-    `qdisc del dev ${d} clsact`,
     `qdisc add dev ${d} root handle 1: htb default 1`,
     `class add dev ${d} parent 1: classid 1:1 htb rate 10gbit quantum 1514`,
     `class add dev ${d} parent 1: classid 1:10 htb rate ${downKbps}kbit ceil ${downKbps}kbit quantum 1514`,
@@ -47,8 +45,18 @@ function tcScript(mac: string, downKbps: number, upKbps: number): string {
   ].join('\n');
 }
 
+/** core/tcgen's clear script: the deletes may fail on a port with nothing set up. */
 function clear() {
-  sh(ROUTER, `tc qdisc del dev ${LAN_DEV} root 2>/dev/null; tc qdisc del dev ${LAN_DEV} clsact 2>/dev/null; true`);
+  sh(
+    ROUTER,
+    `printf 'qdisc del dev ${LAN_DEV} root handle 1: htb\nqdisc del dev ${LAN_DEV} clsact\n' | tc -force -batch - 2>/dev/null; true`,
+  );
+}
+
+/** Clears the port, then sets up: every setup command has to succeed. */
+function apply(mac: string) {
+  clear();
+  sh(ROUTER, `tc -batch -`, tcScript(mac, DOWN_KBPS, UP_KBPS));
 }
 
 /** Software flow offloading through fw4's flowtable; returns whether a flowtable is actually active. */
@@ -66,7 +74,8 @@ async function measure(container: string, dir: 'rx' | 'tx', cmd: string): Promis
   await sleep(SECONDS * 1000);
   const b1 = bytes(container, dir);
   const t1 = Date.now();
-  sh(CLIENT, 'pkill -f curl; true');
+  // -x: by process name; -f would match this very shell, whose command line says curl too.
+  sh(CLIENT, 'pkill -x curl; true');
   await sleep(500);
   // IP-level rate: Ethernet headers are about 1 % at full-size frames; ignore them.
   return ((b1 - b0) * 8) / ((t1 - t0) / 1000) / 1000;
@@ -107,7 +116,7 @@ describe.each([
   beforeAll(() => {
     if (!supported) return;
     offloadActive = setOffload(offload);
-    sh(ROUTER, `tc -force -batch -`, tcScript(clientMac, DOWN_KBPS, UP_KBPS));
+    apply(clientMac);
   });
 
   it('download stays within ±10 % of the limit', async () => {
@@ -127,10 +136,10 @@ describe.each([
 
   it('a device without a rule is not slowed down', async () => {
     if (!supported) return;
-    sh(ROUTER, `tc -force -batch -`, tcScript('02:00:00:00:00:99', DOWN_KBPS, UP_KBPS));
+    apply('02:00:00:00:00:99');
     const kbps = await measure(CLIENT, 'rx', DOWNLOAD);
     console.log(`unlimited download ${offload ? 'with' : 'without'} offload: ${Math.round(kbps)} kbit/s`);
     expect(kbps).toBeGreaterThan(DOWN_KBPS * 2);
-    sh(ROUTER, `tc -force -batch -`, tcScript(clientMac, DOWN_KBPS, UP_KBPS));
+    apply(clientMac);
   });
 });

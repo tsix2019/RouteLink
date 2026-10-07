@@ -13,9 +13,7 @@ static void test_tc_script(void)
 	};
 	size_t len = rl_tc_script(out, sizeof(out), "phy0-ap0", r, 3);
 	T_ASSERT(len != (size_t)-1);
-	T_EQ_STR(out, "qdisc del dev phy0-ap0 root handle 1: htb\n"
-		      "qdisc del dev phy0-ap0 clsact\n"
-		      "qdisc add dev phy0-ap0 root handle 1: htb default 1\n"
+	T_EQ_STR(out, "qdisc add dev phy0-ap0 root handle 1: htb default 1\n"
 		      "class add dev phy0-ap0 parent 1: classid 1:1 htb rate 10gbit quantum 1514\n"
 		      "class add dev phy0-ap0 parent 1: classid 1:10 htb rate 8000kbit ceil 8000kbit quantum 1514\n"
 		      "filter add dev phy0-ap0 parent 1: protocol all prio 1 flower dst_mac aa:bb:cc:dd:ee:01 classid 1:10\n"
@@ -28,8 +26,10 @@ static void test_tc_script(void)
 		      "rate 500kbit burst 16384 conform-exceed drop\n");
 	T_EQ_U64(len, strlen(out));
 
-	/* Nothing left to limit: only the removal. */
-	rl_tc_script(out, sizeof(out), "lan1", NULL, 0);
+	/* Nothing to limit: nothing to set up, the clear script does the rest. */
+	T_EQ_U64(rl_tc_script(out, sizeof(out), "lan1", NULL, 0), 0);
+	T_EQ_STR(out, "");
+	rl_tc_clear_script(out, sizeof(out), "lan1");
 	T_EQ_STR(out, "qdisc del dev lan1 root handle 1: htb\nqdisc del dev lan1 clsact\n");
 	T_EQ_U64(rl_tc_script(out, 40, "lan1", r, 3), (size_t)-1);
 	T_EQ_U64(rl_tc_burst(1000000), 2500000); /* 1 Gbit/s: 20 ms */
