@@ -55,28 +55,51 @@ function setOffload(on: boolean): boolean {
   return /flowtable/.test(sh(ROUTER, 'nft list ruleset'));
 }
 
-/** Rate in kbit/s measured on `container`'s eth0 while `cmd` runs on the client for SECONDS. */
-async function measure(container: string, dir: 'rx' | 'tx', cmd: string): Promise<number> {
-  const before = bytes(container, dir);
-  execFileSync('docker', ['exec', '-d', CLIENT, 'sh', '-c', cmd], { env });
-  // the transfers have started (curl may take a moment to set up), then slow start
-  for (let i = 0; i < 80 && bytes(container, dir) - before < 256 * 1024; i++) await sleep(250);
-  await sleep(2_000);
-  const b0 = bytes(container, dir);
-  const t0 = Date.now();
-  await sleep(SECONDS * 1000);
-  const b1 = bytes(container, dir);
-  const t1 = Date.now();
-  // -x: by process name; -f would match this very shell, whose command line says curl too.
-  sh(CLIENT, 'pkill -x curl; true');
-  await sleep(500);
-  // IP-level rate: Ethernet headers are about 1 % at full-size frames; ignore them.
-  return ((b1 - b0) * 8) / ((t1 - t0) / 1000) / 1000;
+/*
+ * STREAMS transfers that never end by themselves, so they run through the whole measurement however fast the
+ * path is (unlimited, a few GB were over within the warm-up): downloads of a terabyte, and uploads from
+ * /dev/zero, which curl streams chunked (a file of unknown size). measure() stops them.
+ */
+const STREAMS = 4;
+const DOWNLOAD = `for i in $(seq ${STREAMS}); do curl -s -o /dev/null http://${SERVER_IP}:8080/1000000000000 & done; wait`;
+const UPLOAD = `for i in $(seq ${STREAMS}); do curl -s -o /dev/null -X POST -T /dev/zero http://${SERVER_IP}:8080/ & done; wait`;
+
+/** curl processes on the client. -x: by process name; -f would match the shell that runs pgrep. */
+const transfers = () => Number(sh(CLIENT, 'pgrep -x curl | wc -l'));
+
+/** Ends the transfers (the shell that started them then exits too) and waits until they are gone. */
+async function stopTransfers() {
+  for (let i = 0; i < 40; i++) {
+    if (!transfers()) return;
+    sh(CLIENT, 'pkill -x curl; true');
+    await sleep(250);
+  }
+  throw new Error('curl on the lab client does not stop');
 }
 
-const DOWNLOAD = `for i in 1 2 3 4; do curl -s -o /dev/null http://${SERVER_IP}:8080/2000000000 & done; wait`;
-/* -T streams the file (--data-binary would first read all 400 MB into memory); beforeAll makes it */
-const UPLOAD = `for i in 1 2 3 4; do curl -s -o /dev/null -X POST -T /tmp/up http://${SERVER_IP}:8080/ & done; wait`;
+/** Rate in kbit/s measured on `container`'s eth0 while `cmd` runs on the client for SECONDS. */
+async function measure(container: string, dir: 'rx' | 'tx', cmd: string): Promise<number> {
+  await stopTransfers(); // nothing of an earlier test may share the path
+  const before = bytes(container, dir);
+  execFileSync('docker', ['exec', '-d', CLIENT, 'sh', '-c', cmd], { env });
+  try {
+    // the transfers have started (curl may take a moment to set up), then slow start
+    for (let i = 0; i < 80 && bytes(container, dir) - before < 256 * 1024; i++) await sleep(250);
+    await sleep(2_000);
+    const b0 = bytes(container, dir);
+    const t0 = Date.now();
+    await sleep(SECONDS * 1000);
+    const b1 = bytes(container, dir);
+    const t1 = Date.now();
+    // all of them ran through the window, or the rate says little
+    const running = transfers();
+    if (running !== STREAMS) throw new Error(`${running} of ${STREAMS} transfers were running at the end`);
+    // IP-level rate: Ethernet headers are about 1 % at full-size frames; ignore them.
+    return ((b1 - b0) * 8) / ((t1 - t0) / 1000) / 1000;
+  } finally {
+    await stopTransfers();
+  }
+}
 
 /** Measures, logs, and on a miss logs what tc had. */
 async function expectRate(dev: string, what: string, container: string, cmd: string, limit: number) {
@@ -136,7 +159,6 @@ let dev = 'eth0';
 
 beforeAll(async () => {
   clientMac = macOf(CLIENT);
-  sh(CLIENT, 'head -c 400000000 /dev/zero > /tmp/up');
   dev = lanDev() || dev;
   daemon = !!info().capabilities?.includes('limits');
   if (daemon) {
