@@ -168,4 +168,6 @@ config notify_settings 'notify'
 | 变长记录日志 | 每条记录前后都有长度，所以可以从新到旧倒着读（按 64 KB 一块）；访问去向一条记录装不下 100 条时，丢掉流量最少的几条 |
 | 后台通知去重（§0.7） | 路由器插件里有开着的、订阅了新设备的推送渠道时，App 的后台检查不再发新设备通知 |
 | T1 限速验证 | 测试 `test/agent/limits.agent.ts`：在路由器的 LAN 口上套用 `core/tcgen` 生成的脚本，开、关软件加速各测一次下载和上传，误差要求 ±10%。CI 先加载 `sch_htb`、`cls_flower`、`act_police` 和 flowtable 模块；rootfs 镜像里没有 `tc`，测试里先装 `tc-tiny` |
+| T18–T19 实时监控 | 完成（子任务）。服务用 JS 单独登录的会话轮询，不接触密码；插件消失时自动改用 LuCI 计数；会话失效后只要 App 进程在，JS 会重新登录并把新会话交给服务；证书变了就停止并留一条说明。在 API 34 模拟器上验证了刷新、后台继续、通知里的停止、到时结束、离线 9 秒后提示并震动、恢复、无插件模式、rpcd 重启后的会话续上、被强制停止后的"中断"提示 |
+| T2 MetricStyle | 不改 compileSdk：Android 17 的 `Notification.MetricStyle`（文档已核对：`MetricStyle().addMetric(Metric(FixedFloat(值, 单位, 0, 1), 标签))`、`setCriticalMetric`）通过反射构造，用 `Notification.Builder.recoverBuilder` 套到兼容库建好的通知上；API 37 以下或接口不符时保持 BigText。下载设为最重要的一项（状态栏胶囊显示它） |
 | T20 模拟器 | 本机只有 API 34 的镜像；用户决定不下载 API 36.1 镜像（磁盘空间），状态栏胶囊和推广通知的验证留到以后 |
