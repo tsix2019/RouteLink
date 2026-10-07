@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "t.h"
 
@@ -118,11 +119,64 @@ static void test_quota_states(void)
 	T_EQ_U64(rl_quota_step(&r, 172800, 3, 0, limit), RL_QA_RESET);
 }
 
+static void test_quota_raised(void)
+{
+	rl_quota_run r = { 0 };
+	T_EQ_U64(rl_quota_step(&r, 10, 1, 1000, 1000), RL_QA_ENFORCE);
+	/* the limit is raised: the device is let go, and the new 80 % mark warns again */
+	T_EQ_U64(rl_quota_step(&r, 20, 1, 1000, 2000), RL_QA_RELEASE);
+	T_EQ_I64(r.state, RL_QS_OK);
+	T_ASSERT(!r.enforced && !r.warned);
+	T_EQ_U64(rl_quota_step(&r, 30, 1, 1700, 2000), RL_QA_WARN);
+	T_EQ_U64(rl_quota_step(&r, 40, 1, 2100, 2000), RL_QA_ENFORCE);
+	/* no limit at all (limit_mb 0) lifts it too */
+	T_EQ_U64(rl_quota_step(&r, 50, 1, 2100, 0), RL_QA_RELEASE);
+	T_EQ_I64(r.state, RL_QS_OK);
+}
+
+static void test_quota_file(void)
+{
+	char path[] = "/tmp/rl-quota-XXXXXX";
+	int fd = mkstemp(path);
+	T_ASSERT(fd >= 0);
+	close(fd);
+	unlink(path);
+	rl_quota_saved *q;
+	size_t n;
+	T_EQ_I64(rl_quota_load(path, &q, &n), 0); /* missing: empty */
+	T_EQ_U64(n, 0);
+	rl_quota_saved s[2] = {
+		{ "cfg0a1b2c", { 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x01 }, { .period_start = 1700000000, .warned = true } },
+		{ "tv", { 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x02 },
+		  { .period_start = 1700000001, .warned = true, .enforced = true, .allow_until = 1700003600 } },
+	};
+	T_EQ_I64(rl_quota_save(path, s, 2), 0);
+	T_EQ_I64(rl_quota_load(path, &q, &n), 0);
+	T_EQ_U64(n, 2);
+	if (n == 2) {
+		T_EQ_STR(q[0].section, "cfg0a1b2c");
+		T_ASSERT(memcmp(q[1].mac, s[1].mac, 6) == 0);
+		T_EQ_I64(q[0].run.period_start, 1700000000);
+		T_ASSERT(q[0].run.warned && !q[0].run.enforced);
+		T_ASSERT(q[1].run.enforced);
+		T_EQ_I64(q[1].run.allow_until, 1700003600);
+	}
+	free(q);
+	FILE *f = fopen(path, "w");
+	fputs("{\"quotas\": 3", f);
+	fclose(f);
+	T_EQ_I64(rl_quota_load(path, &q, &n), -1);
+	T_EQ_U64(n, 0);
+	unlink(path);
+}
+
 int main(void)
 {
 	T_RUN(test_schedule_parse);
 	T_RUN(test_schedule_windows);
 	T_RUN(test_quota_bounds);
 	T_RUN(test_quota_states);
+	T_RUN(test_quota_raised);
+	T_RUN(test_quota_file);
 	T_DONE();
 }

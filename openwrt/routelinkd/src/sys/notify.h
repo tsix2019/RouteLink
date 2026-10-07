@@ -45,6 +45,9 @@ rl_notifier *rl_notifier_new(void);
 void rl_notifier_free(rl_notifier *n);
 /* Channels (copied), Chinese or English, the router's name in the messages. */
 void rl_notifier_configure(rl_notifier *n, const rl_channel *ch, size_t count, bool zh, const char *router);
+/* Called for every event when its batch goes out, to fill in names and addresses learnt meanwhile. */
+typedef void (*rl_notify_refresh_cb)(void *ctx, rl_notify_event *ev);
+void rl_notifier_set_refresh(rl_notifier *n, rl_notify_refresh_cb cb, void *ctx);
 /* An enabled channel subscribes to sub (RL_NS_*). */
 bool rl_notifier_wants(const rl_notifier *n, unsigned sub);
 void rl_notifier_event(rl_notifier *n, const rl_notify_event *ev);

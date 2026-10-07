@@ -89,6 +89,55 @@ bool rl_daemon_traffic_on(const rl_daemon *d)
 	return d->cfg.traffic && d->role.gateway && d->ct;
 }
 
+/* ---- push notices ---- */
+
+void rl_daemon_describe(rl_daemon *d, const rl_mac *mac, rl_notify_event *ev)
+{
+	rl_device *dev = rl_devtab_find(d->devs, mac);
+	rl_ip ips[4];
+	rl_mac_format(mac, ev->mac);
+	if (dev && !ev->name[0])
+		snprintf(ev->name, sizeof(ev->name), "%s", dev->name[0] ? dev->name : dev->hostname);
+	if (!ev->ip[0]) {
+		size_t n = rl_neigh_ips(d->neigh, mac, ips, RL_ARRAY_SIZE(ips));
+		if (n)
+			rl_ip_format(&ips[0], ev->ip); /* IPv4 first */
+	}
+}
+
+void rl_daemon_notify(rl_daemon *d, const rl_notify_event *ev)
+{
+	if (d->role.gateway && d->notifier)
+		rl_notifier_event(d->notifier, ev);
+}
+
+/* Names and addresses are often only known a little after a device appeared: filled in when the batch goes. */
+static void refresh_notice(void *ctx, rl_notify_event *ev)
+{
+	rl_daemon *d = ctx;
+	rl_mac mac;
+	if (ev->mac[0] && rl_mac_parse(ev->mac, &mac))
+		rl_daemon_describe(d, &mac, ev);
+}
+
+static void device_notice(rl_daemon *d, const rl_device *dev, rl_notify_kind kind)
+{
+	rl_notify_event ev = { .kind = kind, .ts = rl_daemon_now() };
+	rl_daemon_describe(d, &dev->mac, &ev);
+	rl_daemon_notify(d, &ev);
+}
+
+static void device_new(rl_daemon *d, const rl_device *dev)
+{
+	char s[RL_MAC_STRLEN];
+	rl_mac_format(&dev->mac, s);
+	syslog(LOG_INFO, "new device %s", s);
+	event(d, RL_EV_DEVICE_NEW, dev->idx, 0);
+	/* a fresh device table (first start, devices reset) would announce every device at once */
+	if (rl_daemon_now() >= d->quiet_until)
+		device_notice(d, dev, RL_NE_DEVICE_NEW);
+}
+
 /* ---- attribution ---- */
 
 static uint16_t resolve(rl_daemon *d, const rl_ip *ip, int64_t now, bool *pending)
@@ -104,12 +153,8 @@ static uint16_t resolve(rl_daemon *d, const rl_ip *ip, int64_t now, bool *pendin
 		*pending = true;
 		return RL_DEV_UNKNOWN;
 	}
-	if (created) {
-		char s[RL_MAC_STRLEN];
-		rl_mac_format(&mac, s);
-		syslog(LOG_INFO, "new device %s", s);
-		event(d, RL_EV_DEVICE_NEW, dev->idx, 0);
-	}
+	if (created)
+		device_new(d, dev);
 	return dev->idx;
 }
 
@@ -144,30 +189,54 @@ static void apply(rl_daemon *d, uint64_t tag, rl_delta delta, int64_t now)
 	}
 }
 
+/* Destinations: a device's internet traffic per peer (DNS logging on). */
+static void destinations(rl_daemon *d, const rl_ct_sample *s, uint64_t tag, rl_delta delta, bool first, int64_t now)
+{
+	for (int i = 0; i < tag_n(tag); i++) {
+		uint16_t dev = tag_dev(tag, i);
+		rl_device *dv;
+		if (tag_cls(tag, i) != RL_CLASS_INTERNET || dev > RL_DEV_MAX || !(dv = rl_devtab_by_idx(d->devs, dev)))
+			continue;
+		uint64_t rx, tx;
+		rl_client_bytes(tag_orig(tag, i), delta, &rx, &tx);
+		if (!rx && !tx && !first)
+			continue;
+		/* opened by the device: the peer is where it went; opened from outside: where it came from */
+		const rl_ip *peer = tag_orig(tag, i) ? &s->orig_dst : &s->orig_src;
+		rl_visits_traffic(d->visits, &dv->mac, peer, rx, tx, first, now);
+	}
+}
+
 static void on_ct(const rl_ct_sample *s, bool destroyed, void *ctx)
 {
 	rl_daemon *d = ctx;
 	int64_t now = rl_daemon_now();
 	uint64_t tag;
 	rl_delta delta;
-	bool cacheable;
+	bool cacheable, first = false;
 
 	if (destroyed) {
 		delta = rl_flows_destroy(d->flows, s, &tag);
-		if (!(tag & TAG_VALID))
+		if (!(tag & TAG_VALID)) {
 			tag = attribute(d, s, now, &cacheable);
+			first = true; /* opened and closed between two dumps */
+		}
 	} else {
 		uint64_t *slot;
 		delta = rl_flows_update(d->flows, s, &slot);
 		if (!(*slot & TAG_VALID)) {
 			tag = attribute(d, s, now, &cacheable);
-			if (cacheable)
+			if (cacheable) {
 				*slot = tag;
+				first = true;
+			}
 		} else {
 			tag = *slot;
 		}
 	}
 	apply(d, tag, delta, now);
+	if (d->visits && rl_visits_on(d->visits) && (tag & TAG_VALID))
+		destinations(d, s, tag, delta, first, now);
 }
 
 static void count_conn(uint64_t tag, void *ctx)
@@ -188,6 +257,9 @@ static void on_presence(rl_device *dev, bool online, void *ctx)
 	if (rl_daemon_now() - d->started < RL_STARTUP_GRACE)
 		return;
 	event(d, online ? RL_EV_DEVICE_ONLINE : RL_EV_DEVICE_OFFLINE, dev->idx, 0);
+	const rl_devflag *flag = rl_daemon_devflag(d, &dev->mac);
+	if (flag && flag->watch)
+		device_notice(d, dev, online ? RL_NE_DEVICE_ONLINE : RL_NE_DEVICE_OFFLINE);
 }
 
 static void on_reachable(const rl_mac *mac, int64_t now, void *ctx)
@@ -198,7 +270,7 @@ static void on_reachable(const rl_mac *mac, int64_t now, void *ctx)
 	if (!dev)
 		return;
 	if (created)
-		event(d, RL_EV_DEVICE_NEW, dev->idx, 0);
+		device_new(d, dev);
 	rl_devtab_touch(dev, now);
 }
 
@@ -293,6 +365,10 @@ void rl_daemon_sample(rl_daemon *d)
 	rl_agg_tick(d->agg, now);
 	rl_agg_sample_done(d->agg, now_ms());
 	rl_devtab_presence(d->devs, now, on_presence, d);
+	if (d->visits && rl_visits_on(d->visits)) {
+		rl_visits_tick(d->visits, now); /* an hour that ended without traffic since */
+		rl_visits_writable(d->visits, d->synced);
+	}
 	d->last_sample = now;
 }
 
@@ -398,7 +474,7 @@ static void on_station(const rl_sta_sample *s, void *x)
 	if (!dev)
 		return;
 	if (created)
-		event(d, RL_EV_DEVICE_NEW, dev->idx, 0);
+		device_new(d, dev);
 	rl_devtab_touch(dev, c->now);
 	rl_wifi_update(d->wifi, s, dev->idx, c->ifc->ifname, c->ifc->freq, c->now);
 }
@@ -642,10 +718,15 @@ static void on_outage(rl_daemon *d, const rl_outage_event *ev)
 {
 	if (ev->started)
 		syslog(LOG_NOTICE, "internet unreachable (no probe target answered since %lld)", (long long)ev->start);
+	if (d->notifier)
+		rl_notifier_hold(d->notifier, d->outage.down); /* nothing would get out */
 	if (!ev->ended)
 		return;
 	syslog(LOG_NOTICE, "internet reachable again after %lld s (%s)", (long long)(ev->end - ev->start),
 	       rl_outage_cause_name(ev->cause));
+	rl_notify_event notice = { .kind = RL_NE_OUTAGE, .ts = rl_daemon_now(), .duration = ev->end - ev->start,
+				   .cause = rl_outage_cause_name(ev->cause) };
+	rl_daemon_notify(d, &notice);
 	uint8_t rec[RL_SERIES_REC_SIZE];
 	rl_outage_encode(rec, ev->start, ev->end, ev->cause);
 	if (d->outages)
@@ -924,6 +1005,49 @@ static void check_synced(rl_daemon *d)
 	}
 }
 
+/* DNS logging (and with it the destinations) on the LAN interfaces, gateway role only. */
+static void detect_dns(rl_daemon *d)
+{
+	if (!d->visits)
+		return;
+	bool on = d->cfg.dns && d->role.gateway && d->net_ready;
+	rl_visits_enable(d->visits, on, d->net.lan_ifindex, d->net.n_lan);
+	if (on)
+		rl_visits_writable(d->visits, d->synced);
+}
+
+/* Every minute on the minute: schedules apply from their first second. */
+static void schedule_control(rl_daemon *d)
+{
+	int64_t now = rl_daemon_now();
+	uloop_timeout_set(&d->control_timer, (int)(60 - now % 60) * 1000 + 200);
+}
+
+static void control_timer_cb(struct uloop_timeout *t)
+{
+	rl_daemon *d = container_of(t, rl_daemon, control_timer);
+	rl_control_evaluate(d);
+	schedule_control(d);
+}
+
+/* netifd's device events (a wireless interface came back, a port went up): ports and qdiscs again. */
+static void ports_timer_cb(struct uloop_timeout *t)
+{
+	rl_daemon *d = container_of(t, rl_daemon, ports_timer);
+	if (!d->net_ready)
+		return;
+	rl_control_ports(d);
+	rl_control_check(d);
+}
+
+static void on_device_event(struct ubus_context *ctx, struct ubus_event_handler *ev, const char *type,
+			    struct blob_attr *msg)
+{
+	rl_daemon *d = container_of(ev, rl_daemon, dev_ev);
+	if (!d->ports_timer.pending || uloop_timeout_remaining64(&d->ports_timer) > 2000)
+		uloop_timeout_set(&d->ports_timer, 2000);
+}
+
 static void names_timer_cb(struct uloop_timeout *t)
 {
 	rl_daemon *d = container_of(t, rl_daemon, names_timer);
@@ -940,10 +1064,16 @@ static void names_timer_cb(struct uloop_timeout *t)
 			close_traffic(d);
 		detect_ap(d);
 		detect_probe(d);
+		detect_dns(d);
 		update_menu(d, true);
+		rl_control_ports(d);
 		if (first) {
 			rl_daemon_sample(d);
 			schedule_sample(d);
+			rl_control_evaluate(d);
+			schedule_control(d);
+		} else {
+			rl_control_check(d);
 		}
 	}
 	rl_names_refresh(d->neigh, d->devs, rl_daemon_now());
@@ -977,7 +1107,7 @@ static uint64_t latency_bytes(const rl_daemon *d)
 
 uint64_t rl_daemon_storage(const rl_daemon *d)
 {
-	return rl_store_bytes(d->store) + signal_bytes(d) + latency_bytes(d);
+	return rl_store_bytes(d->store) + signal_bytes(d) + latency_bytes(d) + (d->visits ? rl_visits_bytes(d->visits) : 0);
 }
 
 static void compute_limits(rl_daemon *d)
@@ -1015,10 +1145,19 @@ int rl_daemon_commit(rl_daemon *d, bool flush_minute)
 	if (d->lat_minute && (rl_series_commit(d->lat_minute) != 0 || rl_series_commit(d->lat_hour) != 0 ||
 			      rl_series_commit(d->outages) != 0))
 		rc = -1;
+	if (d->visits) {
+		rl_visits_writable(d->visits, true);
+		if (rl_visits_commit(d->visits, flush_minute) != 0) /* flush: the open hour's destinations too */
+			rc = -1;
+	}
 	if (rl_devtab_save(d->devs, d->devtab_path) != 0)
 		rc = -1;
 	int64_t day = rl_bucket_start(RL_TIER_DAY, now);
 	if (day != d->last_compact_day) {
+		/* DNS log and destinations at most 1/8 */
+		if (d->visits)
+			rl_visits_compact(d->visits, now, d->cfg.dns_keep_days, (uint64_t)d->cfg.dns_max_records,
+					  d->max_bytes / 8);
 		/* signal history gets at most 3/8 of the size limit: minutes 1/4, hours 1/8 */
 		if (d->sig_minute) {
 			rl_series_compact(d->sig_minute, now - (int64_t)d->cfg.signal_minute_days * 86400, d->max_bytes / 4);
@@ -1030,7 +1169,8 @@ int rl_daemon_commit(rl_daemon *d, bool flush_minute)
 			rl_series_compact(d->lat_hour, now - (int64_t)d->cfg.latency_hour_days * 86400, d->max_bytes / 16);
 			rl_series_compact(d->outages, now - (int64_t)d->cfg.outage_days * 86400, d->max_bytes / 32);
 		}
-		uint64_t sig = signal_bytes(d) + latency_bytes(d), store_max = d->max_bytes > sig ? d->max_bytes - sig : 0;
+		uint64_t sig = signal_bytes(d) + latency_bytes(d) + (d->visits ? rl_visits_bytes(d->visits) : 0);
+		uint64_t store_max = d->max_bytes > sig ? d->max_bytes - sig : 0;
 		rl_store_compact(d->store, now, &d->cfg.ret, RL_MAX(store_max, d->max_bytes / 2));
 		rl_events_compact(d->events, now, d->cfg.ret.event_days, RL_EVENTS_CAP);
 		d->last_compact_day = day;
@@ -1069,7 +1209,10 @@ void rl_daemon_reset(rl_daemon *d, unsigned scope)
 		rl_agg_reset(d->agg);
 		d->baseline_next = true;
 		d->wan_valid = false;
+		d->traffic_gen++; /* quota sums start over */
 	}
+	if ((scope & RL_RESET_DNS) && d->visits)
+		rl_visits_reset(d->visits);
 	if (scope & RL_RESET_EVENTS)
 		rl_events_reset(d->events);
 	if (scope & RL_RESET_SIGNAL) {
@@ -1095,6 +1238,7 @@ void rl_daemon_reset(rl_daemon *d, unsigned scope)
 		rl_devtab_save(d->devs, d->devtab_path);
 		rl_flows_free(d->flows);
 		d->flows = rl_flows_new();
+		d->quiet_until = rl_daemon_now() + RL_STARTUP_GRACE; /* every device is new again */
 	}
 	syslog(LOG_NOTICE, "data reset (scope %u)", scope);
 }
@@ -1180,6 +1324,12 @@ static int open_data(rl_daemon *d)
 		syslog(LOG_WARNING, "damaged data files were replaced");
 		event(d, RL_EV_DATA_RECOVERED, RL_EV_NO_DEV, 0);
 	}
+	bool bad_visits = false;
+	d->visits = rl_visits_open(d->cfg.data_dir, &bad_visits);
+	if (!d->visits)
+		syslog(LOG_ERR, "cannot open the DNS and destination logs in %s", d->cfg.data_dir);
+	else if (bad_visits)
+		syslog(LOG_WARNING, "a damaged DNS or destination log was replaced");
 	compute_limits(d);
 	return 0;
 }
@@ -1188,8 +1338,10 @@ static void close_data(rl_daemon *d)
 {
 	rl_store_close(d->store);
 	rl_events_close(d->events);
+	rl_visits_close(d->visits);
 	d->store = NULL;
 	d->events = NULL;
+	d->visits = NULL;
 }
 
 static void on_ubus_connect(struct ubus_context *ctx)
@@ -1200,7 +1352,20 @@ static void on_ubus_connect(struct ubus_context *ctx)
 	d->wan_ev.cb = on_netifd_event;
 	if (ubus_register_event_handler(ctx, &d->wan_ev, "network.interface") != 0)
 		syslog(LOG_WARNING, "cannot subscribe to network.interface events: no WAN events");
+	d->dev_ev.cb = on_device_event;
+	if (ubus_register_event_handler(ctx, &d->dev_ev, "network.device") != 0)
+		syslog(LOG_WARNING, "cannot subscribe to network.device events");
 	uloop_timeout_set(&d->names_timer, 0);
+}
+
+/* Channels, language and the router's name for the push messages. */
+static void configure_notify(rl_daemon *d)
+{
+	char host[64] = "";
+	if (gethostname(host, sizeof(host) - 1) != 0)
+		host[0] = '\0';
+	bool zh = rl_config_notify_zh(d->cfg.notify_lang, d->zonename);
+	rl_notifier_configure(d->notifier, d->rules.channels, d->rules.n_channels, zh, host);
 }
 
 static void apply_timezone(rl_daemon *d)
@@ -1231,7 +1396,13 @@ int rl_daemon_init(rl_daemon *d)
 		abort();
 	if (open_data(d) != 0)
 		return -1;
+	/* a fresh device table: the first minutes would announce every device as new */
+	d->quiet_until = rl_devtab_count(d->devs) ? 0 : d->started + RL_STARTUP_GRACE;
 	open_speedtest(d);
+	rl_control_init(d);
+	d->notifier = rl_notifier_new();
+	rl_notifier_set_refresh(d->notifier, refresh_notice, d);
+	configure_notify(d);
 	int caught_up = rl_recover(d->store, d->agg, d->started);
 	if (caught_up)
 		syslog(LOG_INFO, "rebuilt %d hour/day/month records after downtime", caught_up);
@@ -1254,6 +1425,8 @@ int rl_daemon_init(rl_daemon *d)
 	d->wifi_timer.cb = wifi_timer_cb;
 	d->survey_timer.cb = survey_timer_cb;
 	d->probe_timer.cb = probe_timer_cb;
+	d->control_timer.cb = control_timer_cb;
+	d->ports_timer.cb = ports_timer_cb;
 	uloop_timeout_set(&d->commit_timer, d->commit_interval * 1000);
 
 	rl_api_init(d);
@@ -1302,6 +1475,9 @@ void rl_daemon_reload(rl_daemon *d)
 	compute_limits(d);
 	if (!d->cfg.traffic)
 		close_traffic(d);
+	rl_control_reload(d); /* limits, quotas, channels */
+	configure_notify(d);
+	detect_dns(d);
 	uloop_timeout_set(&d->names_timer, 0);
 	uloop_timeout_set(&d->commit_timer, d->commit_interval * 1000);
 	schedule_sample(d);
@@ -1313,6 +1489,9 @@ void rl_daemon_shutdown(rl_daemon *d)
 	stop_probe(d, false); /* an ongoing outage ends here; the commit writes the open minute */
 	rl_daemon_commit(d, true);
 	update_menu(d, false);
+	rl_control_shutdown(d); /* limits and blocks go with the daemon */
+	rl_notifier_free(d->notifier);
+	d->notifier = NULL;
 	close_traffic(d);
 	close_nl(d);
 	close_signal(d);

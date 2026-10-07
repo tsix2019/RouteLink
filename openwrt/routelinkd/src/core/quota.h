@@ -7,6 +7,7 @@
 #define RL_QUOTA_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 typedef enum { RL_QUOTA_DAY, RL_QUOTA_WEEK, RL_QUOTA_MONTH } rl_quota_period;
@@ -37,9 +38,24 @@ typedef struct {
 	rl_quota_state state;
 } rl_quota_run;
 
-/* Feeds the current use; returns RL_QA_* flags. */
+/*
+ * Feeds the current use; returns RL_QA_* flags. Use below the limit again (it was raised) lifts the action,
+ * below 80 % the warning too, so the new thresholds count.
+ */
 unsigned rl_quota_step(rl_quota_run *r, int64_t now, int64_t period_start, uint64_t used, uint64_t limit);
 /* Lets the device through until `until` (an hour from now, or the period's end); returns RL_QA_RELEASE if enforced. */
 unsigned rl_quota_allow(rl_quota_run *r, int64_t until);
+
+/* A quota's run state as kept in quota.json between restarts (state is recomputed by the next step). */
+typedef struct {
+	char section[64];
+	uint8_t mac[6];
+	rl_quota_run run;
+} rl_quota_saved;
+
+/* *out is malloc'd (or NULL). A missing file gives no entries; a damaged one too, and returns -1. */
+int rl_quota_load(const char *path, rl_quota_saved **out, size_t *n);
+/* Written to path.tmp, then renamed. */
+int rl_quota_save(const char *path, const rl_quota_saved *s, size_t n);
 
 #endif

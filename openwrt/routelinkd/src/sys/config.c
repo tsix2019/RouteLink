@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <syslog.h>
 #include <uci.h>
 
@@ -33,6 +34,10 @@ void rl_config_defaults(rl_config *c)
 		rl_ip_parse(targets[i], &c->probe_targets[c->n_probe_targets++]);
 	c->speed_streams = 4;
 	c->speed_duration = 10;
+	c->dns = false;
+	c->dns_keep_days = 7;
+	c->dns_max_records = 100000;
+	snprintf(c->notify_lang, sizeof(c->notify_lang), "auto");
 }
 
 static int clamp(int v, int lo, int hi)
@@ -149,8 +154,213 @@ void rl_config_load(rl_config *c)
 		}
 		c->speed_streams = clamp(get_int(ctx, st, "streams", c->speed_streams), 1, 8);
 		c->speed_duration = clamp(get_int(ctx, st, "duration", c->speed_duration), 5, 30);
+
+		struct uci_section *dns = uci_lookup_section(ctx, pkg, "dns");
+		c->dns = get_bool(ctx, dns, "enabled", c->dns);
+		c->dns_keep_days = clamp(get_int(ctx, dns, "keep_days", c->dns_keep_days), 1, 365);
+		c->dns_max_records = clamp(get_int(ctx, dns, "max_records", c->dns_max_records), 1000, 1000000);
+		struct uci_section *ns = uci_lookup_section(ctx, pkg, "notify");
+		const char *lang = ns ? uci_lookup_option_string(ctx, ns, "lang") : NULL;
+		if (lang && *lang)
+			snprintf(c->notify_lang, sizeof(c->notify_lang), "%s", lang);
 	}
 	uci_free_context(ctx);
+}
+
+/* ---- limits, quotas, push channels ---- */
+
+static uint32_t get_kbps(struct uci_context *ctx, struct uci_section *s, const char *name)
+{
+	int v = get_int(ctx, s, name, 0);
+	return v > 0 ? (uint32_t)clamp(v, 8, 10000000) : 0; /* 8 kbit/s .. 10 Gbit/s */
+}
+
+static void get_str(struct uci_context *ctx, struct uci_section *s, const char *name, char *out, size_t size)
+{
+	const char *v = uci_lookup_option_string(ctx, s, name);
+	snprintf(out, size, "%s", v ? v : "");
+}
+
+/* list weekdays 'mon' … (or a space-separated option); none = every day */
+static uint8_t get_weekdays(struct uci_context *ctx, struct uci_section *s)
+{
+	struct uci_option *o = uci_lookup_option(ctx, s, "weekdays");
+	uint8_t days = 0;
+	if (!o)
+		return 0;
+	if (o->type == UCI_TYPE_LIST) {
+		struct uci_element *e;
+		uci_foreach_element(&o->v.list, e) {
+			int d = rl_weekday_parse(e->name);
+			if (d)
+				days |= (uint8_t)(1u << (d - 1));
+		}
+	} else {
+		char buf[128];
+		snprintf(buf, sizeof(buf), "%s", o->v.string);
+		for (char *save, *tok = strtok_r(buf, " \t", &save); tok; tok = strtok_r(NULL, " \t", &save)) {
+			int d = rl_weekday_parse(tok);
+			if (d)
+				days |= (uint8_t)(1u << (d - 1));
+		}
+	}
+	return days;
+}
+
+static unsigned get_events(struct uci_context *ctx, struct uci_section *s)
+{
+	struct uci_option *o = uci_lookup_option(ctx, s, "events");
+	unsigned events = 0;
+	if (!o)
+		return 0;
+	if (o->type == UCI_TYPE_LIST) {
+		struct uci_element *e;
+		uci_foreach_element(&o->v.list, e)
+			events |= rl_notify_sub_parse(e->name);
+	} else {
+		char buf[128];
+		snprintf(buf, sizeof(buf), "%s", o->v.string);
+		for (char *save, *tok = strtok_r(buf, " \t", &save); tok; tok = strtok_r(NULL, " \t", &save))
+			events |= rl_notify_sub_parse(tok);
+	}
+	return events;
+}
+
+static bool add_limit(rl_rules *r, size_t *cap, struct uci_context *ctx, struct uci_section *s, const rl_mac *mac)
+{
+	rl_limit_rule l = { .mac = *mac };
+	snprintf(l.section, sizeof(l.section), "%s", s->e.name);
+	l.down_kbps = get_kbps(ctx, s, "download");
+	l.up_kbps = get_kbps(ctx, s, "upload");
+	if (!l.down_kbps && !l.up_kbps)
+		return false;
+	l.sched.days = get_weekdays(ctx, s);
+	int start = rl_time_parse(uci_lookup_option_string(ctx, s, "start_time"));
+	int stop = rl_time_parse(uci_lookup_option_string(ctx, s, "stop_time"));
+	l.sched.start = (int16_t)(start >= 0 && stop >= 0 && start != stop ? start : -1);
+	l.sched.stop = (int16_t)(l.sched.start >= 0 ? stop : -1);
+	r->limits = rl_grow(r->limits, cap, r->n_limits + 1, sizeof(rl_limit_rule));
+	r->limits[r->n_limits++] = l;
+	return true;
+}
+
+static bool add_quota(rl_rules *r, size_t *cap, struct uci_context *ctx, struct uci_section *s, const rl_mac *mac)
+{
+	rl_quota_rule q = { .mac = *mac };
+	snprintf(q.section, sizeof(q.section), "%s", s->e.name);
+	int period = rl_quota_period_parse(uci_lookup_option_string(ctx, s, "period"));
+	q.period = period < 0 ? RL_QUOTA_MONTH : (rl_quota_period)period;
+	q.reset_day = get_int(ctx, s, "reset_day", 1);
+	q.reset_day = clamp(q.reset_day, 1, q.period == RL_QUOTA_WEEK ? 7 : 28);
+	int mb = get_int(ctx, s, "limit_mb", 0);
+	q.limit = mb > 0 ? (uint64_t)mb << 20 : 0;
+	const char *dir = uci_lookup_option_string(ctx, s, "direction");
+	q.download_only = dir && !strcmp(dir, "download");
+	const char *action = uci_lookup_option_string(ctx, s, "action");
+	q.slow_down = action && !strcmp(action, "limit");
+	q.down_kbps = get_kbps(ctx, s, "limit_download");
+	q.up_kbps = get_kbps(ctx, s, "limit_upload");
+	if (q.slow_down && !q.down_kbps && !q.up_kbps)
+		q.slow_down = false; /* nothing to slow down to: block instead */
+	r->quotas = rl_grow(r->quotas, cap, r->n_quotas + 1, sizeof(rl_quota_rule));
+	r->quotas[r->n_quotas++] = q;
+	return true;
+}
+
+static void add_channel(rl_rules *r, size_t *cap, struct uci_context *ctx, struct uci_section *s)
+{
+	rl_channel c = { 0 };
+	int type = rl_notify_type_parse(uci_lookup_option_string(ctx, s, "type"));
+	if (type < 0) {
+		syslog(LOG_WARNING, "push channel %s ignored: unknown type", s->e.name);
+		return;
+	}
+	c.type = (rl_notify_type)type;
+	snprintf(c.section, sizeof(c.section), "%s", s->e.name);
+	c.enabled = get_bool(ctx, s, "enabled", true);
+	get_str(ctx, s, "name", c.name, sizeof(c.name));
+	get_str(ctx, s, "url", c.url, sizeof(c.url));
+	get_str(ctx, s, "template", c.tpl, sizeof(c.tpl));
+	get_str(ctx, s, "token", c.token, sizeof(c.token));
+	get_str(ctx, s, "chat_id", c.chat_id, sizeof(c.chat_id));
+	get_str(ctx, s, "secret", c.secret, sizeof(c.secret));
+	c.events = get_events(ctx, s);
+	r->channels = rl_grow(r->channels, cap, r->n_channels + 1, sizeof(rl_channel));
+	r->channels[r->n_channels++] = c;
+}
+
+void rl_config_rules(rl_rules *r)
+{
+	size_t cap_l = 0, cap_q = 0, cap_c = 0;
+	memset(r, 0, sizeof(*r));
+	struct uci_context *ctx = uci_alloc_context();
+	struct uci_package *pkg = NULL;
+	if (!ctx)
+		return;
+	if (uci_load(ctx, "routelink", &pkg) == UCI_OK && pkg) {
+		struct uci_element *e;
+		uci_foreach_element(&pkg->sections, e) {
+			struct uci_section *s = uci_to_section(e);
+			rl_mac mac;
+			bool limit = !strcmp(s->type, "limit"), quota = !strcmp(s->type, "quota");
+			if (!strcmp(s->type, "notify")) {
+				add_channel(r, &cap_c, ctx, s);
+				continue;
+			}
+			if ((!limit && !quota) || !get_bool(ctx, s, "enabled", true))
+				continue;
+			if (!rl_mac_parse(uci_lookup_option_string(ctx, s, "mac"), &mac)) {
+				syslog(LOG_WARNING, "%s %s ignored: no valid mac", s->type, s->e.name);
+				continue;
+			}
+			if (limit)
+				add_limit(r, &cap_l, ctx, s, &mac);
+			else
+				add_quota(r, &cap_q, ctx, s, &mac);
+		}
+	}
+	uci_free_context(ctx);
+}
+
+void rl_rules_free(rl_rules *r)
+{
+	free(r->limits);
+	free(r->quotas);
+	free(r->channels);
+	memset(r, 0, sizeof(*r));
+}
+
+static bool chinese_zone(const char *zonename)
+{
+	static const char *const zones[] = { "Asia/Shanghai", "Asia/Hong_Kong", "Asia/Macau", "Asia/Taipei",
+					     "Asia/Chongqing", "Asia/Harbin", "Asia/Urumqi", NULL };
+	for (int i = 0; zonename && zones[i]; i++)
+		if (!strcmp(zonename, zones[i]))
+			return true;
+	return false;
+}
+
+bool rl_config_notify_zh(const char *lang, const char *zonename)
+{
+	if (lang && !strncasecmp(lang, "zh", 2))
+		return true;
+	if (lang && *lang && strcmp(lang, "auto"))
+		return false;
+	/* follow LuCI's language */
+	char luci[32] = "";
+	struct uci_context *ctx = uci_alloc_context();
+	struct uci_package *pkg = NULL;
+	if (ctx && uci_load(ctx, "luci", &pkg) == UCI_OK && pkg) {
+		struct uci_section *m = uci_lookup_section(ctx, pkg, "main");
+		const char *v = m ? uci_lookup_option_string(ctx, m, "lang") : NULL;
+		if (v)
+			snprintf(luci, sizeof(luci), "%s", v);
+	}
+	if (ctx)
+		uci_free_context(ctx);
+	if (luci[0] && strcmp(luci, "auto"))
+		return !strncasecmp(luci, "zh", 2);
+	return chinese_zone(zonename);
 }
 
 size_t rl_config_devices(rl_devflag **out)

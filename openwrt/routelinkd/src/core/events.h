@@ -20,6 +20,10 @@ typedef enum {
 	RL_EV_WIFI_DISCONNECT, /* a = frequency (MHz) of the interface it left */
 	RL_EV_WAN_DOWN,        /* netifd: the WAN interface went down */
 	RL_EV_WAN_UP,          /* netifd: the WAN interface came up */
+	RL_EV_QUOTA_WARN,      /* a = bytes used; the device's quota reached 80 % */
+	RL_EV_QUOTA_EXCEEDED,  /* a = bytes used; blocked or slowed down */
+	RL_EV_QUOTA_RESET,     /* a new quota period began */
+	RL_EV_LIMIT_APPLIED,   /* a = speed-limit rules now set up (debugging) */
 	RL_EV_TYPE_END
 } rl_event_type;
 

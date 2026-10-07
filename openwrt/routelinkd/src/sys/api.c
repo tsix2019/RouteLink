@@ -1,9 +1,12 @@
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <libubox/blobmsg.h>
 
+#include "core/dnslog.h"
 #include "core/query.h"
+#include "core/util.h"
 #include "core/version.h"
 #include "sys/api.h"
 #include "sys/daemon.h"
@@ -12,7 +15,7 @@
 #define MAX_EVENTS_OUT 1000
 #define MAX_IPS 8
 
-static const char *const CAPABILITIES[] = { "traffic", "wifi", "latency", "speedtest" };
+static const char *const CAPABILITIES[] = { "traffic", "wifi", "latency", "speedtest", "limits", "quotas", "dns", "notify" };
 
 static struct rl_daemon *D;
 static struct blob_buf b;
@@ -119,8 +122,16 @@ static int m_info(struct ubus_context *ctx, struct ubus_object *obj, struct ubus
 		blobmsg_add_string(&b, NULL, "wifi");
 	if (rl_daemon_probe_on(D))
 		blobmsg_add_string(&b, NULL, "latency");
-	if (D->role.gateway)
+	if (D->role.gateway) {
 		blobmsg_add_string(&b, NULL, "speedtest"); /* WAN counters: gateway only */
+		blobmsg_add_string(&b, NULL, "limits");
+	}
+	if (D->role.gateway && rl_daemon_traffic_on(D))
+		blobmsg_add_string(&b, NULL, "quotas"); /* they count the traffic records */
+	if (D->visits && rl_visits_on(D->visits))
+		blobmsg_add_string(&b, NULL, "dns");
+	if (D->role.gateway)
+		blobmsg_add_string(&b, NULL, "notify");
 	blobmsg_close_array(&b, c);
 	/* every module this build has, switched on or not (modules only lists the running ones) */
 	c = blobmsg_open_array(&b, "capabilities");
@@ -143,6 +154,8 @@ static int m_info(struct ubus_context *ctx, struct ubus_object *obj, struct ubus
 	blobmsg_add_u64(&b, "live_until", (uint64_t)D->live_until);
 	blobmsg_add_u64(&b, "started", (uint64_t)D->started);
 	blobmsg_add_u64(&b, "events_lost", D->ct ? rl_ct_events_lost(D->ct) : 0);
+	blobmsg_add_string(&b, "limits_error", rl_control_error(D));
+	blobmsg_add_u8(&b, "dns_enabled", D->visits && rl_visits_on(D->visits));
 	c = blobmsg_open_table(&b, "retention");
 	blobmsg_add_u32(&b, "minute_hours", (uint32_t)D->cfg.ret.minute_hours);
 	blobmsg_add_u32(&b, "hour_days", (uint32_t)D->cfg.ret.hour_days);
@@ -1014,6 +1027,274 @@ static int m_speedtest_status(struct ubus_context *ctx, struct ubus_object *obj,
 	return ubus_send_reply(ctx, req, b.head);
 }
 
+/* ---- quotas (P4) ---- */
+
+#define MAX_QUOTAS_OUT 256
+
+static int m_quotas(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+		    const char *method, struct blob_attr *msg)
+{
+	static rl_quota_view v[MAX_QUOTAS_OUT];
+	static const char *const periods[] = { "day", "week", "month" };
+	char mac[RL_MAC_STRLEN];
+	size_t n = rl_control_quotas(D, v, MAX_QUOTAS_OUT);
+	blob_buf_init(&b, 0);
+	void *list = blobmsg_open_array(&b, "quotas");
+	for (size_t i = 0; i < n; i++) {
+		const rl_quota_rule *q = v[i].rule;
+		void *e = blobmsg_open_table(&b, NULL);
+		rl_mac_format(&q->mac, mac);
+		blobmsg_add_string(&b, "section", q->section);
+		blobmsg_add_string(&b, "mac", mac);
+		blobmsg_add_string(&b, "period", periods[q->period]);
+		blobmsg_add_u64(&b, "period_start", (uint64_t)v[i].start);
+		blobmsg_add_u64(&b, "period_end", (uint64_t)v[i].end);
+		blobmsg_add_u64(&b, "limit", q->limit);
+		blobmsg_add_u64(&b, "used", v[i].used);
+		/* one decimal */
+		blobmsg_add_double(&b, "pct",
+				   q->limit ? (double)(uint64_t)((double)v[i].used * 1000.0 / (double)q->limit + 0.5) / 10.0 : 0);
+		/* the state of the latest evaluation; a let-through that ran out shows as exceeded until the next one */
+		rl_quota_state st = v[i].run->state;
+		if (v[i].run->allow_until > rl_daemon_now())
+			st = RL_QS_ALLOWED;
+		blobmsg_add_string(&b, "state", rl_quota_state_name(st));
+		blobmsg_add_u64(&b, "allow_until",
+				(uint64_t)(v[i].run->allow_until > rl_daemon_now() ? v[i].run->allow_until : 0));
+		blobmsg_add_string(&b, "action", q->slow_down ? "limit" : "block");
+		blobmsg_close_table(&b, e);
+	}
+	blobmsg_close_array(&b, list);
+	return ubus_send_reply(ctx, req, b.head);
+}
+
+enum { QA_SECTION, QA_UNTIL, __QA_MAX };
+static const struct blobmsg_policy quota_allow_policy[__QA_MAX] = {
+	[QA_SECTION] = { "section", BLOBMSG_TYPE_STRING },
+	[QA_UNTIL] = { "until", BLOBMSG_TYPE_STRING },
+};
+
+static int m_quota_allow(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+			 const char *method, struct blob_attr *msg)
+{
+	struct blob_attr *tb[__QA_MAX];
+	blobmsg_parse(quota_allow_policy, __QA_MAX, tb, blob_data(msg), blob_len(msg));
+	if (!tb[QA_SECTION] || !tb[QA_UNTIL])
+		return UBUS_STATUS_INVALID_ARGUMENT;
+	const char *until = blobmsg_get_string(tb[QA_UNTIL]);
+	bool period = !strcmp(until, "period");
+	if (!period && strcmp(until, "hour"))
+		return UBUS_STATUS_INVALID_ARGUMENT;
+	if (rl_control_allow(D, blobmsg_get_string(tb[QA_SECTION]), period) != 0)
+		return UBUS_STATUS_NOT_FOUND;
+	blob_buf_init(&b, 0);
+	return ubus_send_reply(ctx, req, b.head);
+}
+
+/* ---- destinations and the DNS log (P4) ---- */
+
+#define MAX_DEST_OUT 500
+#define MAX_DNS_OUT 1000
+
+static void add_addr(const char *name, uint8_t family, const uint8_t *addr)
+{
+	rl_ip ip;
+	char s[RL_IP_STRLEN];
+	if (family == 6)
+		rl_ip_from_v6(addr, &ip);
+	else {
+		uint32_t v4;
+		memcpy(&v4, addr, 4); /* network order, as stored; addr may be unaligned */
+		rl_ip_from_v4(v4, &ip);
+	}
+	rl_ip_format(&ip, s);
+	blobmsg_add_string(&b, name, s);
+}
+
+enum { DS_MAC, DS_START, DS_END, DS_LIMIT, __DS_MAX };
+static const struct blobmsg_policy destinations_policy[__DS_MAX] = {
+	[DS_MAC] = { "mac", BLOBMSG_TYPE_STRING },
+	[DS_START] = { "start", BLOBMSG_CAST_INT64 },
+	[DS_END] = { "end", BLOBMSG_CAST_INT64 },
+	[DS_LIMIT] = { "limit", BLOBMSG_CAST_INT64 },
+};
+
+static int m_destinations(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+			  const char *method, struct blob_attr *msg)
+{
+	static rl_dest_entry out[MAX_DEST_OUT];
+	struct blob_attr *tb[__DS_MAX];
+	rl_mac mac;
+	blobmsg_parse(destinations_policy, __DS_MAX, tb, blob_data(msg), blob_len(msg));
+	if (!tb[DS_MAC] || !tb[DS_START] || !tb[DS_END] || !rl_mac_parse(blobmsg_get_string(tb[DS_MAC]), &mac))
+		return UBUS_STATUS_INVALID_ARGUMENT;
+	int64_t start = get_i64(tb[DS_START], 0), end = get_i64(tb[DS_END], 0), limit = get_i64(tb[DS_LIMIT], 100);
+	if (start >= end || limit < 1 || limit > MAX_DEST_OUT)
+		return UBUS_STATUS_INVALID_ARGUMENT;
+	if (!rl_devtab_find(D->devs, &mac))
+		return UBUS_STATUS_NOT_FOUND;
+	size_t found = 0;
+	int n = D->visits ? rl_visits_destinations(D->visits, &mac, start, end, out, (size_t)limit, &found) : 0;
+	if (n < 0)
+		return UBUS_STATUS_UNKNOWN_ERROR;
+	blob_buf_init(&b, 0);
+	blobmsg_add_u32(&b, "count", (uint32_t)found);
+	void *list = blobmsg_open_array(&b, "destinations");
+	for (int i = 0; i < n; i++) {
+		void *e = blobmsg_open_table(&b, NULL);
+		if (out[i].host[0])
+			blobmsg_add_string(&b, "host", out[i].host);
+		add_addr("ip", out[i].family, out[i].addr);
+		blobmsg_add_u64(&b, "rx", out[i].rx);
+		blobmsg_add_u64(&b, "tx", out[i].tx);
+		blobmsg_add_u32(&b, "conns", out[i].conns);
+		blobmsg_close_table(&b, e);
+	}
+	blobmsg_close_array(&b, list);
+	return ubus_send_reply(ctx, req, b.head);
+}
+
+enum { DN_MAC, DN_START, DN_END, DN_Q, DN_LIMIT, DN_OFFSET, __DN_MAX };
+static const struct blobmsg_policy dns_policy[__DN_MAX] = {
+	[DN_MAC] = { "mac", BLOBMSG_TYPE_STRING },     [DN_START] = { "start", BLOBMSG_CAST_INT64 },
+	[DN_END] = { "end", BLOBMSG_CAST_INT64 },      [DN_Q] = { "q", BLOBMSG_TYPE_STRING },
+	[DN_LIMIT] = { "limit", BLOBMSG_CAST_INT64 },  [DN_OFFSET] = { "offset", BLOBMSG_CAST_INT64 },
+};
+
+typedef struct {
+	const uint8_t *mac;
+	char q[RL_DNS_NAME_MAX + 1];
+	size_t offset, limit, count;
+} dns_ctx;
+
+static bool dns_cb(const rl_dnslog_rec *r, void *x)
+{
+	dns_ctx *c = x;
+	char buf[8];
+	if (!rl_dnslog_match(r, c->mac, c->q))
+		return true;
+	size_t i = c->count++;
+	if (i < c->offset || i >= c->offset + c->limit)
+		return true; /* counted only */
+	char mac[RL_MAC_STRLEN];
+	rl_mac m;
+	memcpy(m.b, r->mac, 6);
+	rl_mac_format(&m, mac);
+	void *e = blobmsg_open_table(&b, NULL);
+	blobmsg_add_u64(&b, "ts", (uint64_t)r->ts);
+	blobmsg_add_string(&b, "mac", mac);
+	blobmsg_add_string(&b, "name", r->name);
+	blobmsg_add_string(&b, "type", rl_dns_type_name(r->qtype, buf));
+	blobmsg_add_string(&b, "rcode", rl_dns_rcode_name(r->rcode));
+	void *a = blobmsg_open_array(&b, "answers");
+	for (int k = 0; k < r->n_addrs; k++)
+		add_addr(NULL, r->addrs[k].family, r->addrs[k].addr);
+	blobmsg_close_array(&b, a);
+	blobmsg_close_table(&b, e);
+	return true;
+}
+
+static int m_dns(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req, const char *method,
+		 struct blob_attr *msg)
+{
+	struct blob_attr *tb[__DN_MAX];
+	rl_mac mac;
+	dns_ctx c = { 0 };
+	blobmsg_parse(dns_policy, __DN_MAX, tb, blob_data(msg), blob_len(msg));
+	if (!tb[DN_START] || !tb[DN_END])
+		return UBUS_STATUS_INVALID_ARGUMENT;
+	int64_t start = get_i64(tb[DN_START], 0), end = get_i64(tb[DN_END], 0);
+	int64_t limit = get_i64(tb[DN_LIMIT], 100), offset = get_i64(tb[DN_OFFSET], 0);
+	if (start >= end || limit < 1 || limit > MAX_DNS_OUT || offset < 0)
+		return UBUS_STATUS_INVALID_ARGUMENT;
+	if (tb[DN_MAC]) {
+		if (!rl_mac_parse(blobmsg_get_string(tb[DN_MAC]), &mac))
+			return UBUS_STATUS_INVALID_ARGUMENT;
+		c.mac = mac.b;
+	}
+	if (tb[DN_Q]) {
+		snprintf(c.q, sizeof(c.q), "%s", blobmsg_get_string(tb[DN_Q]));
+		for (char *p = c.q; *p; p++)
+			*p = (char)tolower((unsigned char)*p);
+	}
+	c.offset = (size_t)offset;
+	c.limit = (size_t)limit;
+	blob_buf_init(&b, 0);
+	void *list = blobmsg_open_array(&b, "records");
+	if (D->visits && rl_visits_dns_scan(D->visits, start, end, dns_cb, &c) != 0) {
+		blob_buf_init(&b, 0);
+		return UBUS_STATUS_UNKNOWN_ERROR;
+	}
+	blobmsg_close_array(&b, list);
+	blobmsg_add_u32(&b, "count", (uint32_t)c.count);
+	return ubus_send_reply(ctx, req, b.head);
+}
+
+/* ---- push (P4) ---- */
+
+typedef struct {
+	struct ubus_context *ctx;
+	struct ubus_request_data req;
+} deferred_test;
+
+static void test_done(void *x, bool ok, const char *error)
+{
+	deferred_test *t = x;
+	struct blob_buf r = { 0 };
+	blob_buf_init(&r, 0);
+	blobmsg_add_u8(&r, "ok", ok);
+	if (!ok)
+		blobmsg_add_string(&r, "error", error ? error : "failed");
+	ubus_send_reply(t->ctx, &t->req, r.head);
+	ubus_complete_deferred_request(t->ctx, &t->req, UBUS_STATUS_OK);
+	blob_buf_free(&r);
+	free(t);
+}
+
+static const struct blobmsg_policy notify_test_policy[] = { { "section", BLOBMSG_TYPE_STRING } };
+
+static int m_notify_test(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+			 const char *method, struct blob_attr *msg)
+{
+	struct blob_attr *tb[1];
+	blobmsg_parse(notify_test_policy, 1, tb, blob_data(msg), blob_len(msg));
+	if (!tb[0])
+		return UBUS_STATUS_INVALID_ARGUMENT;
+	if (!D->notifier)
+		return UBUS_STATUS_NOT_SUPPORTED;
+	deferred_test *t = calloc(1, sizeof(*t));
+	if (!t)
+		abort();
+	t->ctx = ctx;
+	ubus_defer_request(ctx, req, &t->req);
+	/* the reply comes when uclient-fetch is done (at most RL_NOTIFY_TEST_TIMEOUT s) */
+	if (rl_notifier_test(D->notifier, blobmsg_get_string(tb[0]), test_done, t) != 0) {
+		ubus_complete_deferred_request(ctx, &t->req, UBUS_STATUS_NOT_FOUND);
+		free(t);
+	}
+	return 0;
+}
+
+static int m_notify_status(struct ubus_context *ctx, struct ubus_object *obj, struct ubus_request_data *req,
+			   const char *method, struct blob_attr *msg)
+{
+	static rl_channel_status st[64];
+	size_t n = D->notifier ? rl_notifier_status(D->notifier, st, RL_ARRAY_SIZE(st)) : 0;
+	blob_buf_init(&b, 0);
+	void *list = blobmsg_open_array(&b, "channels");
+	for (size_t i = 0; i < n; i++) {
+		void *e = blobmsg_open_table(&b, NULL);
+		blobmsg_add_string(&b, "section", st[i].section);
+		blobmsg_add_u64(&b, "last_ok", (uint64_t)st[i].last_ok);
+		blobmsg_add_string(&b, "last_error", st[i].last_error);
+		blobmsg_add_u64(&b, "last_error_ts", (uint64_t)st[i].last_error_ts);
+		blobmsg_close_table(&b, e);
+	}
+	blobmsg_close_array(&b, list);
+	blobmsg_add_u32(&b, "pending", (uint32_t)(D->notifier ? rl_notifier_pending(D->notifier) : 0));
+	return ubus_send_reply(ctx, req, b.head);
+}
+
 /* ---- maintenance ---- */
 
 static const struct blobmsg_policy reset_policy[] = { { "scope", BLOBMSG_TYPE_STRING } };
@@ -1037,8 +1318,11 @@ static int m_reset(struct ubus_context *ctx, struct ubus_object *obj, struct ubu
 		scope = RL_RESET_DEVICES;
 	else if (!strcmp(s, "latency"))
 		scope = RL_RESET_LATENCY;
+	else if (!strcmp(s, "dns"))
+		scope = RL_RESET_DNS;
 	else if (!strcmp(s, "all"))
-		scope = RL_RESET_TRAFFIC | RL_RESET_EVENTS | RL_RESET_DEVICES | RL_RESET_SIGNAL | RL_RESET_LATENCY;
+		scope = RL_RESET_TRAFFIC | RL_RESET_EVENTS | RL_RESET_DEVICES | RL_RESET_SIGNAL | RL_RESET_LATENCY |
+			RL_RESET_DNS;
 	else
 		return UBUS_STATUS_INVALID_ARGUMENT;
 	rl_daemon_reset(D, scope);
@@ -1077,6 +1361,12 @@ static const struct ubus_method methods[] = {
 	UBUS_METHOD("outages", m_outages, outages_policy),
 	UBUS_METHOD("speedtest_start", m_speedtest_start, speed_start_policy),
 	UBUS_METHOD("speedtest_status", m_speedtest_status, speed_status_policy),
+	UBUS_METHOD_NOARG("quotas", m_quotas),
+	UBUS_METHOD("quota_allow", m_quota_allow, quota_allow_policy),
+	UBUS_METHOD("destinations", m_destinations, destinations_policy),
+	UBUS_METHOD("dns", m_dns, dns_policy),
+	UBUS_METHOD("notify_test", m_notify_test, notify_test_policy),
+	UBUS_METHOD_NOARG("notify_status", m_notify_status),
 	UBUS_METHOD("reset", m_reset, reset_policy),
 	UBUS_METHOD_NOARG("commit", m_commit),
 	UBUS_METHOD_NOARG("ntp_synced", m_ntp_synced),

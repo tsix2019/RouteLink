@@ -16,14 +16,19 @@
 #include "core/series.h"
 #include "core/store.h"
 #include "core/wifi.h"
+#include "sys/block.h"
 #include "sys/config.h"
+#include "sys/control.h"
 #include "sys/ct.h"
 #include "sys/icmp.h"
 #include "sys/neigh.h"
 #include "sys/netinfo.h"
 #include "sys/nl80211.h"
+#include "sys/notify.h"
 #include "sys/role.h"
+#include "sys/shaper.h"
 #include "sys/speedtest.h"
+#include "sys/visits.h"
 
 #define RL_API_VERSION 1
 #define RL_LIVE_LEASE 30   /* seconds a `live` call keeps fast sampling on */
@@ -40,7 +45,22 @@ typedef enum {
 	RL_RESET_DEVICES = 4,
 	RL_RESET_SIGNAL = 8,
 	RL_RESET_LATENCY = 16, /* latency history and outages */
+	RL_RESET_DNS = 32,     /* DNS log and destinations */
 } rl_reset_scope;
+
+/* A quota's run state and use (parallel to rules.quotas). */
+typedef struct {
+	char section[64];
+	rl_mac mac;
+	rl_quota_run run;
+	uint64_t used;
+	int64_t start, end;
+	/* sum of the closed days of the period, cached */
+	int64_t cache_from, cache_to;
+	unsigned cache_gen;
+	int cache_dev;
+	uint64_t cache_rx, cache_tx;
+} rl_quota_live;
 
 typedef struct rl_daemon {
 	rl_config cfg;
@@ -83,6 +103,22 @@ typedef struct rl_daemon {
 
 	rl_speedtest *speed; /* router-side speed test and its results */
 
+	/* speed limits, quotas, blocking (gateway role): sys/control */
+	rl_rules rules;
+	rl_quota_live *qlive;
+	rl_shaper *shaper;
+	rl_block *block;
+	char ports[RL_SHAPER_MAX_PORTS][IFNAMSIZ]; /* LAN bridge members */
+	int n_ports;
+	unsigned traffic_gen; /* a traffic reset makes cached quota sums stale */
+	struct uloop_timeout control_timer, ports_timer;
+	struct ubus_event_handler dev_ev;
+
+	rl_visits *visits; /* DNS log and destinations, opened when first switched on */
+
+	rl_notifier *notifier;
+	int64_t quiet_until; /* no new-device notices before (a fresh device table) */
+
 	struct ubus_auto_conn ubus;
 	struct ubus_context *ubus_ctx; /* NULL while disconnected */
 
@@ -120,7 +156,11 @@ bool rl_daemon_probe_on(const rl_daemon *d);
 uint64_t rl_daemon_probe_targets(const rl_daemon *d);
 /* Starts a speed test against server ("" = Cloudflare) unless one runs (*already, its id). -1 on failure. */
 int rl_daemon_speedtest(rl_daemon *d, const char *server, bool *already);
-/* Bytes of every data file (traffic, signal, latency). */
+/* Fills a notice's name, ip and mac for a device. */
+void rl_daemon_describe(rl_daemon *d, const rl_mac *mac, rl_notify_event *ev);
+/* Hands a notice to the push channels (gateway role). */
+void rl_daemon_notify(rl_daemon *d, const rl_notify_event *ev);
+/* Bytes of every data file (traffic, signal, latency, DNS log, destinations). */
 uint64_t rl_daemon_storage(const rl_daemon *d);
 /* The config device section of a MAC, or NULL. */
 const rl_devflag *rl_daemon_devflag(const rl_daemon *d, const rl_mac *mac);

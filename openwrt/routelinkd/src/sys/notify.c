@@ -57,6 +57,8 @@ struct rl_notifier {
 	struct uloop_timeout tick;
 	int header; /* uclient-fetch knows --header: -1 not checked yet, 0, 1 */
 	unsigned seq;
+	rl_notify_refresh_cb refresh;
+	void *refresh_ctx;
 };
 
 static int64_t now_s(void)
@@ -324,6 +326,8 @@ static void flush_batch(rl_notifier *n)
 {
 	rl_notify_event ev[RL_NOTIFY_BATCH_MAX];
 	char title[256], body[2048];
+	for (int e = 0; n->refresh && e < n->batch.n; e++)
+		n->refresh(n->refresh_ctx, &n->batch.ev[e]);
 	for (size_t i = 0; i < n->n; i++) {
 		const rl_channel *c = &n->ch[i];
 		int k = 0;
@@ -410,6 +414,12 @@ void rl_notifier_configure(rl_notifier *n, const rl_channel *ch, size_t count, b
 	n->n = count;
 	n->zh = zh;
 	snprintf(n->router, sizeof(n->router), "%s", router ? router : "");
+}
+
+void rl_notifier_set_refresh(rl_notifier *n, rl_notify_refresh_cb cb, void *ctx)
+{
+	n->refresh = cb;
+	n->refresh_ctx = ctx;
 }
 
 bool rl_notifier_wants(const rl_notifier *n, unsigned sub)

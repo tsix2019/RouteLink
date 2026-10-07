@@ -1,15 +1,15 @@
 {
 	"routelink": {
-		"description": "Grant access to RouteLink traffic, wireless and latency statistics",
+		"description": "Grant access to RouteLink traffic, wireless, latency, limits, DNS and push",
 		"read": {
 			"ubus": {
-				"routelink": [ "info", "devices", "live", "history", "summary", "events", "stations", "signal", "survey", "latency", "outages", "speedtest_status" ]
+				"routelink": [ "info", "devices", "live", "history", "summary", "events", "stations", "signal", "survey", "latency", "outages", "speedtest_status", "quotas", "destinations", "dns", "notify_status" ]
 			},
 			"uci": [ "routelink" ]
 		},
 		"write": {
 			"ubus": {
-				"routelink": [ "reset", "commit", "speedtest_start" ]
+				"routelink": [ "reset", "commit", "speedtest_start", "quota_allow", "notify_test" ]
 			},
 			"uci": [ "routelink" ]
 		}
