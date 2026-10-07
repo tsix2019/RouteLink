@@ -23,10 +23,8 @@ const ROUTER = process.env.ROUTER_CONTAINER ?? 'routelink-agent-owrt';
 const CLIENT = process.env.LAB_CLIENT ?? 'routelink-lab-client';
 const SERVER = process.env.LAB_SERVER ?? 'routelink-lab-server';
 const SERVER_IP = process.env.LAB_SERVER_IP ?? '172.41.0.10';
-const ROUTER_LAN_IP = SERVER_IP.replace(/^172\.(\d+)\./, (_m, n: string) => `172.${Number(n) - 1}.`).replace(
-  /\.\d+$/,
-  '.2',
-);
+/** The router's LAN address: the lab's LAN is the network below the WAN (172.40 / 172.41). */
+const ROUTER_LAN_IP = `172.${Number(SERVER_IP.split('.')[1]) - 1}.0.2`;
 const RUN = Date.now().toString(36);
 
 const env = { ...process.env, MSYS_NO_PATHCONV: '1' };
