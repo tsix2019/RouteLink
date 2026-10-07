@@ -134,6 +134,11 @@ config retention 'retention'
 
 | 项目 | 结论 |
 |---|---|
+| T2–T6 守护进程和 LuCI | 完成（子任务）。新增 `core/latency`（分钟、小时桶，重启后用分钟数据重建当前小时，目标编号存在 `latency.targets.json`，0 号是上一跳）；`sys/icmp`、`sys/speedtest`；LuCI 延迟与断网页、设置页。本机 Docker 路由器（24.10.8）和实验环境测试通过，SDK 构建过 24.10.8、25.12.5 |
+| 和接口约定的差别 | `latency`：未知目标 IP 返回 `NOT_FOUND`；目标按编号列出（配置的加上这段时间有数据的）；上一跳未知时 `ip` 为空串。`outages` 最多列 1000 条，`count` 是总数；没探测过自定义目标时 `availability` 为 null。`speedtest_status` 不带 `id` 时，测速进行中多一个 `current`；`speedtest_start` 地址不对返回 `INVALID_ARGUMENT`，不是主路由返回 `NOT_SUPPORTED` |
+| 测速用 HTTP | Cloudflare 对超过约 50 MB 的下载返回 403，所以每次下载 25 MB（App 的手机测速也改成了 25 MB）；`uclient-fetch --post-file` 在 TLS 上发分块内容约 80 KB 后会卡住，所以路由器端用 `http://speed.cloudflare.com`；LibreSpeed 填 https 地址时上传结果会偏低 |
+| 断网原因的实测 | 实验环境里 WAN `ifdown` 再 `ifup`（40 秒内）记为重新拨号；只断服务器那边记为上游不通；守护进程在断网中停止时记为 WAN 断开。Docker 里拔网线和 `docker network disconnect` 都不会产生 netifd 的 ifup/ifdown 事件，所以测试用 `ifdown wan`。netifd 的 ifdown 会发两次，只记录状态变化 |
+| 遗留 | ubusd 重启后事件订阅不会自动恢复（沿用现有写法，守护进程重启后恢复）；真实 PPPoE、只有 IPv6 的 WAN（链路本地的上一跳需要接口序号）没测；LuCI 构建的 jsmin 会把 `return` 后面的正则当成除号，设置页已改写，其他页面要避开这种写法 |
 | `speedtest_start` 已在测时 | libubus 没有"忙"这个状态码，改为返回正在进行的那次：`{ "id": 16, "already": true }`（§1.3 已改） |
 | `core/probe` | 断网原因：断网前 30 秒到结束之间出现过 WAN ifdown，并且 60 秒内又 ifup，记为重新拨号；ifdown 更久或没有恢复记为 WAN 断开；都没有记为上游不通 |
 | T7–T11 App 逻辑和演示 | 完成。一键诊断的数据收集（`diagnose.ts`）在演示网络上整套跑通：演示数据里几小时前有一次重新拨号，所以 WAN 和近期稳定性两段是警告 |
