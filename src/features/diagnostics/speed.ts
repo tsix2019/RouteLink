@@ -53,12 +53,13 @@ export function latencyStats(samples: number[]): LatencyStats | null {
 
 /**
  * Bits per second from cumulative byte counts over time, leaving out the first `warmupMs` (TCP slow
- * start) like the plugin does with its first second.
+ * start) like the plugin does with its first second. Counted from the last sample within the warm-up:
+ * on a slow uplink whole POSTs land seconds apart, and the first one after it would leave out their time.
  */
 export function rateOf(samples: { t: number; bytes: number }[], warmupMs = 1_000): number | null {
   if (samples.length < 2) return null;
   const start = samples[0].t + warmupMs;
-  const from = samples.find((s) => s.t >= start) ?? samples[0];
+  const from = samples.findLast((s) => s.t <= start) ?? samples[0];
   const to = samples[samples.length - 1];
   const dt = (to.t - from.t) / 1000;
   return dt > 0 ? ((to.bytes - from.bytes) * 8) / dt : null;
@@ -94,6 +95,12 @@ export interface SpeedOptions {
 
 const UPLOAD_CHUNK = 1 << 20;
 
+/** An error page measured as data would make a believable result. */
+function check(r: Response): Response {
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r;
+}
+
 /** Runs latency, then download, then upload; a failing phase leaves its value null with the reason. */
 export async function runPhoneSpeedtest(o: SpeedOptions, deps: SpeedDeps): Promise<SpeedResult> {
   const u = urls(o.server);
@@ -112,10 +119,12 @@ export async function runPhoneSpeedtest(o: SpeedOptions, deps: SpeedDeps): Promi
     const rtts: number[] = [];
     for (let i = 0; i < 10 && !o.signal?.aborted; i++) {
       const t0 = deps.now();
-      const r = await deps.fetch(`${u.ping}${u.ping.includes('?') ? '&' : '?'}r=${t0}-${i}`, {
-        cache: 'no-store',
-        signal: o.signal,
-      });
+      const r = check(
+        await deps.fetch(`${u.ping}${u.ping.includes('?') ? '&' : '?'}r=${t0}-${i}`, {
+          cache: 'no-store',
+          signal: o.signal,
+        }),
+      );
       await r.arrayBuffer();
       rtts.push(deps.now() - t0);
       o.onProgress?.('latency', (i + 1) / 10);
@@ -131,7 +140,7 @@ export async function runPhoneSpeedtest(o: SpeedOptions, deps: SpeedDeps): Promi
       'download',
       async (until, add, signal) => {
         while (deps.now() < until && !signal.aborted) {
-          const r = await deps.fetch(u.download, { cache: 'no-store', signal });
+          const r = check(await deps.fetch(u.download, { cache: 'no-store', signal }));
           const reader = r.body?.getReader();
           if (!reader) {
             add((await r.arrayBuffer()).byteLength);
@@ -160,12 +169,14 @@ export async function runPhoneSpeedtest(o: SpeedOptions, deps: SpeedDeps): Promi
       'upload',
       async (until, add, signal) => {
         while (deps.now() < until && !signal.aborted) {
-          const r = await deps.fetch(u.upload, {
-            method: 'POST',
-            body,
-            signal,
-            headers: { 'Content-Type': 'application/octet-stream' },
-          });
+          const r = check(
+            await deps.fetch(u.upload, {
+              method: 'POST',
+              body,
+              signal,
+              headers: { 'Content-Type': 'application/octet-stream' },
+            }),
+          );
           await r.arrayBuffer();
           add(body.byteLength);
         }
@@ -203,8 +214,15 @@ async function measure(
       o.onProgress?.(phase, Math.min(1, (t - start) / duration), rateOf(samples) ?? undefined);
     }
   };
-  const runs = Array.from({ length: streams }, () => worker(until, add, controller.signal).catch(() => undefined));
+  let failure: unknown;
+  const runs = Array.from({ length: streams }, () =>
+    worker(until, add, controller.signal).catch((error: unknown) => {
+      failure ??= error;
+    }),
+  );
   await Promise.all(runs);
+  // One stream failing midway still leaves a measurement; none getting through is the phase's error.
+  if (!bytes && failure !== undefined && !controller.signal.aborted) throw failure;
   samples.push({ t: deps.now(), bytes });
   return rateOf(samples);
 }
