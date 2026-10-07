@@ -135,8 +135,9 @@ describe('routelinkd accuracy', () => {
 
   it('history over the last hour adds up to the summary', async () => {
     await settle();
-    const end = now();
-    const start = Math.floor(end / 60) * 60 - 3600;
+    // a range ending at a past whole minute: samples taken between the two queries go to later minutes
+    const end = Math.floor(now() / 60) * 60;
+    const start = end - 3600;
     const h = await call<History>('history', { mac, start, end, class: 'all' });
     const s = await call<Summary>('summary', { start, end, class: 'all', limit: 500 });
     const fromHistory = h.points.reduce((sum, p) => sum + (p[1] ?? 0), 0);
