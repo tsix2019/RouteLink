@@ -1,3 +1,6 @@
+import { useRouter } from 'expo-router';
+import { Platform } from 'react-native';
+
 import { allowNotifications, notify, syncBackgroundCheck } from '@/features/background/task';
 import { useT } from '@/i18n';
 import { useRouters } from '@/state/routers';
@@ -5,7 +8,6 @@ import { useSettings } from '@/state/settings';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { Screen } from '@/ui/Screen';
 import { useToast } from '@/ui/Toast';
-import { pinWidget } from '@/widgets/update';
 
 /** AP-4 / AP-5 (design §19): which routers the background check watches, and what the widget shows. */
 export default function NotificationSettings() {
@@ -14,6 +16,7 @@ export default function NotificationSettings() {
   const routers = useRouters((s) => s.routers);
   const watched = useSettings((s) => s.notifyRouters);
   const set = useSettings((s) => s.set);
+  const nav = useRouter();
 
   const toggle = async (id: string, on: boolean) => {
     if (on && !(await allowNotifications())) {
@@ -33,11 +36,6 @@ export default function NotificationSettings() {
     await notify(t('settings:notify.testTitle'), t('settings:notify.testBody'));
   };
 
-  const pin = async () => {
-    const asked = await (pinWidget?.() ?? Promise.resolve(false)).catch(() => false);
-    if (!asked) toast(t('settings:notify.pinUnsupported'), 'warning');
-  };
-
   return (
     <Screen title={t('settings:notify.title')}>
       <ListSection title={t('settings:notify.section')} footer={t('settings:notify.footer')}>
@@ -55,16 +53,24 @@ export default function NotificationSettings() {
         ))}
         <ListRow title={t('settings:notify.test')} icon="bell" onPress={() => void test()} testID="notify-test" />
       </ListSection>
-      <ListSection title={t('settings:notify.widgetSection')} footer={t('settings:notify.widgetFooter')}>
-        <ListRow title={t('widget.name')} subtitle={t('widget.description')} icon="widget" />
-        {pinWidget ? (
+      <ListSection
+        title={t('settings:notify.widgetSection')}
+        footer={Platform.OS === 'android' ? undefined : t('settings:widgets.iosFooter')}>
+        {Platform.OS === 'android' ? (
           <ListRow
-            title={t('settings:notify.pin')}
-            icon="plus"
-            onPress={() => void pin()}
-            testID="widget-pin"
+            title={t('settings:widgets.title')}
+            icon="widget"
+            chevron
+            onPress={() => nav.push('/more/widgets')}
+            testID="notify-widgets"
           />
-        ) : null}
+        ) : (
+          <ListRow
+            title={t('widget.kinds.router.name')}
+            subtitle={t('widget.kinds.router.description')}
+            icon="widget"
+          />
+        )}
       </ListSection>
     </Screen>
   );

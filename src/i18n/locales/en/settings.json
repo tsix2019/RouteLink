@@ -34,14 +34,30 @@
     "testTitle": "RouteLink test notification",
     "testBody": "Notifications work.",
     "widgetSection": "Home Screen Widget",
-    "widgetFooter": "Add the RouteLink widget to your home screen for the current router's state, speed and devices online. It updates when the app is open and on background checks, so it may lag behind.",
-    "pin": "Add to Home Screen",
-    "pinUnsupported": "This launcher can't add widgets from the app: long-press an empty spot on the home screen and pick RouteLink from the widgets.",
     "offlineTitle": "{{router}} is unreachable",
     "offlineBody": "The background check could not reach the router: a power cut, no internet, or a restart.",
     "onlineTitle": "{{router}} is back",
     "onlineBody": "The router can be reached again.",
     "newDeviceTitle": "New device on {{router}}",
     "newDeviceBody": "{{name}} ({{mac}}) appeared on this router for the first time."
+  },
+  "widgets": {
+    "title": "Home Screen Widgets",
+    "intro": "Your router's state on the home screen. Tap ↻ on a widget to read the router right away; widgets also update when you open the app, on background checks and about every half hour.",
+    "add": "Add to Home Screen",
+    "added_one": "{{count}} on your home screen",
+    "added_other": "{{count}} on your home screen",
+    "addedToast": "Added to your home screen",
+    "noPassword": "The current router's password is not saved, so widgets cannot read it themselves: ↻ opens the app.",
+    "blockedTitle": "No prompt to add the widget?",
+    "blockedBody": "Your phone did not let RouteLink add to the home screen. Allow \"Home screen shortcuts\" (or \"Create shortcuts\"; on Xiaomi and Redmi under \"Other permissions\") in RouteLink's app permissions, then tap Add again. You can also long-press an empty spot on the home screen and add it from Widgets.",
+    "openPermission": "Open Permissions",
+    "manualTitle": "Add It from the Home Screen",
+    "manualBody": "This launcher can't add widgets from the app. Long-press an empty spot on the home screen, tap Widgets, find RouteLink and drag one onto the home screen.",
+    "manual": "How to Add by Hand",
+    "gotIt": "Got It",
+    "footer": "Widgets show the router the app opens on. On Xiaomi, vivo, OPPO, Huawei, Honor and similar phones, allow RouteLink to auto-start and run in the background, or widgets may stop updating once the app is closed.",
+    "iosFooter": "Touch and hold an empty spot on the home screen, tap Edit → Add Widget and find RouteLink. It updates when you open the app and on background checks, so it may lag behind.",
+    "previewUnavailable": "Preview unavailable"
   }
 }

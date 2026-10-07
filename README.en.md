@@ -22,7 +22,7 @@ RouteLink is a phone app for managing OpenWrt routers, for iOS and Android, in E
 - **Safe changes**: every change goes through OpenWrt's own apply-and-confirm mechanism — if the app can't reach the router afterwards, the router undoes the change after 90 seconds. Anything that can cut connections asks first, with graded risk warnings.
 - **SSH terminal**: the router's command line inside the app; you confirm the host key on first connection and the app stops if it ever changes; installs the app's own key on the router in one tap.
 - **AI assistant**: ask about your router with your own API key (Claude, OpenAI, DeepSeek, Qwen, or a local Ollama); it asks you before changing anything.
-- **Home-screen widget and alerts**: the current router's state, speed and devices online on your home screen; a notification when a router can't be reached, comes back, or sees a new device.
+- **Home-screen widgets and alerts**: the current router's state, speed and devices online on your home screen (Android adds five more: speed, devices online, system, WAN and shortcuts, with ↻ to refresh on the spot); a notification when a router can't be reached, comes back, or sees a new device.
 - **Demo mode**: try everything without a router, against a built-in simulated OpenWrt.
 - **Private**: no data collection; the app talks only to the routers you add, and to the AI provider you choose once you turn the assistant on.
 
@@ -143,6 +143,8 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ SSH terminal: password or key login, host key confirmed and pinned, a key bar (Esc, Tab, Ctrl, arrows), adjustable font size, finger scrolling, landscape; installs the app's public key on the router in one tap
 - ✅ AI assistant: Claude, OpenAI, DeepSeek, Qwen, Ollama or any OpenAI-compatible service, with your own API key; looks up status, devices and logs, and asks you in the chat before changing anything (kick or block a device, change Wi-Fi, add a port forward, restart a service or the router); you choose what is sent and whether it is masked; keeps several conversations per router, which you can search, rename and delete
 - ✅ Home-screen widget (iOS, Android): the current router's state, speed and devices online; tap to open the app
+  - Six on Android: router status, speed, devices online, system, WAN and shortcuts. ↻ on a widget reads the router in the background (with a saved password), and the system updates them about every half hour. Preview and add them in More → Home Screen Widgets
+  - Nothing happens when adding one from the app: Xiaomi, vivo, OPPO, Huawei, Honor and similar phones do not let apps add to the home screen until "Home screen shortcuts" is allowed in RouteLink's app permissions; the app says so and opens the settings page. Adding one from the launcher's widget picker always works
 - ✅ Background alerts: a router can't be reached, comes back, or sees a new device (per router, needs a saved password)
 - 🚧 Rate limits and quotas, destinations and DNS log, online/offline push notifications, Android live monitor (P4)
 
