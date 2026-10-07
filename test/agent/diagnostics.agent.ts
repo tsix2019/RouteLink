@@ -91,7 +91,6 @@ let savedTargets = '';
 let started = 0;
 
 beforeAll(async () => {
-  started = now();
   const info = await call<{ modules: string[]; capabilities: string[] }>('info');
   expect(info.capabilities).toEqual(expect.arrayContaining(['latency', 'speedtest']));
   expect(info.modules).toEqual(expect.arrayContaining(['latency', 'speedtest']));
@@ -107,6 +106,9 @@ beforeAll(async () => {
     const { summary } = await serverSummary();
     return summary && summary.sent - summary.lost >= 3 ? summary : undefined;
   });
+  // From here on: before the lab server was the target, the default ones may not answer at all (CI runners
+  // drop ICMP to the internet), which the daemon rightly logs as an outage of its own.
+  started = now();
 });
 
 afterAll(() => {
