@@ -56,6 +56,7 @@
     "stoppedTls": "The router's certificate has changed",
     "sec": "{s}s",
     "minSec": "{m}m {s}s",
-    "hourMin": "{h}h {m}m"
+    "hourMin": "{h}h {m}m",
+    "onlineLabel": "Online"
   }
 }

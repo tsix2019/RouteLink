@@ -25,6 +25,8 @@ class LiveTextsRecord : Record {
   @Field val sec: String = "{s}s"
   @Field val minSec: String = "{m}m {s}s"
   @Field val hourMin: String = "{h}h {m}m"
+  /** Label of the online-devices metric (Android 17 MetricStyle). */
+  @Field val onlineLabel: String = "Online"
 }
 
 class LiveSessionRecord : Record {
@@ -94,6 +96,7 @@ internal data class LiveTexts(
   val sec: String,
   val minSec: String,
   val hourMin: String,
+  val onlineLabel: String,
 )
 
 internal data class LiveSession(val endpoint: String, val sid: String, val cookie: String?)
@@ -128,7 +131,7 @@ internal data class LiveConfig(
 
 internal fun LiveTextsRecord.toTexts() = LiveTexts(
   channel, line, lineNoCount, top, connecting, offlineTitle, offlineText, offlineChip, recovered,
-  sessionExpired, error, stop, stoppedTitle, stoppedTls, sec, minSec, hourMin,
+  sessionExpired, error, stop, stoppedTitle, stoppedTls, sec, minSec, hourMin, onlineLabel,
 )
 
 internal fun LiveSessionRecord.toSession(): LiveSession? =

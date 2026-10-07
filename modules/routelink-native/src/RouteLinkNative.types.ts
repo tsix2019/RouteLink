@@ -119,6 +119,8 @@ export interface LiveMonitorTexts {
   sec: string;
   minSec: string;
   hourMin: string;
+  /** Label of the online-devices metric on Android 17 (MetricStyle). */
+  onlineLabel: string;
 }
 
 /** A JSON-RPC session the app logged in; the service never logs in itself. */

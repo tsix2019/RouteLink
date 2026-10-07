@@ -82,6 +82,7 @@ export function liveTexts(t: AppT): LiveMonitorTexts {
     sec: t('live:notification.sec'),
     minSec: t('live:notification.minSec'),
     hourMin: t('live:notification.hourMin'),
+    onlineLabel: t('live:notification.onlineLabel'),
   };
 }
 

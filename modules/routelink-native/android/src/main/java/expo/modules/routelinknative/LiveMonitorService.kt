@@ -304,8 +304,6 @@ class LiveMonitorService : Service() {
       .addAction(0, texts.stop, stopIntent())
       // Android 16 QPR+: a Live Update with a chip in the status bar (design §3.1). Harmless before.
       .setRequestPromotedOngoing(true)
-    // TODO(P4 T2, plan §0.9): Notification.MetricStyle (↓, ↑, online) on Android 17 needs compileSdk 37;
-    // the project builds with 36, so every version gets this BigText style for now.
     if (chip != null) builder.setShortCriticalText(chip)
     accent(cfg)?.let(builder::setColor)
     if (cfg.endsAt != null) {
@@ -313,7 +311,8 @@ class LiveMonitorService : Service() {
     } else {
       builder.setShowWhen(false)
     }
-    return builder.build()
+    // Android 17: ↓, ↑ and online as a MetricStyle (plan P4 §0.9) while the numbers are current.
+    return LiveMetrics.apply(this, builder.build(), if (status == "ok") sample else null, texts)
   }
 
   private fun placeholder(): Notification =
