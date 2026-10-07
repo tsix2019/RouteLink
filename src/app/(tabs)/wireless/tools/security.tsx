@@ -21,7 +21,7 @@ import { useGroupApply } from '@/features/wireless/useGroupApply';
 import { useClients, useGroupRadios } from '@/hooks/router-queries';
 import { useT } from '@/i18n';
 import { AppText } from '@/ui/AppText';
-import { EditSheet } from '@/ui/EditSheet';
+import { FormScreen } from '@/ui/FormScreen';
 import { Banner, EmptyState, Skeleton } from '@/ui/Feedback';
 import { GlassButton } from '@/ui/GlassButton';
 import { GlassCard } from '@/ui/GlassCard';
@@ -111,6 +111,20 @@ export default function Security() {
     }
   };
 
+  if (fixing) {
+    return (
+      <FixForm
+        check={fixing}
+        plan={(fixes, key, sync) => planFix(fixing, fixes, key, groupRadios, phoneOn, sync)}
+        onCancel={() => setFixing(null)}
+        onApply={(plan, key) => {
+          setFixing(null);
+          setPending({ check: fixing, plan, key });
+        }}
+      />
+    );
+  }
+
   return (
     <Screen title={t('wifitools:security.title')} onRefresh={() => groupRadios.forEach((g) => g.refetch())}>
       {unreachable.map((g) => (
@@ -146,17 +160,6 @@ export default function Security() {
         <EmptyState icon="wifiOff" title={t('wifitools:security.empty')} />
       )}
 
-      {fixing ? (
-        <FixSheet
-          check={fixing}
-          plan={(fixes, key, sync) => planFix(fixing, fixes, key, groupRadios, phoneOn, sync)}
-          onCancel={() => setFixing(null)}
-          onApply={(plan, key) => {
-            setFixing(null);
-            setPending({ check: fixing, plan, key });
-          }}
-        />
-      ) : null}
       <RiskConfirm
         visible={!!pending}
         level="medium"
@@ -315,8 +318,8 @@ function NetworkCard({
   );
 }
 
-/** The fixes to apply (all ticked at first), a new password when one is needed, and the SSID sync. */
-function FixSheet({
+/** The page for the fixes to apply (all ticked at first), a new password when one is needed, and the SSID sync. */
+function FixForm({
   check,
   plan,
   onCancel,
@@ -353,11 +356,11 @@ function FixSheet({
     });
 
   return (
-    <EditSheet
+    <FormScreen
       title={t('wifitools:security.sheetTitle', { ssid: check.ssid })}
+      dirty={false}
       saveLabel={t('wifitools:security.apply')}
       saveDisabled={!fixes.length || !!keyIssue || !result.steps.length}
-      onCancel={onCancel}
       onSave={() => onApply(result, needsKey ? key : undefined)}
       testID="security-sheet">
       <ListSection>
@@ -409,7 +412,8 @@ function FixSheet({
           />
         </ListSection>
       ) : null}
-    </EditSheet>
+      <GlassButton label={t('cancel')} onPress={onCancel} />
+    </FormScreen>
   );
 }
 

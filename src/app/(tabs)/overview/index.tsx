@@ -116,7 +116,7 @@ export default function Overview() {
       <GlassCard title={t('overview:actions.title')} icon="bolt" contentStyle={styles.actions}>
         <LiveMonitorButton
           latest={traffic.latest}
-          devicesOnline={devicesOnline}
+          devicesOnline={clients.data?.filter((c) => c.online).length}
           clients={clients.data}
           wanDevice={wan?.device}
         />

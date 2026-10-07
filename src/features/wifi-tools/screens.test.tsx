@@ -24,9 +24,11 @@ const mockPush = jest.fn();
 let mockParams: Record<string, string> = {};
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, back: jest.fn() }),
+  useNavigation: () => ({ dispatch: jest.fn() }),
   useIsFocused: () => true,
   useLocalSearchParams: () => mockParams,
 }));
+jest.mock('expo-router/react-navigation', () => ({ usePreventRemove: jest.fn() }));
 jest.mock('@/ui/Screen', () => {
   const { createElement } = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
