@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 
-import { deleteRule, limitChanges, validateLimit, type LimitRule } from '@/api/services/agent-rules';
+import { deleteRule, limitChanges, validateLimit, WEEKDAYS, type LimitRule } from '@/api/services/agent-rules';
 import { AgentGate } from '@/features/agent/AgentGate';
 import { fromWeekdays, toWeekdays } from '@/features/control/format';
 import { useApplyRules, usePluginModule, useRules } from '@/features/control/hooks';
@@ -63,7 +63,8 @@ function LimitForm({ mac, name, rule }: { mac: string; name: string; rule?: Limi
   const [down, setDown] = useState(toMbps(rule?.download ?? 0));
   const [up, setUp] = useState(toMbps(rule?.upload ?? 0));
   const [scheduled, setScheduled] = useState(!!(rule?.start || (rule?.weekdays.length ?? 0) > 0));
-  const [days, setDays] = useState(toWeekdays(rule?.weekdays ?? []));
+  // No weekdays stored means every day: show all seven ticked.
+  const [days, setDays] = useState(toWeekdays(rule?.weekdays.length ? rule.weekdays : [...WEEKDAYS]));
   const [from, setFrom] = useState(rule?.start ?? '20:00');
   const [to, setTo] = useState(rule?.stop ?? '23:00');
   const [showIssues, setShowIssues] = useState(false);
@@ -81,7 +82,8 @@ function LimitForm({ mac, name, rule }: { mac: string; name: string; rule?: Limi
     start: scheduled ? from : undefined,
     stop: scheduled ? to : undefined,
   };
-  const issues = validateLimit(draft);
+  const issues = validateLimit(draft, { pickedDays: scheduled ? days.length : undefined });
+  const scheduleIssue = showIssues ? (['weekdays', 'time'] as const).find((i) => issues.includes(i)) : undefined;
 
   const run = (changes: Parameters<typeof apply.mutate>[0], done: string) =>
     apply.mutate(changes, {
@@ -141,8 +143,8 @@ function LimitForm({ mac, name, rule }: { mac: string; name: string; rule?: Limi
           <DayPicker value={days} onChange={setDays} lang={lang} />
           <TimeField label={t('control:limit.from')} value={from} onChange={setFrom} />
           <TimeField label={t('control:limit.to')} value={to} onChange={setTo} />
-          <AppText variant="footnote" tone={showIssues && issues.includes('time') ? 'danger' : 'secondary'}>
-            {showIssues && issues.includes('time') ? t('control:limit.issues.time') : t('control:limit.overnightHint')}
+          <AppText variant="footnote" tone={scheduleIssue ? 'danger' : 'secondary'}>
+            {scheduleIssue ? t(`control:limit.issues.${scheduleIssue}`) : t('control:limit.overnightHint')}
           </AppText>
         </GlassCard>
       ) : null}

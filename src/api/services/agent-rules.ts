@@ -178,12 +178,17 @@ export type RuleIssue =
 
 const validTime = (t?: string) => !t || /^([01]\d|2[0-3]):[0-5]\d$/.test(t);
 
-export function validateLimit(r: LimitRule): RuleIssue[] {
+/**
+ * `pickedDays`: how many days a form's schedule ticks when the limit only applies at some times. The rule
+ * stores no weekdays for "every day", so none ticked must be caught here rather than saved as every day.
+ */
+export function validateLimit(r: LimitRule, o: { pickedDays?: number } = {}): RuleIssue[] {
   const issues: RuleIssue[] = [];
   if (!normalizeMac(r.mac)) issues.push('mac');
   if (r.download < 0 || r.upload < 0 || (r.download === 0 && r.upload === 0)) issues.push('rate');
   if (!validTime(r.start) || !validTime(r.stop) || !!r.start !== !!r.stop || (r.start && r.start === r.stop))
     issues.push('time');
+  if (o.pickedDays === 0) issues.push('weekdays');
   return issues;
 }
 

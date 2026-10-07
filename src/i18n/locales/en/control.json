@@ -24,7 +24,8 @@
     "issues": {
       "mac": "Not a valid MAC address",
       "rate": "Set a download or upload limit",
-      "time": "Set both times, and make them different"
+      "time": "Set both times, and make them different",
+      "weekdays": "Pick at least one day"
     }
   },
   "quota": {

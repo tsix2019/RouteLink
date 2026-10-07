@@ -83,6 +83,15 @@ describe('validation', () => {
     expect(validateLimit({ ...limit, mac: 'x' })).toEqual(['mac']);
   });
 
+  it('needs a day picked when the limit only applies at some times', () => {
+    const timed = { ...limit, start: '20:00', stop: '23:00' };
+    // Empty weekdays is "every day" in UCI; nothing ticked in the form must not turn into that.
+    expect(validateLimit(timed, { pickedDays: 0 })).toEqual(['weekdays']);
+    expect(validateLimit(timed, { pickedDays: 2 })).toEqual([]);
+    expect(validateLimit(timed, { pickedDays: 7 })).toEqual([]);
+    expect(validateLimit(timed)).toEqual([]);
+  });
+
   const quota: QuotaRule = {
     mac: 'AA:BB:CC:DD:EE:01',
     enabled: true,
