@@ -193,6 +193,65 @@ static void test_malformed(void)
 	}
 }
 
+/* Only host name characters are kept: markup in a lookup must never reach the log (and LuCI or the app). */
+static void test_odd_names(void)
+{
+	msg m;
+	rl_dns_msg d;
+	header(&m, 0x0100, 1, 0);
+	name(&m, "_DMARC.x-y.Example");
+	u16(&m, RL_DNS_A);
+	u16(&m, 1);
+	T_EQ_I64(rl_dns_parse(m.b, m.n, &d), 0);
+	T_EQ_STR(d.qname, "_dmarc.x-y.example");
+
+	const char *bad[] = { "<img src=x onerror=alert(1)>.evil.com", "a\"b.example", "it's.example", "a/b.example",
+			      "a b.example", "x&amp.example" };
+	for (size_t i = 0; i < sizeof(bad) / sizeof(bad[0]); i++) {
+		header(&m, 0x8180, 1, 0);
+		name(&m, bad[i]);
+		u16(&m, RL_DNS_A);
+		u16(&m, 1);
+		T_EQ_I64(rl_dns_parse(m.b, m.n, &d), -1);
+	}
+
+	/* A NUL byte in a label does not cut the name short before the check. */
+	header(&m, 0x8180, 1, 0);
+	u8(&m, 9);
+	memcpy(m.b + m.n, "ok\0<b>x</", 9);
+	m.n += 9;
+	u8(&m, 0);
+	u16(&m, RL_DNS_A);
+	u16(&m, 1);
+	T_EQ_I64(rl_dns_parse(m.b, m.n, &d), -1);
+
+	/* An odd CNAME target is left out; the addresses after it still count. */
+	header(&m, 0x8180, 1, 2);
+	name(&m, "www.example.com");
+	u16(&m, RL_DNS_A);
+	u16(&m, 1);
+	u16(&m, 0xc00c);
+	u16(&m, RL_DNS_CNAME);
+	u16(&m, 1);
+	u32(&m, 60);
+	size_t rdlen_at = m.n;
+	u16(&m, 0);
+	size_t target_at = m.n;
+	name(&m, "5.0/25.2.0.192.in-addr.arpa");
+	m.b[rdlen_at + 1] = (uint8_t)(m.n - target_at);
+	u16(&m, 0xc00c);
+	u16(&m, RL_DNS_A);
+	u16(&m, 1);
+	u32(&m, 60);
+	u16(&m, 4);
+	u32(&m, 0xc0000205);
+	T_EQ_I64(rl_dns_parse(m.b, m.n, &d), 0);
+	T_EQ_STR(d.qname, "www.example.com");
+	T_EQ_STR(d.cname, "");
+	T_EQ_I64(d.n_addrs, 1);
+	T_ASSERT(!d.truncated);
+}
+
 static void test_cache(void)
 {
 	rl_dns_cache *c = rl_dns_cache_new(8);
@@ -232,6 +291,7 @@ int main(void)
 	T_RUN(test_answer_with_compression);
 	T_RUN(test_aaaa_and_nxdomain);
 	T_RUN(test_malformed);
+	T_RUN(test_odd_names);
 	T_RUN(test_cache);
 	T_DONE();
 }

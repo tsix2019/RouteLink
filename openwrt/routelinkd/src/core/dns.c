@@ -61,6 +61,19 @@ static int read_name(const uint8_t *p, size_t len, size_t *off, char *out)
 	return 0;
 }
 
+/*
+ * Only what host names are made of: letters (already lower case), digits, '-', '_', '.' and '*'. A name with
+ * anything else is not kept, so markup a device puts into a lookup never reaches the log or a page.
+ */
+static bool host_chars(const char *s)
+{
+	for (; *s; s++)
+		if (!((*s >= 'a' && *s <= 'z') || (*s >= '0' && *s <= '9') || *s == '-' || *s == '_' || *s == '.' ||
+		      *s == '*'))
+			return false;
+	return true;
+}
+
 int rl_dns_parse(const uint8_t *p, size_t len, rl_dns_msg *m)
 {
 	memset(m, 0, sizeof(*m));
@@ -75,7 +88,7 @@ int rl_dns_parse(const uint8_t *p, size_t len, rl_dns_msg *m)
 	if (qd < 1)
 		return -1;
 	size_t off = 12;
-	if (read_name(p, len, &off, m->qname) < 0 || off + 4 > len)
+	if (read_name(p, len, &off, m->qname) < 0 || off + 4 > len || !host_chars(m->qname))
 		return -1;
 	m->qtype = be16(p + off);
 	off += 4;
@@ -114,7 +127,7 @@ int rl_dns_parse(const uint8_t *p, size_t len, rl_dns_msg *m)
 			a->ttl = ttl;
 		} else if (cls == 1 && type == RL_DNS_CNAME && !m->cname[0]) {
 			size_t at = off;
-			if (read_name(p, off + rdlen, &at, m->cname) < 0)
+			if (read_name(p, off + rdlen, &at, m->cname) < 0 || !host_chars(m->cname))
 				m->cname[0] = '\0';
 		}
 		off += rdlen;

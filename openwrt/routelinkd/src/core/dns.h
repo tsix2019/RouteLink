@@ -26,8 +26,9 @@ typedef struct {
 	bool response;
 	uint8_t rcode;
 	uint16_t qtype;
+	/* Lower case, only letters, digits and "-_.*": a question with any other byte fails to parse. */
 	char qname[RL_DNS_NAME_MAX + 1];
-	/* First CNAME target in the answer, "" when none. */
+	/* First CNAME target in the answer (same characters), "" when none. */
 	char cname[RL_DNS_NAME_MAX + 1];
 	int n_addrs;
 	rl_dns_addr addrs[RL_DNS_MAX_ADDRS];
