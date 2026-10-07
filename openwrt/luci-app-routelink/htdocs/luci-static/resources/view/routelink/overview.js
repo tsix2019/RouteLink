@@ -33,7 +33,8 @@ return view.extend({
 				[ _('Last write to disk'), info.last_commit ? rl.formatTime(info.last_commit) : _('Not yet') ],
 				[ _('Data directory'), info.data_dir ]
 			].map(function(r) {
-				return E('tr', { 'class': 'tr' }, [ E('td', { 'class': 'td left', width: '33%' }, r[0]), E('td', { 'class': 'td left' }, r[1]) ]);
+				return E('tr', { 'class': 'tr' }, [ E('td', { 'class': 'td left', width: '33%' }, r[0]),
+					E('td', { 'class': 'td left' }, [ r[1] != null ? r[1] : '-' ]) ]);
 			}))
 		]);
 
@@ -72,7 +73,7 @@ return view.extend({
 				var dev = byMac[d.mac] || d;
 				return E('tr', { 'class': 'tr' }, [
 					E('td', { 'class': 'td left' }, E('a', { href: L.url('admin/services/routelink/traffic') + '?mac=' + encodeURIComponent(d.mac) },
-						rl.deviceLabel(dev))),
+						[ rl.deviceLabel(dev) ])),
 					E('td', { 'class': 'td left' }, '↓ ' + rl.formatBytes(d.rx)),
 					E('td', { 'class': 'td left' }, '↑ ' + rl.formatBytes(d.tx)),
 					E('td', { 'class': 'td left', width: '30%' }, rl.bar(d.rx + d.tx, total))

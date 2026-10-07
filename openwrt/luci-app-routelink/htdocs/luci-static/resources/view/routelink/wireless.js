@@ -117,8 +117,8 @@ return view.extend({
 		].concat(st.interfaces.length ? st.interfaces.map(function(i) {
 			noiseOf[i.ifname] = i.noise;
 			return E('tr', { 'class': 'tr' }, [
-				E('td', { 'class': 'td' }, i.ssid || '-'),
-				E('td', { 'class': 'td' }, '%s (%s)'.format(i.ifname, i.phy)),
+				E('td', { 'class': 'td' }, [ i.ssid || '-' ]),
+				E('td', { 'class': 'td' }, [ '%s (%s)'.format(i.ifname, i.phy) ]),
 				E('td', { 'class': 'td' }, '%d (%s, %d MHz)'.format(i.channel, rl.bandOf(i.freq), i.freq)),
 				E('td', { 'class': 'td' }, i.width ? i.width + ' MHz' : '-'),
 				E('td', { 'class': 'td' }, i.noise != null ? i.noise + ' dBm' : '-'),
@@ -141,12 +141,12 @@ return view.extend({
 			var retry = s.tx_retries != null && s.tx_packets ? (s.tx_retries / (s.tx_retries + s.tx_packets) * 100).toFixed(1) + '%' : '-';
 			return E('tr', { 'class': 'tr', style: 'cursor:pointer' + (self.state.selected === s.mac ? ';font-weight:bold' : ''),
 				click: function() { self.select(s.mac); } }, [
-				E('td', { 'class': 'td' }, [ self.label(s.mac), E('br'), E('small', {}, s.mac) ]),
+				E('td', { 'class': 'td' }, [ self.label(s.mac), E('br'), E('small', {}, [ s.mac ]) ]),
 				E('td', { 'class': 'td' }, rl.gradeBadge(s.signal, noise)),
 				E('td', { 'class': 'td' }, noise != null && s.signal != null ? (s.signal - noise) + ' dB' : '-'),
-				E('td', { 'class': 'td' }, '%s (%s)'.format(s.ifname, rl.bandOf(s.freq))),
+				E('td', { 'class': 'td' }, [ '%s (%s)'.format(s.ifname, rl.bandOf(s.freq)) ]),
 				E('td', { 'class': 'td' }, '↓ %s / ↑ %s'.format(rl.formatKbit(s.tx_rate), rl.formatKbit(s.rx_rate))),
-				E('td', { 'class': 'td' }, mode || '-'),
+				E('td', { 'class': 'td' }, [ mode || '-' ]),
 				E('td', { 'class': 'td' }, retry),
 				E('td', { 'class': 'td' }, rl.formatDuration(s.connected_sec))
 			]);
@@ -190,7 +190,7 @@ return view.extend({
 				])
 			]));
 		}).catch(function(e) {
-			self.historyBox.replaceChildren(E('p', {}, e.message));
+			self.historyBox.replaceChildren(E('p', {}, [ e.message ]));
 		});
 	},
 
@@ -205,7 +205,7 @@ return view.extend({
 		};
 		var rows = sv.radios.map(function(r) {
 			return E('tr', { 'class': 'tr' }, [
-				E('td', { 'class': 'td' }, '%s (%s)'.format(r.phy, r.ifname)),
+				E('td', { 'class': 'td' }, [ '%s (%s)'.format(r.phy, r.ifname) ]),
 				E('td', { 'class': 'td' }, '%d (%s, %d MHz)'.format(r.channel, rl.bandOf(r.freq), r.freq)),
 				E('td', { 'class': 'td' }, _('In use')),
 				E('td', { 'class': 'td' }, r.noise != null ? r.noise + ' dBm' : '-'),
@@ -213,7 +213,7 @@ return view.extend({
 			]);
 		}).concat(sv.channels.slice().sort(function(a, b) { return a.freq - b.freq; }).map(function(c) {
 			return E('tr', { 'class': 'tr' }, [
-				E('td', { 'class': 'td' }, c.phy),
+				E('td', { 'class': 'td' }, [ c.phy ]),
 				E('td', { 'class': 'td' }, '%d (%s, %d MHz)'.format(c.channel, rl.bandOf(c.freq), c.freq)),
 				E('td', { 'class': 'td' }, _('Scanned')),
 				E('td', { 'class': 'td' }, c.noise != null ? c.noise + ' dBm' : '-'),

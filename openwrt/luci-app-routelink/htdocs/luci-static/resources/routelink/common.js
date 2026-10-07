@@ -333,7 +333,7 @@ function destinationTable(list, limit) {
 	list.forEach(function(d) { total += d.rx + d.tx; });
 	var rows = list.slice(0, limit || list.length).map(function(d) {
 		return E('tr', { 'class': 'tr' }, [
-			E('td', { 'class': 'td left' }, d.host ? [ E('strong', {}, d.host), E('br'), E('small', {}, d.ip) ] : d.ip),
+			E('td', { 'class': 'td left' }, d.host ? [ E('strong', {}, [ d.host ]), E('br'), E('small', {}, [ d.ip ]) ] : [ d.ip ]),
 			E('td', { 'class': 'td left' }, formatBytes(d.rx)),
 			E('td', { 'class': 'td left' }, formatBytes(d.tx)),
 			E('td', { 'class': 'td left' }, String(d.conns)),
@@ -357,10 +357,10 @@ function dnsTable(records, byMac) {
 		var result = r.rcode !== 'NOERROR' ? r.rcode : r.answers.length ? r.answers.join(', ') : _('no address');
 		return E('tr', { 'class': 'tr' }, [
 			E('td', { 'class': 'td left', style: 'white-space:nowrap' }, formatTime(r.ts)),
-			byMac ? E('td', { 'class': 'td left' }, deviceLabel(byMac[r.mac] || { mac: r.mac })) : E([]),
-			E('td', { 'class': 'td left', style: 'word-break:break-all' }, r.name),
-			E('td', { 'class': 'td left' }, r.type),
-			E('td', { 'class': 'td left', style: 'word-break:break-all' }, result)
+			byMac ? E('td', { 'class': 'td left' }, [ deviceLabel(byMac[r.mac] || { mac: r.mac }) ]) : E([]),
+			E('td', { 'class': 'td left', style: 'word-break:break-all' }, [ r.name ]),
+			E('td', { 'class': 'td left' }, [ r.type ]),
+			E('td', { 'class': 'td left', style: 'word-break:break-all' }, [ result ])
 		]);
 	});
 	return E('table', { 'class': 'table' }, [
@@ -379,7 +379,9 @@ function csv(rows) {
 	return bom + rows.map(function(r) {
 		return r.map(function(c) {
 			c = c == null ? '' : String(c);
-			return /[",\r\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c;
+			/* jsmin in the LuCI build reads a regular expression right after return as a division */
+			var quote = /[",\r\n]/.test(c);
+			return quote ? '"' + c.replace(/"/g, '""') + '"' : c;
 		}).join(',');
 	}).join('\r\n') + '\r\n';
 }
@@ -444,7 +446,7 @@ return baseclass.extend({
 		return callInit('nlbwmon', 'stop')
 			.then(function() { return callInit('nlbwmon', 'disable'); })
 			.then(function() { location.reload(); })
-			.catch(function(e) { ui.addNotification(null, E('p', {}, e.message), 'error'); });
+			.catch(function(e) { ui.addNotification(null, E('p', {}, [ e.message ]), 'error'); });
 	},
 
 	/* Warnings shared by the overview and traffic pages. */

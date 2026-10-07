@@ -30,7 +30,8 @@ function macOption(s, devices, byMac) {
 	rl.deviceChoices(o, devices);
 	o.textvalue = function(section_id) {
 		var mac = (this.cfgvalue(section_id) || '').toUpperCase();
-		return mac ? rl.deviceLabel(byMac[mac] || { mac: mac }) : '-';
+		/* a table cell takes the text value as HTML */
+		return mac ? '%h'.format(rl.deviceLabel(byMac[mac] || { mac: mac })) : '-';
 	};
 	o.write = function(section_id, value) {
 		return form.Value.prototype.write.call(this, section_id, String(value).toUpperCase());
@@ -41,7 +42,7 @@ function macOption(s, devices, byMac) {
 /* A choice's label instead of its value in the table. */
 function listText(section_id) {
 	var v = this.cfgvalue(section_id) || this.default, i = this.keylist.indexOf(v);
-	return i >= 0 ? this.vallist[i] : v;
+	return '%h'.format(i >= 0 ? this.vallist[i] : v);
 }
 
 function rateOption(s, name, title) {
@@ -77,7 +78,7 @@ return view.extend({
 				E('th', { 'class': 'th' }, '')
 			])
 		].concat(quotas.map(function(q) {
-			var state = E('span', { style: 'color:' + (STATE_COLORS[q.state] || 'inherit') }, STATES[q.state] || q.state);
+			var state = E('span', { style: 'color:' + (STATE_COLORS[q.state] || 'inherit') }, [ STATES[q.state] || q.state ]);
 			var actions = [];
 			if (q.state === 'exceeded' || q.state === 'warned')
 				actions.push(
@@ -86,9 +87,9 @@ return view.extend({
 					E('button', { 'class': 'btn cbi-button', click: ui.createHandlerFn(self, 'allow', q.section, 'period') },
 						_('Until the period ends')));
 			return E('tr', { 'class': 'tr' }, [
-				E('td', { 'class': 'td left' }, rl.deviceLabel(self.byMac[q.mac] || { mac: q.mac })),
-				E('td', { 'class': 'td left' }, '%s · %s – %s'.format(PERIODS[q.period] || q.period,
-					rl.formatTime(q.period_start), rl.formatTime(q.period_end))),
+				E('td', { 'class': 'td left' }, [ rl.deviceLabel(self.byMac[q.mac] || { mac: q.mac }) ]),
+				E('td', { 'class': 'td left' }, [ '%s · %s – %s'.format(PERIODS[q.period] || q.period,
+					rl.formatTime(q.period_start), rl.formatTime(q.period_end)) ]),
 				E('td', { 'class': 'td left', style: 'min-width:160px' }, [
 					'%s / %s (%s%%)'.format(rl.formatBytes(q.used), rl.formatBytes(q.limit), q.pct), rl.bar(Math.min(q.used, q.limit), q.limit,
 						STATE_COLORS[q.state])
@@ -106,7 +107,7 @@ return view.extend({
 		return rl.quotaAllow(section, until).then(function() {
 			return self.refreshQuotas();
 		}).catch(function(e) {
-			ui.addNotification(null, E('p', {}, _('Failed: %s').format(e.message)), 'error');
+			ui.addNotification(null, E('p', {}, [ _('Failed: %s').format(e.message) ]), 'error');
 		});
 	},
 
@@ -161,7 +162,7 @@ return view.extend({
 			return validTime(value) ? true : _('Enter a time such as 20:00');
 		};
 		o.textvalue = function(section_id) {
-			return this.cfgvalue(section_id) || _('all day');
+			return '%h'.format(this.cfgvalue(section_id) || _('all day'));
 		};
 		o = s.option(form.Value, 'stop_time', _('Until'), _('HH:MM'));
 		o.placeholder = '23:00';
@@ -174,7 +175,7 @@ return view.extend({
 			return start && start === value ? _('The window cannot end when it starts') : true;
 		};
 		o.textvalue = function(section_id) {
-			return this.cfgvalue(section_id) || '';
+			return '%h'.format(this.cfgvalue(section_id) || '');
 		};
 
 		s = m.section(form.GridSection, 'quota', _('Data quotas'),
@@ -216,7 +217,7 @@ return view.extend({
 		o.retain = true;
 
 		o = s.option(form.Value, 'limit_mb', _('Quota (MB)'), _('1 GB = 1024 MB'));
-		o.datatype = 'min(1)';
+		o.datatype = 'and(uinteger,range(1,2147483647))'; /* the daemon reads whole MB into an int */
 		o.rmempty = false;
 		o.textvalue = function(section_id) {
 			var mb = +this.cfgvalue(section_id) || 0;
@@ -249,8 +250,8 @@ return view.extend({
 			var notes = [];
 			if (info.limits_error)
 				notes.push(E('div', { 'class': 'alert-message warning' }, [
-					E('p', {}, _('Limits or blocking could not be set up: %s').format(info.limits_error)),
-					E('p', {}, _('Speed limits need the kernel modules of kmod-sched-core, kmod-sched-flower and kmod-sched-act-police, and tc (tc-tiny).'))
+					E('p', {}, [ _('Limits or blocking could not be set up: %s').format(info.limits_error) ]),
+					E('p', {}, _('Speed limits need the kernel modules of kmod-ifb, kmod-sched-core and kmod-sched-flower, and tc (tc-tiny).'))
 				]));
 			if (info.offload === 'hardware')
 				notes.push(E('div', { 'class': 'alert-message notice' },

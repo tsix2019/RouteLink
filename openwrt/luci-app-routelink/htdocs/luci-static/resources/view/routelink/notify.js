@@ -56,13 +56,13 @@ return view.extend({
 		]);
 		return rl.notifyTest(section_id).then(function(r) {
 			ui.showModal(_('Test message'), [
-				E('p', {}, r.ok ? _('Sent. Check that it arrived.') : _('Sending failed: %s').format(r.error || '?')),
+				E('p', {}, [ r.ok ? _('Sent. Check that it arrived.') : _('Sending failed: %s').format(r.error || '?') ]),
 				E('div', { 'class': 'right' }, E('button', { 'class': 'btn', click: ui.hideModal }, _('Close')))
 			]);
 			return self.refreshStatus();
 		}).catch(function(e) {
 			ui.showModal(_('Test message'), [
-				E('p', {}, e.message === 'Not found' ? _('Save the channel first.') : _('Sending failed: %s').format(e.message)),
+				E('p', {}, [ e.message === 'Not found' ? _('Save the channel first.') : _('Sending failed: %s').format(e.message) ]),
 				E('div', { 'class': 'right' }, E('button', { 'class': 'btn', click: ui.hideModal }, _('Close')))
 			]);
 		});
@@ -84,8 +84,9 @@ return view.extend({
 		if (!c || (!c.last_ok && !c.last_error_ts))
 			return E('span', {}, _('Nothing sent yet'));
 		if (c.last_error_ts > c.last_ok)
-			return E('span', { style: 'color:#d9534f', title: c.last_error }, _('Failed %s: %s').format(rl.formatTime(c.last_error_ts), c.last_error));
-		return E('span', { style: 'color:#2e9e44' }, _('Sent %s').format(rl.formatTime(c.last_ok)));
+			return E('span', { style: 'color:#d9534f', title: c.last_error },
+				[ _('Failed %s: %s').format(rl.formatTime(c.last_error_ts), c.last_error) ]);
+		return E('span', { style: 'color:#2e9e44' }, [ _('Sent %s').format(rl.formatTime(c.last_ok)) ]);
 	},
 
 	render: function(data) {
@@ -129,7 +130,10 @@ return view.extend({
 		o = s.option(form.ListValue, 'type', _('Service'));
 		TYPES.forEach(function(t) { o.value(t[0], t[1]); });
 		o.default = 'bark';
-		o.textvalue = function(section_id) { return typeLabel(this.cfgvalue(section_id)); };
+		o.textvalue = function(section_id) {
+			var v = this.cfgvalue(section_id);
+			return v != null ? '%h'.format(typeLabel(v)) : null;
+		};
 
 		o = s.option(form.Value, 'url', _('Address'),
 			_('Webhook URL; the Bark server (empty: api.day.app); the robot webhook of WeCom, DingTalk or Feishu.'));
@@ -192,7 +196,8 @@ return view.extend({
 		rl.deviceChoices(o, devices);
 		o.textvalue = function(section_id) {
 			var mac = (this.cfgvalue(section_id) || '').toUpperCase();
-			return mac ? rl.deviceLabel(byMac[mac] || { mac: mac }) : '-';
+			/* a table cell takes the text value as HTML */
+			return mac ? '%h'.format(rl.deviceLabel(byMac[mac] || { mac: mac })) : '-';
 		};
 		o.write = function(section_id, value) {
 			return form.Value.prototype.write.call(this, section_id, String(value).toUpperCase());

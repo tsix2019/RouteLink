@@ -77,20 +77,20 @@ return view.extend({
 
 		o = s.option(form.Value, 'max_size_mb', _('Maximum size (MB)'));
 		o.default = '32';
-		o.datatype = 'range(1,4096)';
+		o.datatype = 'and(uinteger,range(1,4096))';
 
 		o = s.option(form.Value, 'max_size_percent', _('Maximum share of free space (%)'));
 		o.default = '10';
-		o.datatype = 'range(1,90)';
+		o.datatype = 'and(uinteger,range(1,90))';
 
 		o = s.option(form.Value, 'sample_interval', _('Sampling interval (seconds)'),
 			_('While nobody watches live rates. Totals are exact at any interval.'));
 		o.default = '30';
-		o.datatype = 'range(5,300)';
+		o.datatype = 'and(uinteger,range(5,300))';
 
 		o = s.option(form.Value, 'live_interval', _('Live sampling interval (seconds)'));
 		o.default = '2';
-		o.datatype = 'range(1,10)';
+		o.datatype = 'and(uinteger,range(1,10))';
 
 		s = m.section(form.NamedSection, 'probe', 'probe', _('Latency probes'),
 			_('Only on a gateway. Every 10 seconds the router pings each target; an outage is when none of the targets answers three rounds in a row.'));
@@ -122,40 +122,40 @@ return view.extend({
 		};
 		o = s.option(form.Value, 'streams', _('Parallel connections'));
 		o.default = '4';
-		o.datatype = 'range(1,8)';
+		o.datatype = 'and(uinteger,range(1,8))';
 		o = s.option(form.Value, 'duration', _('Seconds per direction'));
 		o.default = '10';
-		o.datatype = 'range(5,30)';
+		o.datatype = 'and(uinteger,range(5,30))';
 
 		s = m.section(form.NamedSection, 'retention', 'retention', _('Retention'));
 		s.addremove = false;
 		o = s.option(form.Value, 'minute_hours', _('Per-minute data (hours)'));
 		o.default = '48';
-		o.datatype = 'range(2,336)';
+		o.datatype = 'and(uinteger,range(2,336))';
 		o = s.option(form.Value, 'hour_days', _('Hourly data (days)'));
 		o.default = '90';
-		o.datatype = 'range(2,3660)';
+		o.datatype = 'and(uinteger,range(2,3660))';
 		o = s.option(form.Value, 'day_days', _('Daily data (days)'));
 		o.default = '730';
-		o.datatype = 'range(62,36600)';
+		o.datatype = 'and(uinteger,range(62,36600))';
 		o = s.option(form.Value, 'event_days', _('Events (days)'));
 		o.default = '90';
-		o.datatype = 'range(1,3660)';
+		o.datatype = 'and(uinteger,range(1,3660))';
 		o = s.option(form.Value, 'signal_minute_days', _('Per-minute signal data (days)'));
 		o.default = '7';
-		o.datatype = 'range(1,90)';
+		o.datatype = 'and(uinteger,range(1,90))';
 		o = s.option(form.Value, 'signal_hour_days', _('Hourly signal data (days)'));
 		o.default = '30';
-		o.datatype = 'range(1,3660)';
+		o.datatype = 'and(uinteger,range(1,3660))';
 		o = s.option(form.Value, 'latency_minute_days', _('Per-minute latency data (days)'));
 		o.default = '7';
-		o.datatype = 'range(1,90)';
+		o.datatype = 'and(uinteger,range(1,90))';
 		o = s.option(form.Value, 'latency_hour_days', _('Hourly latency data (days)'));
 		o.default = '90';
-		o.datatype = 'range(1,3660)';
+		o.datatype = 'and(uinteger,range(1,3660))';
 		o = s.option(form.Value, 'outage_days', _('Outage log (days)'));
 		o.default = '365';
-		o.datatype = 'range(1,3660)';
+		o.datatype = 'and(uinteger,range(1,3660))';
 
 		return m.render().then(function(node) {
 			var data = E('div', { 'class': 'cbi-section' }, [

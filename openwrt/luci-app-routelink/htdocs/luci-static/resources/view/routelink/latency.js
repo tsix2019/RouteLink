@@ -226,7 +226,7 @@ return view.extend({
 				return;
 			self.renderLatency(r[0], r[1], start, end);
 		}).catch(function(e) {
-			self.chartBox.replaceChildren(E('p', {}, e.message));
+			self.chartBox.replaceChildren(E('p', {}, [ e.message ]));
 		});
 	},
 
@@ -302,7 +302,7 @@ return view.extend({
 				E('td', { 'class': 'td' }, rl.formatTime(o.start)),
 				E('td', { 'class': 'td' }, o.ongoing ? E('strong', { style: 'color:#d9534f' }, _('Ongoing')) : rl.formatTime(o.end)),
 				E('td', { 'class': 'td' }, rl.formatDuration(o.duration)),
-				E('td', { 'class': 'td' }, CAUSES[o.cause] || o.cause)
+				E('td', { 'class': 'td' }, [ CAUSES[o.cause] || o.cause ])
 			]);
 		}) : [ E('tr', { 'class': 'tr placeholder' }, E('td', { 'class': 'td' }, _('No outages in this range.'))) ])));
 	},
@@ -317,7 +317,7 @@ return view.extend({
 		var button = E('button', { 'class': 'btn cbi-button cbi-button-action', disabled: running ? '' : null,
 			click: ui.createHandlerFn(this, 'startSpeedtest') }, _('Start speed test'));
 		var progress = running ? E('div', { style: 'flex:1;min-width:200px' }, [
-			E('div', {}, '%s · %d%%'.format(PHASES[running.phase] || running.phase, Math.round(running.progress * 100))),
+			E('div', {}, [ '%s · %d%%'.format(PHASES[running.phase] || running.phase, Math.round(running.progress * 100)) ]),
 			rl.bar(running.progress * 100, 100)
 		]) : E([]);
 		this.speedBox.replaceChildren(E('div', { style: 'display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:8px' }, [
@@ -328,12 +328,12 @@ return view.extend({
 		var rows = (st.results || []).map(function(r) {
 			return E('tr', { 'class': 'tr' }, [
 				E('td', { 'class': 'td' }, rl.formatTime(r.ts)),
-				E('td', { 'class': 'td' }, r.server || 'Cloudflare'),
+				E('td', { 'class': 'td' }, [ r.server || 'Cloudflare' ]),
 				E('td', { 'class': 'td' }, ms(r.latency_ms)),
 				E('td', { 'class': 'td' }, ms(r.jitter_ms)),
 				E('td', { 'class': 'td' }, bps(r.down_bps)),
 				E('td', { 'class': 'td' }, bps(r.up_bps)),
-				E('td', { 'class': 'td' }, r.error ? E('span', { style: 'color:#d9534f' }, r.error) : '')
+				E('td', { 'class': 'td' }, r.error ? E('span', { style: 'color:#d9534f' }, [ r.error ]) : '')
 			]);
 		});
 		this.speedHistory.replaceChildren(E('table', { 'class': 'table' }, [
@@ -358,7 +358,7 @@ return view.extend({
 		return rl.speedtestStart().then(function(r) {
 			self.follow(r.id);
 		}).catch(function(e) {
-			ui.addNotification(null, E('p', {}, _('The speed test could not start: %s').format(e.message)), 'error');
+			ui.addNotification(null, E('p', {}, [ _('The speed test could not start: %s').format(e.message) ]), 'error');
 		});
 	},
 
@@ -376,7 +376,7 @@ return view.extend({
 				}
 				self.state.run = null;
 				if (r.error)
-					ui.addNotification(null, E('p', {}, _('The speed test failed: %s').format(r.error)), 'warning');
+					ui.addNotification(null, E('p', {}, [ _('The speed test failed: %s').format(r.error) ]), 'warning');
 				return L.resolveDefault(rl.speedtestStatus(), null).then(function(st) { self.renderSpeed(st); });
 			}).catch(function() {
 				self.state.run = null;

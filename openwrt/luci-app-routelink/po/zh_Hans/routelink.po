@@ -845,8 +845,8 @@ msgstr "限速"
 msgid "Speed limits and data quotas per device. Limits work on the LAN ports of the router, also with software offloading; traffic in hardware offloading passes by them."
 msgstr "按设备设置限速和流量配额。限速作用在路由器的 LAN 口上，开着软件加速也有效；走硬件加速的流量不受限制。"
 
-msgid "Speed limits need the kernel modules of kmod-sched-core, kmod-sched-flower and kmod-sched-act-police, and tc (tc-tiny)."
-msgstr "限速需要 kmod-sched-core、kmod-sched-flower、kmod-sched-act-police 里的内核模块，以及 tc（tc-tiny）。"
+msgid "Speed limits need the kernel modules of kmod-ifb, kmod-sched-core and kmod-sched-flower, and tc (tc-tiny)."
+msgstr "限速需要 kmod-ifb、kmod-sched-core、kmod-sched-flower 里的内核模块，以及 tc（tc-tiny）。"
 
 msgid "Speed test"
 msgstr "测速"

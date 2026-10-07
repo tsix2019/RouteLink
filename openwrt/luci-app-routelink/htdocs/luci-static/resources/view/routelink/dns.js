@@ -41,10 +41,10 @@ return view.extend({
 			_('Off by default. When on, the router keeps every name each device looks up, with the answer, and per hour the 100 busiest destinations of each device, for the days set below. Only on a gateway.'));
 		o.rmempty = false;
 		o = s.option(form.Value, 'keep_days', _('Keep (days)'));
-		o.datatype = 'range(1,365)';
+		o.datatype = 'and(uinteger,range(1,365))';
 		o.placeholder = '7';
 		o = s.option(form.Value, 'max_records', _('At most (DNS records)'));
-		o.datatype = 'range(1000,1000000)';
+		o.datatype = 'and(uinteger,range(1000,1000000))';
 		o.placeholder = '100000';
 
 		var deviceSelect = E('select', { 'class': 'cbi-input-select', change: function(ev) {
@@ -55,7 +55,7 @@ return view.extend({
 			return d.mac.indexOf(':') > 0;
 		}).map(function(d) {
 			var label = rl.deviceLabel(d);
-			return E('option', { value: d.mac }, label === d.mac ? d.mac : '%s (%s)'.format(label, d.mac));
+			return E('option', { value: d.mac }, [ label === d.mac ? d.mac : '%s (%s)'.format(label, d.mac) ]);
 		})));
 		var rangeSelect = E('select', { 'class': 'cbi-input-select', change: function(ev) {
 			self.state.range = ev.target.value;
@@ -93,9 +93,13 @@ return view.extend({
 		]);
 
 		return m.render().then(function(node) {
+			/* the 0.1 daemon lists no capabilities and has no log to show */
+			if ((info.capabilities || []).indexOf('dns') < 0) {
+				node.appendChild(E('div', { 'class': 'alert-message notice' }, _('This plugin version cannot record DNS lookups.')));
+				return node;
+			}
 			if (!info.dns_enabled)
-				node.appendChild(E('div', { 'class': 'alert-message notice' }, info.capabilities.indexOf('dns') < 0 ?
-					_('This plugin version cannot record DNS lookups.') :
+				node.appendChild(E('div', { 'class': 'alert-message notice' },
 					_('DNS logging is off. What was recorded before is still shown below.')));
 			node.appendChild(log);
 			self.refresh();
@@ -141,7 +145,7 @@ return view.extend({
 				self.pager.replaceChildren.apply(self.pager, buttons);
 			}
 		}).catch(function(e) {
-			ui.addNotification(null, E('p', {}, _('Query failed: %s').format(e.message)), 'error');
+			ui.addNotification(null, E('p', {}, [ _('Query failed: %s').format(e.message) ]), 'error');
 		});
 	}
 });

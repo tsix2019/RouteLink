@@ -1,7 +1,7 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8"
 
-#: htdocs/luci-static/resources/view/routelink/dns.js:131
+#: htdocs/luci-static/resources/view/routelink/dns.js:135
 msgid "%d lookups, newest first."
 msgstr ""
 
@@ -13,7 +13,7 @@ msgstr ""
 msgid "0 = automatic: 60 minutes on flash, 10 minutes on disks and USB. Data since the last write is lost on power failure."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:218
+#: htdocs/luci-static/resources/view/routelink/limits.js:219
 msgid "1 GB = 1024 MB"
 msgstr ""
 
@@ -45,7 +45,7 @@ msgstr ""
 msgid "90 days"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:158
+#: htdocs/luci-static/resources/view/routelink/notify.js:162
 msgid "A number, or @channel"
 msgstr ""
 
@@ -65,19 +65,19 @@ msgstr ""
 msgid "Access points"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:113
+#: htdocs/luci-static/resources/view/routelink/notify.js:114
 msgid "Add channel"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:185
+#: htdocs/luci-static/resources/view/routelink/limits.js:186
 msgid "Add quota"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:133
+#: htdocs/luci-static/resources/view/routelink/limits.js:134
 msgid "Add speed limit"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:134
+#: htdocs/luci-static/resources/view/routelink/notify.js:138
 msgid "Address"
 msgstr ""
 
@@ -85,7 +85,7 @@ msgstr ""
 msgid "All"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:164
+#: htdocs/luci-static/resources/view/routelink/limits.js:165
 msgid "all day"
 msgstr ""
 
@@ -109,7 +109,7 @@ msgstr ""
 msgid "At most 8 targets"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:104
+#: htdocs/luci-static/resources/view/routelink/notify.js:105
 msgid "Automatic (as LuCI; Chinese in the time zones of China)"
 msgstr ""
 
@@ -125,15 +125,15 @@ msgstr ""
 msgid "averaged over %d min"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:152
+#: htdocs/luci-static/resources/view/routelink/notify.js:156
 msgid "Bark device key, ServerChan SendKey, PushPlus token or Telegram bot token."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/overview.js:52
+#: htdocs/luci-static/resources/view/routelink/overview.js:53
 msgid "Blue: download, orange: upload. Updated every 2 seconds."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/dns.js:126
+#: htdocs/luci-static/resources/view/routelink/dns.js:130
 msgid "Busiest destinations, %s – %s."
 msgstr ""
 
@@ -165,15 +165,15 @@ msgstr ""
 msgid "Channel utilisation"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:109
+#: htdocs/luci-static/resources/view/routelink/notify.js:110
 msgid "Channels"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:158
+#: htdocs/luci-static/resources/view/routelink/notify.js:162
 msgid "Chat ID"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/dns.js:122
+#: htdocs/luci-static/resources/view/routelink/dns.js:126
 msgid "Choose a device to see where it goes."
 msgstr ""
 
@@ -249,7 +249,7 @@ msgstr ""
 msgid "Connected"
 msgstr ""
 
-#: htdocs/luci-static/resources/routelink/common.js:454
+#: htdocs/luci-static/resources/routelink/common.js:456
 msgid "Connection accounting (nf_conntrack_acct) is off: device traffic reads 0."
 msgstr ""
 
@@ -257,7 +257,7 @@ msgstr ""
 msgid "Connections"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:226
+#: htdocs/luci-static/resources/view/routelink/limits.js:227
 msgid "Counts"
 msgstr ""
 
@@ -269,7 +269,7 @@ msgstr ""
 msgid "Custom…"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:233
+#: htdocs/luci-static/resources/view/routelink/limits.js:234
 msgid "Cut off the internet"
 msgstr ""
 
@@ -297,7 +297,7 @@ msgstr ""
 msgid "Data directory"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:180
+#: htdocs/luci-static/resources/view/routelink/limits.js:181
 msgid "Data quotas"
 msgstr ""
 
@@ -305,7 +305,7 @@ msgstr ""
 msgid "day"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:148
+#: htdocs/luci-static/resources/view/routelink/limits.js:149
 msgid "Days"
 msgstr ""
 
@@ -321,11 +321,11 @@ msgstr ""
 msgid "Destinations and DNS lookups"
 msgstr ""
 
-#: htdocs/luci-static/resources/routelink/common.js:369 htdocs/luci-static/resources/view/routelink/dns.js:89 htdocs/luci-static/resources/view/routelink/limits.js:27 htdocs/luci-static/resources/view/routelink/limits.js:73 htdocs/luci-static/resources/view/routelink/notify.js:189 htdocs/luci-static/resources/view/routelink/traffic.js:225 htdocs/luci-static/resources/view/routelink/traffic.js:273 htdocs/luci-static/resources/view/routelink/traffic.js:329 htdocs/luci-static/resources/view/routelink/wireless.js:156
+#: htdocs/luci-static/resources/routelink/common.js:369 htdocs/luci-static/resources/view/routelink/dns.js:89 htdocs/luci-static/resources/view/routelink/limits.js:27 htdocs/luci-static/resources/view/routelink/limits.js:74 htdocs/luci-static/resources/view/routelink/notify.js:193 htdocs/luci-static/resources/view/routelink/traffic.js:225 htdocs/luci-static/resources/view/routelink/traffic.js:273 htdocs/luci-static/resources/view/routelink/traffic.js:329 htdocs/luci-static/resources/view/routelink/wireless.js:156
 msgid "Device"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/overview.js:61 htdocs/luci-static/resources/view/routelink/traffic.js:271
+#: htdocs/luci-static/resources/view/routelink/overview.js:62 htdocs/luci-static/resources/view/routelink/traffic.js:271
 msgid "devices online"
 msgstr ""
 
@@ -337,7 +337,7 @@ msgstr ""
 msgid "DNS logging is off."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/dns.js:99
+#: htdocs/luci-static/resources/view/routelink/dns.js:103
 msgid "DNS logging is off. What was recorded before is still shown below."
 msgstr ""
 
@@ -353,15 +353,15 @@ msgstr ""
 msgid "Download (bytes)"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:141
+#: htdocs/luci-static/resources/view/routelink/limits.js:142
 msgid "Download (kbit/s)"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:227
+#: htdocs/luci-static/resources/view/routelink/limits.js:228
 msgid "Download and upload"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:228
+#: htdocs/luci-static/resources/view/routelink/limits.js:229
 msgid "Download only"
 msgstr ""
 
@@ -369,7 +369,7 @@ msgstr ""
 msgid "Duration"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:127
+#: htdocs/luci-static/resources/view/routelink/notify.js:128
 msgid "e.g. my phone"
 msgstr ""
 
@@ -381,7 +381,7 @@ msgstr ""
 msgid "Enable"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:135 htdocs/luci-static/resources/view/routelink/limits.js:187 htdocs/luci-static/resources/view/routelink/notify.js:121
+#: htdocs/luci-static/resources/view/routelink/limits.js:136 htdocs/luci-static/resources/view/routelink/limits.js:188 htdocs/luci-static/resources/view/routelink/notify.js:122
 msgid "Enabled"
 msgstr ""
 
@@ -389,11 +389,11 @@ msgstr ""
 msgid "End"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:161
+#: htdocs/luci-static/resources/view/routelink/limits.js:162
 msgid "Enter a time such as 20:00"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:171
+#: htdocs/luci-static/resources/view/routelink/limits.js:172
 msgid "Enter a time such as 23:00"
 msgstr ""
 
@@ -401,11 +401,11 @@ msgstr ""
 msgid "Enter an absolute path such as /mnt/usb/routelink"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:142 htdocs/luci-static/resources/view/routelink/settings.js:121
+#: htdocs/luci-static/resources/view/routelink/notify.js:146 htdocs/luci-static/resources/view/routelink/settings.js:121
 msgid "Enter an http:// or https:// address"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:169
+#: htdocs/luci-static/resources/view/routelink/notify.js:173
 msgid "Events"
 msgstr ""
 
@@ -417,7 +417,7 @@ msgstr ""
 msgid "Every 10 seconds the router pings each target; no answer within 2 seconds counts as lost. An outage is when none of the targets except the WAN next hop answers three rounds in a row. Red bars: loss, red shading: outages, grey: no data."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:150 htdocs/luci-static/resources/view/routelink/limits.js:154
+#: htdocs/luci-static/resources/view/routelink/limits.js:151 htdocs/luci-static/resources/view/routelink/limits.js:155
 msgid "Every day"
 msgstr ""
 
@@ -433,11 +433,11 @@ msgstr ""
 msgid "Export CSV"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:87
+#: htdocs/luci-static/resources/view/routelink/notify.js:88
 msgid "Failed %s: %s"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:109
+#: htdocs/luci-static/resources/view/routelink/limits.js:110
 msgid "Failed: %s"
 msgstr ""
 
@@ -461,7 +461,7 @@ msgstr ""
 msgid "Fri"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:158 htdocs/luci-static/resources/view/routelink/traffic.js:132
+#: htdocs/luci-static/resources/view/routelink/limits.js:159 htdocs/luci-static/resources/view/routelink/traffic.js:132
 msgid "From"
 msgstr ""
 
@@ -481,15 +481,15 @@ msgstr ""
 msgid "Hardware"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:257
+#: htdocs/luci-static/resources/view/routelink/limits.js:258
 msgid "Hardware offloading is on: offloaded connections are neither limited nor counted for quotas. Turn it off (software offloading is fine) for limits to apply."
 msgstr ""
 
-#: htdocs/luci-static/resources/routelink/common.js:456
+#: htdocs/luci-static/resources/routelink/common.js:458
 msgid "Hardware offloading is on: offloaded traffic may not be counted."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:158 htdocs/luci-static/resources/view/routelink/limits.js:166
+#: htdocs/luci-static/resources/view/routelink/limits.js:159 htdocs/luci-static/resources/view/routelink/limits.js:167
 msgid "HH:MM"
 msgstr ""
 
@@ -525,7 +525,7 @@ msgstr ""
 msgid "Internet outages (sent when it is back)"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:181
+#: htdocs/luci-static/resources/view/routelink/limits.js:182
 msgid "Internet traffic per day, week or month in the router time zone. At 80 % a push message goes out (if set up); at 100 % the device is cut off from the internet (the local network keeps working) or slowed down, until the next period or until you let it through."
 msgstr ""
 
@@ -537,7 +537,7 @@ msgstr ""
 msgid "Jitter"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:145
+#: htdocs/luci-static/resources/view/routelink/notify.js:149
 msgid "JSON template"
 msgstr ""
 
@@ -549,15 +549,15 @@ msgstr ""
 msgid "Kept across firmware upgrades. Moving it starts with empty data: existing files are not copied."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:151
+#: htdocs/luci-static/resources/view/routelink/notify.js:155
 msgid "Key or token"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:101
+#: htdocs/luci-static/resources/view/routelink/notify.js:102
 msgid "Language"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:103
+#: htdocs/luci-static/resources/view/routelink/notify.js:104
 msgid "Language of the messages"
 msgstr ""
 
@@ -573,7 +573,7 @@ msgstr ""
 msgid "Last hour"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:178
+#: htdocs/luci-static/resources/view/routelink/notify.js:182
 msgid "Last message"
 msgstr ""
 
@@ -617,11 +617,11 @@ msgstr ""
 msgid "Let through"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:85
+#: htdocs/luci-static/resources/view/routelink/limits.js:86
 msgid "Let through for an hour"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:125
+#: htdocs/luci-static/resources/view/routelink/limits.js:126
 msgid "Limits & quotas"
 msgstr ""
 
@@ -629,7 +629,7 @@ msgstr ""
 msgid "Limits & Quotas"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:252
+#: htdocs/luci-static/resources/view/routelink/limits.js:253
 msgid "Limits or blocking could not be set up: %s"
 msgstr ""
 
@@ -669,7 +669,7 @@ msgstr ""
 msgid "Measuring latency"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:185
+#: htdocs/luci-static/resources/view/routelink/notify.js:189
 msgid "Messages for \"Watched devices come and go\" are about these devices; trusted ones are not flagged as unknown in the app."
 msgstr ""
 
@@ -681,7 +681,7 @@ msgstr ""
 msgid "Mon"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:209
+#: htdocs/luci-static/resources/view/routelink/limits.js:210
 msgid "Month starts on day"
 msgstr ""
 
@@ -689,7 +689,7 @@ msgstr ""
 msgid "Monthly"
 msgstr ""
 
-#: htdocs/luci-static/resources/routelink/common.js:370 htdocs/luci-static/resources/view/routelink/notify.js:126
+#: htdocs/luci-static/resources/routelink/common.js:370 htdocs/luci-static/resources/view/routelink/notify.js:127
 msgid "Name"
 msgstr ""
 
@@ -705,11 +705,11 @@ msgstr ""
 msgid "New devices"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/dns.js:137
+#: htdocs/luci-static/resources/view/routelink/dns.js:141
 msgid "Newer"
 msgstr ""
 
-#: htdocs/luci-static/resources/routelink/common.js:461
+#: htdocs/luci-static/resources/routelink/common.js:463
 msgid "nlbwmon is running and resets the connection counters this plugin reads."
 msgstr ""
 
@@ -745,7 +745,7 @@ msgstr ""
 msgid "No outages in this range."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:70
+#: htdocs/luci-static/resources/view/routelink/limits.js:71
 msgid "No quota is set up."
 msgstr ""
 
@@ -769,7 +769,7 @@ msgstr ""
 msgid "No traffic right now."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/overview.js:68
+#: htdocs/luci-static/resources/view/routelink/overview.js:69
 msgid "No traffic yet today."
 msgstr ""
 
@@ -813,7 +813,7 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/dns.js:140
+#: htdocs/luci-static/resources/view/routelink/dns.js:144
 msgid "Older"
 msgstr ""
 
@@ -845,11 +845,11 @@ msgstr ""
 msgid "Only these hours of each day"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:163
+#: htdocs/luci-static/resources/view/routelink/notify.js:167
 msgid "Optional: the robot signature secret (SEC…)"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:146
+#: htdocs/luci-static/resources/view/routelink/notify.js:150
 msgid "Optional. {title} and {body} are replaced; empty sends {\"title\": …, \"body\": …}."
 msgstr ""
 
@@ -893,7 +893,7 @@ msgstr ""
 msgid "Per-minute signal data (days)"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:74 htdocs/luci-static/resources/view/routelink/limits.js:194
+#: htdocs/luci-static/resources/view/routelink/limits.js:75 htdocs/luci-static/resources/view/routelink/limits.js:195
 msgid "Period"
 msgstr ""
 
@@ -913,23 +913,23 @@ msgstr ""
 msgid "Push"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:98
+#: htdocs/luci-static/resources/view/routelink/notify.js:99
 msgid "Push messages"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:208
+#: htdocs/luci-static/resources/view/routelink/notify.js:213
 msgid "Push messages are sent by a gateway; this router is not one."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/dns.js:144 htdocs/luci-static/resources/view/routelink/traffic.js:181 htdocs/luci-static/resources/view/routelink/traffic.js:320
+#: htdocs/luci-static/resources/view/routelink/dns.js:148 htdocs/luci-static/resources/view/routelink/traffic.js:181 htdocs/luci-static/resources/view/routelink/traffic.js:320
 msgid "Query failed: %s"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:218
+#: htdocs/luci-static/resources/view/routelink/limits.js:219
 msgid "Quota (MB)"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:265
+#: htdocs/luci-static/resources/view/routelink/limits.js:266
 msgid "Quota use"
 msgstr ""
 
@@ -937,7 +937,7 @@ msgstr ""
 msgid "Quotas at 80 % and used up"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:260
+#: htdocs/luci-static/resources/view/routelink/limits.js:261
 msgid "Quotas need traffic accounting, which only runs on a gateway."
 msgstr ""
 
@@ -957,7 +957,7 @@ msgstr ""
 msgid "Rate (to / from device)"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:129
+#: htdocs/luci-static/resources/view/routelink/limits.js:130
 msgid "Rates in kbit/s (8000 = 8 Mbit/s), 0 or empty = not limited. Without days the rule applies every day; without times the whole day. A time window that ends before it starts runs past midnight."
 msgstr ""
 
@@ -981,7 +981,7 @@ msgstr ""
 msgid "Role"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/overview.js:42 htdocs/luci-static/resources/view/routelink/overview.js:84 root/usr/share/luci/menu.d/luci-app-routelink.json
+#: htdocs/luci-static/resources/view/routelink/overview.js:43 htdocs/luci-static/resources/view/routelink/overview.js:85 root/usr/share/luci/menu.d/luci-app-routelink.json
 msgid "RouteLink"
 msgstr ""
 
@@ -1025,7 +1025,7 @@ msgstr ""
 msgid "selected hours only"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:116
+#: htdocs/luci-static/resources/view/routelink/notify.js:117
 msgid "Send a test message"
 msgstr ""
 
@@ -1037,7 +1037,7 @@ msgstr ""
 msgid "Sending… (at most 15 seconds)"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:88
+#: htdocs/luci-static/resources/view/routelink/notify.js:89
 msgid "Sent %s"
 msgstr ""
 
@@ -1053,15 +1053,15 @@ msgstr ""
 msgid "ServerChan"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:129
+#: htdocs/luci-static/resources/view/routelink/notify.js:130
 msgid "Service"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:144
+#: htdocs/luci-static/resources/view/routelink/limits.js:145
 msgid "Set a download or an upload limit"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:173
+#: htdocs/luci-static/resources/view/routelink/limits.js:174
 msgid "Set both times or neither"
 msgstr ""
 
@@ -1093,19 +1093,19 @@ msgstr ""
 msgid "Signal, rates and channel busy time of wireless stations. Only active on an access point (a wireless interface in AP mode)."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:163
+#: htdocs/luci-static/resources/view/routelink/notify.js:167
 msgid "Signing secret"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:234
+#: htdocs/luci-static/resources/view/routelink/limits.js:235
 msgid "Slow down"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:238
+#: htdocs/luci-static/resources/view/routelink/limits.js:239
 msgid "Slowed download (kbit/s)"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:241
+#: htdocs/luci-static/resources/view/routelink/limits.js:242
 msgid "Slowed upload (kbit/s)"
 msgstr ""
 
@@ -1117,16 +1117,16 @@ msgstr ""
 msgid "Software"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:128
+#: htdocs/luci-static/resources/view/routelink/limits.js:129
 msgid "Speed limits"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:126
+#: htdocs/luci-static/resources/view/routelink/limits.js:127
 msgid "Speed limits and data quotas per device. Limits work on the LAN ports of the router, also with software offloading; traffic in hardware offloading passes by them."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:253
-msgid "Speed limits need the kernel modules of kmod-sched-core, kmod-sched-flower and kmod-sched-act-police, and tc (tc-tiny)."
+#: htdocs/luci-static/resources/view/routelink/limits.js:254
+msgid "Speed limits need the kernel modules of kmod-ifb, kmod-sched-core and kmod-sched-flower, and tc (tc-tiny)."
 msgstr ""
 
 #: htdocs/luci-static/resources/view/routelink/latency.js:198 htdocs/luci-static/resources/view/routelink/settings.js:113
@@ -1145,7 +1145,7 @@ msgstr ""
 msgid "Start speed test"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:76
+#: htdocs/luci-static/resources/view/routelink/limits.js:77
 msgid "State"
 msgstr ""
 
@@ -1157,7 +1157,7 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: htdocs/luci-static/resources/routelink/common.js:462
+#: htdocs/luci-static/resources/routelink/common.js:464
 msgid "Stop and disable nlbwmon"
 msgstr ""
 
@@ -1181,7 +1181,7 @@ msgstr ""
 msgid "Targets"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:117
+#: htdocs/luci-static/resources/view/routelink/notify.js:118
 msgid "Test"
 msgstr ""
 
@@ -1201,11 +1201,11 @@ msgstr ""
 msgid "The provider's first router, taken from the default route. It shows problems of the line itself and does not count for outages."
 msgstr ""
 
-#: htdocs/luci-static/resources/routelink/common.js:458
+#: htdocs/luci-static/resources/routelink/common.js:460
 msgid "The router clock is not synchronised yet; data is kept in memory until it is."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:99
+#: htdocs/luci-static/resources/view/routelink/notify.js:100
 msgid "The router sends these itself, also while no phone has the app open. Several events within a minute arrive as one message; a failed message is tried again three times."
 msgstr ""
 
@@ -1221,15 +1221,15 @@ msgstr ""
 msgid "The test uses the applied settings: save and apply changes first."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:174
+#: htdocs/luci-static/resources/view/routelink/limits.js:175
 msgid "The window cannot end when it starts"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:98
+#: htdocs/luci-static/resources/view/routelink/limits.js:99
 msgid "then cut off"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:98
+#: htdocs/luci-static/resources/view/routelink/limits.js:99
 msgid "then slowed down"
 msgstr ""
 
@@ -1253,7 +1253,7 @@ msgstr ""
 msgid "This router is not a gateway, so there is no WAN to probe."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/overview.js:43 htdocs/luci-static/resources/view/routelink/traffic.js:37
+#: htdocs/luci-static/resources/view/routelink/overview.js:44 htdocs/luci-static/resources/view/routelink/traffic.js:37
 msgid "This router is not a gateway, so traffic accounting is off."
 msgstr ""
 
@@ -1277,7 +1277,7 @@ msgstr ""
 msgid "Today"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/overview.js:66
+#: htdocs/luci-static/resources/view/routelink/overview.js:67
 msgid "Top devices today"
 msgstr ""
 
@@ -1301,7 +1301,7 @@ msgstr ""
 msgid "Traffic class"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:202
+#: htdocs/luci-static/resources/view/routelink/notify.js:207
 msgid "Trusted"
 msgstr ""
 
@@ -1321,15 +1321,15 @@ msgstr ""
 msgid "unlimited"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:166
+#: htdocs/luci-static/resources/view/routelink/limits.js:167
 msgid "Until"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:97
+#: htdocs/luci-static/resources/view/routelink/limits.js:98
 msgid "until %s"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:87
+#: htdocs/luci-static/resources/view/routelink/limits.js:88
 msgid "Until the period ends"
 msgstr ""
 
@@ -1341,7 +1341,7 @@ msgstr ""
 msgid "Upload (bytes)"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:146
+#: htdocs/luci-static/resources/view/routelink/limits.js:147
 msgid "Upload (kbit/s)"
 msgstr ""
 
@@ -1349,7 +1349,7 @@ msgstr ""
 msgid "Upstream (provider or beyond)"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:75
+#: htdocs/luci-static/resources/view/routelink/limits.js:76
 msgid "Used"
 msgstr ""
 
@@ -1381,15 +1381,15 @@ msgstr ""
 msgid "WAN next hop"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/overview.js:50
+#: htdocs/luci-static/resources/view/routelink/overview.js:51
 msgid "WAN now"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:200
+#: htdocs/luci-static/resources/view/routelink/notify.js:205
 msgid "Watch"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:184
+#: htdocs/luci-static/resources/view/routelink/notify.js:188
 msgid "Watched devices"
 msgstr ""
 
@@ -1401,7 +1401,7 @@ msgstr ""
 msgid "Webhook"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/notify.js:135
+#: htdocs/luci-static/resources/view/routelink/notify.js:139
 msgid "Webhook URL; the Bark server (empty: api.day.app); the robot webhook of WeCom, DingTalk or Feishu."
 msgstr ""
 
@@ -1413,7 +1413,7 @@ msgstr ""
 msgid "Wed"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:201
+#: htdocs/luci-static/resources/view/routelink/limits.js:202
 msgid "Week starts on"
 msgstr ""
 
@@ -1425,7 +1425,7 @@ msgstr ""
 msgid "went offline"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/routelink/limits.js:232
+#: htdocs/luci-static/resources/view/routelink/limits.js:233
 msgid "When used up"
 msgstr ""
 
