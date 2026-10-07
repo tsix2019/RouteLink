@@ -14,7 +14,7 @@ define Package/routelinkd
   CATEGORY:=Network
   TITLE:=RouteLink per-device traffic, wireless, latency and limits
   URL:=https://github.com/tsix2019/RouteLink
-  DEPENDS:=+libubox +libubus +libuci +libblobmsg-json +libjson-c +libmnl +kmod-nf-conntrack-netlink +uclient-fetch +tc-tiny +kmod-sched-core +kmod-sched-flower +kmod-sched-act-police +ca-bundle
+  DEPENDS:=+libubox +libubus +libuci +libblobmsg-json +libjson-c +libmnl +kmod-nf-conntrack-netlink +uclient-fetch +tc-tiny +kmod-sched-core +kmod-sched-flower +kmod-ifb +ca-bundle
 endef
 
 define Package/routelinkd/description

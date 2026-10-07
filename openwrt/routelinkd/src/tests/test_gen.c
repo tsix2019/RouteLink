@@ -11,7 +11,7 @@ static void test_tc_script(void)
 		{ { 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x02 }, 0, 500 },
 		{ { 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x03 }, 1000, 0 },
 	};
-	size_t len = rl_tc_script(out, sizeof(out), "phy0-ap0", r, 3);
+	size_t len = rl_tc_script(out, sizeof(out), "phy0-ap0", RL_TC_IFB, r, 3);
 	T_ASSERT(len != (size_t)-1);
 	T_EQ_STR(out, "qdisc add dev phy0-ap0 root handle 1: htb default 1\n"
 		      "class add dev phy0-ap0 parent 1: classid 1:1 htb rate 10gbit quantum 1514\n"
@@ -20,21 +20,34 @@ static void test_tc_script(void)
 		      "class add dev phy0-ap0 parent 1: classid 1:12 htb rate 1000kbit ceil 1000kbit quantum 1514\n"
 		      "filter add dev phy0-ap0 parent 1: protocol all prio 1 flower dst_mac aa:bb:cc:dd:ee:03 classid 1:12\n"
 		      "qdisc add dev phy0-ap0 clsact\n"
-		      "filter add dev phy0-ap0 ingress protocol all prio 1 flower src_mac aa:bb:cc:dd:ee:01 action police "
-		      "rate 2000kbit burst 131072 mtu 65536 conform-exceed drop\n"
-		      "filter add dev phy0-ap0 ingress protocol all prio 1 flower src_mac aa:bb:cc:dd:ee:02 action police "
-		      "rate 500kbit burst 131072 mtu 65536 conform-exceed drop\n");
+		      "filter add dev phy0-ap0 ingress protocol all prio 1 flower src_mac aa:bb:cc:dd:ee:01 "
+		      "action mirred egress redirect dev rl-ifb0\n"
+		      "filter add dev phy0-ap0 ingress protocol all prio 1 flower src_mac aa:bb:cc:dd:ee:02 "
+		      "action mirred egress redirect dev rl-ifb0\n");
 	T_EQ_U64(len, strlen(out));
 
+	/* The uploads on the ifb: a class per device by source MAC. */
+	len = rl_tc_ifb_script(out, sizeof(out), RL_TC_IFB, r, 3);
+	T_EQ_STR(out, "qdisc add dev rl-ifb0 root handle 1: htb default 1\n"
+		      "class add dev rl-ifb0 parent 1: classid 1:1 htb rate 10gbit quantum 1514\n"
+		      "class add dev rl-ifb0 parent 1: classid 1:10 htb rate 2000kbit ceil 2000kbit quantum 1514\n"
+		      "filter add dev rl-ifb0 parent 1: protocol all prio 1 flower src_mac aa:bb:cc:dd:ee:01 classid 1:10\n"
+		      "class add dev rl-ifb0 parent 1: classid 1:11 htb rate 500kbit ceil 500kbit quantum 1514\n"
+		      "filter add dev rl-ifb0 parent 1: protocol all prio 1 flower src_mac aa:bb:cc:dd:ee:02 classid 1:11\n");
+	T_EQ_U64(len, strlen(out));
+
+	/* Without the ifb only the downloads are limited. */
+	rl_tc_script(out, sizeof(out), "lan1", NULL, r, 3);
+	T_ASSERT(strstr(out, "clsact") == NULL);
+	T_ASSERT(strstr(out, "dst_mac aa:bb:cc:dd:ee:03") != NULL);
+
 	/* Nothing to limit: nothing to set up, the clear script does the rest. */
-	T_EQ_U64(rl_tc_script(out, sizeof(out), "lan1", NULL, 0), 0);
+	T_EQ_U64(rl_tc_script(out, sizeof(out), "lan1", RL_TC_IFB, NULL, 0), 0);
 	T_EQ_STR(out, "");
+	T_EQ_U64(rl_tc_ifb_script(out, sizeof(out), RL_TC_IFB, &r[2], 1), 0); /* download only */
 	rl_tc_clear_script(out, sizeof(out), "lan1");
 	T_EQ_STR(out, "qdisc del dev lan1 root handle 1: htb\nqdisc del dev lan1 clsact\n");
-	T_EQ_U64(rl_tc_script(out, 40, "lan1", r, 3), (size_t)-1);
-	T_EQ_U64(rl_tc_burst(1000000), 12500000); /* 1 Gbit/s: 100 ms */
-	T_EQ_U64(rl_tc_burst(20000), 250000);
-	T_EQ_U64(rl_tc_burst(8000), RL_TC_BURST_MIN);
+	T_EQ_U64(rl_tc_script(out, 40, "lan1", RL_TC_IFB, r, 3), (size_t)-1);
 }
 
 static void test_nft_script(void)

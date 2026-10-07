@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include <libmnl/libmnl.h>
+#include <linux/if_link.h>
 #include <linux/pkt_sched.h>
 #include <linux/rtnetlink.h>
 
@@ -21,16 +22,18 @@ typedef struct {
 	unsigned gen;    /* rules generation set up on it, 0 = none of ours */
 	unsigned failed; /* generation whose setup failed on it */
 	bool dirty;      /* something of ours may be on it: clear before setting up */
+	bool upload;     /* its setup redirects uploads to the ifb */
 } port_t;
 
 struct rl_shaper {
 	char marker[128];
 	port_t ports[RL_SHAPER_MAX_PORTS];
 	int n_ports;
+	port_t ifb; /* the shared upload device; dirty = it exists */
 	rl_tc_rule *rules;
 	size_t n_rules;
 	unsigned gen;
-	char error[200];
+	char error[200], ifb_error[200];
 	char *script;
 	size_t script_size;
 };
@@ -75,6 +78,71 @@ static void write_marker(const rl_shaper *s)
 	rename(tmp, s->marker);
 }
 
+/* ---- the ifb device (rtnetlink) ---- */
+
+/* Sends one request and waits for its acknowledgement: 0 or -errno. */
+static int rtnl_request(struct nlmsghdr *nlh)
+{
+	char buf[MNL_SOCKET_BUFFER_SIZE];
+	struct mnl_socket *nl = mnl_socket_open2(NETLINK_ROUTE, SOCK_CLOEXEC);
+	int rc = -EIO;
+	if (!nl)
+		return -errno;
+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0)
+		goto out;
+	nlh->nlmsg_flags |= NLM_F_REQUEST | NLM_F_ACK;
+	nlh->nlmsg_seq = (unsigned)time(NULL);
+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
+		rc = -errno;
+		goto out;
+	}
+	ssize_t r = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+	if (r < 0) {
+		rc = -errno;
+		goto out;
+	}
+	rc = mnl_cb_run(buf, (size_t)r, nlh->nlmsg_seq, mnl_socket_get_portid(nl), NULL, NULL) < 0 ? -errno : 0;
+out:
+	mnl_socket_close(nl);
+	return rc;
+}
+
+/* Creates the ifb (or finds it) and sets it up: 0 or -errno. */
+static int ifb_create(void)
+{
+	char buf[512];
+	struct nlmsghdr *nlh = mnl_nlmsg_put_header(buf);
+	unsigned idx = if_nametoindex(RL_TC_IFB);
+	nlh->nlmsg_type = RTM_NEWLINK;
+	nlh->nlmsg_flags = idx ? 0 : NLM_F_CREATE | NLM_F_EXCL;
+	struct ifinfomsg *ifm = mnl_nlmsg_put_extra_header(nlh, sizeof(*ifm));
+	ifm->ifi_family = AF_UNSPEC;
+	ifm->ifi_index = (int)idx;
+	ifm->ifi_flags = IFF_UP;
+	ifm->ifi_change = IFF_UP;
+	if (!idx) {
+		mnl_attr_put_strz(nlh, IFLA_IFNAME, RL_TC_IFB);
+		struct nlattr *info = mnl_attr_nest_start(nlh, IFLA_LINKINFO);
+		mnl_attr_put_strz(nlh, IFLA_INFO_KIND, "ifb");
+		mnl_attr_nest_end(nlh, info);
+	}
+	return rtnl_request(nlh);
+}
+
+static void ifb_delete(void)
+{
+	char buf[256];
+	unsigned idx = if_nametoindex(RL_TC_IFB);
+	if (!idx)
+		return;
+	struct nlmsghdr *nlh = mnl_nlmsg_put_header(buf);
+	nlh->nlmsg_type = RTM_DELLINK;
+	struct ifinfomsg *ifm = mnl_nlmsg_put_extra_header(nlh, sizeof(*ifm));
+	ifm->ifi_family = AF_UNSPEC;
+	ifm->ifi_index = (int)idx;
+	rtnl_request(nlh);
+}
+
 /* ---- tc ---- */
 
 static int run_tc(const char *script, size_t len, bool force, char *out, size_t out_size)
@@ -106,24 +174,44 @@ static void ensure_buffer(rl_shaper *s)
 	}
 }
 
-static void clear_port(rl_shaper *s, port_t *p)
+static void clear_dev(rl_shaper *s, port_t *p)
 {
 	char out[256];
 	ensure_buffer(s);
 	size_t n = GENERATE(s, rl_tc_clear_script(s->script, s->script_size, p->name));
 	run_tc(s->script, n, true, out, sizeof(out)); /* fails where nothing was set up: fine */
-	p->dirty = false;
 	p->gen = 0;
 }
 
-/* Clear, then set up the current rules. */
-static bool apply_port(rl_shaper *s, port_t *p)
+static void clear_port(rl_shaper *s, port_t *p)
+{
+	clear_dev(s, p);
+	p->dirty = false;
+}
+
+/* Why tc failed, as one line. */
+static void tc_error(int rc, const char *out, char *line, size_t size)
+{
+	if (rc == 127)
+		snprintf(line, size, "tc is not installed (package tc-tiny)");
+	else if (rc < 0)
+		snprintf(line, size, "tc did not finish");
+	else
+		rl_proc_first_line(out, line, size);
+	if (!line[0])
+		snprintf(line, size, "tc failed");
+}
+
+/* Clear, then set up the current rules (uploads only with a working ifb). */
+static bool apply_port(rl_shaper *s, port_t *p, bool ifb)
 {
 	char out[512], line[160];
 	if (p->dirty)
 		clear_port(s, p);
 	ensure_buffer(s);
-	size_t n = GENERATE(s, rl_tc_script(s->script, s->script_size, p->name, s->rules, s->n_rules));
+	size_t n = GENERATE(s, rl_tc_script(s->script, s->script_size, p->name, ifb ? RL_TC_IFB : NULL, s->rules,
+					     s->n_rules));
+	p->upload = ifb;
 	if (!n) {
 		p->gen = s->gen; /* nothing limits anything */
 		return true;
@@ -134,21 +222,54 @@ static bool apply_port(rl_shaper *s, port_t *p)
 		p->gen = s->gen;
 		return true;
 	}
-	if (rc == 127)
-		snprintf(line, sizeof(line), "tc is not installed (package tc-tiny)");
-	else if (rc < 0)
-		snprintf(line, sizeof(line), "tc did not finish");
-	else
-		rl_proc_first_line(out, line, sizeof(line));
-	snprintf(s->error, sizeof(s->error), "%s: %s", p->name, line[0] ? line : "tc failed");
-	syslog(LOG_ERR, "speed limits on %s failed: %s (not retried until the rules change)", p->name,
-	       line[0] ? line : "tc failed");
+	tc_error(rc, out, line, sizeof(line));
+	snprintf(s->error, sizeof(s->error), "%s: %s", p->name, line);
+	syslog(LOG_ERR, "speed limits on %s failed: %s (not retried until the rules change)", p->name, line);
 	p->failed = s->gen;
 	clear_port(s, p); /* no half-done setup */
 	return false;
 }
 
-/* ---- rtnetlink: which ports still carry our qdiscs ---- */
+/* The ifb exists, is up and has the upload classes. */
+static bool apply_ifb(rl_shaper *s)
+{
+	char out[512], line[160];
+	int err = ifb_create();
+	if (err) {
+		snprintf(s->ifb_error, sizeof(s->ifb_error), "uploads: cannot create %s (kmod-ifb): %s", RL_TC_IFB,
+			 strerror(-err));
+		syslog(LOG_ERR, "upload limits off: %s", s->ifb_error);
+		s->ifb.failed = s->gen;
+		return false;
+	}
+	s->ifb.dirty = true;
+	clear_dev(s, &s->ifb);
+	ensure_buffer(s);
+	size_t n = GENERATE(s, rl_tc_ifb_script(s->script, s->script_size, RL_TC_IFB, s->rules, s->n_rules));
+	int rc = run_tc(s->script, n, false, out, sizeof(out));
+	if (rc == 0) {
+		s->ifb.gen = s->gen;
+		s->ifb_error[0] = '\0';
+		return true;
+	}
+	tc_error(rc, out, line, sizeof(line));
+	snprintf(s->ifb_error, sizeof(s->ifb_error), "uploads (%s): %s", RL_TC_IFB, line);
+	syslog(LOG_ERR, "upload limits off: %s", s->ifb_error);
+	s->ifb.failed = s->gen;
+	clear_dev(s, &s->ifb);
+	return false;
+}
+
+static void remove_ifb(rl_shaper *s)
+{
+	if (!s->ifb.dirty)
+		return;
+	clear_dev(s, &s->ifb);
+	ifb_delete();
+	s->ifb.dirty = false;
+}
+
+/* ---- rtnetlink: which devices still carry our qdiscs ---- */
 
 typedef struct {
 	int ifindex;
@@ -233,6 +354,8 @@ rl_shaper *rl_shaper_new(const char *marker)
 	if (marker)
 		snprintf(s->marker, sizeof(s->marker), "%s", marker);
 	s->gen = 1;
+	snprintf(s->ifb.name, sizeof(s->ifb.name), "%s", RL_TC_IFB);
+	s->ifb.dirty = if_nametoindex(RL_TC_IFB) != 0; /* from before a crash */
 	return s;
 }
 
@@ -244,6 +367,7 @@ void rl_shaper_free(rl_shaper *s, bool clear)
 		for (int i = 0; i < s->n_ports; i++)
 			if (s->ports[i].dirty)
 				clear_port(s, &s->ports[i]);
+		remove_ifb(s);
 		write_marker(s);
 	}
 	free(s->rules);
@@ -305,28 +429,47 @@ bool rl_shaper_set_rules(rl_shaper *s, const rl_tc_rule *rules, size_t n)
 
 int rl_shaper_sync(rl_shaper *s, bool check)
 {
-	qd_state st[RL_SHAPER_MAX_PORTS];
+	qd_state st[RL_SHAPER_MAX_PORTS + 1];
 	bool down = false, up = false, dumped = false;
-	int applied = 0;
+	int applied = 0, n = s->n_ports;
 	for (size_t i = 0; i < s->n_rules; i++) {
 		down |= s->rules[i].down_kbps > 0;
 		up |= s->rules[i].up_kbps > 0;
 	}
-	for (int i = 0; i < s->n_ports; i++) {
+	for (int i = 0; i < n; i++) {
 		st[i] = (qd_state){ .ifindex = (int)if_nametoindex(s->ports[i].name) };
 		if (!st[i].ifindex)
 			s->ports[i].gen = 0; /* gone, and its qdiscs with it */
 	}
+	st[n] = (qd_state){ .ifindex = (int)if_nametoindex(RL_TC_IFB) };
 	if (check && (down || up))
-		dumped = dump_qdiscs(st, s->n_ports) == 0;
+		dumped = dump_qdiscs(st, n + 1) == 0;
+
+	/* uploads first: the ports redirect to the ifb */
+	bool ifb = false;
+	if (up) {
+		bool lost = s->ifb.gen && !st[n].ifindex; /* deleted: the ports' redirects point nowhere now */
+		bool need = s->ifb.gen != s->gen || lost || (dumped && !st[n].htb);
+		if (need && s->ifb.failed != s->gen) {
+			if (s->ifb.gen == s->gen)
+				syslog(LOG_INFO, "upload limits on %s were gone, setting them up again", RL_TC_IFB);
+			if (apply_ifb(s) && lost)
+				for (int i = 0; i < n; i++)
+					s->ports[i].gen = 0;
+		}
+		ifb = s->ifb.gen == s->gen;
+	} else {
+		remove_ifb(s);
+		s->ifb_error[0] = '\0';
+	}
 
 	bool failing = false;
-	for (int i = 0; i < s->n_ports; i++) {
+	for (int i = 0; i < n; i++) {
 		port_t *p = &s->ports[i];
 		if (!st[i].ifindex)
 			continue;
-		bool need = p->gen != s->gen;
-		if (!need && dumped && ((down && !st[i].htb) || (up && !st[i].clsact))) {
+		bool need = p->gen != s->gen || p->upload != ifb;
+		if (!need && dumped && ((down && !st[i].htb) || (ifb && !st[i].clsact))) {
 			syslog(LOG_INFO, "speed limits on %s were gone, setting them up again", p->name);
 			need = true;
 		}
@@ -336,14 +479,14 @@ int rl_shaper_sync(rl_shaper *s, bool check)
 		}
 		if (!need)
 			continue;
-		if (apply_port(s, p))
+		if (apply_port(s, p, ifb))
 			applied++;
 		else
 			failing = true;
 	}
 	if (!failing)
-		s->error[0] = '\0';
-	if (s->n_rules && !s->n_ports)
+		snprintf(s->error, sizeof(s->error), "%s", s->ifb_error);
+	if (s->n_rules && !n)
 		snprintf(s->error, sizeof(s->error), "no LAN port found to set the limits on");
 	write_marker(s);
 	return applied;
@@ -358,6 +501,7 @@ void rl_shaper_retry(rl_shaper *s)
 {
 	for (int i = 0; i < s->n_ports; i++)
 		s->ports[i].failed = 0;
+	s->ifb.failed = 0;
 }
 
 size_t rl_shaper_rules(const rl_shaper *s, const rl_tc_rule **out)

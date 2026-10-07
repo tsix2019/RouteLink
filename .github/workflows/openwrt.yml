@@ -72,7 +72,7 @@ jobs:
           path: openwrt/out/${{ matrix.release }}/x86_64
       # Speed limits (P4) and software offloading need these in the host kernel the router container shares.
       - name: Kernel modules for limits
-        run: sudo modprobe -a sch_htb cls_flower act_police nf_flow_table nf_flow_table_inet nft_flow_offload || true
+        run: sudo modprobe -a sch_htb cls_flower act_mirred ifb nf_flow_table nf_flow_table_inet nft_flow_offload || true
       - run: scripts/agent-router.sh up ${{ matrix.release }}
       - run: scripts/agent-dev-install.sh ${{ matrix.release }} x86_64
       - run: scripts/traffic-lab.sh up
