@@ -180,9 +180,12 @@ describe('routelinkd diagnostics', () => {
     expect(o.count).toBe(1);
     expect(o.outages[0].cause).toBe('upstream');
     expect(o.outages[0].duration).toBeGreaterThanOrEqual(CUT_SECONDS - 20);
-    // the next hop kept answering (from the first whole minute: the one before may still hold the WAN cut)
+    // the next hop kept answering (from the first whole minute: the one before may still hold the WAN cut,
+    // and that minute has to have begun, with a probe round or two in it)
+    const whole = Math.ceil(t0 / 60) * 60;
+    while (now() < whole + 25) await sleep(1000);
     const l = await call<Latency>('latency', { start: t0, end: now(), target: NEXT_HOP });
-    const after = l.series[0].points.filter(([ts]) => ts >= Math.ceil(t0 / 60) * 60);
+    const after = l.series[0].points.filter(([ts]) => ts >= whole);
     expect(after.length).toBeGreaterThan(0);
     expect(after.every(([, , , loss]) => loss === null || loss === 0)).toBe(true);
     // both outages count against the availability since the test began
