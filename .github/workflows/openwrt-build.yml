@@ -1,7 +1,8 @@
 name: OpenWrt packages
 
 # Reusable: builds routelinkd + luci-app-routelink for every release/arch and uploads one artifact each
-# (pkg-<release>-<arch>). With sign, apk packages are signed and feed indexes are generated and signed.
+# (pkg-<release>-<arch>), plus ipk packages of 25.12 for forks that kept opkg, such as Kwrt
+# (pkg-<release>-<arch>-ipk). With sign, apk packages are signed and feed indexes are generated and signed.
 on:
   workflow_call:
     inputs:
@@ -74,4 +75,39 @@ jobs:
         with:
           name: pkg-${{ matrix.release }}-${{ matrix.arch }}
           path: bin/packages/${{ matrix.arch }}/routelink/
+          if-no-files-found: error
+
+  # Kwrt 25.12 kept opkg; its libraries have the same ABI versions as OpenWrt 25.12, so the 24.10
+  # packages do not fit (they need libubox20240329). The SDK hides USE_APK and gh-action-sdk cannot
+  # change the build's make variables, so this goes through scripts/agent-build.sh.
+  build-ipk:
+    name: ${{ matrix.release }} ${{ matrix.arch }} ipk
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        release: ['25.12.5']
+        arch:
+          - x86_64
+          - aarch64_cortex-a53
+          - aarch64_cortex-a72
+          - aarch64_generic
+          - arm_cortex-a7_neon-vfpv4
+          - arm_cortex-a9_vfpv3-d16
+          - arm_cortex-a15_neon-vfpv4
+          - mipsel_24kc
+          - mips_24kc
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        env:
+          INDEX: 1
+          # opkg does not check local packages; the feed index is usign-signed like 23.05 and 24.10
+          USIGN_KEY: ${{ inputs.sign && secrets.OPENWRT_USIGN_KEY || '' }}
+        run: scripts/agent-build.sh ${{ matrix.release }} ${{ matrix.arch }} ipk
+      - name: Store packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: pkg-${{ matrix.release }}-${{ matrix.arch }}-ipk
+          path: openwrt/out/${{ matrix.release }}/${{ matrix.arch }}-ipk/
           if-no-files-found: error

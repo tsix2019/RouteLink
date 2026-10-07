@@ -23,6 +23,27 @@ describe('chat markdown', () => {
     expect(blocks[4]).toEqual({ kind: 'code', text: 'uci show' });
   });
 
+  it('reads tables, quotes and rules', () => {
+    const blocks = parseMarkdown(
+      '| 设备 | 信号 |\n|---|:--:|\n| iPhone | **-71 dBm** |\n| 电视 | -60 dBm |\n\n> 离路由器近一点\n> 会更稳定\n\n---\n3. 第三步',
+    );
+    expect(blocks.map((b) => b.kind)).toEqual(['table', 'quote', 'rule', 'list']);
+    expect(blocks[0]).toEqual({
+      kind: 'table',
+      header: [[{ text: '设备' }], [{ text: '信号' }]],
+      rows: [
+        [[{ text: 'iPhone' }], [{ text: '-71 dBm', bold: true }]],
+        [[{ text: '电视' }], [{ text: '-60 dBm' }]],
+      ],
+    });
+    expect(blocks[1]).toEqual({ kind: 'quote', inline: [{ text: '离路由器近一点\n会更稳定' }] });
+    expect(blocks[3]).toMatchObject({ ordered: true, start: 3 });
+  });
+
+  it('leaves a lone pipe in a sentence alone', () => {
+    expect(parseMarkdown('用 a | b 连接')).toEqual([{ kind: 'paragraph', inline: [{ text: '用 a | b 连接' }] }]);
+  });
+
   it('keeps a code block that is still streaming', () => {
     expect(parseMarkdown('看这里：\n```\nifstatus wan')).toEqual([
       { kind: 'paragraph', inline: [{ text: '看这里：' }] },

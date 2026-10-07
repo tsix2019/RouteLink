@@ -26,12 +26,15 @@ export function ActionSheet({
   title,
   message,
   actions,
+  cancelLabel,
   onCancel,
 }: {
   visible: boolean;
   title?: string;
   message?: string;
   actions: SheetAction[];
+  /** Defaults to Cancel; "Got it" when the sheet only explains something. */
+  cancelLabel?: string;
   onCancel(): void;
 }) {
   const t = useT();
@@ -82,7 +85,7 @@ export function ActionSheet({
               </Fragment>
             ))}
           </GlassSurface>
-          <GlassButton label={t('cancel')} onPress={onCancel} />
+          <GlassButton label={cancelLabel ?? t('cancel')} onPress={onCancel} />
         </View>
       </NoBlurTarget>
     </Modal>

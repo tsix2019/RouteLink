@@ -1,3 +1,5 @@
+import { findNearest } from '@/utils/list-edit';
+
 import type { RouterConnection } from '../connection/types';
 import { UbusError } from '../ubus/errors';
 import { ActionError } from './action-error';
@@ -119,6 +121,22 @@ export function describeSchedule(s: readonly string[], lang: 'zh-CN' | 'en'): st
   if (/^\d+$/.test(day) && weekday === '*')
     return zh ? `每月 ${day} 日 ${time}` : `Day ${day} of each month at ${time}`;
   return null;
+}
+
+/**
+ * Where an entry the user is editing sits in a crontab read again (lines may have moved): the same
+ * schedule and command, not App-managed, nearest to where it was. Null once it was changed or removed.
+ */
+export function findEntry(lines: CronLine[], entry: CronEntry, near: number): number | null {
+  return findNearest(
+    lines,
+    (l) =>
+      l.kind === 'entry' &&
+      !l.managed &&
+      l.command === entry.command &&
+      l.schedule.join(' ') === entry.schedule.join(' '),
+    near,
+  );
 }
 
 export interface Crontab {

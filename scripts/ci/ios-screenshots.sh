@@ -9,6 +9,7 @@ PAGES=(overview devices device wireless network more traffic:network/traffic tra
   firewall:network/firewall connections:network/connections packages:more/packages processes:more/processes
   parental:device-schedule wifi-schedule:wireless/schedule vlan:network/vlan wireguard:network/wireguard
   adblock:network/adblock ddns:network/ddns firmware:more/firmware backup:more/backup
+  update:more/update forward-new:network/edit/forward
   terminal:terminal assistant:assistant ai-settings:more/assistant notifications:more/notifications)
 xcrun simctl status_bar "$UDID" override --time 9:41 --dataNetwork wifi --wifiMode active --wifiBars 3 \
   --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100

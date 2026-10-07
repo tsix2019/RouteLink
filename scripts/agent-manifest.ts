@@ -1,6 +1,8 @@
 // Release assembly for the router plugin (CI, T27 of the P1 plan).
 // Usage: npx tsx scripts/agent-manifest.ts <artifacts dir> <tag> <out dir>
 //   <artifacts dir>/pkg-<release>-<arch>/   packages + feed index from the SDK build
+//   <artifacts dir>/pkg-<release>-<arch>-ipk/  the same in the format the release does not use itself
+//                                          (ipk on 25.12, for forks that kept opkg such as Kwrt)
 //   <out dir>/assets/                      renamed packages + manifest.json for the GitHub release
 //   <out dir>/pages/agent/                 signed feeds per <major.minor>/<arch>, manifest.json, keys/
 import { createHash } from 'node:crypto';
@@ -32,6 +34,22 @@ export function parsePackageFile(name: string): ParsedFile | null {
 /** "24.10.8" -> "24.10": what the app reads from `system board`. */
 export const releaseKey = (release: string) => release.split('.').slice(0, 2).join('.');
 
+export interface ArtifactDir {
+  release: string;
+  arch: string;
+  /** Set when the build forced a format other than the release's own. */
+  format?: 'ipk' | 'apk';
+}
+
+/** pkg-25.12.5-x86_64, pkg-25.12.5-arm_cortex-a7_neon-vfpv4-ipk; null for anything else. */
+export function parseArtifactDir(name: string): ArtifactDir | null {
+  const m = /^pkg-(\d+\.\d+\.\d+)-(.+?)(?:-(ipk|apk))?$/.exec(name);
+  if (!m) return null;
+  return { release: m[1], arch: m[2], ...(m[3] ? { format: m[3] as 'ipk' | 'apk' } : {}) };
+}
+
+export const artifactDir = (t: ArtifactDir) => `pkg-${t.release}-${t.arch}${t.format ? `-${t.format}` : ''}`;
+
 export interface ManifestFile {
   package: string;
   name: string;
@@ -46,6 +64,7 @@ export interface Manifest {
   tag: string;
   released: string;
   prerelease: boolean;
+  /** "<release>/<arch>"; "<release>/<arch>/<format>" for the format the release does not use itself. */
   targets: Record<string, { format: 'ipk' | 'apk'; files: ManifestFile[] }>;
 }
 
@@ -55,7 +74,7 @@ export interface BuildInput {
   tag: string;
   released: string;
   downloadBase: string;
-  targets: { release: string; arch: string; files: { name: string; sha256: string; size: number }[] }[];
+  targets: (ArtifactDir & { files: { name: string; sha256: string; size: number }[] })[];
 }
 
 export function buildManifest(input: BuildInput): { manifest: Manifest; assets: { from: string; to: string }[] } {
@@ -81,10 +100,10 @@ export function buildManifest(input: BuildInput): { manifest: Manifest; assets: 
         ? `${parsed.package}_${parsed.version}_${key}_${t.arch}.ipk`
         : `${parsed.package}-${parsed.version}_${key}_${t.arch}.apk`;
       files.push({ package: parsed.package, name: unique, url: `${input.downloadBase}/${unique}`, sha256: f.sha256, size: f.size });
-      assets.push({ from: `${t.release}/${t.arch}/${f.name}`, to: unique });
+      assets.push({ from: `${artifactDir(t)}/${f.name}`, to: unique });
     }
     files.sort((a, b) => PACKAGES.indexOf(a.package as never) - PACKAGES.indexOf(b.package as never));
-    if (files.length) manifest.targets[`${key}/${t.arch}`] = { format, files };
+    if (files.length) manifest.targets[`${key}/${t.arch}${t.format ? `/${t.format}` : ''}`] = { format, files };
   }
   return { manifest, assets };
 }
@@ -95,17 +114,17 @@ function main(artifacts: string, tag: string, out: string) {
   const targets: BuildInput['targets'] = [];
   const pages = join(out, 'pages', 'agent');
   for (const dir of readdirSync(artifacts)) {
-    const m = /^pkg-(\d+\.\d+\.\d+)-(.+)$/.exec(dir);
-    if (!m) continue;
-    const [, release, arch] = m;
+    const parsed = parseArtifactDir(dir);
+    if (!parsed) continue;
     const src = join(artifacts, dir);
     const files = readdirSync(src).map((name) => {
       const bytes = readFileSync(join(src, name));
       return { name, sha256: createHash('sha256').update(bytes).digest('hex'), size: statSync(join(src, name)).size };
     });
-    targets.push({ release, arch, files });
-    // the feed keeps the SDK's file names and index
-    cpSync(src, join(pages, releaseKey(release), arch), { recursive: true });
+    targets.push({ ...parsed, files });
+    // the feed keeps the SDK's file names and index; ipk and apk feeds share a directory (Packages.gz
+    // next to packages.adb), so a fork with opkg on 25.12 adds the same URL as the README shows for apk
+    cpSync(src, join(pages, releaseKey(parsed.release), parsed.arch), { recursive: true });
   }
   const { manifest, assets } = buildManifest({
     version,
@@ -116,10 +135,7 @@ function main(artifacts: string, tag: string, out: string) {
     targets,
   });
   mkdirSync(join(out, 'assets'), { recursive: true });
-  for (const a of assets) {
-    const [release, arch, name] = a.from.split('/');
-    copyFileSync(join(artifacts, `pkg-${release}-${arch}`, name), join(out, 'assets', a.to));
-  }
+  for (const a of assets) copyFileSync(join(artifacts, a.from), join(out, 'assets', a.to));
   const json = `${JSON.stringify(manifest, null, 2)}\n`;
   writeFileSync(join(out, 'assets', 'manifest.json'), json);
   writeFileSync(join(pages, 'manifest.json'), json);

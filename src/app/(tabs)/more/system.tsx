@@ -1,17 +1,9 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  getTimeSettings,
-  getTimezones,
-  setAdminPassword,
-  syncRouterClock,
-  timezoneChanges,
-  validatePassword,
-  type Timezone,
-} from '@/api/services/system-settings';
-import { stageAndApply } from '@/api/uci';
+import { getTimeSettings, setAdminPassword, syncRouterClock, validatePassword } from '@/api/services/system-settings';
 import { FeatureGate } from '@/features/capabilities/FeatureGate';
 import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
@@ -27,7 +19,6 @@ import { GlassSurface } from '@/ui/glass/GlassSurface';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { RiskConfirm } from '@/ui/RiskConfirm';
 import { Screen } from '@/ui/Screen';
-import { SelectSheet } from '@/ui/SelectSheet';
 import { TextField } from '@/ui/TextField';
 import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
@@ -41,19 +32,13 @@ export default function SystemSettings() {
   const toast = useToast();
   const { router } = useActiveRouter();
   const time = useRouterQuery(['system-time'], (conn) => getTimeSettings(conn), { refetchInterval: 10_000 });
-  const zones = useRouterQuery(['timezones'], getTimezones, { staleTime: Infinity });
-  const [picking, setPicking] = useState(false);
+  const nav = useRouter();
   const [passwordSheet, setPasswordSheet] = useState(false);
   const [newPassword, setNewPassword] = useState<string | null>(null);
   const username = router?.profile?.username ?? 'root';
 
   const fail = (error: unknown) => toast(describeError(t, error).title, 'error');
   const sync = useRouterMutation((conn) => syncRouterClock(conn), [['system-time']]);
-  const changeZone = useRouterMutation(
-    (conn, z: Timezone) =>
-      stageAndApply(conn, timezoneChanges(time.data?.section ?? '@system[0]', z), { mode: 'direct' }),
-    [['system-time']],
-  );
   const changePassword = useRouterMutation(async (conn, password: string) => {
     await setAdminPassword(conn, username, password);
     // Keep the app signed in: the next login uses the new password.
@@ -88,8 +73,7 @@ export default function SystemSettings() {
                 value={time.data.zonename}
                 icon="globe"
                 chevron
-                disabled={!zones.data}
-                onPress={() => setPicking(true)}
+                onPress={() => nav.push('/more/timezone')}
                 testID="system-zone"
               />
               <ListRow title={t('more:systemScreen.ntp')} value={time.data.ntp ? t('on') : t('off')} />
@@ -129,20 +113,6 @@ export default function SystemSettings() {
         </FeatureGate>
       </Screen>
 
-      <SelectSheet
-        visible={picking}
-        title={t('more:systemScreen.zone')}
-        options={(zones.data ?? []).map((z) => ({ value: z.zonename, label: z.zonename, detail: z.tz }))}
-        value={time.data?.zonename ?? ''}
-        onSelect={(name) => {
-          setPicking(false);
-          const z = zones.data?.find((x) => x.zonename === name);
-          if (z && z.zonename !== time.data?.zonename) {
-            changeZone.mutate(z, { onSuccess: () => toast(t('more:systemScreen.zoneDone')), onError: fail });
-          }
-        }}
-        onCancel={() => setPicking(false)}
-      />
       {passwordSheet ? (
         <PasswordSheet
           onSubmit={(p) => {

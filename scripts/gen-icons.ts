@@ -26,8 +26,6 @@ write('assets/images/icon.png', png(svg(background + glyph()), 1024));
 write('assets/images/android-icon-background.png', png(svg(background), 1024));
 write('assets/images/android-icon-foreground.png', png(svg(glyph()), 1024));
 write('assets/images/android-icon-monochrome.png', png(svg(glyph()), 1024));
-// Splash: white glyph on transparent, shown over the brand colour.
-write('assets/images/splash-icon.png', png(svg(glyph('#FFFFFF', 0.9)), 288));
 // iOS 26 Icon Composer bundle: system renders the glass material over a gradient fill.
 write('assets/routelink.icon/Assets/glyph.svg', svg(glyph()));
 write('assets/icon/routelink.svg', svg(background + glyph()));

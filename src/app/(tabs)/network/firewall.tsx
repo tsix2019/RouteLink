@@ -1,25 +1,20 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
   applyFirewallChanges,
-  deleteSectionChanges,
   getFirewall,
-  portForwardChanges,
   setEnabledChanges,
-  trafficRuleChanges,
   type PortForward,
   type TrafficRule,
 } from '@/api/services/firewall';
 import type { UbusCall } from '@/api/ubus/types';
 import type { ApplyOutcome } from '@/api/uci';
 import { FeatureGate } from '@/features/capabilities/FeatureGate';
-import { ForwardSheet } from '@/features/network/ForwardSheet';
-import { RuleSheet } from '@/features/network/RuleSheet';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
-import { useClients, useRouterMutation, useRouterQuery } from '@/hooks/router-queries';
+import { useRouterMutation, useRouterQuery } from '@/hooks/router-queries';
 import { useT } from '@/i18n';
-import { ActionSheet } from '@/ui/ActionSheet';
 import { describeError } from '@/ui/errorText';
 import { ErrorState, Skeleton } from '@/ui/Feedback';
 import { GlassButton } from '@/ui/GlassButton';
@@ -37,15 +32,16 @@ const TABS: Tab[] = ['forwards', 'rules', 'zones'];
 type Item = { kind: 'forward'; forward: PortForward } | { kind: 'rule'; rule: TrafficRule };
 type Pending = { title: string; changes: UbusCall[]; expose?: boolean };
 
-/** NW-6: port forwards and traffic rules (add, edit, switch, delete) and the zones (read-only). */
+const editHref = (kind: 'forward' | 'rule', section?: string) =>
+  `/network/edit/${kind}${section ? `?section=${encodeURIComponent(section)}` : ''}` as const;
+
+/** NW-6: port forwards and traffic rules (switched here, edited on their own pages) and the zones (read-only). */
 export default function Firewall() {
   const t = useT();
   const toast = useToast();
+  const nav = useRouter();
   const fw = useRouterQuery(['firewall'], getFirewall);
-  const clients = useClients();
   const [tab, setTab] = useState<Tab>('forwards');
-  const [selected, setSelected] = useState<Item | null>(null);
-  const [editing, setEditing] = useState<Item | { kind: 'new-forward' } | { kind: 'new-rule' } | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
   const apply = useRouterMutation((conn, changes: UbusCall[]) => applyFirewallChanges(conn, changes), [['firewall']]);
 
@@ -109,7 +105,7 @@ export default function Firewall() {
                         subtitle={forwardDetail(f)}
                         switchValue={f.enabled}
                         onSwitch={(v) => toggle({ kind: 'forward', forward: f }, v)}
-                        onPress={() => setSelected({ kind: 'forward', forward: f })}
+                        onPress={() => nav.push(editHref('forward', f.section))}
                         testID={`forward-${f.section}`}
                       />
                     ))
@@ -121,7 +117,7 @@ export default function Firewall() {
                   label={t('network:firewall.addForward')}
                   icon="plus"
                   disabled={apply.isPending}
-                  onPress={() => setEditing({ kind: 'new-forward' })}
+                  onPress={() => nav.push(editHref('forward'))}
                   testID="forward-add"
                 />
               </>
@@ -143,7 +139,7 @@ export default function Firewall() {
                         }
                         switchValue={r.managed ? undefined : r.enabled}
                         onSwitch={r.managed ? undefined : (v) => toggle({ kind: 'rule', rule: r }, v)}
-                        onPress={r.managed ? undefined : () => setSelected({ kind: 'rule', rule: r })}
+                        onPress={r.managed ? undefined : () => nav.push(editHref('rule', r.section))}
                         testID={`rule-${r.section}`}
                       />
                     ))
@@ -155,7 +151,7 @@ export default function Firewall() {
                   label={t('network:firewall.addRule')}
                   icon="plus"
                   disabled={apply.isPending}
-                  onPress={() => setEditing({ kind: 'new-rule' })}
+                  onPress={() => nav.push(editHref('rule'))}
                   testID="rule-add"
                 />
               </>
@@ -197,71 +193,6 @@ export default function Firewall() {
         </FeatureGate>
       </Screen>
 
-      <ActionSheet
-        visible={!!selected}
-        title={selected ? name(selected) : undefined}
-        actions={
-          selected
-            ? [
-                {
-                  label:
-                    selected.kind === 'forward' ? t('network:firewall.editForward') : t('network:firewall.editRule'),
-                  icon: 'edit' as const,
-                  onPress: () => {
-                    setEditing(selected);
-                    setSelected(null);
-                  },
-                },
-                {
-                  label: t('network:firewall.delete'),
-                  icon: 'trash' as const,
-                  destructive: true,
-                  onPress: () => {
-                    setPending({
-                      title: t('network:firewall.deleteTitle', { name: name(selected) }),
-                      changes: deleteSectionChanges(
-                        selected.kind === 'forward' ? selected.forward.section : selected.rule.section,
-                      ),
-                    });
-                    setSelected(null);
-                  },
-                },
-              ]
-            : []
-        }
-        onCancel={() => setSelected(null)}
-      />
-      {data && editing && (editing.kind === 'forward' || editing.kind === 'new-forward') ? (
-        <ForwardSheet
-          forward={editing.kind === 'forward' ? editing.forward : undefined}
-          forwards={data.forwards}
-          zones={data.zones}
-          clients={clients.data ?? []}
-          onSave={(input) => {
-            setPending({
-              title: t('network:firewall.saveTitle'),
-              changes: portForwardChanges(input, editing.kind === 'forward' ? editing.forward : undefined),
-              expose: true,
-            });
-            setEditing(null);
-          }}
-          onCancel={() => setEditing(null)}
-        />
-      ) : null}
-      {data && editing && (editing.kind === 'rule' || editing.kind === 'new-rule') ? (
-        <RuleSheet
-          rule={editing.kind === 'rule' ? editing.rule : undefined}
-          zones={data.zones}
-          onSave={(input) => {
-            setPending({
-              title: t('network:firewall.saveTitle'),
-              changes: trafficRuleChanges(input, editing.kind === 'rule' ? editing.rule : undefined),
-            });
-            setEditing(null);
-          }}
-          onCancel={() => setEditing(null)}
-        />
-      ) : null}
       <RiskConfirm
         visible={!!pending}
         level="medium"

@@ -75,7 +75,7 @@
     "uninstall": "Remove Plugin",
     "install": "Install Plugin",
     "requirements": "Needs about {{size}} of free space, the root account, and a router that can reach the official OpenWrt package servers (for dependencies).",
-    "mirror": "Download mirror",
+    "mirror": "GitHub Download Mirror",
     "mirrorHint": "Optional. A prefix put in front of GitHub download links, for networks where GitHub is slow.",
     "manual": "Manual installation",
     "roleGatewayAp": "Main router + access point",

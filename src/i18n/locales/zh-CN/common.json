@@ -10,6 +10,13 @@
   "done": "完成",
   "edit": "编辑",
   "delete": "删除",
+  "back": "返回",
+  "saveAndApply": "保存并应用",
+  "discardTitle": "放弃修改？",
+  "discardMessage": "改动的内容还没有保存。",
+  "discard": "放弃修改",
+  "keepEditing": "继续编辑",
+  "itemGone": "这一项已经不存在",
   "add": "添加",
   "copy": "复制",
   "copied": "已复制",
@@ -37,11 +44,56 @@
   "widget": {
     "online": "在线",
     "offline": "连不上",
-    "noRouter": "打开 App 添加路由器",
+    "noData": "打开 App 看看路由器",
     "devices_other": "{{count}} 台设备在线",
     "devices_one": "{{count}} 台设备在线",
     "updated": "更新于 {{time}}",
-    "name": "路由器状态",
-    "description": "当前路由器的在线状态、速率和在线设备数"
+    "refreshing": "正在刷新…",
+    "refresh": "刷新",
+    "down": "下行",
+    "up": "上行",
+    "wifiCount": "Wi‑Fi {{n}}",
+    "wiredCount": "有线 {{n}}",
+    "cpu": "CPU",
+    "memory": "内存",
+    "temperature": "温度",
+    "uptime": "已运行 {{time}}",
+    "wan": "外网",
+    "wanUp": "已连接",
+    "wanDown": "未连接",
+    "noWan": "没有外网接口",
+    "kinds": {
+      "router": {
+        "name": "路由器状态",
+        "description": "在线状态、网速和在线设备数"
+      },
+      "speed": {
+        "name": "网速",
+        "description": "外网的下行和上行速率，点 ↻ 马上测一次"
+      },
+      "devices": {
+        "name": "在线设备",
+        "description": "在线设备数、Wi‑Fi 和有线各几台、设备名"
+      },
+      "system": {
+        "name": "系统资源",
+        "description": "CPU 负载、内存、温度和运行时间"
+      },
+      "wan": {
+        "name": "外网",
+        "description": "外网是否连通、IP 地址和上网方式"
+      },
+      "shortcuts": {
+        "name": "快捷操作",
+        "description": "一点打开 Wi‑Fi 二维码、设备、终端、AI 助手"
+      }
+    },
+    "shortcut": {
+      "wifiQr": "Wi‑Fi 码",
+      "devices": "设备",
+      "terminal": "终端",
+      "assistant": "AI 助手",
+      "traffic": "流量"
+    }
   }
 }

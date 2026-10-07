@@ -22,11 +22,11 @@ RouteLink is a phone app for managing OpenWrt routers, for iOS and Android, in E
 - **Safe changes**: every change goes through OpenWrt's own apply-and-confirm mechanism — if the app can't reach the router afterwards, the router undoes the change after 90 seconds. Anything that can cut connections asks first, with graded risk warnings.
 - **SSH terminal**: the router's command line inside the app; you confirm the host key on first connection and the app stops if it ever changes; installs the app's own key on the router in one tap.
 - **AI assistant**: ask about your router with your own API key (Claude, OpenAI, DeepSeek, Qwen, or a local Ollama); it asks you before changing anything.
-- **Home-screen widget and alerts**: the current router's state, speed and devices online on your home screen; a notification when a router can't be reached, comes back, or sees a new device.
+- **Home-screen widgets and alerts**: the current router's state, speed and devices online on your home screen (Android adds five more: speed, devices online, system, WAN and shortcuts, with ↻ to refresh on the spot); a notification when a router can't be reached, comes back, or sees a new device.
 - **Demo mode**: try everything without a router, against a built-in simulated OpenWrt.
-- **Private**: no data collection; the app talks only to the routers you add, and to the AI provider you choose once you turn the assistant on.
+- **Private**: no data collection; the app talks only to the routers you add, to GitHub only when you check for updates, turn on automatic checks or install the plugin, and to the AI provider you choose once you turn the assistant on.
 
-> The app's four milestones (M1–M4) and the router plugin's first phase (P1) are complete; what comes next is in the feature list below.
+> The app's five milestones (M1–M5) and the router plugin's first phase (P1) are complete; what comes next is in the feature list below.
 
 ## Screenshots
 
@@ -145,11 +145,14 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Saved Wake-on-LAN devices
 - ✅ Router management (order, edit, delete, certificate), language, appearance, refresh interval, reduce transparency, demo mode
 - ✅ Router plugin: one-tap install, update check, restart, clear data, remove
+- ✅ App updates: Android downloads, verifies and installs a new version in the app, iOS opens the release page; an optional daily check (off by default)
 - ✅ Processes (stop, reload), packages (search, install, remove), scheduled tasks, LEDs, system (time zone, set the router clock, admin password)
 - ✅ Backup and restore, firmware upgrade (online for official OpenWrt and ImmortalWrt releases, or from a file), factory reset. All high-risk: a backup is offered first, a checkbox and the router's name confirm, and a full-screen page asks to keep the power on
-- ✅ SSH terminal: password or key login, host key confirmed and pinned, a key bar (Esc, Tab, Ctrl, arrows), adjustable font size; installs the app's public key on the router in one tap
-- ✅ AI assistant: Claude, OpenAI, DeepSeek, Qwen, Ollama or any OpenAI-compatible service, with your own API key; looks up status, devices and logs, and asks you in the chat before changing anything (kick or block a device, change Wi-Fi, add a port forward, restart a service or the router); you choose what is sent and whether it is masked
+- ✅ SSH terminal: password or key login, host key confirmed and pinned, a key bar (Esc, Tab, Ctrl, arrows), adjustable font size, finger scrolling, landscape; installs the app's public key on the router in one tap
+- ✅ AI assistant: Claude, OpenAI, DeepSeek, Qwen, Ollama or any OpenAI-compatible service, with your own API key; looks up status, devices and logs, and asks you in the chat before changing anything (kick or block a device, change Wi-Fi, add a port forward, restart a service or the router); you choose what is sent and whether it is masked; keeps several conversations per router, which you can search, rename and delete
 - ✅ Home-screen widget (iOS, Android): the current router's state, speed and devices online; tap to open the app
+  - Six on Android: router status, speed, devices online, system, WAN and shortcuts. ↻ on a widget reads the router in the background (with a saved password), and the system updates them about every half hour. Preview and add them in More → Home Screen Widgets
+  - Nothing happens when adding one from the app: Xiaomi, vivo, OPPO, Huawei, Honor and similar phones do not let apps add to the home screen until "Home screen shortcuts" is allowed in RouteLink's app permissions; the app says so and opens the settings page. Adding one from the launcher's widget picker always works
 - ✅ Background alerts: a router can't be reached, comes back, or sees a new device (per router, needs a saved password)
 - ✅ Rate limits (plugin): per-device download and upload limits, optionally on some days at some hours only; work with software flow offloading on
 - ✅ Data quotas (plugin): daily, weekly or monthly caps per device (monthly with a reset day), a warning at 80%, blocked or slowed down when used up, a temporary pass
@@ -196,7 +199,7 @@ The RouteLink plugin runs on the router. It records what the app needs while it 
 - **How it counts**: connection-tracking counters summed per device MAC, IPv4 and IPv6; accurate with software flow offloading on. In the Docker lab it matches the byte counts of the client's network card exactly.
 - **How long**: traffic per minute for 48 hours, per hour for 90 days, per day for 2 years; signal per minute for 7 days, per hour for 30; latency per minute for 7 days, per hour for 90, outages for a year. Data lives in `/etc/routelink` on the router, written once an hour by default on flash (every 10 minutes on other storage), capped at 32 MB, kept across firmware upgrades.
 - **Cost**: on x86 (measured in Docker), with 52 devices and 5000 connections, 0.04% of one core and 1.7 MB of memory.
-- **Runs on**: OpenWrt 23.05, 24.10 and 25.12; x86_64, aarch64 (cortex-a53, cortex-a72, generic), arm (cortex-a7, cortex-a9, cortex-a15), mipsel_24kc, mips_24kc.
+- **Runs on**: OpenWrt 23.05, 24.10 and 25.12, and firmware based on 25.12 that kept opkg (such as Kwrt); x86_64, aarch64 (cortex-a53, cortex-a72, generic), arm (cortex-a7, cortex-a9, cortex-a15), mipsel_24kc, mips_24kc.
 
 **Install**
 
@@ -204,7 +207,7 @@ The RouteLink plugin runs on the router. It records what the app needs while it 
 - **By hand**: download the packages for your release and architecture from [Releases](https://github.com/tsix2019/RouteLink/releases) (`manifest.json` lists them) and install them on the router. `. /etc/openwrt_release; echo $DISTRIB_ARCH` shows the architecture.
 
   ```sh
-  # OpenWrt 23.05 / 24.10
+  # OpenWrt 23.05 / 24.10, and 25.12 firmware that kept opkg (Kwrt: the 25.12 .ipk packages)
   opkg update
   opkg install routelinkd_*.ipk luci-app-routelink_*.ipk luci-i18n-routelink-zh-cn_*.ipk
 
@@ -217,7 +220,7 @@ The RouteLink plugin runs on the router. It records what the app needs while it 
 - **As a package feed** (later updates through LuCI's software page). Replace `24.10` and `x86_64` with your release and architecture:
 
   ```sh
-  # OpenWrt 23.05 / 24.10
+  # OpenWrt 23.05 / 24.10, and 25.12 firmware that kept opkg (with 25.12 in the URL)
   wget -O /etc/opkg/keys/a276fe73982c5f59 https://tsix2019.github.io/RouteLink/agent/keys/a276fe73982c5f59
   echo 'src/gz routelink https://tsix2019.github.io/RouteLink/agent/24.10/x86_64' >> /etc/opkg/customfeeds.conf
   opkg update && opkg install routelinkd luci-app-routelink
@@ -246,7 +249,7 @@ The RouteLink plugin runs on the router. It records what the app needs while it 
 - Discovery probes never carry credentials.
 - The SSH private key the app creates lives in the keychain and never leaves the phone; only the public key goes on the router.
 - The AI assistant is off until you enter your own API key, read what it sends and agree. Then your question and the router data needed to answer it (status, device list, wireless and firewall settings, system log) go to the provider you chose. MAC addresses and public IPs are masked by default, each kind of data can be turned off, and passwords and keys are never sent. Conversations stay on the phone.
-- No analytics, no ads; the app contacts no server of its own. Speed tests reach a speed test server (Cloudflare by default); the one-tap diagnosis fetches common connectivity check addresses.
+- No analytics, no ads; the app contacts no server of its own. Speed tests reach a speed test server (Cloudflare by default); the one-tap diagnosis fetches common connectivity check addresses; GitHub is reached only when you check for updates, turn on automatic checks or install the plugin.
 - Test data in this repository comes only from demo mode and throw-away virtual routers (Docker / QEMU), never from real routers.
 
 ## Build from source
@@ -296,6 +299,8 @@ openwrt/                   the router plugin: routelinkd (C daemon), luci-app-ro
 - M1 plan and execution log (in Chinese): [docs/superpowers/plans/2026-10-05-routelink-m1.md](docs/superpowers/plans/2026-10-05-routelink-m1.md)
 - Plugin design (in Chinese): [docs/superpowers/specs/2026-10-05-routelink-agent-design.md](docs/superpowers/specs/2026-10-05-routelink-agent-design.md)
 - P1 plan and execution log (in Chinese): [docs/superpowers/plans/2026-10-05-routelink-p1.md](docs/superpowers/plans/2026-10-05-routelink-p1.md)
+- M5 design, forms as pages and app updates (in Chinese): [docs/superpowers/specs/2026-10-06-routelink-m5-design.md](docs/superpowers/specs/2026-10-06-routelink-m5-design.md)
+- M5 plan and execution log (in Chinese): [docs/superpowers/plans/2026-10-06-routelink-m5.md](docs/superpowers/plans/2026-10-06-routelink-m5.md)
 
 ## Acknowledgements
 

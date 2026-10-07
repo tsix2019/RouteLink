@@ -23,6 +23,8 @@ export interface RouterQueryOptions<T = unknown, S = T> {
   staleTime?: number;
   /** Derive what the caller sees; queries with the same key share the underlying data. */
   select?: (data: T) => S;
+  /** How long an unused result stays cached; 0 for one-off data such as keys made for one form. */
+  gcTime?: number;
 }
 
 /** Query scoped to the active router: the key starts with its id, so routers never share data. */
@@ -54,6 +56,7 @@ export function useMemberQuery<T, S = T>(
     refetchInterval: focused && o.refetchInterval ? o.refetchInterval : false,
     staleTime: o.staleTime,
     select: o.select,
+    gcTime: o.gcTime,
   });
 }
 

@@ -8,11 +8,11 @@ import { nativeHttpClient } from '@/api/http/native';
 import { pluginPushesNewDevices } from '@/api/services/agent-rules';
 import { getClients } from '@/api/services/clients';
 import { i18n, initI18n, setLanguage } from '@/i18n';
-import { useRouters, type RouterProfile } from '@/state/routers';
+import { activeProfile, useRouters, type RouterProfile } from '@/state/routers';
 import { useSettings } from '@/state/settings';
 import { useSnapshots } from '@/state/snapshots';
-import { widgetProps } from '@/widgets/props';
-import { showOnWidget } from '@/widgets/update';
+import { readWidgetData } from '@/widgets/read';
+import { hasWidgets, showOnWidget } from '@/widgets/update';
 
 import { compare, type Alert, type WatchMemory, type WatchReading } from './watch';
 
@@ -85,6 +85,7 @@ export async function checkRouters(deps: CheckDeps): Promise<{ checked: number; 
   initI18n('system');
   await setLanguage(useSettings.getState().language);
   const { routers, activeId, getPassword } = useRouters.getState();
+  const active = useSettings.getState().demoMode ? null : activeProfile(routers, activeId);
   const watched = useSettings.getState().notifyRouters;
   const now = deps.now ?? Date.now;
   const sleep = deps.sleep ?? ((ms: number) => RouteLinkNative.sleep(ms));
@@ -119,16 +120,12 @@ export async function checkRouters(deps: CheckDeps): Promise<{ checked: number; 
       await deps.notify(m.title, m.body);
       sent++;
     }
-    if (profile.id === activeId) {
-      const snapshot = useSnapshots.getState().byRouter[profile.id];
-      await showOnWidget(
-        widgetProps(i18n.t.bind(i18n) as Parameters<typeof widgetProps>[0], {
-          name: profile.name,
-          online: reading.reachable,
-          devicesOnline: reading.online ?? snapshot?.clientsOnline,
-          updatedAt: now(),
-        }),
-      ).catch(() => undefined);
+    if (profile.id === active?.id && (await hasWidgets())) {
+      // The widgets follow the router the app opens on: everything they show, read now.
+      const data = reading.reachable
+        ? await readWidgetData(conn, profile.name, sleep, now).catch(() => null)
+        : { name: profile.name, online: false, updatedAt: now() };
+      if (data) await showOnWidget({ ...data, refreshable: true }).catch(() => undefined);
     }
   }
   await Storage.setItem(MEMORY, JSON.stringify(memory));

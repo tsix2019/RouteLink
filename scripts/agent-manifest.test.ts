@@ -1,4 +1,4 @@
-import { buildManifest, parsePackageFile, releaseKey } from './agent-manifest';
+import { artifactDir, buildManifest, parseArtifactDir, parsePackageFile, releaseKey } from './agent-manifest';
 
 describe('parsePackageFile', () => {
   it('reads ipk names (23.05 and 24.10 styles)', () => {
@@ -35,6 +35,25 @@ describe('releaseKey', () => {
   });
 });
 
+describe('parseArtifactDir', () => {
+  it('reads release, arch and a forced format', () => {
+    expect(parseArtifactDir('pkg-24.10.8-x86_64')).toEqual({ release: '24.10.8', arch: 'x86_64' });
+    expect(parseArtifactDir('pkg-25.12.5-arm_cortex-a7_neon-vfpv4-ipk')).toEqual({
+      release: '25.12.5',
+      arch: 'arm_cortex-a7_neon-vfpv4',
+      format: 'ipk',
+    });
+    expect(parseArtifactDir('pkg-25.12.5-arm_cortex-a7_neon-vfpv4')?.arch).toBe('arm_cortex-a7_neon-vfpv4');
+    expect(parseArtifactDir('logs')).toBeNull();
+  });
+
+  it('round-trips with artifactDir', () => {
+    for (const name of ['pkg-23.05.6-mips_24kc', 'pkg-25.12.5-aarch64_cortex-a53-ipk']) {
+      expect(artifactDir(parseArtifactDir(name)!)).toBe(name);
+    }
+  });
+});
+
 describe('buildManifest', () => {
   const m = buildManifest({
     version: '0.1.0',
@@ -57,6 +76,12 @@ describe('buildManifest', () => {
         arch: 'mipsel_24kc',
         files: [{ name: 'routelinkd-0.1.0-r1.apk', sha256: 'c', size: 30 }],
       },
+      {
+        release: '25.12.5',
+        arch: 'mipsel_24kc',
+        format: 'ipk',
+        files: [{ name: 'routelinkd_0.1.0-r1_mipsel_24kc.ipk', sha256: 'd', size: 40 }],
+      },
     ],
   });
 
@@ -74,12 +99,23 @@ describe('buildManifest', () => {
     expect(m.manifest.targets['25.12/mipsel_24kc'].files[0].name).toBe('routelinkd-0.1.0-r1_25.12_mipsel_24kc.apk');
   });
 
+  it('keys the format a release does not use itself by format too', () => {
+    expect(m.manifest.targets['25.12/mipsel_24kc'].format).toBe('apk');
+    const ipk = m.manifest.targets['25.12/mipsel_24kc/ipk'];
+    expect(ipk.format).toBe('ipk');
+    expect(ipk.files.map((f) => f.name)).toEqual(['routelinkd_0.1.0-r1_25.12_mipsel_24kc.ipk']);
+  });
+
   it('maps every asset back to its original file', () => {
     expect(m.assets).toContainEqual({
-      from: '24.10.8/x86_64/routelinkd_0.1.0-r1_x86_64.ipk',
+      from: 'pkg-24.10.8-x86_64/routelinkd_0.1.0-r1_x86_64.ipk',
       to: 'routelinkd_0.1.0-r1_24.10_x86_64.ipk',
     });
-    expect(m.assets).toHaveLength(3);
+    expect(m.assets).toContainEqual({
+      from: 'pkg-25.12.5-mipsel_24kc-ipk/routelinkd_0.1.0-r1_mipsel_24kc.ipk',
+      to: 'routelinkd_0.1.0-r1_25.12_mipsel_24kc.ipk',
+    });
+    expect(m.assets).toHaveLength(4);
   });
 
   it('marks pre-releases', () => {

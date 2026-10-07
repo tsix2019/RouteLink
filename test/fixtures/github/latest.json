@@ -1,0 +1,22 @@
+{
+  "tag_name": "v1.0.0",
+  "draft": false,
+  "prerelease": false,
+  "published_at": "2026-10-06T03:03:15Z",
+  "html_url": "https://github.com/tsix2019/RouteLink/releases/tag/v1.0.0",
+  "body": "第四个里程碑（M4）：SSH 终端、AI 助手、桌面小组件和掉线通知。English below.\n\n### 下载\n\n- **Android**（8.0 及以上，ARM 处理器）：`RouteLink-v1.0.0.apk`\n- **iOS**（17 及以上，液态玻璃效果需要 iOS 26）：`RouteLink-unsigned.ipa` 是未签名的安装包，需要用 AltStore、SideStore 或 Sideloadly 以自己的 Apple ID 签名后安装。IPA 里带一个桌面小组件扩展，签名时要用两个 App ID，App Group 要换成你账号下的（AltStore、SideStore 会自动处理），详见 README。\n\n**系统要求提高了**：iOS 16 和 Android 7 不再支持（SSH 用到的库需要 iOS 17、Android 8.0）。还在用这两个版本的，请继续用 v0.3.1。\n\n### 新功能\n\n- **SSH 终端**（更多 → SSH 终端）：密码或密钥登录；第一次连接时确认主机指纹，之后指纹变了会拦下来；键盘上方有 Esc、Tab、Ctrl、方向键；可以调字号。在路由器详情页可以一键把 App 的公钥装到路由器上，以后免密码登录。\n- **AI 助手**（概览 → 问 AI）：用你自己的 API Key，支持 Claude、OpenAI、DeepSeek、通义千问、Ollama 和任意 OpenAI 兼容的服务。它能查路由器状态、设备、无线、防火墙和日志；踢掉或拉黑设备、改 Wi-Fi、加端口转发、重启服务或路由器之前，会在对话里请你确认。\n  - 第一次使用前会说明哪些数据会发给服务商。MAC 地址和公网 IP 默认打码，每类数据都可以单独关闭；密码和密钥永远不会发送。对话只存在手机上。\n- **桌面小组件**（iOS、Android）：当前路由器的在线状态、实时速率、在线设备数，点按打开 App。Android 可以在\"更多 → 通知与小组件\"里直接添加到桌面。\n- **掉线通知**（更多 → 通知与小组件）：App 在后台大约每 15 分钟检查一次，路由器连不上、恢复、有新设备接入时发通知。每台路由器单独开关，需要保存密码。具体什么时候运行由系统决定，iOS 上间隔可能更长。\n- **演示模式**：终端、AI 助手、小组件都有演示数据，不用路由器也能试。\n\n---\n\nThe fourth milestone (M4): SSH terminal, AI assistant, home-screen widget and offline alerts.\n\n### Downloads\n\n- **Android** (8.0 or newer, ARM processor): `RouteLink-v1.0.0.apk`\n- **iOS** (17 or newer; Liquid Glass needs iOS 26): `RouteLink-unsigned.ipa` is unsigned. Sign and install it with your own Apple ID using AltStore, SideStore or Sideloadly. The IPA carries a home-screen widget extension, so signing takes two App IDs, and its App Group has to become one of your account (AltStore and SideStore do it for you); see the README.\n\n**Higher system requirements**: iOS 16 and Android 7 are no longer supported (the SSH libraries need iOS 17 and Android 8.0). On those versions, stay with v0.3.1.\n\n### New\n\n- **SSH terminal** (More → SSH Terminal): password or key login; you confirm the host key on first connection and the app stops if it ever changes; Esc, Tab, Ctrl and arrow keys above the keyboard; adjustable font size. The router's detail page installs the app's public key on the router in one tap, for logins without a password.\n- **AI assistant** (Overview → Ask AI): with your own API key for Claude, OpenAI, DeepSeek, Qwen, Ollama or any OpenAI-compatible service. It looks up the router's state, devices, Wi-Fi, firewall and logs, and asks you in the chat before it kicks or blocks a device, changes Wi-Fi, adds a port forward, or restarts a service or the router.\n  - Before first use it explains what is sent to the provider. MAC addresses and public IPs are masked by default, each kind of data can be turned off, and passwords and keys are never sent. Conversations stay on the phone.\n- **Home-screen widget** (iOS, Android): the current router's state, live speed and devices online; tap to open the app. On Android, More → Notifications & Widget adds it to the home screen.\n- **Offline alerts** (More → Notifications & Widget): about every 15 minutes the app checks in the background and notifies you when a router can't be reached, comes back, or sees a new device. On or off per router; needs a saved password. The system decides when it runs, which on iOS can be less often.\n- **Demo mode**: the terminal, the assistant and the widget all have demo data, so you can try them without a router.\n",
+  "assets": [
+    {
+      "name": "RouteLink-unsigned.ipa",
+      "size": 21720515,
+      "browser_download_url": "https://github.com/tsix2019/RouteLink/releases/download/v1.0.0/RouteLink-unsigned.ipa",
+      "digest": "sha256:b75c1eabff7436992999eaac019a50adf3c23e09c3a6c66e9cf617eabe7ae6a4"
+    },
+    {
+      "name": "RouteLink-v1.0.0.apk",
+      "size": 37233386,
+      "browser_download_url": "https://github.com/tsix2019/RouteLink/releases/download/v1.0.0/RouteLink-v1.0.0.apk",
+      "digest": "sha256:6248ebf72279e186f6e4d6af563f253366c2528232654e93ea027ff8b919bf20"
+    }
+  ]
+}
