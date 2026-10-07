@@ -25,21 +25,22 @@ export function useTrust() {
   const clearLocal = useLocalTrust((s) => s.clear);
   const write = useRouterMutation((conn, updates: MarkUpdate[]) => setDeviceMarks(conn, updates), TRUST);
 
-  const migrating = useRef(false);
+  // One try per router while mounted: a failed move (no write access, router gone) keeps the local list
+  // for the next visit instead of retrying on every render.
+  const tried = useRef(new Set<string>());
+  const data = marks.data;
+  const refetch = marks.refetch;
   useEffect(() => {
-    if (!plugin || !marks.data || !local.length || !connection || migrating.current) return;
-    migrating.current = true;
-    const updates = migrationUpdates(local, marks.data);
+    if (!plugin || !data || !local.length || !connection || tried.current.has(routerId)) return;
+    tried.current.add(routerId);
+    const updates = migrationUpdates(local, data);
     (updates.length ? setDeviceMarks(connection, updates) : Promise.resolve())
       .then(() => {
         clearLocal(routerId);
-        return marks.refetch();
+        return refetch();
       })
-      .catch(() => undefined)
-      .finally(() => {
-        migrating.current = false;
-      });
-  }, [plugin, marks, local, connection, clearLocal, routerId]);
+      .catch(() => undefined);
+  }, [plugin, data, refetch, local, connection, clearLocal, routerId]);
 
   const trusted = useMemo(
     () => new Set(plugin ? (marks.data ?? []).filter((m) => m.trusted).map((m) => m.mac) : local),
