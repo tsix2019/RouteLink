@@ -44,8 +44,8 @@ it('runs every segment against the demo network', async () => {
   ]);
   expect(by['phone-wifi'].facts).toMatchObject({ ap: DEMO_AP_NAME, rttMs: 12 });
   expect(by['ap-uplink'].verdict.status).toBe('ok');
-  // The demo redialled a few hours ago: one reconnect and one outage in the last day.
-  expect(by.wan.verdict.status).toBe('warn');
+  // The provider's network was down for a minute some hours ago: the WAN stayed up, stability warns.
+  expect(by.wan.verdict.status).toBe('ok');
   expect(by.stability.verdict.status).toBe('warn');
   expect(by.dns.verdict.status).toBe('ok');
   expect(by.internet.verdict.status).toBe('ok');

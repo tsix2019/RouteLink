@@ -100,6 +100,7 @@ const DEVICES: [hostname: string, oui: string, kind: 'wifi' | 'wired', radio?: '
 ];
 
 const OFFLINE = new Set(['ThinkPad', 'iPad']);
+const RATES_24 = [72200, 144400, 206500, 286800];
 /** Marked as "mine" in the plugin's trust list; the NAS is also watched (a notice when it goes away). */
 const TRUSTED: [hostname: string, watch: boolean][] = [
   ['iPhone-16-Pro', false],
@@ -198,8 +199,9 @@ export function createDemoState(seed = 2026, now = Date.now()): DemoState {
     radio,
     online: !OFFLINE.has(hostname),
     signal: kind === 'wifi' ? rng.int(-72, -38) : 0,
-    rxRate: kind === 'wifi' ? rng.pick([144400, 286800, 573500, 866700, 1200900]) : 0,
-    txRate: kind === 'wifi' ? rng.pick([173300, 433300, 866700, 1200900]) : 0,
+    // Negotiated rates fit the band: 2.4 GHz (HE20, 2×2) tops out at 286.8 Mbit/s.
+    rxRate: kind === 'wifi' ? rng.pick(radio === 'radio0' ? RATES_24 : [144400, 286800, 573500, 866700, 1200900]) : 0,
+    txRate: kind === 'wifi' ? rng.pick(radio === 'radio0' ? RATES_24 : [173300, 433300, 866700, 1200900]) : 0,
     connectedSec: rng.int(120, 86400),
     ap: ON_AP.has(hostname) || undefined,
   }));

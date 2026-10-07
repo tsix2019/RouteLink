@@ -28,7 +28,7 @@ interface DemoOutage {
 
 const CAUSES: Cause[] = ['redial', 'upstream', 'wan_down'];
 
-/** Outages overlapping [from, to): about one every five days, plus a short redial some hours ago. */
+/** Outages overlapping [from, to): about one every five days, plus a short upstream outage some hours ago. */
 export function outagesBetween(ctx: Ctx, from: number, to: number): DemoOutage[] {
   const out: DemoOutage[] = [];
   const since = ctx.state.agent.dataSince;
@@ -38,8 +38,9 @@ export function outagesBetween(ctx: Ctx, from: number, to: number): DemoOutage[]
     const end = start + 40 + Math.floor(hash01(day, 79) * 560);
     out.push({ start, end, cause: CAUSES[Math.floor(hash01(day, 83) * 3)] });
   }
+  // A short upstream hiccup some hours ago: the WAN itself stayed up (its uptime is days).
   const recent = Math.floor((ctx.now - 5 * HOUR) / HOUR) * HOUR + 1_234;
-  out.push({ start: recent, end: recent + 95, cause: 'redial' });
+  out.push({ start: recent, end: recent + 95, cause: 'upstream' });
   return out
     .filter((o) => o.start >= since && o.start < ctx.now && o.end > from && o.start < to)
     .map((o) => ({ ...o, end: Math.min(o.end, ctx.now) }))
@@ -278,7 +279,7 @@ const isV6 = (host: string) => host.includes(':');
 const addressOf = (host: string) => {
   if (/^[\d.]+$/.test(host) || isV6(host)) return host;
   const h = [...host].reduce((s, c) => (s * 31 + c.charCodeAt(0)) >>> 0, 7);
-  return `${100 + (h % 120)}.${(h >> 8) % 256}.${(h >> 16) % 256}.${((h >> 24) % 250) + 1}`;
+  return `${100 + (h % 120)}.${(h >>> 8) % 256}.${(h >>> 16) % 256}.${((h >>> 24) % 250) + 1}`;
 };
 
 function ping(side: 'gateway' | 'ap', v6: boolean): Exec {

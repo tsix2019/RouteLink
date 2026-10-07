@@ -184,7 +184,7 @@ const kindOf = (d: DemoDevice) =>
 
 const fakeIp = (host: string) => {
   const h = [...host].reduce((s, c) => (s * 33 + c.charCodeAt(0)) >>> 0, 5381);
-  return `${(h % 200) + 20}.${(h >> 8) % 256}.${(h >> 16) % 256}.${((h >> 24) % 250) + 1}`;
+  return `${(h % 200) + 20}.${(h >>> 8) % 256}.${(h >>> 16) % 256}.${((h >>> 24) % 250) + 1}`;
 };
 
 function destinations(ctx: Ctx, p: Record<string, unknown>) {

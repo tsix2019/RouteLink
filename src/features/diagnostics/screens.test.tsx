@@ -91,13 +91,13 @@ beforeEach(() => {
 });
 
 describe('one-click diagnosis', () => {
-  it('runs every segment on open, heads with the demo redial and shares the text', async () => {
+  it('runs every segment on open, heads with the demo outage and shares the text', async () => {
     await render(wrap(<Diagnosis />));
     expect(screen.getByText('Checking…')).toBeTruthy();
     await waitFor(() => expect(screen.getByText('Run again')).toBeTruthy(), { timeout: 8_000 });
-    expect(screen.getByText('Worth a look: Gateway WAN')).toBeTruthy();
+    expect(screen.getByText('Worth a look: Recent stability')).toBeTruthy();
     expect(screen.getByText(/^Signal at the access point -\d+ dBm/)).toBeTruthy();
-    expect(screen.getByText('Reconnects in the last 24 h: 1')).toBeTruthy();
+    expect(screen.getByText('Reconnects in the last 24 h: 0')).toBeTruthy();
     expect(screen.getByText('HTTP check passed')).toBeTruthy();
 
     await fireEvent.press(screen.getAllByText('See the outage log, useful as evidence for your provider')[0]);
@@ -145,9 +145,9 @@ describe('diagnostic tools', () => {
 });
 
 describe('outages and latency', () => {
-  it('shows availability, the curve of a custom target and the demo redial, and shares a summary', async () => {
+  it('shows availability, the curve of a custom target and the demo outage, and shares a summary', async () => {
     await render(wrap(<Latency />));
-    await waitFor(() => expect(screen.getByText(/^Reconnect · /)).toBeTruthy(), { timeout: 6_000 });
+    await waitFor(() => expect(screen.getByText(/^Upstream unreachable · /)).toBeTruthy(), { timeout: 6_000 });
     expect(screen.getByText(/^\d+(\.\d+)?%$/)).toBeTruthy();
     // The first custom target is charted (title) and listed.
     await waitFor(() => expect(screen.getAllByText('223.5.5.5')).toHaveLength(2));

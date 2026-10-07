@@ -30,13 +30,15 @@ describe('demo plugin: latency and outages', () => {
     });
   });
 
-  it('gives minute latency for a day, every target, with the recent redial as loss', async () => {
+  it('gives minute latency for a day, every target, with the recent upstream outage as loss', async () => {
     const { conn } = demo();
     const h = await agentLatency(conn, { start: now - 86_400, end: now, maxPoints: 720 });
     expect(h.tier).toBe('minute');
     expect(h.targets.map((t) => t.ip)).toEqual(['203.0.113.1', '223.5.5.5', '119.29.29.29', '1.1.1.1']);
     expect(h.series[0].points.length).toBe(720);
-    expect(h.series[0].points.some((p) => (p.loss ?? 0) > 50)).toBe(true);
+    // The provider's network was down, not the line: the next hop kept answering.
+    expect(h.series[1].points.some((p) => (p.loss ?? 0) > 50)).toBe(true);
+    expect(h.series[0].points.some((p) => (p.loss ?? 0) > 50)).toBe(false);
     const gw = h.summary[0];
     expect(gw.sent).toBeGreaterThan(8000);
     expect(gw.avgMs).toBeGreaterThan(1);
@@ -46,16 +48,18 @@ describe('demo plugin: latency and outages', () => {
     expect(one.series).toHaveLength(1);
   });
 
-  it('lists outages with causes and availability, and WAN events for the redial', async () => {
+  it('lists outages with causes and availability, and WAN events for the line drops', async () => {
     const { conn } = demo();
     const day = await agentOutages(conn, { start: now - 86_400, end: now });
     expect(day.count).toBeGreaterThanOrEqual(1);
-    expect(day.outages[0]).toMatchObject({ cause: 'redial', ongoing: false });
+    expect(day.outages[0]).toMatchObject({ cause: 'upstream', ongoing: false });
     expect(day.availability).toBeGreaterThan(99);
     expect(day.availability).toBeLessThan(100);
     const month = await agentOutages(conn, { start: now - 30 * 86_400, end: now });
     expect(month.count).toBeGreaterThan(day.count);
-    const ev = await agentEvents(conn, { start: now - 86_400, end: now, types: ['wan_down', 'wan_up'] });
+    const types = ['wan_down', 'wan_up'];
+    expect((await agentEvents(conn, { start: now - 86_400, end: now, types })).count).toBe(0);
+    const ev = await agentEvents(conn, { start: now - 30 * 86_400, end: now, types });
     expect(ev.events.map((e) => e.type)).toEqual(expect.arrayContaining(['wan_down', 'wan_up']));
   });
 });

@@ -48,7 +48,7 @@ it('describes each segment of a demo run in plain lines', async () => {
   expect(facts('phone-wifi')[0]).toMatch(/^Signal at the access point -\d+ dBm · .+ · link rate \d{2,4} Mbps · /);
   expect(facts('phone-wifi')[1]).toMatch(/^Round trip to the router \d+ ms, jitter \d+ ms$/);
   expect(facts('ap-uplink')[0]).toBe(`Loss pinging the gateway: ${DEMO_AP_NAME}: 0%`);
-  expect(facts('wan')).toEqual([expect.stringMatching(/^PPPoE · [\d.]+ · up /), 'Reconnects in the last 24 h: 1']);
+  expect(facts('wan')).toEqual([expect.stringMatching(/^PPPoE · [\d.]+ · up /), 'Reconnects in the last 24 h: 0']);
   expect(facts('upstream')[0]).toMatch(/^Next hop [\d.]+ · average [\d.]+ ms$/);
   expect(facts('dns')[0]).toMatch(/^Lookups: www\.baidu\.com \d+ ms, www\.apple\.com \d+ ms$/);
   expect(facts('internet')).toEqual([expect.stringMatching(/^Loss pinging public addresses 0%/), 'HTTP check passed']);
@@ -85,9 +85,10 @@ it('shares the result as text with facts and advice', async () => {
   const text = diagnosisText(t(), 'en', { router: 'Home', at: NOW / 1000, results, plugin: true });
   const lines = text.split('\n');
   expect(lines[0]).toMatch(/^RouteLink network diagnosis · Home · /);
-  expect(lines[1]).toBe('Worth a look: Gateway WAN');
+  expect(lines[1]).toBe('Worth a look: Recent stability');
   expect(lines[3]).toMatch(/^\[OK\] Phone to Wi-Fi: Signal at the access point/);
-  expect(text).toContain('[Warning] Gateway WAN: PPPoE');
+  expect(text).toContain('[OK] Gateway WAN: PPPoE');
+  expect(text).toContain('[Warning] Recent stability: ');
   expect(text).toContain('  · See the outage log, useful as evidence for your provider');
 });
 
