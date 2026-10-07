@@ -11,6 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { setupNotifications, syncBackgroundCheck } from '@/features/background/task';
 import { ActiveRouterProvider } from '@/features/routers/ActiveRouterProvider';
+import { useAutoUpdateCheck } from '@/features/update/useAutoUpdateCheck';
 import { createQueryClient, useAppStateFocus } from '@/hooks/query-client';
 import { i18n, initI18n, setLanguage } from '@/i18n';
 import { useRouters } from '@/state/routers';
@@ -32,6 +33,7 @@ export default function RootLayout() {
   const [fontsReady, fontError] = useFonts(FONT_ASSETS);
   const ready = settingsReady && routersReady && (fontsReady || !!fontError);
   useAppStateFocus();
+  useAutoUpdateCheck();
 
   useEffect(() => {
     if (settingsReady) void setLanguage(language);
@@ -99,7 +101,6 @@ function RootStack() {
         <Stack.Screen name="trust-certificate" options={sheetOptions([0.8, 1])} />
         <Stack.Screen name="device/[mac]" options={sheetOptions([0.68, 1])} />
         <Stack.Screen name="wifi-qr" options={sheetOptions([0.85, 1])} />
-        <Stack.Screen name="wireguard-export" options={sheetOptions([0.92, 1])} />
         <Stack.Screen name="reboot" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
         <Stack.Screen name="maintenance" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
         <Stack.Screen name="terminal" options={{ presentation: 'fullScreenModal', orientation: 'default' }} />

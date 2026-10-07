@@ -1,0 +1,28 @@
+{
+  "tag_name": "agent-v0.1.0",
+  "draft": false,
+  "prerelease": false,
+  "published_at": "2026-10-05T07:50:13Z",
+  "html_url": "https://github.com/tsix2019/RouteLink/releases/tag/agent-v0.1.0",
+  "body": "RouteLink router plugin: per-device traffic statistics for OpenWrt 23.05, 24.10 and 25.12, with LuCI\npages and an API for the RouteLink app.\n\n**Easiest:** install it from the RouteLink app (More → Router plugin).\n\n**Manual install** (pick the files for your OpenWrt version and architecture; `manifest.json` lists them):\n\n```sh\n# OpenWrt 23.05 / 24.10 (opkg)\nopkg update\nopkg install routelinkd_*.ipk luci-app-routelink_*.ipk luci-i18n-routelink-zh-cn_*.ipk\n\n# OpenWrt 25.12 (apk): trust the RouteLink key first\nwget -O /etc/apk/keys/routelink.pem https://tsix2019.github.io/RouteLink/agent/keys/routelink-apk.pem\napk update\napk add routelinkd-*.apk luci-app-routelink-*.apk luci-i18n-routelink-zh-cn-*.apk\n```\n\n**Package feed** (updates through LuCI → System → Software): see the \"Router plugin\" section of the README.\n\nNotes:\n- nlbwmon resets the connection counters this plugin reads; stop it (the LuCI page offers a button).\n- Hardware offloading and Turbo ACC/SFE bypass connection accounting; software offloading is fine.\n",
+  "assets": [
+    {
+      "name": "luci-app-routelink_0.1.0-r1_24.10_x86_64.ipk",
+      "size": 12552,
+      "browser_download_url": "https://github.com/tsix2019/RouteLink/releases/download/agent-v0.1.0/luci-app-routelink_0.1.0-r1_24.10_x86_64.ipk",
+      "digest": "sha256:7514980fa6e8cdd22525030b6df18344bed7aa954da07bc848029da8168cb9db"
+    },
+    {
+      "name": "manifest.json",
+      "size": 34469,
+      "browser_download_url": "https://github.com/tsix2019/RouteLink/releases/download/agent-v0.1.0/manifest.json",
+      "digest": "sha256:21a3e98579847feab3ded735d85a49b8bf39d72e9b6839e12a92f647c1e33229"
+    },
+    {
+      "name": "routelinkd-0.1.0-r1_25.12_x86_64.apk",
+      "size": 37065,
+      "browser_download_url": "https://github.com/tsix2019/RouteLink/releases/download/agent-v0.1.0/routelinkd-0.1.0-r1_25.12_x86_64.apk",
+      "digest": "sha256:9b17a6c032fecde5b1986624d8735fab2061be2b473c171a240174598839ab8c"
+    }
+  ]
+}

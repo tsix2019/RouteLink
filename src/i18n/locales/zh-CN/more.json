@@ -8,6 +8,7 @@
   "reboot": "重启路由器",
   "manageRouters": "管理路由器",
   "about": "关于",
+  "update": "软件更新",
   "servicesScreen": {
     "search": "搜索服务",
     "running": "运行中",
@@ -70,8 +71,38 @@
     "version": "版本 {{version}}",
     "source": "源代码",
     "privacy": "隐私",
-    "privacyText": "RouteLink 不收集任何数据，没有统计和广告。App 只和你添加的路由器通信；密码保存在系统钥匙串里。",
+    "privacyText": "RouteLink 不收集任何数据，没有统计和广告。App 只和你添加的路由器通信，只在你检查更新、打开自动检查更新或安装插件时访问 GitHub；密码保存在系统钥匙串里。",
     "license": "开源许可：MIT"
+  },
+  "updateScreen": {
+    "current": "当前版本",
+    "check": "检查更新",
+    "checkedAt": "上次检查：{{time}}",
+    "neverChecked": "还没有检查过",
+    "upToDate": "已是最新版本",
+    "newVersion": "发现新版本 {{version}}",
+    "badge": "新版本",
+    "released": "{{date}} 发布",
+    "size": "安装包 {{size}}",
+    "download": "下载并安装",
+    "downloading": "已下载 {{done}} / {{total}}",
+    "verifying": "正在校验安装包…",
+    "install": "安装",
+    "installHint": "第一次安装时，系统会请你允许 RouteLink 安装未知应用。允许后回到这里，再点“安装”。",
+    "releasePage": "前往发布页",
+    "iosHint": "下载 IPA 后用 AltStore、SideStore 或 Sideloadly 重新签名安装。",
+    "autoCheck": "自动检查更新",
+    "autoCheckHint": "打开后，App 每天最多访问一次 GitHub 查询新版本。",
+    "mirror": "GitHub 下载镜像",
+    "mirrorHint": "可以不填。填写后加在安装包的下载地址前面，适合访问 GitHub 慢的网络；和插件安装共用。",
+    "error": {
+      "network": "连不上 GitHub，请检查网络后重试",
+      "rate-limited": "GitHub 暂时拒绝了请求，请稍后再试",
+      "no-release": "没有找到可用的版本信息",
+      "download": "下载失败：{{detail}}",
+      "verify": "安装包校验失败，请重新下载",
+      "installer": "打不开系统的安装界面，请从发布页用浏览器下载"
+    }
   },
   "processes": "进程",
   "processesScreen": {
@@ -167,7 +198,9 @@
     "passwordTitle": "修改 {{user}} 的密码？",
     "passwordConsequence": "LuCI 和 SSH 要用新密码登录；App 会为这台路由器保存新密码",
     "passwordDone": "密码已修改",
-    "zoneDone": "时区已修改"
+    "zoneDone": "时区已修改",
+    "zoneSearch": "按名称或 TZ 字符串搜索",
+    "zoneNone": "没有匹配的时区"
   },
   "packages": "软件包",
   "packagesScreen": {

@@ -1,6 +1,6 @@
 import type { ExpoConfig } from 'expo/config';
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 /** 1.2.3 → 10203, so every release is an upgrade of the one before (v0.1.0 shipped with the default, 1). */
 const BUILD = VERSION.split('.').reduce((n, part) => n * 100 + Number(part), 0);
 
@@ -63,6 +63,8 @@ const config: ExpoConfig = {
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    // Software update: hand the downloaded APK to the system installer (added to the manifest's own).
+    permissions: ['android.permission.REQUEST_INSTALL_PACKAGES'],
   },
   locales: {
     en: './src/i18n/native/en.json',

@@ -1,6 +1,7 @@
 import { FixtureConnection, fail, ok } from '../../../test/fixture-connection';
 import {
   describeSchedule,
+  findEntry,
   parseCrontab,
   readCrontab,
   serializeCrontab,
@@ -99,5 +100,37 @@ describe('reading and writing', () => {
     });
 
     await expect(writeCrontab(conn, tab, 'something else')).rejects.toMatchObject({ code: 'cron-changed' });
+  });
+});
+
+describe('findEntry', () => {
+  const lines = parseCrontab(text);
+  const logger = lines[2] as CronEntry;
+
+  it('finds the entry where it was', () => {
+    expect(findEntry(lines, logger, 2)).toBe(2);
+  });
+
+  it('finds it after lines were added above', () => {
+    const moved = parseCrontab(`0 1 * * * reboot
+${text}`);
+    expect(findEntry(moved, logger, 2)).toBe(3);
+  });
+
+  it('prefers the copy at the old place when the same task is there twice', () => {
+    const twice = parseCrontab(`*/30 * * * * logger routelink-test
+${text}`);
+    expect(findEntry(twice, logger, 3)).toBe(3);
+    expect(findEntry(twice, logger, 1)).toBe(0);
+  });
+
+  it('is null once the entry was changed or removed', () => {
+    expect(findEntry(parseCrontab(text.replace('*/30', '*/15')), logger, 2)).toBeNull();
+    expect(findEntry(parseCrontab('# empty'), logger, 2)).toBeNull();
+  });
+
+  it('skips App-managed tasks', () => {
+    const managed = lines[5] as CronEntry;
+    expect(findEntry(lines, { ...managed, managed: false }, 5)).toBeNull();
   });
 });

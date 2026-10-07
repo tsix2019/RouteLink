@@ -24,9 +24,9 @@ RouteLink is a phone app for managing OpenWrt routers, for iOS and Android, in E
 - **AI assistant**: ask about your router with your own API key (Claude, OpenAI, DeepSeek, Qwen, or a local Ollama); it asks you before changing anything.
 - **Home-screen widgets and alerts**: the current router's state, speed and devices online on your home screen (Android adds five more: speed, devices online, system, WAN and shortcuts, with ↻ to refresh on the spot); a notification when a router can't be reached, comes back, or sees a new device.
 - **Demo mode**: try everything without a router, against a built-in simulated OpenWrt.
-- **Private**: no data collection; the app talks only to the routers you add, and to the AI provider you choose once you turn the assistant on.
+- **Private**: no data collection; the app talks only to the routers you add, to GitHub only when you check for updates, turn on automatic checks or install the plugin, and to the AI provider you choose once you turn the assistant on.
 
-> The app's four milestones (M1–M4) and the router plugin's first phase (P1) are complete; what comes next is in the feature list below.
+> The app's five milestones (M1–M5) and the router plugin's first phase (P1) are complete; what comes next is in the feature list below.
 
 ## Screenshots
 
@@ -138,6 +138,7 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Saved Wake-on-LAN devices
 - ✅ Router management (order, edit, delete, certificate), language, appearance, refresh interval, reduce transparency, demo mode
 - ✅ Router plugin: one-tap install, update check, restart, clear data, remove
+- ✅ App updates: Android downloads, verifies and installs a new version in the app, iOS opens the release page; an optional daily check (off by default)
 - ✅ Processes (stop, reload), packages (search, install, remove), scheduled tasks, LEDs, system (time zone, set the router clock, admin password)
 - ✅ Backup and restore, firmware upgrade (online for official OpenWrt and ImmortalWrt releases, or from a file), factory reset. All high-risk: a backup is offered first, a checkbox and the router's name confirm, and a full-screen page asks to keep the power on
 - ✅ SSH terminal: password or key login, host key confirmed and pinned, a key bar (Esc, Tab, Ctrl, arrows), adjustable font size, finger scrolling, landscape; installs the app's public key on the router in one tap
@@ -228,7 +229,7 @@ The RouteLink plugin runs on the router, counts what every device uploads and do
 - Discovery probes never carry credentials.
 - The SSH private key the app creates lives in the keychain and never leaves the phone; only the public key goes on the router.
 - The AI assistant is off until you enter your own API key, read what it sends and agree. Then your question and the router data needed to answer it (status, device list, wireless and firewall settings, system log) go to the provider you chose. MAC addresses and public IPs are masked by default, each kind of data can be turned off, and passwords and keys are never sent. Conversations stay on the phone.
-- No analytics, no ads; the app contacts no server of its own.
+- No analytics, no ads; the app contacts no server of its own, and GitHub only when you check for updates, turn on automatic checks or install the plugin.
 - Test data in this repository comes only from demo mode and throw-away virtual routers (Docker / QEMU), never from real routers.
 
 ## Build from source
@@ -278,6 +279,8 @@ openwrt/                   the router plugin: routelinkd (C daemon), luci-app-ro
 - M1 plan and execution log (in Chinese): [docs/superpowers/plans/2026-10-05-routelink-m1.md](docs/superpowers/plans/2026-10-05-routelink-m1.md)
 - Plugin design (in Chinese): [docs/superpowers/specs/2026-10-05-routelink-agent-design.md](docs/superpowers/specs/2026-10-05-routelink-agent-design.md)
 - P1 plan and execution log (in Chinese): [docs/superpowers/plans/2026-10-05-routelink-p1.md](docs/superpowers/plans/2026-10-05-routelink-p1.md)
+- M5 design, forms as pages and app updates (in Chinese): [docs/superpowers/specs/2026-10-06-routelink-m5-design.md](docs/superpowers/specs/2026-10-06-routelink-m5-design.md)
+- M5 plan and execution log (in Chinese): [docs/superpowers/plans/2026-10-06-routelink-m5.md](docs/superpowers/plans/2026-10-06-routelink-m5.md)
 
 ## Acknowledgements
 

@@ -20,7 +20,6 @@ import { GlassCard } from '@/ui/GlassCard';
 import { ListRow, ListSection } from '@/ui/ListSection';
 import { Screen } from '@/ui/Screen';
 import { Segmented } from '@/ui/Segmented';
-import { SheetScreen } from '@/ui/SheetScreen';
 import { TextField } from '@/ui/TextField';
 import { MONO_FONT, spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
@@ -94,99 +93,97 @@ export default function WireGuardExport() {
   };
 
   return (
-    <SheetScreen detent={0.92}>
-      <Screen title={peer?.name || t('network:wireguard.export.title')} inTabs={false}>
-        {!config.data ? (
-          <Skeleton height={280} radius={22} />
-        ) : !peer || !iface ? (
-          <EmptyState icon="vpn" title={t('network:wireguard.noExport')} />
-        ) : !peer.privateKey ? (
-          <EmptyState icon="vpn" title={t('network:wireguard.noExport')} />
-        ) : (
-          <>
-            <GlassCard contentStyle={styles.card}>
-              {text ? (
-                <View style={styles.code}>
-                  <QrCode text={text} size={260} />
-                </View>
-              ) : (
-                <AppText variant="body" tone="secondary" align="center">
-                  {t('network:wireguard.export.noEndpoint')}
-                </AppText>
-              )}
-              <AppText variant="footnote" tone="secondary" align="center">
-                {t('network:wireguard.export.hint')}
-              </AppText>
-            </GlassCard>
-            <AppText variant="footnote" tone="secondary" style={styles.note}>
-              {t('network:wireguard.export.endpoint')}
-            </AppText>
-            <Segmented
-              values={options.map((o) =>
-                o === 'ddns'
-                  ? t('network:wireguard.export.endpointDdns')
-                  : o === 'wan'
-                    ? t('network:wireguard.export.endpointWan')
-                    : t('network:wireguard.export.endpointCustom'),
-              )}
-              selectedIndex={Math.max(0, options.indexOf(choice))}
-              onChange={(e) => setEndpoint(options[e.nativeEvent.selectedSegmentIndex])}
-            />
-            {choice === 'custom' ? (
-              <TextField
-                label={t('network:wireguard.export.endpoint')}
-                value={custom}
-                onChangeText={setCustom}
-                placeholder={t('network:wireguard.export.endpointPlaceholder')}
-                autoCapitalize="none"
-                autoCorrect={false}
-                monospace
-              />
-            ) : (
-              <ListSection>
-                <ListRow title={host ?? '—'} />
-              </ListSection>
-            )}
-            {choice === 'wan' && wanIp && isPrivateIPv4(wanIp) ? (
-              <AppText variant="footnote" tone="warning" style={styles.note}>
-                {t('network:wireguard.export.privateWan', { ip: wanIp })}
-              </AppText>
-            ) : null}
-            <AppText variant="footnote" tone="secondary" style={styles.note}>
-              {t('network:wireguard.export.traffic')}
-            </AppText>
-            <Segmented
-              values={[t('network:wireguard.export.trafficAll'), t('network:wireguard.export.trafficLan')]}
-              selectedIndex={traffic === 'all' ? 0 : 1}
-              onChange={(e) => setTraffic(e.nativeEvent.selectedSegmentIndex === 0 ? 'all' : 'lan')}
-            />
+    <Screen title={peer?.name || t('network:wireguard.export.title')}>
+      {!config.data ? (
+        <Skeleton height={280} radius={22} />
+      ) : !peer || !iface ? (
+        <EmptyState icon="vpn" title={t('network:wireguard.noExport')} />
+      ) : !peer.privateKey ? (
+        <EmptyState icon="vpn" title={t('network:wireguard.noExport')} />
+      ) : (
+        <>
+          <GlassCard contentStyle={styles.card}>
             {text ? (
-              <>
-                <GlassCard>
-                  <AppText variant="footnote" selectable style={styles.mono}>
-                    {text}
-                  </AppText>
-                </GlassCard>
-                <GlassButton
-                  label={t('network:wireguard.export.copy')}
-                  icon="copy"
-                  onPress={() => {
-                    void Clipboard.setStringAsync(text);
-                    toast(t('network:wireguard.export.copied'));
-                  }}
-                />
-                <GlassButton
-                  label={t('network:wireguard.export.share')}
-                  icon="share"
-                  variant="primary"
-                  onPress={() => void share()}
-                />
-              </>
-            ) : null}
-          </>
-        )}
-      </Screen>
-    </SheetScreen>
+              <View style={styles.code}>
+                <QrCode text={text} size={260} />
+              </View>
+            ) : (
+              <AppText variant="body" tone="secondary" align="center">
+                {t('network:wireguard.export.noEndpoint')}
+              </AppText>
+            )}
+            <AppText variant="footnote" tone="secondary" align="center">
+              {t('network:wireguard.export.hint')}
+            </AppText>
+          </GlassCard>
+          <AppText variant="footnote" tone="secondary" style={styles.note}>
+            {t('network:wireguard.export.endpoint')}
+          </AppText>
+          <Segmented
+            values={options.map((o) =>
+              o === 'ddns'
+                ? t('network:wireguard.export.endpointDdns')
+                : o === 'wan'
+                  ? t('network:wireguard.export.endpointWan')
+                  : t('network:wireguard.export.endpointCustom'),
+            )}
+            selectedIndex={Math.max(0, options.indexOf(choice))}
+            onChange={(e) => setEndpoint(options[e.nativeEvent.selectedSegmentIndex])}
+          />
+          {choice === 'custom' ? (
+            <TextField
+              label={t('network:wireguard.export.endpoint')}
+              value={custom}
+              onChangeText={setCustom}
+              placeholder={t('network:wireguard.export.endpointPlaceholder')}
+              autoCapitalize="none"
+              autoCorrect={false}
+              monospace
+            />
+          ) : (
+            <ListSection>
+              <ListRow title={host ?? '—'} />
+            </ListSection>
+          )}
+          {choice === 'wan' && wanIp && isPrivateIPv4(wanIp) ? (
+            <AppText variant="footnote" tone="warning" style={styles.note}>
+              {t('network:wireguard.export.privateWan', { ip: wanIp })}
+            </AppText>
+          ) : null}
+          <AppText variant="footnote" tone="secondary" style={styles.note}>
+            {t('network:wireguard.export.traffic')}
+          </AppText>
+          <Segmented
+            values={[t('network:wireguard.export.trafficAll'), t('network:wireguard.export.trafficLan')]}
+            selectedIndex={traffic === 'all' ? 0 : 1}
+            onChange={(e) => setTraffic(e.nativeEvent.selectedSegmentIndex === 0 ? 'all' : 'lan')}
+          />
+          {text ? (
+            <>
+              <GlassCard>
+                <AppText variant="footnote" selectable style={styles.mono}>
+                  {text}
+                </AppText>
+              </GlassCard>
+              <GlassButton
+                label={t('network:wireguard.export.copy')}
+                icon="copy"
+                onPress={() => {
+                  void Clipboard.setStringAsync(text);
+                  toast(t('network:wireguard.export.copied'));
+                }}
+              />
+              <GlassButton
+                label={t('network:wireguard.export.share')}
+                icon="share"
+                variant="primary"
+                onPress={() => void share()}
+              />
+            </>
+          ) : null}
+        </>
+      )}
+    </Screen>
   );
 }
 

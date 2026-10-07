@@ -127,7 +127,6 @@
     "consequence": "The tunnel restarts; devices using it drop for a few seconds.",
     "deleteConsequence": "Devices that connect home through it won't be able to.",
     "applied": "WireGuard settings applied",
-    "generating": "Making keys…",
     "error": {
       "name-invalid": "Letters, digits and underscores only, at most 12 characters",
       "name-taken": "Another interface has this name",
@@ -351,6 +350,7 @@
     "intro": "Import the .ovpn client profile from your provider and the router connects to that VPN.",
     "empty": "No profiles yet",
     "import": "Import .ovpn Profile",
+    "pickFile": "Choose .ovpn File",
     "running": "Running",
     "stopped": "Not running",
     "unknown": "State unknown",
@@ -409,8 +409,6 @@
       "stopped": "Not running"
     },
     "nextAt": "Next update {{time}}",
-    "running": "Running",
-    "save": "Save",
     "delete": "Delete",
     "deleteTitle": "Delete {{name}}?",
     "deleteConsequence": "This domain will no longer be updated.",

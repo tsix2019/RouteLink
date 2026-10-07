@@ -8,6 +8,7 @@
   "reboot": "Reboot Router",
   "manageRouters": "Routers",
   "about": "About",
+  "update": "Software Update",
   "servicesScreen": {
     "search": "Search services",
     "running": "Running",
@@ -70,8 +71,38 @@
     "version": "Version {{version}}",
     "source": "Source Code",
     "privacy": "Privacy",
-    "privacyText": "RouteLink collects nothing: no analytics, no ads. The app talks only to the routers you add; passwords stay in the system keychain.",
+    "privacyText": "RouteLink collects nothing: no analytics, no ads. The app talks to the routers you add, and to GitHub only when you check for updates, turn on automatic checks or install the plugin; passwords stay in the system keychain.",
     "license": "Open source under the MIT License"
+  },
+  "updateScreen": {
+    "current": "Current Version",
+    "check": "Check for Updates",
+    "checkedAt": "Last checked {{time}}",
+    "neverChecked": "Not checked yet",
+    "upToDate": "You're up to date",
+    "newVersion": "Version {{version}} available",
+    "badge": "New",
+    "released": "Released {{date}}",
+    "size": "{{size}} download",
+    "download": "Download and Install",
+    "downloading": "{{done}} of {{total}}",
+    "verifying": "Verifying the download…",
+    "install": "Install",
+    "installHint": "The first time, Android asks you to let RouteLink install apps. Allow it, come back here and tap Install again.",
+    "releasePage": "Open Release Page",
+    "iosHint": "Download the IPA, then sign and install it with AltStore, SideStore or Sideloadly.",
+    "autoCheck": "Check Automatically",
+    "autoCheckHint": "When on, the app asks GitHub for a new version at most once a day.",
+    "mirror": "GitHub Download Mirror",
+    "mirrorHint": "Optional. A prefix put in front of the download link, for networks where GitHub is slow. Shared with the plugin install.",
+    "error": {
+      "network": "Can't reach GitHub. Check the network and try again.",
+      "rate-limited": "GitHub turned the request down for now. Try again later.",
+      "no-release": "No version information found.",
+      "download": "Download failed: {{detail}}",
+      "verify": "The download did not verify. Download it again.",
+      "installer": "The system installer could not be opened. Download the APK from the release page in a browser."
+    }
   },
   "processes": "Processes",
   "processesScreen": {
@@ -167,7 +198,9 @@
     "passwordTitle": "Change the password of {{user}}?",
     "passwordConsequence": "LuCI and SSH need the new password; the app saves it for this router",
     "passwordDone": "Password changed",
-    "zoneDone": "Time zone changed"
+    "zoneDone": "Time zone changed",
+    "zoneSearch": "Search by name or TZ string",
+    "zoneNone": "No matching time zone"
   },
   "packages": "Packages",
   "packagesScreen": {
