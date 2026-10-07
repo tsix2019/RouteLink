@@ -5,21 +5,37 @@
 #
 #   routelink-lab-client  LAN 172.40.0.10 / fd40::10, default route via the router
 #   routelink-lab-server  WAN 172.41.0.10 / fd41::10
-#     :8080  GET /<n> returns n bytes, POST discards the body (HTTP/1.1, IPv4 + IPv6)
+#     :8080  GET /<n> returns n bytes, POST discards the body (HTTP/1.1, IPv4 + IPv6);
+#            LibreSpeed's garbage.php?ckSize=<MiB> and empty.php for the router-side speed test
 #     :9000  accepts and holds TCP connections (for connection-count tests)
+#
+# With RL_AGENT_NAME / RL_AGENT_NET (a second router, see agent-router.sh) the lab joins that router:
+# <prefix>-lab-client and <prefix>-lab-server on 172.<n> / 172.<n+1>.
 set -euo pipefail
-LAN="routelink-agent-lan"
-WAN="routelink-agent-wan"
-CLIENT="routelink-lab-client"
-SERVER="routelink-lab-server"
+PREFIX="${RL_AGENT_NAME:-routelink-agent}"
+N="${RL_AGENT_NET:-40}"
+M=$((N + 1))
+LAN="$PREFIX-lan"
+WAN="$PREFIX-wan"
+ROUTER="$PREFIX-owrt"
+LAB="routelink-lab"
+[ -n "${RL_AGENT_NAME:-}" ] && LAB="$PREFIX-lab"
+CLIENT="$LAB-client"
+SERVER="$LAB-server"
 IMAGE="alpine:3.22"
 
 SERVER_PY='
-import http.server, socket, socketserver, threading
+import http.server, socket, socketserver, threading, urllib.parse
 class H(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     def do_GET(self):
-        n = int(self.path.strip("/") or 0)
+        url = urllib.parse.urlsplit(self.path)
+        if url.path.endswith("/garbage.php"):
+            n = min(int(urllib.parse.parse_qs(url.query).get("ckSize", ["4"])[0]), 1024) << 20
+        elif url.path.endswith("/empty.php"):
+            n = 0
+        else:
+            n = int(url.path.strip("/") or 0)
         self.send_response(200)
         self.send_header("Content-Length", str(n))
         self.end_headers()
@@ -29,13 +45,27 @@ class H(http.server.BaseHTTPRequestHandler):
             self.wfile.write(chunk[:k])
             n -= k
     def do_POST(self):
+        if "chunked" in self.headers.get("Transfer-Encoding", "").lower():
+            # uclient-fetch --post-file sends chunks
+            while True:
+                n = int(self.rfile.readline().split(b";")[0].strip() or b"0", 16)
+                if n == 0:
+                    while self.rfile.readline().strip():
+                        pass
+                    break
+                while n > 0:
+                    d = self.rfile.read(min(n, 65536))
+                    if not d:
+                        return
+                    n -= len(d)
+                self.rfile.readline()
         n = int(self.headers.get("Content-Length", 0))
         while n > 0:
             d = self.rfile.read(min(n, 65536))
             if not d:
                 break
             n -= len(d)
-        self.send_response(204)
+        self.send_response(200 if self.path.split("?")[0].endswith("/empty.php") else 204)
         self.send_header("Content-Length", "0")
         self.end_headers()
     def log_message(self, *a):
@@ -44,6 +74,7 @@ class S(socketserver.ThreadingMixIn, http.server.HTTPServer):
     address_family = socket.AF_INET6
     daemon_threads = True
     allow_reuse_address = True
+    request_queue_size = 128
 def hold():
     s = socket.socket(socket.AF_INET6)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -62,26 +93,26 @@ run() {
 
 case "${1:-}" in
   up)
-    docker inspect routelink-agent-owrt >/dev/null 2>&1 || { echo "start scripts/agent-router.sh up first" >&2; exit 1; }
+    docker inspect "$ROUTER" >/dev/null 2>&1 || { echo "start scripts/agent-router.sh up first" >&2; exit 1; }
     run rm -f "$CLIENT" "$SERVER" >/dev/null 2>&1 || true
     # the lab networks are eth0; Docker's gateway on them (.1) gives internet access for apk
-    run create --name "$SERVER" --cap-add NET_ADMIN --network "$WAN" --ip 172.41.0.10 --ip6 fd41::10 \
+    run create --name "$SERVER" --cap-add NET_ADMIN --network "$WAN" --ip "172.$M.0.10" --ip6 "fd$M::10" \
       "$IMAGE" sleep infinity >/dev/null
-    run create --name "$CLIENT" --cap-add NET_ADMIN --network "$LAN" --ip 172.40.0.10 --ip6 fd40::10 \
+    run create --name "$CLIENT" --cap-add NET_ADMIN --network "$LAN" --ip "172.$N.0.10" --ip6 "fd$N::10" \
       "$IMAGE" sleep infinity >/dev/null
     run start "$SERVER" "$CLIENT" >/dev/null
     run exec "$SERVER" apk add -q python3 >/dev/null
     run exec "$CLIENT" apk add -q python3 curl >/dev/null
     # from here on the client reaches the server only through the router
-    run exec "$SERVER" sh -c 'ip route replace 172.40.0.0/24 via 172.41.0.2 && ip -6 route replace fd40::/64 via fd41::2'
-    run exec "$CLIENT" sh -c 'ip route replace default via 172.40.0.2 && ip -6 route replace default via fd40::2'
+    run exec "$SERVER" sh -c "ip route replace 172.$N.0.0/24 via 172.$M.0.2 && ip -6 route replace fd$N::/64 via fd$M::2"
+    run exec "$CLIENT" sh -c "ip route replace default via 172.$N.0.2 && ip -6 route replace default via fd$N::2"
     run exec -d "$SERVER" python3 -c "$SERVER_PY"
     for _ in $(seq 1 20); do
-      run exec "$CLIENT" curl -sf -o /dev/null http://172.41.0.10:8080/10 && break
+      run exec "$CLIENT" curl -sf -o /dev/null "http://172.$M.0.10:8080/10" && break
       sleep 1
     done
-    run exec "$CLIENT" curl -sf -o /dev/null "http://[fd41::10]:8080/10" || echo "warning: IPv6 path not working" >&2
-    echo "lab ready: client 172.40.0.10 / fd40::10 -> server 172.41.0.10 / fd41::10"
+    run exec "$CLIENT" curl -sf -o /dev/null "http://[fd$M::10]:8080/10" || echo "warning: IPv6 path not working" >&2
+    echo "lab ready: client 172.$N.0.10 / fd$N::10 -> server 172.$M.0.10 / fd$M::10"
     ;;
   down)
     run rm -f "$CLIENT" "$SERVER" >/dev/null 2>&1 || true
