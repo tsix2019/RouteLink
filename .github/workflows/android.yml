@@ -1,8 +1,6 @@
 name: Android
 
 on:
-  # A build of any branch on demand (native changes before they reach main).
-  workflow_dispatch:
   push:
     branches: [main]
     tags: ['v*']
