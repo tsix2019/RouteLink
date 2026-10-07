@@ -2,6 +2,7 @@ import type { UciSection } from '../uci';
 import { parseDnsLog, parseNotifyStatus, parseQuotas } from './agent-control';
 import {
   channelChanges,
+  channelEdited,
   dnsChanges,
   limitChanges,
   parseRules,
@@ -124,6 +125,18 @@ describe('validation', () => {
     expect(validateChannel({ ...channel, url: 'hooks' })).toEqual(['url']);
     expect(validateChannel({ ...channel, type: 'telegram', url: '', chatId: 'x' })).toEqual(['token', 'chat-id']);
     expect(validateChannel({ ...channel, type: 'serverchan', url: '', token: 'SCT1', events: [] })).toEqual(['events']);
+  });
+
+  it('tells a push channel with unsaved edits from the saved one', () => {
+    const saved: NotifyChannel = { ...channel, section: 'cfg01', events: ['device_new', 'quota'] };
+    expect(channelEdited(saved, { ...saved })).toBe(false);
+    // Saving trims and the event order does not matter.
+    expect(channelEdited(saved, { ...saved, url: ' https://hooks.example/x ', events: ['quota', 'device_new'] })).toBe(
+      false,
+    );
+    expect(channelEdited(saved, { ...saved, token: 'new' })).toBe(true);
+    expect(channelEdited(saved, { ...saved, events: ['device_new'] })).toBe(true);
+    expect(channelEdited(saved, { ...saved, enabled: false })).toBe(true);
   });
 });
 

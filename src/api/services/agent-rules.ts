@@ -283,6 +283,12 @@ export function channelChanges(c: NotifyChannel): UbusCall[] {
   return c.section ? [uci.set('routelink', c.section, values)] : [uci.add('routelink', 'notify', values)];
 }
 
+/** Whether saving `edited` would store something other than `saved` (event order aside). */
+export function channelEdited(saved: NotifyChannel, edited: NotifyChannel): boolean {
+  const stored = (c: NotifyChannel) => JSON.stringify(channelChanges({ ...c, events: [...c.events].sort() }));
+  return stored(saved) !== stored(edited);
+}
+
 export function langChanges(current: Record<string, UciSection>, lang: NotifyLang): UbusCall[] {
   return current.notify
     ? [uci.set('routelink', 'notify', { lang })]

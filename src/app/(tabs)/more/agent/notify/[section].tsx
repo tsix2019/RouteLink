@@ -6,6 +6,7 @@ import { StyleSheet } from 'react-native';
 import { testChannel } from '@/api/services/agent-control';
 import {
   channelChanges,
+  channelEdited,
   deleteRule,
   NOTIFY_EVENTS,
   NOTIFY_TYPES,
@@ -81,6 +82,8 @@ function ChannelForm({ channel }: { channel: NotifyChannel }) {
   const issues = validateChannel(c);
   const issue = (k: (typeof issues)[number]) =>
     showIssues && issues.includes(k) ? t(`control:notify.issues.${k}` as 'control:notify.issues.url') : undefined;
+  // The router sends the test with what it has stored, so unsaved edits must be saved first.
+  const testable = !!c.section && !channelEdited(channel, c);
   const test = useMutation({
     mutationFn: () => testChannel(connection!, c.section!),
     onSuccess: (r) =>
@@ -205,7 +208,7 @@ function ChannelForm({ channel }: { channel: NotifyChannel }) {
         icon="send"
         loading={test.isPending}
         disabled={test.isPending}
-        onPress={() => (c.section ? test.mutate() : toast(t('control:notify.saveFirst'), 'info'))}
+        onPress={() => (testable ? test.mutate() : toast(t('control:notify.saveFirst'), 'info'))}
         testID="notify-test"
       />
       {c.section ? (
