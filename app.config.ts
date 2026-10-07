@@ -73,9 +73,13 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
-        backgroundColor: '#0A5BFF',
-        image: './assets/images/splash-icon.png',
+        // No enlarged icon: the splash is just the app's own page background (a transparent image,
+        // since Android 12+ would otherwise draw the launcher icon), so it hands over to the first
+        // screen without a visible step.
+        backgroundColor: '#F2F2F7',
+        image: './assets/images/splash-blank.png',
         imageWidth: 96,
+        dark: { backgroundColor: '#000000', image: './assets/images/splash-blank.png' },
       },
     ],
     'expo-localization',
