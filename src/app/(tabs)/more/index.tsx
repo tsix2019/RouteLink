@@ -183,6 +183,15 @@ export default function More() {
             onPress={() => nav.push('/more/notifications')}
             testID="more-notifications"
           />
+          {Platform.OS === 'android' ? (
+            <ListRow
+              title={t('settings:widgets.title')}
+              icon="widget"
+              chevron
+              onPress={() => nav.push('/more/widgets')}
+              testID="more-widgets"
+            />
+          ) : null}
           <ListRow
             title={t('assistant:settings')}
             icon="assistant"

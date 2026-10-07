@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { getDemoConnection, getLiveConnection } from '@/api/connection/manager';
 import { DEMO_ROUTER_ID } from '@/api/connection/demo/connection';
 import type { RouterConnection } from '@/api/connection/types';
-import { useRouters, type RouterProfile } from '@/state/routers';
+import { activeProfile, useRouters, type RouterProfile } from '@/state/routers';
 import { useSettings } from '@/state/settings';
 
 export interface ActiveRouter {
@@ -36,11 +36,7 @@ export function ActiveRouterProvider({ children }: { children: ReactNode }) {
   const activeId = useRouters((s) => s.activeId);
   const getPassword = useRouters((s) => s.getPassword);
   const update = useRouters((s) => s.update);
-  // No (valid) selection yet: fall back to the most recently used router.
-  const profile =
-    routers.find((r) => r.id === activeId) ??
-    [...routers].sort((a, b) => (b.lastUsedAt ?? 0) - (a.lastUsedAt ?? 0))[0] ??
-    null;
+  const profile = activeProfile(routers, activeId);
 
   const [password, setPassword] = useState<{ id: string; value: string | null } | null>(null);
 

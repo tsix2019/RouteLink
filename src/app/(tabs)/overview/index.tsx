@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 
 import { isAvailable } from '@/api/capabilities';
 import { pickWan } from '@/api/services/network';
+import { loadRatio } from '@/api/services/system';
 import { DevicesCard, ResourcesCard, SystemCard, TrafficCard, WanCard } from '@/features/overview/cards';
 import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
 import { ConnectionBanner } from '@/features/routers/ConnectionBanner';
@@ -22,6 +23,8 @@ import { useT } from '@/i18n';
 import { useSettings } from '@/state/settings';
 import { useSnapshots } from '@/state/snapshots';
 import { updateWidgetFromApp } from '@/widgets/fromApp';
+import { takePendingRoute } from '@/widgets/links';
+import { deviceSummary } from '@/widgets/read';
 import { GlassButton } from '@/ui/GlassButton';
 import { GlassCard } from '@/ui/GlassCard';
 import { Screen } from '@/ui/Screen';
@@ -57,21 +60,36 @@ export default function Overview() {
     });
   }, [router, system.data, wan, clients.data, saveSnapshot]);
 
-  // The home-screen widget follows the router on screen (it throttles itself).
+  // The home-screen widgets follow the router on screen (they throttle themselves).
   const online = !system.error && !!system.data;
-  const devicesOnline = clients.data?.filter((c) => c.online).length;
   const latest = traffic.latest;
   useEffect(() => {
     if (!router || !system.data) return;
-    updateWidgetFromApp(t, {
+    const s = system.data;
+    updateWidgetFromApp({
       name: router.isDemo ? t('demoRouter') : router.name,
       online,
-      devicesOnline,
+      // Without a saved password only the app can log in: the widgets' ↻ opens it instead.
+      refreshable: router.isDemo || !!router.profile?.savePassword,
+      ...(clients.data ? deviceSummary(clients.data) : {}),
       rxBps: latest?.rxBps,
       txBps: latest?.txBps,
+      cpu: loadRatio(s) ?? undefined,
+      memory: s.memory.total ? s.memory.used / s.memory.total : undefined,
+      temperature: typeof temperature.data === 'number' ? temperature.data : undefined,
+      uptimeSec: s.uptimeSec,
+      wanUp: wan?.up,
+      wanIp: wan?.ipv4[0]?.address,
+      wanProto: wan?.proto,
       updatedAt: Date.now(),
     });
-  }, [router, system.data, online, devicesOnline, latest, t]);
+  }, [router, system.data, online, clients.data, latest, temperature.data, wan, t]);
+
+  // A widget button opened the app cold on a sheet (Wi-Fi QR, terminal, assistant): it opens over this page.
+  useEffect(() => {
+    const route = takePendingRoute();
+    if (route) nav.push(route as Parameters<typeof nav.push>[0]);
+  }, [nav]);
 
   const refresh = () => Promise.all([system.refetch(), interfaces.refetch(), clients.refetch()]);
 
