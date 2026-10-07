@@ -4,6 +4,9 @@
  *
  * Ground truth is the lab client's eth0 counters minus 14 bytes of Ethernet header per packet, i.e. the
  * IP-level bytes that conntrack counts.
+ *
+ * Another router instance (RL_AGENT_NAME / RL_AGENT_NET / RL_AGENT_PORT in the scripts): set ROUTER_URL,
+ * ROUTER_CONTAINER, LAB_CLIENT and LAB_SERVER_IP.
  */
 import { execFileSync } from 'node:child_process';
 
@@ -12,9 +15,11 @@ import { UbusSession } from '../../src/api/ubus/session';
 
 const ROUTER_URL = process.env.ROUTER_URL ?? 'http://127.0.0.1:18280';
 const ROUTER = process.env.ROUTER_CONTAINER ?? 'routelink-agent-owrt';
-const CLIENT = 'routelink-lab-client';
-const SERVER4 = 'http://172.41.0.10:8080';
-const SERVER6 = 'http://[fd41::10]:8080';
+const CLIENT = process.env.LAB_CLIENT ?? 'routelink-lab-client';
+const SERVER_IP = process.env.LAB_SERVER_IP ?? '172.41.0.10';
+const SERVER4 = `http://${SERVER_IP}:8080`;
+/** The lab server's IPv6 address: 172.<n>.0.10 has fd<n>::10 (scripts/traffic-lab.sh). */
+const SERVER6 = `http://[fd${SERVER_IP.split('.')[1]}::10]:8080`;
 const MB = 1024 * 1024;
 
 const env = { ...process.env, MSYS_NO_PATHCONV: '1' };
@@ -135,8 +140,11 @@ describe('routelinkd accuracy', () => {
 
   it('history over the last hour adds up to the summary', async () => {
     await settle();
-    // a range ending at a past whole minute: samples taken between the two queries go to later minutes
-    const end = Math.floor(now() / 60) * 60;
+    // A range that ends where the router's current minute begins (its clock: the test host's may be off):
+    // what the daemon counts between the two queries goes to this minute or later ones. The hour holds the
+    // other suites' traffic too, gigabytes in minutes without a sample when the limit tests reloaded the
+    // configuration faster than the daemon samples.
+    const end = Math.floor(Number(sh(ROUTER, 'date +%s')) / 60) * 60;
     const start = end - 3600;
     const h = await call<History>('history', { mac, start, end, class: 'all' });
     const s = await call<Summary>('summary', { start, end, class: 'all', limit: 500 });
