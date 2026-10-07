@@ -276,10 +276,20 @@ static void on_reachable(const rl_mac *mac, int64_t now, void *ctx)
 
 /* ---- sampling ---- */
 
+/*
+ * Runs t within ms, or earlier where it was due earlier: rearming from scratch on every configuration reload
+ * put a sample (or commit) off again and again while reloads came faster than its interval.
+ */
+static void arm_by(struct uloop_timeout *t, int ms)
+{
+	if (!t->pending || uloop_timeout_remaining64(t) > ms)
+		uloop_timeout_set(t, ms);
+}
+
 static void schedule_sample(rl_daemon *d)
 {
 	int secs = rl_daemon_now() < d->live_until ? d->cfg.live_interval : d->cfg.sample_interval;
-	uloop_timeout_set(&d->sample_timer, secs * 1000);
+	arm_by(&d->sample_timer, secs * 1000);
 }
 
 static bool mac_of(uint16_t dev, rl_mac *out, void *ctx)
@@ -1479,7 +1489,8 @@ void rl_daemon_reload(rl_daemon *d)
 	configure_notify(d);
 	detect_dns(d);
 	uloop_timeout_set(&d->names_timer, 0);
-	uloop_timeout_set(&d->commit_timer, d->commit_interval * 1000);
+	/* a shorter interval applies at once, a longer one after the next commit: a reload puts off none */
+	arm_by(&d->commit_timer, d->commit_interval * 1000);
 	schedule_sample(d);
 	syslog(LOG_INFO, "configuration reloaded");
 }
