@@ -9,7 +9,8 @@ const config: ExpoConfig = {
   slug: 'routelink',
   scheme: 'routelink',
   version: VERSION,
-  orientation: 'portrait',
+  // Portrait, but the SSH terminal may turn (design §17): the root stack keeps every other screen upright.
+  orientation: 'default',
   userInterfaceStyle: 'automatic',
   icon: './assets/images/icon.png',
   ios: {

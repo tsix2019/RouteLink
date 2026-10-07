@@ -108,6 +108,11 @@ export const ICONS = {
   textSize: { sf: 'textformat.size', ion: 'text-outline' },
   assistant: { sf: 'bubble.left.and.text.bubble.right', ion: 'chatbubbles-outline' },
   send: { sf: 'arrow.up', ion: 'arrow-up' },
+  sparkles: { sf: 'sparkles', ion: 'sparkles' },
+  menu: { sf: 'line.3.horizontal', ion: 'menu' },
+  compose: { sf: 'square.and.pencil', ion: 'create-outline' },
+  chat: { sf: 'bubble.left', ion: 'chatbubble-outline' },
+  rotate: { sf: 'rotate.right', ion: 'phone-landscape-outline' },
   bell: { sf: 'bell', ion: 'notifications-outline' },
   widget: { sf: 'square.grid.2x2', ion: 'grid-outline' },
 } as const satisfies Record<string, { sf: string; ion: IonName } | { sf: string; mci: MciName }>;

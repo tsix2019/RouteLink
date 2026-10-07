@@ -140,8 +140,8 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Router plugin: one-tap install, update check, restart, clear data, remove
 - ✅ Processes (stop, reload), packages (search, install, remove), scheduled tasks, LEDs, system (time zone, set the router clock, admin password)
 - ✅ Backup and restore, firmware upgrade (online for official OpenWrt and ImmortalWrt releases, or from a file), factory reset. All high-risk: a backup is offered first, a checkbox and the router's name confirm, and a full-screen page asks to keep the power on
-- ✅ SSH terminal: password or key login, host key confirmed and pinned, a key bar (Esc, Tab, Ctrl, arrows), adjustable font size; installs the app's public key on the router in one tap
-- ✅ AI assistant: Claude, OpenAI, DeepSeek, Qwen, Ollama or any OpenAI-compatible service, with your own API key; looks up status, devices and logs, and asks you in the chat before changing anything (kick or block a device, change Wi-Fi, add a port forward, restart a service or the router); you choose what is sent and whether it is masked
+- ✅ SSH terminal: password or key login, host key confirmed and pinned, a key bar (Esc, Tab, Ctrl, arrows), adjustable font size, finger scrolling, landscape; installs the app's public key on the router in one tap
+- ✅ AI assistant: Claude, OpenAI, DeepSeek, Qwen, Ollama or any OpenAI-compatible service, with your own API key; looks up status, devices and logs, and asks you in the chat before changing anything (kick or block a device, change Wi-Fi, add a port forward, restart a service or the router); you choose what is sent and whether it is masked; keeps several conversations per router, which you can search, rename and delete
 - ✅ Home-screen widget (iOS, Android): the current router's state, speed and devices online; tap to open the app
 - ✅ Background alerts: a router can't be reached, comes back, or sees a new device (per router, needs a saved password)
 - 🚧 Rate limits and quotas, destinations and DNS log, online/offline push notifications, Android live monitor (P4)

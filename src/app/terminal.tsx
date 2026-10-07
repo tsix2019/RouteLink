@@ -1,7 +1,15 @@
 import * as Clipboard from 'expo-clipboard';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useActiveRouter } from '@/features/routers/ActiveRouterProvider';
@@ -37,6 +45,10 @@ export default function Terminal() {
   const terminal = useRef<TerminalHandle>(null);
   const size = useRef({ cols: 80, rows: 24 });
   const [ctrl, setCtrl] = useState(false);
+  const { width, height } = useWindowDimensions();
+  const landscape = width > height;
+  // The terminal turns with the phone; the button turns it by hand, for phones with rotation locked.
+  const [turned, setTurned] = useState<'landscape' | 'portrait_up' | null>(null);
   const demo = connection?.kind === 'demo';
   const profile = router?.profile;
   const target = profile ? sshTarget(profile) : null;
@@ -63,11 +75,32 @@ export default function Terminal() {
   };
 
   return (
-    <View style={[styles.page, { backgroundColor: theme.background, paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <BarButton icon="close" label={t('terminal:close')} onPress={() => nav.back()} testID="terminal-close" />
-        <View style={styles.titleBox}>
-          <AppText variant="headline" numberOfLines={1} style={{ color: theme.foreground }}>
+    <View
+      style={[
+        styles.page,
+        {
+          backgroundColor: theme.background,
+          paddingTop: insets.top,
+          // Landscape puts the notch or the navigation buttons at a side.
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+        },
+      ]}>
+      <Stack.Screen options={{ orientation: turned ?? 'default' }} />
+      <View style={[styles.header, landscape && styles.headerCompact]}>
+        <BarButton
+          icon="close"
+          label={t('terminal:close')}
+          onPress={() => nav.back()}
+          compact={landscape}
+          testID="terminal-close"
+        />
+        <View style={[styles.titleBox, landscape && styles.titleRow]}>
+          <AppText
+            variant={landscape ? 'subhead' : 'headline'}
+            weight={landscape ? '600' : undefined}
+            numberOfLines={1}
+            style={[styles.title, { color: theme.foreground }]}>
             {router ? (router.isDemo ? t('demoRouter') : router.name) : t('terminal:title')}
           </AppText>
           <View style={styles.statusRow}>
@@ -77,8 +110,15 @@ export default function Terminal() {
             </AppText>
           </View>
         </View>
-        <BarButton text="A−" label={t('terminal:fontSmaller')} onPress={() => changeFont(-1)} />
-        <BarButton text="A+" label={t('terminal:fontLarger')} onPress={() => changeFont(1)} />
+        <BarButton
+          icon="rotate"
+          label={landscape ? t('terminal:portrait') : t('terminal:landscape')}
+          onPress={() => setTurned(landscape ? 'portrait_up' : 'landscape')}
+          compact={landscape}
+          testID="terminal-rotate"
+        />
+        <BarButton text="A−" label={t('terminal:fontSmaller')} onPress={() => changeFont(-1)} compact={landscape} />
+        <BarButton text="A+" label={t('terminal:fontLarger')} onPress={() => changeFont(1)} compact={landscape} />
       </View>
 
       {/* Android draws edge to edge, so the window no longer shrinks for the keyboard: pad on both. */}
@@ -157,18 +197,21 @@ function BarButton({
   text,
   label,
   onPress,
+  compact,
   testID,
 }: {
   label: string;
   onPress: () => void;
+  /** Smaller, for the landscape header. */
+  compact?: boolean;
   testID?: string;
 } & ({ icon: IconName; text?: never } | { text: string; icon?: never })) {
   const { colors } = useTheme();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={6} testID={testID}>
-      <GlassSurface variant="pill" style={styles.barButton}>
+      <GlassSurface variant="pill" style={[styles.barButton, compact && styles.barButtonCompact]}>
         {icon ? (
-          <Icon name={icon} size={20} color={colors.text} />
+          <Icon name={icon} size={compact ? 17 : 20} color={colors.text} />
         ) : (
           <AppText variant="subhead" style={{ color: colors.text }}>
             {text}
@@ -278,10 +321,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s,
   },
+  headerCompact: { paddingVertical: 4 },
   titleBox: { flex: 1, minWidth: 0 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  // Landscape: name and status on one line, to leave the height to the terminal.
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.s },
+  title: { flexShrink: 1 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   status: { flexShrink: 1 },
   barButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  barButtonCompact: { width: 34, height: 34 },
   overlay: {
     position: 'absolute',
     top: 0,

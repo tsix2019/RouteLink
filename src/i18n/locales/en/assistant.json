@@ -2,15 +2,43 @@
   "title": "AI Assistant",
   "ask": "Ask AI",
   "settings": "AI Assistant Settings",
-  "placeholder": "Ask about the router, e.g. who is online?",
+  "placeholder": "Ask about your router",
   "send": "Send",
   "stop": "Stop",
   "close": "Close",
-  "clear": "Clear Conversation",
-  "clearTitle": "Clear the conversation about this router?",
+  "newChat": "New Chat",
+  "greeting": "How can I help?",
+  "thinking": "Thinking",
+  "copy": "Copy",
+  "copied": "Copied",
+  "regenerate": "Answer Again",
+  "retry": "Try Again",
+  "scrollDown": "Jump to Latest",
+  "history": {
+    "title": "Chats",
+    "open": "Chat History",
+    "search": "Search Chats",
+    "empty": "No chats yet. Your questions are kept here, newest first.",
+    "noMatch": "No matching chats",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "week": "Previous 7 Days",
+    "month": "Previous 30 Days",
+    "older": "Older",
+    "rename": "Rename",
+    "renameTitle": "Rename Chat",
+    "renameRequired": "Enter a name",
+    "delete": "Delete Chat",
+    "deleted": "Deleted"
+  },
   "clearConsequence": "Only the record on this phone is deleted",
   "empty": "Ask how the router is doing, which devices are online or how the Wi-Fi is set up. It can also make changes for you, such as blocking a device; it always asks you first.",
-  "suggestions": ["How is the router doing?", "Which devices are online?", "Is the Wi-Fi channel a good one?"],
+  "suggestions": [
+    "How is the router doing?",
+    "Which devices are online?",
+    "Is the Wi-Fi channel a good one?",
+    "Any devices with a weak signal?"
+  ],
   "demoNote": "Demo mode: answers come from a script built into the app, offline.",
   "consent": {
     "title": "Before you start",
@@ -43,7 +71,9 @@
       "add_port_forward": "add a port forward",
       "remove_port_forward": "remove a port forward",
       "restart_service": "restart a service"
-    }
+    },
+    "waiting": "Waiting for you:",
+    "steps": "{{count}} steps"
   },
   "confirm": {
     "title": "The AI wants to make a change",
@@ -109,7 +139,7 @@
     "mask": "Mask MAC Addresses and Public IPs",
     "maskHint": "Only the maker part of a MAC and the first half of a public IP are sent",
     "history": "Conversations",
-    "historyFooter": "Kept on this phone, one per router.",
+    "historyFooter": "Kept on this phone, separately for each router. Find, rename or delete them in the assistant's chat history.",
     "clearAll": "Clear All Conversations",
     "cleared": "Cleared"
   }
