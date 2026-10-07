@@ -28,7 +28,7 @@ void rl_config_defaults(rl_config *c)
 	c->outage_days = 365;
 	c->probe = true;
 	c->probe_gateway = true;
-	/* used when the config has no probe section (kept from a version before 0.2) */
+	/* used when the config has no probe section (kept from 0.1.0) */
 	static const char *const targets[] = { "223.5.5.5", "119.29.29.29", "1.1.1.1" };
 	for (size_t i = 0; i < RL_ARRAY_SIZE(targets); i++)
 		rl_ip_parse(targets[i], &c->probe_targets[c->n_probe_targets++]);
