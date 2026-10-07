@@ -397,7 +397,7 @@ const installed =
 
 export const agentHandlers: Record<string, Handler> = {
   'routelink.info': installed(({ state, now }) => ({
-    version: '0.1.0',
+    version: '1.0.0',
     api: 1,
     roles: ['gateway', 'ap'],
     modules: [

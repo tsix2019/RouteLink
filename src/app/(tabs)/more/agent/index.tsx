@@ -111,7 +111,7 @@ function AgentContent({ status }: { status: AgentStatus }) {
       const { networkInstallDeps } = await import('@/features/agent/download');
       const manifest = parseManifest(
         connection?.kind === 'demo'
-          ? { version: info?.version ?? '0.1.0', api: 1, targets: {} }
+          ? { version: info?.version ?? '1.0.0', api: 1, targets: {} }
           : await networkInstallDeps.fetchManifest(applyMirror(MANIFEST_URL, mirror)),
       );
       setUpdate(

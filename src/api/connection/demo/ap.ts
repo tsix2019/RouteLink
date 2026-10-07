@@ -81,7 +81,7 @@ export const apHandlers: Record<string, Handler> = {
     requireInstalled(s);
     const now = Math.floor(nowMs / 1000);
     return {
-      version: '0.1.0',
+      version: '1.0.0',
       api: 1,
       roles: ['ap'],
       modules: ['wifi'],

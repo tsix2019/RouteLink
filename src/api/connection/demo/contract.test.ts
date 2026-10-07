@@ -727,6 +727,6 @@ describe('demo router: the routelink plugin', () => {
       onStep: () => undefined,
       sleep: async () => undefined,
     });
-    expect(result).toEqual({ step: 'done', version: '0.1.0' });
+    expect(result).toEqual({ step: 'done', version: '1.0.0' });
   });
 });

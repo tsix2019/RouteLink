@@ -98,11 +98,11 @@ const AVAILABLE: Row[] = [
 ];
 
 const ROUTELINK: Row[] = [
-  ['routelinkd', '0.1.0-r1', 92_416, 'Per-device traffic statistics for the RouteLink app.'],
-  ['luci-app-routelink', '0.1.0-r1', 40_960, 'LuCI support for RouteLink.'],
+  ['routelinkd', '1.0.0-r1', 92_416, 'Per-device traffic statistics for the RouteLink app.'],
+  ['luci-app-routelink', '1.0.0-r1', 40_960, 'LuCI support for RouteLink.'],
   [
     'luci-i18n-routelink-zh-cn',
-    '0.1.0-r1',
+    '1.0.0-r1',
     8_192,
     'Translation for luci-app-routelink - 简体中文 (Simplified Chinese).',
   ],
@@ -163,7 +163,7 @@ export function demoPackageHelper(state: DemoState, argv: string[]): string {
       if (args.some((a) => a.startsWith('/tmp/upload.'))) {
         state.agent.installed = true;
         state.agent.resetAt = 0;
-        return out(0, 'Installing routelinkd (0.1.0-r1) to root...\nConfiguring routelinkd.');
+        return out(0, 'Installing routelinkd (1.0.0-r1) to root...\nConfiguring routelinkd.');
       }
       const unknown = args.filter((a) => !catalog.has(a));
       if (unknown.length) return out(255, '', `Unknown package '${unknown[0]}'.`);

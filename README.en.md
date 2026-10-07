@@ -107,7 +107,8 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Wake-on-LAN (sent by the router when etherwake is installed, otherwise directly from Android phones)
 - ✅ Traffic of one device: curve, totals, peak, online/offline record (needs the plugin)
 - ✅ Parental control: block a device's internet by schedule (periods across midnight too); when a period starts, its open connections are cut as well
-- 🚧 Find unknown devices, trusted devices (P2)
+- ✅ Find unknown devices: scans the whole network group, flags devices you have not trusted yet, block or trust them in one tap; the trusted list lives in the plugin (on the phone without it)
+- ✅ In a network group, devices show the access point and band they are on; kicking a device goes to its access point
 
 **Wi-Fi**
 
@@ -117,7 +118,10 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ Guest network: one-step setup (internet only, guests kept apart), on/off, QR code, delete; on routers that route to the internet themselves
 - ✅ MAC filter: allow or block the listed devices, without locking out the phone in use
 - ✅ Wi-Fi schedule: off and on again at set times, for all radios or one; the wireless settings stay as they are
-- 🚧 Signal monitor, channel scan and advice, Wi-Fi security check (P2)
+- ✅ Network groups: put access points under the main router and manage them as one network; the switcher and the Wireless tab group by router; change the name, encryption and password of a Wi-Fi with the same name everywhere at once
+- ✅ Signal monitor: signal, SNR, link rate and retries of every wireless device, live and history charts (history needs the plugin), roaming log, advice
+- ✅ Channel scan and advice: channel usage chart and table of nearby Wi-Fi, the least crowded channel (staggered across the access points of a group), switch in one tap
+- ✅ Wi-Fi security check: encryption rating, password strength, WPS, management frame protection, client isolation and more; fix in one tap and apply to the Wi-Fi with the same name
 
 **Network**
 
@@ -126,7 +130,10 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ WAN usage (needs the plugin): per day and per month, and this billing period from a monthly reset day
 - ✅ WAN settings (DHCP, static, PPPoE, DNS, MTU) and LAN settings (address, DHCP pool; a new address is confirmed there, and undone if the app can't reach it)
 - ✅ Routing tables and static routes, live connections (names from the router's reverse DNS), firewall (port forwards, traffic rules, zones), WireGuard status
-- 🚧 One-tap diagnosis, ping/traceroute/nslookup, outage and latency records, speed test (P3)
+- ✅ One-tap diagnosis: checks the phone's Wi-Fi, the access point uplink, WAN, upstream, DNS and the internet in turn, then recent stability and Wi-Fi security; a verdict and advice for each, shareable
+- ✅ Diagnostic tools: ping, traceroute, nslookup on any router of the group, IPv4 or IPv6, with a summary and the raw output
+- ✅ Outage and latency records (plugin): the router keeps probing the next hop and internet targets; latency and loss charts, availability, outages with their cause (redial, WAN down, upstream), CSV export
+- ✅ Speed test: on the phone and on the router (plugin), compared to tell Wi-Fi from the line; history, and your contracted speed to compare against
 - ✅ VLANs: a ports × VLANs matrix for DSA bridges and swconfig switches; high-risk, and the router rolls a bad change back by itself
 - ✅ VPN: WireGuard tunnels and peers with config files and QR codes to export; OpenVPN `.ovpn` import, start and stop
 - ✅ DDNS, SQM shaping, ad blocking (adblock-fast or adblock)
@@ -144,7 +151,11 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 - ✅ AI assistant: Claude, OpenAI, DeepSeek, Qwen, Ollama or any OpenAI-compatible service, with your own API key; looks up status, devices and logs, and asks you in the chat before changing anything (kick or block a device, change Wi-Fi, add a port forward, restart a service or the router); you choose what is sent and whether it is masked
 - ✅ Home-screen widget (iOS, Android): the current router's state, speed and devices online; tap to open the app
 - ✅ Background alerts: a router can't be reached, comes back, or sees a new device (per router, needs a saved password)
-- 🚧 Rate limits and quotas, destinations and DNS log, online/offline push notifications, Android live monitor (P4)
+- ✅ Rate limits (plugin): per-device download and upload limits, optionally on some days at some hours only; work with software flow offloading on
+- ✅ Data quotas (plugin): daily, weekly or monthly caps per device (monthly with a reset day), a warning at 80%, blocked or slowed down when used up, a temporary pass
+- ✅ Destinations and DNS log (plugin, off by default): which addresses and domains a device talks to, searchable DNS queries; a privacy note before switching it on
+- ✅ Router push notifications (plugin): new devices, watched devices going online or offline, quota warnings, outages and recoveries, sent by the router itself to a Webhook, Bark, ServerChan, PushPlus, Telegram, WeCom, DingTalk or Feishu; the app need not be running
+- ✅ Android live monitor: the router's speed and online devices live in the notification shade, an alert when the router goes away; a status bar chip from Android 16 on, for a duration you choose
 
 ## Install
 
@@ -174,10 +185,16 @@ More screenshots in [docs/screenshots/en](docs/screenshots/en).
 
 ## Router plugin
 
-The RouteLink plugin runs on the router, counts what every device uploads and downloads, and keeps the history; the app and LuCI (Services → RouteLink) show it.
+The RouteLink plugin runs on the router. It records what the app needs while it is not open and enforces the rules that have to be on all the time; the app and LuCI (Services → RouteLink) show and set it all:
+
+- what every device uploads and downloads
+- signal, link rate and channel busy time of wireless devices (on the main router and on access points; a router that is only an access point runs just this part)
+- latency, packet loss and outages, a router-side speed test
+- rate limits, data quotas, destinations and DNS log, push notifications
+
 
 - **How it counts**: connection-tracking counters summed per device MAC, IPv4 and IPv6; accurate with software flow offloading on. In the Docker lab it matches the byte counts of the client's network card exactly.
-- **How long**: per minute for 48 hours, per hour for 90 days, per day for 2 years. Data lives in `/etc/routelink` on the router, written to flash every 10 minutes by default, capped at 32 MB, kept across firmware upgrades.
+- **How long**: traffic per minute for 48 hours, per hour for 90 days, per day for 2 years; signal per minute for 7 days, per hour for 30; latency per minute for 7 days, per hour for 90, outages for a year. Data lives in `/etc/routelink` on the router, written once an hour by default on flash (every 10 minutes on other storage), capped at 32 MB, kept across firmware upgrades.
 - **Cost**: on x86 (measured in Docker), with 52 devices and 5000 connections, 0.04% of one core and 1.7 MB of memory.
 - **Runs on**: OpenWrt 23.05, 24.10 and 25.12; x86_64, aarch64 (cortex-a53, cortex-a72, generic), arm (cortex-a7, cortex-a9, cortex-a15), mipsel_24kc, mips_24kc.
 
@@ -216,6 +233,9 @@ The RouteLink plugin runs on the router, counts what every device uploads and do
 - **nlbwmon** resets the connection counters the plugin reads, so totals come out low while both run. The app and LuCI say so and offer to stop it.
 - **Hardware offloading** (or Turbo ACC/SFE) hides offloaded traffic from the counters; the plugin warns that totals may be low. Software offloading is fine.
 - **Time**: until the router's clock is synchronised, data stays in memory; days and months follow the router's time zone.
+- **Limits and quotas**: per-device shaping with tc on the LAN port, blocking with nftables (a table of the plugin's own, the firewall configuration is left alone); blocking cuts the connections already open too. Works with software flow offloading on: within 10% in CI on 23.05, 24.10 and 25.12. Hardware-offloaded traffic is not limited.
+- **DNS log**: off by default. When on, the plugin reads only the DNS answers the router sends to LAN devices and keeps them on the router (7 days by default).
+- **Push notifications** go from the router straight to the services you set up and name the device and the event; DingTalk and Feishu can be signed.
 - **Privacy**: the data stays on your router; the app contacts GitHub only when you check for updates or install the plugin.
 
 <img src="docs/screenshots/luci/en-traffic.png" width="720" alt="LuCI traffic page">
@@ -226,7 +246,7 @@ The RouteLink plugin runs on the router, counts what every device uploads and do
 - Discovery probes never carry credentials.
 - The SSH private key the app creates lives in the keychain and never leaves the phone; only the public key goes on the router.
 - The AI assistant is off until you enter your own API key, read what it sends and agree. Then your question and the router data needed to answer it (status, device list, wireless and firewall settings, system log) go to the provider you chose. MAC addresses and public IPs are masked by default, each kind of data can be turned off, and passwords and keys are never sent. Conversations stay on the phone.
-- No analytics, no ads; the app contacts no server of its own.
+- No analytics, no ads; the app contacts no server of its own. Speed tests reach a speed test server (Cloudflare by default); the one-tap diagnosis fetches common connectivity check addresses.
 - Test data in this repository comes only from demo mode and throw-away virtual routers (Docker / QEMU), never from real routers.
 
 ## Build from source
