@@ -96,6 +96,10 @@ const hooks = (): Hook[] =>
 
 const uci = (cmds: string) => sh(ROUTER, `${cmds}; uci commit routelink; reload_config`);
 const quotaOf = async (mac: string) => (await call<{ quotas: Quota[] }>('quotas')).quotas.find((q) => q.mac === mac);
+/** Sections of the push channels the daemon has loaded. */
+const channels = async () =>
+  (await call<{ channels: { section: string }[] }>('notify_status')).channels.map((c) => c.section);
+const TEST_CHANNELS = ['rltest', 'rlfail'];
 /** The client reaches the internet (the lab server) within 5 s. */
 const online = () => ok(CLIENT, `curl -s -m 5 -o /dev/null http://${SERVER_IP}:8080/10`);
 
@@ -117,6 +121,10 @@ beforeAll(async () => {
     `while uci -q delete routelink.@quota[0]; do :; done; uci -q delete routelink.rltest; uci -q delete routelink.rlfail; ` +
       `uci set routelink.dns=dns; uci set routelink.dns.enabled=0; ` +
       `uci set routelink.probe=probe; uci -q delete routelink.probe.target; uci add_list routelink.probe.target=${SERVER_IP}`,
+  );
+  // channels of an earlier run must be gone before the test adds them again (or it may talk to the old ones)
+  await waitFor('the old test channels to go', 20, async () =>
+    (await channels()).some((c) => TEST_CHANNELS.includes(c)) ? undefined : true,
   );
 });
 
@@ -145,7 +153,11 @@ describe('push messages', () => {
         `uci set routelink.rlfail=notify; uci set routelink.rlfail.type=webhook; ` +
         `uci set routelink.rlfail.url=http://${SERVER_IP}:8080/hook/fail-${RUN}; uci add_list routelink.rlfail.events=quota`,
     );
-    await sleep(2000);
+    // reload_config returns before the daemon has read the configuration again
+    await waitFor('the test channels', 20, async () => {
+      const loaded = await channels();
+      return TEST_CHANNELS.every((c) => loaded.includes(c)) ? true : undefined;
+    });
     const t0 = Date.now();
     expect(await call('notify_test', { section: 'rltest' })).toEqual({ ok: true });
     expect(Date.now() - t0).toBeLessThan(15_000);

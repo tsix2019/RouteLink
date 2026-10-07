@@ -5,8 +5,9 @@
  * its speed; the limit comes back after its qdiscs were lost, goes with the rule, and stays off outside its
  * time window.
  *
- * Needs sch_htb, cls_flower, act_mirred and ifb in the host kernel (CI loads them; WSL2's kernel has no
- * HTB, so locally the rate tests report themselves skipped and only the error report is checked).
+ * Needs sch_htb, cls_flower, act_mirred and ifb in the host kernel. CI loads them, and with CI set a
+ * missing one (or a plugin build without limits) fails the whole file instead of skipping it. WSL2's kernel
+ * has no HTB, so locally the rate tests report themselves skipped and only the error report is checked.
  *
  * Another router instance (RL_AGENT_NAME / RL_AGENT_NET in the scripts): set ROUTER_CONTAINER, LAB_CLIENT,
  * LAB_SERVER and LAB_SERVER_IP.
@@ -17,6 +18,7 @@ const ROUTER = process.env.ROUTER_CONTAINER ?? 'routelink-agent-owrt';
 const CLIENT = process.env.LAB_CLIENT ?? 'routelink-lab-client';
 const SERVER = process.env.LAB_SERVER ?? 'routelink-lab-server';
 const SERVER_IP = process.env.LAB_SERVER_IP ?? '172.41.0.10';
+const CI = !!process.env.CI;
 const DOWN_KBPS = 20_000;
 const UP_KBPS = 8_000;
 const SECONDS = 8;
@@ -110,21 +112,41 @@ function addRule(mac: string, extra: [string, string][] = []) {
 const removeRules = () =>
   sh(ROUTER, 'while uci -q delete routelink.@limit[0]; do :; done; uci commit routelink; reload_config');
 
+/** Why the kernel cannot shape (no sch_htb), or null. Run on a port without limits: a root qdisc fails it. */
+function htbMissing(): string | null {
+  try {
+    sh(
+      ROUTER,
+      `tc qdisc del dev ${dev} root 2>/dev/null; tc qdisc add dev ${dev} root handle 1: htb default 1 && tc qdisc del dev ${dev} root`,
+    );
+    return null;
+  } catch (e) {
+    return `no sch_htb in this kernel: ${(e as Error).message.trim().split('\n').pop()}`;
+  }
+}
+
 let daemon = false;
 let supported = true;
 let clientMac = '';
 let dev = 'eth0';
 
-beforeAll(() => {
+beforeAll(async () => {
   clientMac = macOf(CLIENT);
   dev = lanDev() || dev;
   daemon = !!info().capabilities?.includes('limits');
-  try {
-    sh(ROUTER, `tc qdisc add dev ${dev} root handle 1: htb default 1 && tc qdisc del dev ${dev} root`);
-  } catch {
-    supported = false;
+  if (daemon) {
+    // rules an earlier run left: the daemon takes their qdiscs down after the reload
+    removeRules();
+    await waitFor('earlier limits to go', 20, () => !hasHtb(dev)).catch(() =>
+      console.warn(`limits are left on ${dev}:\n${tcState(dev)}`),
+    );
   }
-  if (daemon) removeRules();
+  const missing = htbMissing();
+  supported = !missing;
+  // CI loads the modules (.github/workflows/openwrt.yml): skipping there would pass without testing anything
+  if (CI && !daemon) throw new Error('CI: this plugin build has no limits');
+  if (CI && missing) throw new Error(`CI: ${missing}`);
+  if (missing) console.warn(`rate tests skipped: ${missing}`);
 });
 
 afterAll(() => {
@@ -151,6 +173,7 @@ describe.each([
   it('download stays within ±10 % of the limit', async () => {
     if (!daemon) return console.warn('skipped: this plugin build has no limits');
     if (!supported) return console.warn('skipped: no sch_htb in this kernel');
+    // also where a missing ifb shows up (uploads: cannot create rl-ifb0)
     expect(info().limits_error).toBe('');
     await expectRate(dev, `download ${offload ? 'with' : 'without'} offload`, CLIENT, DOWNLOAD, DOWN_KBPS);
   });
@@ -185,7 +208,8 @@ describe('the daemon keeps the limits in place', () => {
     addRule(clientMac);
     await waitFor('the limit or an error', 30, () => hasHtb(dev) || !!info().limits_error);
     if (!supported) {
-      // WSL2: no sch_htb. The daemon says so instead of retrying.
+      // WSL2: no sch_htb. The daemon says so instead of retrying. (Never in CI: beforeAll fails there.)
+      expect(CI).toBe(false);
       expect(info().limits_error).toMatch(/unknown|not supported|No such file/i);
       return console.warn(`skipped: ${info().limits_error}`);
     }
