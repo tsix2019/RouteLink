@@ -1,3 +1,4 @@
+import { useSegments } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 import { useT } from '@/i18n';
@@ -10,8 +11,11 @@ import { useTheme } from '@/ui/theme/ThemeProvider';
 export default function AppTabs() {
   const t = useT();
   const { colors } = useTheme();
+  // Segments are ['(tabs)', '<tab>', ...page]; the bar only shows on a tab's root page.
+  const segments = useSegments() as string[];
+  const isTabRoot = segments.filter((s) => s !== 'index').length <= 2;
   return (
-    <NativeTabs minimizeBehavior="onScrollDown" tintColor={colors.accent}>
+    <NativeTabs minimizeBehavior="onScrollDown" tintColor={colors.accent} hidden={!isTabRoot}>
       <NativeTabs.Trigger name="overview">
         <NativeTabs.Trigger.Label>{t('tabs.overview')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon

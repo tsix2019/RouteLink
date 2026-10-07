@@ -1,9 +1,11 @@
+import { useSegments } from 'expo-router';
 import { TabList, TabSlot, TabTrigger, Tabs } from 'expo-router/ui';
+import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 
 import { useT } from '@/i18n';
 import { BlurTarget, BlurTargetProvider } from '@/ui/glass/BlurTarget';
-import { GlassTabBar, GlassTabButton } from '@/ui/tabs/GlassTabBar';
+import { GlassTabBar, GlassTabButton, setTabBarVisible } from '@/ui/tabs/GlassTabBar';
 import type { IconName } from '@/ui/Icon';
 import { useTheme } from '@/ui/theme/ThemeProvider';
 
@@ -27,6 +29,13 @@ const TABS: {
 export default function AppTabs() {
   const t = useT();
   const { colors } = useTheme();
+  // Segments are ['(tabs)', '<tab>', ...page]; a tab's root page is 'index' or has no further segment.
+  const segments = useSegments() as string[];
+  const isTabRoot = segments.filter((s) => s !== 'index').length <= 2;
+  useEffect(() => {
+    setTabBarVisible(isTabRoot);
+    return () => setTabBarVisible(true);
+  }, [isTabRoot]);
   return (
     <BlurTargetProvider>
       <Tabs style={styles.flex}>
@@ -34,8 +43,9 @@ export default function AppTabs() {
         <BlurTarget style={[styles.flex, { backgroundColor: colors.background }]}>
           <TabSlot />
         </BlurTarget>
+        {/* TabList stays mounted (it registers the triggers); only its bar is hidden. */}
         <TabList asChild>
-          <GlassTabBar>
+          <GlassTabBar hidden={!isTabRoot}>
             {TABS.map((tab, index) => (
               <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
                 <GlassTabButton icon={tab.icon} label={t(tab.label)} index={index} />
