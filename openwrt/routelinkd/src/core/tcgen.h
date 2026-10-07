@@ -31,7 +31,13 @@ size_t rl_tc_clear_script(char *out, size_t size, const char *dev);
  */
 size_t rl_tc_script(char *out, size_t size, const char *dev, const rl_tc_rule *rules, size_t n);
 
-/* Police burst in bytes for a rate: 20 ms worth, at least 16 KB. */
+/*
+ * Upload policing. The packets a port receives are GRO aggregates of up to 64 KB: tc's default police mtu
+ * (2 KB) would drop every one of them as oversized and a bucket smaller than one could never pass it, so
+ * the mtu is set to 64 KB and the bucket holds 100 ms of the rate, at least 128 KB (TCP keeps its rate).
+ */
+#define RL_TC_POLICE_MTU 65536
+#define RL_TC_BURST_MIN (128 * 1024)
 uint32_t rl_tc_burst(uint32_t kbps);
 
 #endif

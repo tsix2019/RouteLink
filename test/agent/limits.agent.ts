@@ -1,18 +1,23 @@
 /**
- * P4 T1, the speed-limit technical check (design §9.1): are tc limits on the LAN port accurate (±10 %)
- * with and without software flow offloading? The router's LAN port gets the same tc script core/tcgen
- * writes (HTB + flower for download, clsact + police for upload); the lab client downloads from and uploads
- * to the lab server while the counters measure the rate.
+ * Speed limits (design §9.1, P4).
  *
- * Needs sch_htb, cls_flower and act_police in the host kernel (CI loads them; WSL2's kernel has no HTB,
- * so locally the test reports itself skipped).
+ * - T1, the technical check: core/tcgen's script applied by hand to the router's LAN port (HTB + flower for
+ *   download, clsact + police for upload), measured with and without software flow offloading (±10 %).
+ * - T11: the same through the daemon, from a UCI `limit` rule: set up on the LAN bridge ports, measured,
+ *   removed again with the rule, and a rule whose time window is not now stays off.
+ *
+ * Needs sch_htb, cls_flower and act_police in the host kernel (CI loads them; WSL2's kernel has none, so
+ * locally the tests report themselves skipped).
+ *
+ * Another router instance (RL_AGENT_NAME / RL_AGENT_NET in the scripts): set ROUTER_CONTAINER, LAB_CLIENT,
+ * LAB_SERVER and LAB_SERVER_IP.
  */
 import { execFileSync } from 'node:child_process';
 
 const ROUTER = process.env.ROUTER_CONTAINER ?? 'routelink-agent-owrt';
-const CLIENT = 'routelink-lab-client';
-const SERVER = 'routelink-lab-server';
-const LAN_DEV = 'eth0';
+const CLIENT = process.env.LAB_CLIENT ?? 'routelink-lab-client';
+const SERVER = process.env.LAB_SERVER ?? 'routelink-lab-server';
+const SERVER_IP = process.env.LAB_SERVER_IP ?? '172.41.0.10';
 const DOWN_KBPS = 20_000;
 const UP_KBPS = 8_000;
 const SECONDS = 8;
@@ -31,33 +36,43 @@ const macOf = (container: string) => sh(container, 'cat /sys/class/net/eth0/addr
 const bytes = (container: string, dir: 'rx' | 'tx') =>
   Number(sh(container, `cat /sys/class/net/eth0/statistics/${dir}_bytes`));
 
+/** The router's LAN device: Docker does not keep the order of a container's networks (eth0 or eth1). */
+const lanDev = () => sh(ROUTER, "ubus call network.interface.lan status | jsonfilter -e '@.l3_device'");
+
 /** The setup script core/tcgen writes for one device (kept in step with test_gen.c). */
-function tcScript(mac: string, downKbps: number, upKbps: number): string {
-  const d = LAN_DEV;
+function tcScript(dev: string, mac: string, downKbps: number, upKbps: number): string {
+  const burst = Math.max(131072, Math.floor((upKbps * 1000) / 8 / 10));
   return [
-    `qdisc add dev ${d} root handle 1: htb default 1`,
-    `class add dev ${d} parent 1: classid 1:1 htb rate 10gbit quantum 1514`,
-    `class add dev ${d} parent 1: classid 1:10 htb rate ${downKbps}kbit ceil ${downKbps}kbit quantum 1514`,
-    `filter add dev ${d} parent 1: protocol all prio 1 flower dst_mac ${mac} classid 1:10`,
-    `qdisc add dev ${d} clsact`,
-    `filter add dev ${d} ingress protocol all prio 1 flower src_mac ${mac} action police rate ${upKbps}kbit burst ${Math.max(16384, (upKbps * 1000) / 8 / 50)} conform-exceed drop`,
+    `qdisc add dev ${dev} root handle 1: htb default 1`,
+    `class add dev ${dev} parent 1: classid 1:1 htb rate 10gbit quantum 1514`,
+    `class add dev ${dev} parent 1: classid 1:10 htb rate ${downKbps}kbit ceil ${downKbps}kbit quantum 1514`,
+    `filter add dev ${dev} parent 1: protocol all prio 1 flower dst_mac ${mac} classid 1:10`,
+    `qdisc add dev ${dev} clsact`,
+    `filter add dev ${dev} ingress protocol all prio 1 flower src_mac ${mac} action police rate ${upKbps}kbit burst ${burst} mtu 65536 conform-exceed drop`,
     '',
   ].join('\n');
 }
 
 /** core/tcgen's clear script: the deletes may fail on a port with nothing set up. */
-function clear() {
+function clear(dev: string) {
   sh(
     ROUTER,
-    `printf 'qdisc del dev ${LAN_DEV} root handle 1: htb\nqdisc del dev ${LAN_DEV} clsact\n' | tc -force -batch - 2>/dev/null; true`,
+    `printf 'qdisc del dev ${dev} root handle 1: htb\nqdisc del dev ${dev} clsact\n' | tc -force -batch - 2>/dev/null; true`,
   );
 }
 
 /** Clears the port, then sets up: every setup command has to succeed. */
-function apply(mac: string) {
-  clear();
-  sh(ROUTER, `tc -batch -`, tcScript(mac, DOWN_KBPS, UP_KBPS));
+function apply(dev: string, mac: string) {
+  clear(dev);
+  sh(ROUTER, `tc -batch -`, tcScript(dev, mac, DOWN_KBPS, UP_KBPS));
 }
+
+/** What tc has on the port, for the log when a number is off. */
+const tcState = (dev: string) =>
+  sh(
+    ROUTER,
+    `tc -s qdisc show dev ${dev}; tc -s class show dev ${dev}; tc -s filter show dev ${dev}; tc -s filter show dev ${dev} ingress; true`,
+  );
 
 /** Software flow offloading through fw4's flowtable; returns whether a flowtable is actually active. */
 function setOffload(on: boolean): boolean {
@@ -81,65 +96,168 @@ async function measure(container: string, dir: 'rx' | 'tx', cmd: string): Promis
   return ((b1 - b0) * 8) / ((t1 - t0) / 1000) / 1000;
 }
 
-const DOWNLOAD = `for i in 1 2 3 4; do curl -s -o /dev/null http://172.41.0.10:8080/2000000000 & done; wait`;
-const UPLOAD = `head -c 400000000 /dev/zero > /tmp/up; for i in 1 2 3 4; do curl -s -o /dev/null --data-binary @/tmp/up http://172.41.0.10:8080/ & done; wait`;
+const DOWNLOAD = `for i in 1 2 3 4; do curl -s -o /dev/null http://${SERVER_IP}:8080/2000000000 & done; wait`;
+const UPLOAD = `head -c 400000000 /dev/zero > /tmp/up; for i in 1 2 3 4; do curl -s -o /dev/null --data-binary @/tmp/up http://${SERVER_IP}:8080/ & done; wait`;
+
+/** Measures, logs, and on a miss logs what tc had. */
+async function expectRate(dev: string, what: string, container: string, cmd: string, limit: number) {
+  const kbps = await measure(container, 'rx', cmd);
+  console.log(`${what}: ${Math.round(kbps)} kbit/s (limit ${limit})`);
+  if (Math.abs(kbps - limit) / limit >= 0.1) console.log(`tc on ${dev}:\n${tcState(dev)}`);
+  expect(Math.abs(kbps - limit) / limit).toBeLessThan(0.1);
+}
 
 let supported = true;
 let clientMac = '';
+let dev = 'eth0';
 
 beforeAll(() => {
   clientMac = macOf(CLIENT);
-  // The rootfs images have no tc; the plugin package will depend on tc-tiny.
+  dev = lanDev() || dev;
+  // The rootfs images have no tc; the plugin package depends on tc-tiny.
   sh(
     ROUTER,
     'command -v tc >/dev/null || { opkg update >/dev/null && opkg install tc-tiny >/dev/null; } 2>/dev/null || ' +
       '{ apk update >/dev/null && apk add tc-tiny >/dev/null; }',
   );
   try {
-    sh(ROUTER, `tc qdisc add dev ${LAN_DEV} root handle 1: htb default 1 && tc qdisc del dev ${LAN_DEV} root`);
+    sh(ROUTER, `tc qdisc add dev ${dev} root handle 1: htb default 1 && tc qdisc del dev ${dev} root`);
   } catch {
     supported = false;
   }
 });
 
 afterAll(() => {
-  clear();
+  clear(dev);
   setOffload(false);
 });
 
 describe.each([
   ['software offloading off', false],
   ['software offloading on', true],
-])('speed limits with %s', (_name, offload) => {
+])('speed limits set by hand with %s', (_name, offload) => {
   let offloadActive = false;
 
   beforeAll(() => {
     if (!supported) return;
     offloadActive = setOffload(offload);
-    apply(clientMac);
+    apply(dev, clientMac);
+  });
+
+  afterAll(() => {
+    if (supported) clear(dev);
   });
 
   it('download stays within ±10 % of the limit', async () => {
     if (!supported) return console.warn('skipped: no sch_htb in this kernel');
     if (offload && !offloadActive) console.warn('flowtable did not come up: measuring without offload');
-    const kbps = await measure(CLIENT, 'rx', DOWNLOAD);
-    console.log(`download ${offload ? 'with' : 'without'} offload: ${Math.round(kbps)} kbit/s (limit ${DOWN_KBPS})`);
-    expect(Math.abs(kbps - DOWN_KBPS) / DOWN_KBPS).toBeLessThan(0.1);
+    await expectRate(dev, `download ${offload ? 'with' : 'without'} offload`, CLIENT, DOWNLOAD, DOWN_KBPS);
   });
 
   it('upload stays within ±10 % of the limit', async () => {
     if (!supported) return;
-    const kbps = await measure(SERVER, 'rx', UPLOAD);
-    console.log(`upload ${offload ? 'with' : 'without'} offload: ${Math.round(kbps)} kbit/s (limit ${UP_KBPS})`);
-    expect(Math.abs(kbps - UP_KBPS) / UP_KBPS).toBeLessThan(0.1);
+    await expectRate(dev, `upload ${offload ? 'with' : 'without'} offload`, SERVER, UPLOAD, UP_KBPS);
   });
 
   it('a device without a rule is not slowed down', async () => {
     if (!supported) return;
-    apply('02:00:00:00:00:99');
+    apply(dev, '02:00:00:00:00:99');
     const kbps = await measure(CLIENT, 'rx', DOWNLOAD);
     console.log(`unlimited download ${offload ? 'with' : 'without'} offload: ${Math.round(kbps)} kbit/s`);
+    if (kbps <= DOWN_KBPS * 2) console.log(`tc on ${dev}:\n${tcState(dev)}`);
     expect(kbps).toBeGreaterThan(DOWN_KBPS * 2);
-    apply(clientMac);
+    apply(dev, clientMac);
+  });
+});
+
+/** The daemon's view: info.limits_error and the limit_applied events. */
+const info = () =>
+  JSON.parse(sh(ROUTER, 'ubus call routelink info')) as { capabilities?: string[]; limits_error?: string };
+const hasHtb = () => /htb 1:/.test(sh(ROUTER, `tc qdisc show dev ${dev}`));
+
+async function waitFor(what: string, seconds: number, ok: () => boolean) {
+  for (let i = 0; i < seconds; i++) {
+    if (ok()) return;
+    await sleep(1000);
+  }
+  throw new Error(`timed out waiting for ${what}`);
+}
+
+/** Adds a limit section for the client (extra options: [name, value]) and reloads the daemon. */
+function addRule(extra: [string, string][] = []) {
+  const opts = [
+    ['mac', clientMac.toUpperCase()],
+    ['enabled', '1'],
+    ['download', String(DOWN_KBPS)],
+    ['upload', String(UP_KBPS)],
+    ...extra,
+  ]
+    .map(([k, v]) => `uci set routelink.@limit[-1].${k}='${v}'`)
+    .join('; ');
+  sh(ROUTER, `uci add routelink limit >/dev/null; ${opts}; uci commit routelink; reload_config`);
+}
+
+const removeRules = () =>
+  sh(ROUTER, 'while uci -q delete routelink.@limit[0]; do :; done; uci commit routelink; reload_config');
+
+describe('speed limits set by the daemon from a UCI rule', () => {
+  let daemon = false;
+
+  beforeAll(() => {
+    clear(dev);
+    setOffload(true); // the usual case on a router
+    removeRules();
+    daemon = !!info().capabilities?.includes('limits');
+  });
+
+  afterAll(() => {
+    removeRules();
+    setOffload(false);
+  });
+
+  it('sets the limit up on the LAN port within seconds, or reports why not', async () => {
+    if (!daemon) return console.warn('skipped: this plugin build has no limits');
+    addRule();
+    await waitFor('the limit or an error', 20, () => hasHtb() || !!info().limits_error);
+    if (!supported) {
+      // WSL2: no sch_htb. The daemon says so instead of retrying.
+      expect(info().limits_error).toMatch(/unknown|not supported|No such file/i);
+      return console.warn(`skipped: ${info().limits_error}`);
+    }
+    expect(info().limits_error).toBe('');
+    expect(sh(ROUTER, `tc filter show dev ${dev} ingress`)).toMatch(/police/);
+  });
+
+  it('download stays within ±10 % of the limit', async () => {
+    if (!daemon || !supported) return;
+    await expectRate(dev, 'daemon download', CLIENT, DOWNLOAD, DOWN_KBPS);
+  });
+
+  it('upload stays within ±10 % of the limit', async () => {
+    if (!daemon || !supported) return;
+    await expectRate(dev, 'daemon upload', SERVER, UPLOAD, UP_KBPS);
+  });
+
+  it('comes back after the port lost its qdiscs', async () => {
+    if (!daemon || !supported) return;
+    clear(dev); // like a wifi reload re-creating the interface
+    sh(ROUTER, `ubus send network.device '{"action":"up","name":"${dev}"}'`); // what netifd sends
+    await waitFor('the limit to come back', 70, hasHtb);
+  });
+
+  it('goes away with the rule, and a rule outside its time window stays off', async () => {
+    if (!daemon || !supported) return;
+    removeRules();
+    await waitFor('the limit to go', 20, () => !hasHtb());
+    // a window that began two hours ago and ended an hour ago (router time)
+    const h = Number(sh(ROUTER, 'date +%H'));
+    const hh = (x: number) => String((x + 24) % 24).padStart(2, '0');
+    addRule([
+      ['start_time', `${hh(h - 2)}:00`],
+      ['stop_time', `${hh(h - 1)}:00`],
+    ]);
+    await sleep(5000);
+    expect(hasHtb()).toBe(false);
+    expect(info().limits_error).toBe('');
   });
 });

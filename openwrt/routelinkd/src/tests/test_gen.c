@@ -21,9 +21,9 @@ static void test_tc_script(void)
 		      "filter add dev phy0-ap0 parent 1: protocol all prio 1 flower dst_mac aa:bb:cc:dd:ee:03 classid 1:12\n"
 		      "qdisc add dev phy0-ap0 clsact\n"
 		      "filter add dev phy0-ap0 ingress protocol all prio 1 flower src_mac aa:bb:cc:dd:ee:01 action police "
-		      "rate 2000kbit burst 16384 conform-exceed drop\n"
+		      "rate 2000kbit burst 131072 mtu 65536 conform-exceed drop\n"
 		      "filter add dev phy0-ap0 ingress protocol all prio 1 flower src_mac aa:bb:cc:dd:ee:02 action police "
-		      "rate 500kbit burst 16384 conform-exceed drop\n");
+		      "rate 500kbit burst 131072 mtu 65536 conform-exceed drop\n");
 	T_EQ_U64(len, strlen(out));
 
 	/* Nothing to limit: nothing to set up, the clear script does the rest. */
@@ -32,7 +32,9 @@ static void test_tc_script(void)
 	rl_tc_clear_script(out, sizeof(out), "lan1");
 	T_EQ_STR(out, "qdisc del dev lan1 root handle 1: htb\nqdisc del dev lan1 clsact\n");
 	T_EQ_U64(rl_tc_script(out, 40, "lan1", r, 3), (size_t)-1);
-	T_EQ_U64(rl_tc_burst(1000000), 2500000); /* 1 Gbit/s: 20 ms */
+	T_EQ_U64(rl_tc_burst(1000000), 12500000); /* 1 Gbit/s: 100 ms */
+	T_EQ_U64(rl_tc_burst(20000), 250000);
+	T_EQ_U64(rl_tc_burst(8000), RL_TC_BURST_MIN);
 }
 
 static void test_nft_script(void)

@@ -29,8 +29,8 @@ static void line(out_t *o, const char *fmt, ...)
 
 uint32_t rl_tc_burst(uint32_t kbps)
 {
-	uint64_t bytes = (uint64_t)kbps * 1000 / 8 / 50; /* 20 ms */
-	return bytes < 16384 ? 16384 : (uint32_t)(bytes > 0x7fffffff ? 0x7fffffff : bytes);
+	uint64_t bytes = (uint64_t)kbps * 1000 / 8 / 10; /* 100 ms */
+	return bytes < RL_TC_BURST_MIN ? RL_TC_BURST_MIN : (uint32_t)(bytes > 0x7fffffff ? 0x7fffffff : bytes);
 }
 
 #define MAC "%02x:%02x:%02x:%02x:%02x:%02x"
@@ -76,8 +76,8 @@ size_t rl_tc_script(char *buf, size_t size, const char *dev, const rl_tc_rule *r
 				continue;
 			line(&o,
 			     "filter add dev %s ingress protocol all prio 1 flower src_mac " MAC
-			     " action police rate %ukbit burst %u conform-exceed drop",
-			     dev, MACV(rules[i].mac), rules[i].up_kbps, rl_tc_burst(rules[i].up_kbps));
+			     " action police rate %ukbit burst %u mtu %u conform-exceed drop",
+			     dev, MACV(rules[i].mac), rules[i].up_kbps, rl_tc_burst(rules[i].up_kbps), RL_TC_POLICE_MTU);
 		}
 	}
 	return o.overflow ? (size_t)-1 : o.len;
