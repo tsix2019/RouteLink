@@ -28,15 +28,15 @@
 
 ## 0. 和设计不同的决定
 
-1. **限速的技术验证放到 CI**。本机 Docker 用的是 WSL2 的 5.15 内核，没有 `sch_htb` 和 `act_police`（实测 `tc qdisc add … htb` 报 "Specified qdisc kind is unknown"），容器里也装不了内核模块。CI 的 Ubuntu 内核有这些模块：集成测试先在宿主机上 `modprobe sch_htb cls_flower act_police`，再在实验环境里分别在开和关软件加速的情况下测限速误差。
+1. **限速的技术验证放到 CI**。本机 Docker 用的是 WSL2 的 5.15 内核，没有 `sch_htb` 和 `act_police`（实测 `tc qdisc add … htb` 报 "Specified qdisc kind is unknown"），容器里也装不了内核模块。CI 的 Ubuntu 内核有这些模块：集成测试先在宿主机上 `modprobe sch_htb cls_flower act_mirred ifb`，再在实验环境里分别在开和关软件加速的情况下测限速误差。
    - 守护进程在设置限速失败时（模块缺失）不重试刷屏，在 `info.limits_error` 里报告原因，App 和 LuCI 显示出来。
 2. **限速的实现**（设计 §9.1）：
    - 对象：LAN 网桥的全部成员口（有线口和无线口，从 netifd 的 `network.device status` 读 `bridge-members`）。
    - 下载：每个口的出方向挂 HTB（`handle 1:`，默认类不限速），每条规则一个类，`flower dst_mac` 分类。
-   - 上传：每个口挂 `clsact`，入方向用 `flower src_mac` + `police … drop`。
+   - 上传：每个口挂 `clsact`，入方向用 `flower src_mac` 把被限速设备的包 `mirred` 重定向到共用的 ifb 设备 `rl-ifb0`，在它的出方向用同样的 HTB 整形（按 `src_mac` 分类），所以一台设备的上传限速对所有口合计生效。（原计划用 `police … drop`，CI 实测 TCP 上传只能跑到限速的 50%～85%，见执行记录。）
    - 通过启动 `tc` 进程执行（`tc -batch`），不直接写 netlink。
    - 无线口重建（`wifi reload`）、网口上下线后规则会丢：守护进程每 60 秒检查一次每个口上是否还有自己的 qdisc，没有就重新下发；收到 `network.interface`、`network.device` 事件时也立即检查。
-   - 依赖：`tc-tiny`、`kmod-sched-core`（HTB）、`kmod-sched-flower`、`kmod-sched-act-police`。
+   - 依赖：`tc-tiny`、`kmod-sched-core`（HTB、`act_mirred`）、`kmod-sched-flower`、`kmod-ifb`。建不了 ifb 时只有上传限速失效，原因写进 `limits_error`。
 3. **断网用自己的 nftables 表**，不放进 fw4 的 `chain-pre/forward`：
    - `table inet routelink`，`forward` 链挂在 `filter - 1` 优先级，集合 `block`（MAC）、`local4`、`local6`（本地网段）。规则：源 MAC 在 `block` 里、目的地址不在本地网段的包丢弃。
    - 原因：fw4 每次重载都会重建 `inet fw4` 表，引用里的集合会被清空；自己的表不受影响，也不依赖 fw4 的内部结构。
@@ -167,7 +167,7 @@ config notify_settings 'notify'
 | DNS 解析 | 压缩指针只能往前指、最多跳 16 次；随机数据喂 2000 次在 ASan、UBSan 下不出错 |
 | 变长记录日志 | 每条记录前后都有长度，所以可以从新到旧倒着读（按 64 KB 一块）；访问去向一条记录装不下 100 条时，丢掉流量最少的几条 |
 | 后台通知去重（§0.7） | 路由器插件里有开着的、订阅了新设备的推送渠道时，App 的后台检查不再发新设备通知 |
-| T1 限速验证 | 测试 `test/agent/limits.agent.ts`：在路由器的 LAN 口上套用 `core/tcgen` 生成的脚本，开、关软件加速各测一次下载和上传，误差要求 ±10%。CI 先加载 `sch_htb`、`cls_flower`、`act_police` 和 flowtable 模块；rootfs 镜像里没有 `tc`，测试里先装 `tc-tiny` |
+| T1 限速验证 | 测试 `test/agent/limits.agent.ts`：在路由器的 LAN 口上套用 `core/tcgen` 生成的脚本，开、关软件加速各测一次下载和上传，误差要求 ±10%。CI 先加载 `sch_htb`、`cls_flower`、`act_mirred`、`ifb` 和 flowtable 模块；rootfs 镜像里没有 `tc`，测试里先装 `tc-tiny` |
 | T18–T19 实时监控 | 完成（子任务）。服务用 JS 单独登录的会话轮询，不接触密码；插件消失时自动改用 LuCI 计数；会话失效后只要 App 进程在，JS 会重新登录并把新会话交给服务；证书变了就停止并留一条说明。在 API 34 模拟器上验证了刷新、后台继续、通知里的停止、到时结束、离线 9 秒后提示并震动、恢复、无插件模式、rpcd 重启后的会话续上、被强制停止后的"中断"提示 |
 | T2 MetricStyle | 不改 compileSdk：Android 17 的 `Notification.MetricStyle`（文档已核对：`MetricStyle().addMetric(Metric(FixedFloat(值, 单位, 0, 1), 标签))`、`setCriticalMetric`）通过反射构造，用 `Notification.Builder.recoverBuilder` 套到兼容库建好的通知上；API 37 以下或接口不符时保持 BigText。下载设为最重要的一项（状态栏胶囊显示它） |
 | T20 模拟器 | 本机只有 API 34 的镜像；用户决定不下载 API 36.1 镜像（磁盘空间），状态栏胶囊和推广通知的验证留到以后 |
