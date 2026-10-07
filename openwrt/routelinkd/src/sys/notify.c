@@ -349,7 +349,9 @@ static void flush_batch(rl_notifier *n)
 static void tick_cb(struct uloop_timeout *t)
 {
 	rl_notifier *n = container_of(t, rl_notifier, tick);
-	if (!n->hold && rl_notify_batch_due(&n->batch, now_s()))
+	int64_t now = now_s();
+	/* during an outage the batch waits, but not forever: probes may fail where ICMP is filtered */
+	if (rl_notify_batch_due(&n->batch, now) && (!n->hold || now - n->batch.ev[0].ts >= RL_NOTIFY_HOLD_MAX))
 		flush_batch(n);
 	run_waiting(n);
 	if (n->batch.n || n->n_jobs)

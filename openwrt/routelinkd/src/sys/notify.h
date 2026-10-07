@@ -3,7 +3,7 @@
  * channel gets the ones it subscribed to, in one message, sent by an uclient-fetch child (JSON with
  * --header, or core/notify's form fallback where uclient-fetch has no --header). A failed send is retried 3
  * times (after 10 s, 1 min, 5 min); the last success and failure of each channel are kept for notify_status.
- * While an outage lasts the batch waits (nothing would get out).
+ * While an outage lasts the batch waits (nothing would get out), at most RL_NOTIFY_HOLD_MAX.
  */
 #ifndef RL_SYS_NOTIFY_H
 #define RL_SYS_NOTIFY_H
@@ -16,6 +16,7 @@
 
 #define RL_NOTIFY_RETRIES 3
 #define RL_NOTIFY_TEST_TIMEOUT 15 /* seconds notify_test waits at most */
+#define RL_NOTIFY_HOLD_MAX 600    /* seconds a batch waits for an outage to end */
 
 typedef struct {
 	char section[64];

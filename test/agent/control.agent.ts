@@ -101,6 +101,7 @@ const online = () => ok(CLIENT, `curl -s -m 5 -o /dev/null http://${SERVER_IP}:8
 
 let mac = '';
 let supported = false;
+let savedTargets = '';
 
 beforeAll(async () => {
   mac = sh(CLIENT, 'cat /sys/class/net/eth0/address').toUpperCase();
@@ -109,17 +110,26 @@ beforeAll(async () => {
   if (!supported) return;
   // the device must be known to the daemon (destinations refuse unknown MACs)
   sh(CLIENT, `curl -s -o /dev/null http://${SERVER_IP}:8080/1000`);
+  // CI runners drop ICMP to the internet: with the default probe targets the daemon sees an outage, and
+  // push messages wait for it to end. Probe the lab server instead.
+  savedTargets = sh(ROUTER, 'uci -q get routelink.probe.target || true');
   uci(
     `while uci -q delete routelink.@quota[0]; do :; done; uci -q delete routelink.rltest; uci -q delete routelink.rlfail; ` +
-      `uci set routelink.dns=dns; uci set routelink.dns.enabled=0`,
+      `uci set routelink.dns=dns; uci set routelink.dns.enabled=0; ` +
+      `uci set routelink.probe=probe; uci -q delete routelink.probe.target; uci add_list routelink.probe.target=${SERVER_IP}`,
   );
 });
 
 afterAll(() => {
   if (!supported) return;
+  const restore = savedTargets
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((t) => `uci add_list routelink.probe.target=${t}; `)
+    .join('');
   uci(
     `while uci -q delete routelink.@quota[0]; do :; done; uci -q delete routelink.rltest; uci -q delete routelink.rlfail; ` +
-      `uci set routelink.dns.enabled=0`,
+      `uci set routelink.dns.enabled=0; uci -q delete routelink.probe.target; ${restore}true`,
   );
   sh(CLIENT, 'pkill -x curl; true');
   sh(ROUTER, 'uci set firewall.@defaults[0].flow_offloading=0; uci commit firewall; fw4 -q reload; true');
