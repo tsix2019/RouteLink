@@ -265,3 +265,119 @@ uint64_t rl_ct_events_lost(const rl_ct *c)
 {
 	return c->lost;
 }
+
+/* ---- dropping a device's connections (quota block) ---- */
+
+typedef struct {
+	const rl_ip *ips;
+	size_t n_ips;
+	uint8_t *found; /* per entry: family u8, then the CTA_TUPLE_ORIG attribute as it came */
+	size_t len, cap;
+	size_t count;
+} kill_ctx;
+
+static bool ip_listed(const kill_ctx *k, const rl_ip *ip)
+{
+	for (size_t i = 0; i < k->n_ips; i++)
+		if (rl_ip_eq(&k->ips[i], ip))
+			return true;
+	return false;
+}
+
+static int kill_dump_cb(const struct nlmsghdr *nlh, void *data)
+{
+	kill_ctx *k = data;
+	const struct nlattr *tb[CTA_MAX + 1] = { 0 };
+	const struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
+	rl_ip osrc = { 0 }, odst = { 0 }, rsrc = { 0 }, rdst = { 0 };
+	if (nfg->nfgen_family != AF_INET && nfg->nfgen_family != AF_INET6)
+		return MNL_CB_OK;
+	mnl_attr_parse(nlh, sizeof(*nfg), attr_cb, tb);
+	if (!tb[CTA_TUPLE_ORIG] || !tb[CTA_TUPLE_REPLY])
+		return MNL_CB_OK;
+	parse_tuple(tb[CTA_TUPLE_ORIG], nfg->nfgen_family, &osrc, &odst, NULL, NULL, NULL);
+	parse_tuple(tb[CTA_TUPLE_REPLY], nfg->nfgen_family, &rsrc, &rdst, NULL, NULL, NULL);
+	/* opened by the device, or forwarded to it (the reply comes from the device) */
+	if (!ip_listed(k, &osrc) && !ip_listed(k, &rsrc))
+		return MNL_CB_OK;
+	size_t alen = MNL_ALIGN(tb[CTA_TUPLE_ORIG]->nla_len);
+	if (k->len + 1 + alen > k->cap) {
+		k->cap = (k->len + 1 + alen) * 2;
+		k->found = realloc(k->found, k->cap);
+		if (!k->found)
+			abort();
+	}
+	k->found[k->len] = nfg->nfgen_family;
+	memcpy(k->found + k->len + 1, tb[CTA_TUPLE_ORIG], alen);
+	k->len += 1 + alen;
+	k->count++;
+	return MNL_CB_OK;
+}
+
+int rl_ct_kill(const rl_ip *ips, size_t n_ips)
+{
+	if (!n_ips)
+		return 0;
+	struct mnl_socket *nl = mnl_socket_open2(NETLINK_NETFILTER, SOCK_CLOEXEC);
+	size_t buf_len = MNL_SOCKET_BUFFER_SIZE * 4;
+	char *buf = malloc(buf_len);
+	kill_ctx k = { .ips = ips, .n_ips = n_ips };
+	int rc = -1, deleted = 0;
+	if (!buf)
+		abort();
+	if (!nl || mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0)
+		goto out;
+	unsigned int portid = mnl_socket_get_portid(nl), seq = (unsigned int)time(NULL);
+
+	/* collect first: deleting while the dump runs would disturb it */
+	struct nlmsghdr *nlh = mnl_nlmsg_put_header(buf);
+	nlh->nlmsg_type = (NFNL_SUBSYS_CTNETLINK << 8) | IPCTNL_MSG_CT_GET;
+	nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
+	nlh->nlmsg_seq = seq;
+	struct nfgenmsg *nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
+	nfg->nfgen_family = AF_UNSPEC;
+	nfg->version = NFNETLINK_V0;
+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0)
+		goto out;
+	for (;;) {
+		ssize_t r = mnl_socket_recvfrom(nl, buf, buf_len);
+		if (r <= 0)
+			goto out;
+		int ret = mnl_cb_run(buf, (size_t)r, seq, portid, kill_dump_cb, &k);
+		if (ret < 0)
+			goto out;
+		if (ret == MNL_CB_STOP)
+			break;
+	}
+
+	for (size_t off = 0; off < k.len;) {
+		uint8_t family = k.found[off];
+		const struct nlattr *tuple = (const struct nlattr *)(k.found + off + 1);
+		size_t alen = MNL_ALIGN(tuple->nla_len);
+		off += 1 + alen;
+		nlh = mnl_nlmsg_put_header(buf);
+		nlh->nlmsg_type = (NFNL_SUBSYS_CTNETLINK << 8) | IPCTNL_MSG_CT_DELETE;
+		nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_ACK;
+		nlh->nlmsg_seq = ++seq;
+		nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
+		nfg->nfgen_family = family;
+		nfg->version = NFNETLINK_V0;
+		memcpy(mnl_nlmsg_get_payload_tail(nlh), tuple, alen);
+		nlh->nlmsg_len += (uint32_t)alen;
+		if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0)
+			goto out;
+		ssize_t r = mnl_socket_recvfrom(nl, buf, buf_len);
+		/* ENOENT: it ended in between */
+		if (r > 0 && mnl_cb_run(buf, (size_t)r, seq, portid, NULL, NULL) >= 0)
+			deleted++;
+	}
+	rc = deleted;
+out:
+	if (rc < 0)
+		syslog(LOG_WARNING, "dropping conntrack entries failed: %s", strerror(errno));
+	if (nl)
+		mnl_socket_close(nl);
+	free(k.found);
+	free(buf);
+	return rc;
+}
