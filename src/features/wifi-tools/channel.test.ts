@@ -2,6 +2,7 @@ import { loadFixture } from '../../../test/fixture-connection';
 import {
   channelTable,
   isDfs,
+  isDfsBlock,
   parseScan,
   recommendChannels,
   spanOf,
@@ -46,6 +47,20 @@ describe('spans', () => {
 
   it('knows DFS channels', () => {
     expect([36, 52, 64, 100, 144, 149].map((c) => isDfs('5G', c))).toEqual([false, true, true, true, true, false]);
+  });
+
+  it('judges DFS over the whole block of a wide channel', () => {
+    const cases: [number, number][] = [
+      [36, 20],
+      [36, 80],
+      [48, 160],
+      [52, 80],
+      [100, 40],
+      [149, 160],
+    ];
+    expect(cases.map(([c, w]) => isDfsBlock('5G', c, w))).toEqual([false, false, true, true, true, false]);
+    expect(isDfsBlock('6G', 37, 160)).toBe(false);
+    expect(isDfsBlock('2.4G', 6, 40)).toBe(false);
   });
 });
 
@@ -121,6 +136,25 @@ describe('recommendChannels', () => {
     expect(recommendChannels([r])[0].recommended).toBeUndefined();
     const withDfs = recommendChannels([r], { allowDfs: true })[0];
     expect(withDfs.recommended).toBe(52);
+    expect(withDfs.dfs).toBe(true);
+  });
+
+  it('counts a 160 MHz block with radar channels in it as DFS', () => {
+    // 36 at 160 MHz spans 36–64, so it needs the same radar check as 52–64.
+    const r: OwnRadio = {
+      key: 'gw/radio1',
+      band: '5G',
+      channel: 100,
+      width: 160,
+      allowed: [36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128],
+      bssids: [],
+      scan: [net(100, -40, { band: '5G', width: 160, center: 114 })],
+    };
+    const plain = recommendChannels([r])[0];
+    expect(plain.recommended).toBeUndefined();
+    expect(plain.reason).toBe('no-candidates');
+    const withDfs = recommendChannels([r], { allowDfs: true })[0];
+    expect(withDfs.recommended).toBe(36);
     expect(withDfs.dfs).toBe(true);
   });
 });

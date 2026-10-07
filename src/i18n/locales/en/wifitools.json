@@ -138,7 +138,7 @@
     "summaryChange": "Radios worth changing: {{count}}",
     "summaryKeep": "All radios are on good channels",
     "allowDfs": "Allow DFS channels",
-    "dfsHint": "DFS channels (52–144) need a radar check first: after a switch the radio takes 1–10 minutes to come back, and it moves away by itself when it detects radar.",
+    "dfsHint": "DFS channels (52–144, and 36–48 at 160 MHz, whose block reaches 64) need a radar check first: after a switch the radio takes 1–10 minutes to come back, and it moves away by itself when it detects radar.",
     "legend": {
       "own": "Your networks",
       "other": "Neighbours",

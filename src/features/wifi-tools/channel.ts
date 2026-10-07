@@ -60,7 +60,7 @@ export interface ChannelAdvice {
   reduction: number;
   /** On 2.4 GHz with a 40 MHz channel in a crowded band: go to 20 MHz. */
   suggestWidth20: boolean;
-  /** The recommended channel needs radar detection (5 GHz DFS). */
+  /** The recommended channel needs radar detection (5 GHz DFS) somewhere in its block at the radio's width. */
   dfs: boolean;
   reason: ChannelReason;
 }
@@ -101,6 +101,18 @@ export function spanOf(band: Band, channel: number, width: number, center?: numb
   return { low: start - 10, high: start - 10 + width };
 }
 
+/**
+ * A channel at this width needs radar detection when any 20 MHz channel of its block does: 36 at
+ * 160 MHz spans 36–64, so it is as much a DFS channel as 52.
+ */
+export function isDfsBlock(band: Band, channel: number, width: number): boolean {
+  if (band !== '5G') return false;
+  if (width <= 20) return isDfs(band, channel);
+  const span = spanOf(band, channel, width);
+  for (let f = span.low + 10; f < span.high; f += 20) if (isDfs(band, (f - 5000) / 5)) return true;
+  return false;
+}
+
 const overlap = (a: Span, b: Span) => Math.max(0, Math.min(a.high, b.high) - Math.max(a.low, b.low));
 
 /** Signal as a power ratio above the −95 dBm floor. */
@@ -120,7 +132,7 @@ function score(band: Band, channel: number, width: number, others: Interferer[])
 
 function candidates(r: OwnRadio, o: ChannelOptions): number[] {
   if (r.band === '2.4G') return [1, 6, 11].filter((c) => r.allowed.includes(c));
-  return r.allowed.filter((c) => o.allowDfs || !isDfs(r.band, c));
+  return r.allowed.filter((c) => o.allowDfs || !isDfsBlock(r.band, c, r.width));
 }
 
 /** Own APs heard better than this count as neighbours to stay away from (at double weight). */
@@ -196,7 +208,7 @@ export function recommendChannels(radios: OwnRadio[], o: ChannelOptions = {}): C
       bestScore: recommended ? bestScore : currentScore,
       reduction: recommended && currentScore > 0 ? 1 - bestScore / currentScore : 0,
       suggestWidth20,
-      dfs: recommended !== undefined && isDfs(r.band, recommended),
+      dfs: recommended !== undefined && isDfsBlock(r.band, recommended, r.width),
       reason: suggestWidth20 && !recommended ? 'crowded-24' : reason,
     });
   }
