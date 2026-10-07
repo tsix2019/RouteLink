@@ -97,8 +97,12 @@ static bool hist_cb(const rl_rec *r, void *x)
 	}
 	if (r->ts < h->bounds[0] || r->ts >= h->bounds[h->n])
 		return true;
-	if (r->dev == RL_DEV_WAN)
-		h->covered[lo] = true;
+	/*
+	 * Any record shows that the daemon was recording. Not only the WAN's: that one comes with a sample, and
+	 * a minute without one (sample_interval over 60 s, samples put off) can still hold the bytes of
+	 * connections that closed in it, which the summary counts.
+	 */
+	h->covered[lo] = true;
 	if (!hour_ok(h->q->hours_mask, r->ts) || !matches(h->q->dev, h->q->cls, r))
 		return true;
 	h->pts[lo].rx += r->rx;

@@ -33,7 +33,7 @@ typedef struct {
 
 typedef struct {
 	int64_t ts;
-	bool gap; /* no WAN record at all in the point: the daemon was not recording */
+	bool gap; /* no record at all in the point (not even the WAN's): the daemon was not recording */
 	uint64_t rx, tx;
 } rl_point;
 
