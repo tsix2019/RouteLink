@@ -1,7 +1,7 @@
 # RouteLink 插件与配套功能设计
 
 - 日期：2026-10-05
-- 状态：设计已逐段确认，等待评审书面文档
+- 状态：P1～P4 已实施，本文已按实施结果更新（各期计划的"和设计不同的决定"和"执行记录"）
 - 关联文档：主设计 `docs/superpowers/specs/2026-10-05-routelink-design.md`（下文简称"主设计"）
 
 ## 1. 目标
@@ -50,7 +50,7 @@
 |---|---|---|
 | iOS 实时活动 | 能做，但限制多，这次不做 | `expo-widgets` 在 SDK 57 里已经支持（`createLiveActivity`）。没有 APNs 推送时，只有 App 在前台才能刷新，一次最多显示 8 小时。免费账号不能开推送。AltStore 和 SideStore 签名时会改 App Group 的名字，实时活动因此显示空白。TrollStore 只支持到 iOS 17.0 |
 | Android 16 实时更新（Live Updates） | 能做 | 通知要满足这些条件：常驻（ongoing）、有标题、申请推广（`requestPromotedOngoing`）、声明 `POST_PROMOTED_NOTIFICATIONS` 权限、不用自定义布局、不设 `setColorized`。状态栏胶囊里的文字用 `setShortCriticalText` 设置，7 个字符以内能完整显示。Android 16 QPR1（API 36.1）起才会真正推广 |
-| Android 17 MetricStyle | 能做 | 最多显示 3 项指标，正好对应 ↓、↑、在线数。需要 compileSdk 37 |
+| Android 17 MetricStyle | 能做 | 最多显示 3 项指标，正好对应 ↓、↑、在线数。接口在 API 37 里；项目仍按 API 36 编译，通过反射调用（§16） |
 | OPPO、一加（流体云） | 能上岛 | ColorOS 16 和 OxygenOS 16 直接接管标准的实时更新通知。一加默认关闭，需要用户手动打开 |
 | 小米 HyperOS 3.1+（超级岛） | 可能 | 据报道标准接口会进入超级岛，但没有官方文档。国行机的实测中只显示成单行胶囊。小米自家的焦点通知接口需要上架小米商店并通过审核 |
 | vivo（原子岛） | 未知 | 自家接口需要审核；标准接口会不会映射进去，查不到实测 |
@@ -101,7 +101,7 @@
     ├─ 限速和配额（§9）       ├─ DNS 和访问去向（§10）
     ├─ 推送（§11）            ├─ 路由器端测速（§12）
     └─ 分层存储（§6）
-  luci-app-routelink：LuCI 页面、ACL、翻译
+  luci-app-routelink：LuCI 页面、菜单、翻译（ACL 在 routelinkd 包里，§7.3）
   配置：/etc/config/routelink
 ```
 
@@ -112,9 +112,12 @@
 | 角色 | 判断条件 | 开启的模块 |
 |---|---|---|
 | 主路由 | 有 WAN 区域并且开了 NAT（masquerade） | 流量、在线状态、延迟、限速和配额、DNS 和去向、推送、测速 |
-| AP | 有处于 AP 模式的无线接口 | 无线采样 |
+| AP | nl80211 报告有 AP 模式的接口；或者 UCI 里有开着的射频上开着的 AP 接口（Wi-Fi 临时关掉时角色不变） | 无线采样 |
 
-主路由自己也有无线时，两种角色都开。AP 上不统计流量，因为互联网流量不经过 AP 的路由。
+- **两种角色**：主路由自己也有无线时，两种角色都开。AP 上不统计流量，因为互联网流量不经过 AP 的路由。只做 AP 的路由器只运行无线采样。
+- **模块之间的依赖**：配额要用流量记录，所以只在流量模块开着时运行；访问去向跟着 DNS 记录一起开关。
+- **`info` 里的报告**：`roles` 是角色；`modules` 列出正在运行的模块；`capabilities` 列出这个版本支持的全部模块（`traffic`、`wifi`、`latency`、`speedtest`、`limits`、`quotas`、`dns`、`notify`）。App 靠这两项区分"插件太旧"和"模块没开"。
+- **LuCI 菜单**：守护进程按角色写标记文件 `/var/run/routelink/ap`、`ap-only`，并清掉 LuCI 的菜单缓存，菜单靠它们决定显示哪些页面（§8）。浏览器按会话缓存菜单，角色变了要重新登录 LuCI 才看得到。
 
 ### 4.2 和主设计的关系
 
@@ -124,19 +127,22 @@
 | NW-12 流量历史（vnstat） | 改由插件实现，见 TR-5 |
 | NW-13 诊断工具（M2） | 提前到 P3，见 DG-2 |
 | MO-13 测速（M4） | 提前到 P3，见 DG-4 |
-| AP-5 后台通知里的"新设备" | 装了插件的路由器改由插件推送（AG-14）；没装插件的路由器仍由 App 的后台检查负责 |
+| AP-5 后台通知里的"新设备" | 路由器的插件里有开着的、订阅了新设备的推送渠道时，由插件推送（AG-14），App 的后台检查不再重复提醒；其他情况仍由 App 的后台检查负责 |
 
 ### 4.3 代码位置
 
 ```
 openwrt/
-  routelinkd/              C 守护进程：src/、tests/、OpenWrt 包的 Makefile
-  luci-app-routelink/      htdocs/（LuCI JS 页面）、root/（ACL、菜单、init、UCI 默认配置）、po/
+  routelinkd/              C 守护进程：src/（core/ 纯逻辑、sys/ 系统接入、tests/）、
+                           files/（init、UCI 默认配置、ACL、keep.d）、OpenWrt 包的 Makefile
+  luci-app-routelink/      htdocs/（LuCI JS 页面）、root/（菜单）、po/
   feed/                    软件源索引和签名用的脚本
-src/api/services/agent.ts  App 端的插件接口客户端
-src/api/group/             网络组的数据合并
-src/features/{traffic,wifi-tools,diagnostics,live-monitor,agent}/
-modules/routelink-native/  新增 Android 前台服务和实时更新通知
+src/api/services/agent*.ts App 端的插件接口客户端：agent（P1）、agent-wifi（P2）、agent-diag（P3）、
+                           agent-control（P4 方法）、agent-rules（P4 的 UCI 规则）
+src/api/services/diag.ts   诊断命令（file exec，不需要插件）
+src/api/group/             网络组：成员、组内连接、数据合并、建组建议
+src/features/{traffic,wifi-tools,diagnostics,control,live,agent}/
+modules/routelink-native/  Android 实时监控：前台服务、Kotlin 轮询、实时更新通知
 ```
 
 ## 5. 插件：采集
@@ -166,21 +172,47 @@ modules/routelink-native/  新增 Android 前台服务和实时更新通知
 
 ### 5.2 无线采样（AP 角色）
 
-- **终端数据**：通过 nl80211 的 station dump 读取，平时每 10 秒一次，实时租约期间每秒一次。内容包括：
+- **接入方式**：直接用 nl80211，不经过 iwinfo。通过 libmnl 发 generic netlink，不引入 libnl。
+- **接口**：只看 AP 模式、正在工作的接口。AP_VLAN（WDS）接口上的终端不采样。
+- **终端数据**：通过 station dump 读取，平时每 10 秒一次；无线实时租约期间每秒一次。无线实时租约由 `stations` 方法带 `live: true` 申请，每次 30 秒，和流量的实时租约分开。内容包括：
   - 信号和平均信号
-  - 上下行协商速率，含 MCS、频宽、空间流
+  - 收发两个方向的协商速率（`NL80211_RATE_INFO_BITRATE32`），以及 MCS、空间流、频宽、模式（legacy、ht、vht、he）。HT 的 MCS 按每流报（MCS 15 报成 MCS 7、2 个空间流）；EHT（Wi-Fi 7）不报模式。
   - 重传次数和失败次数
-  - 已连接时长、空闲时长、收发字节数
-- **信道数据**：通过 nl80211 的 survey dump 读取，每 60 秒一次，包括噪声和繁忙度（`active_time`、`busy_time`）。
-- **事件**：订阅 nl80211 的终端连接和断开事件，写进事件表。App 把各台 AP 的事件合并起来，得到漫游记录。
+  - 已连接时长、空闲时长、收发字节数和包数
+  - 驱动不报的字段直接省略。有的驱动不报 `signal`，App 改用平均信号。
+- **只算认证完成的终端**：还在握手的、输错密码的终端不进设备表，也不产生事件。
+- **汇总**：
+  - 每台终端每分钟、每小时一条记录：平均和最小信号、平均收发协商速率、重传和失败次数的增量。计数器变小时按 0 处理。
+  - 内存里给每台终端留一个 300 个采样的环形缓冲：实时租约期间是最近 5 分钟的逐秒数据，平时是最近 50 分钟的 10 秒数据。
+- **信道数据**：通过 survey dump 读取，每 60 秒一次，包括噪声和繁忙时间（`active_time`、`busy_time`、收发时间）。
+  - 射频当前信道的繁忙度：最近两次采样之间的增量比例；第一次采样后还没有值。按接口频率匹配射频（mac80211_hwsim 不设 in-use 标志）。
+  - 驱动扫描后留下的其他信道的数据也一起报告：第一次采样后是累计比例，之后是增量。
+- **设备表**：终端的 MAC 也进设备表，第一次见到时同样产生"新设备"事件。AP 上没有流量统计，所以：
+  - `devices` 的 `online` 表示"已连接"，已连接的终端另外带所在接口和信号。
+  - AP 不产生上线和下线事件。
+- **事件**：订阅 nl80211 `mlme` 组的 `NEW_STATION`、`DEL_STATION`，写成 `wifi_connect`、`wifi_disconnect` 事件，`value` 是当时所在接口的频率（MHz）。
+  - 同一台路由器上换频段，是先断开再连接。
+  - App 把组内各台 AP 的事件合并起来，得到漫游记录。
 
 ### 5.3 延迟探测（主路由）
 
 - **目标**：默认是 WAN 口的上一跳网关、`223.5.5.5`、`119.29.29.29`、`1.1.1.1`，可以修改。
-- **频率**：每 10 秒对每个目标发一个 ICMP 包，记录往返时间或超时。
-- **断网判定**：
-  - 除上一跳网关以外的所有目标连续 3 轮不通，记一次断网开始；之后任意一个目标通了，记为结束。
-  - 同时订阅 netifd 的接口事件（WAN 断开、重新拨号），作为断网原因写进记录。
+  - 上一跳从 netifd 的 WAN 接口路由里取（默认路由的 `nexthop`），重新拨号后跟着变。PPPoE 的上一跳是对端地址。是否探测它由 UCI 的 `probe.gateway` 决定。
+  - 其他目标只接受 IP 地址，最多 8 个。不解析域名，避免阻塞主循环。
+  - 每个目标有固定的编号，存在 `latency.targets.json` 里，0 号是上一跳。改了目标列表，旧目标的历史仍然按原编号查得到。
+- **探测方式**：守护进程以 root 运行，直接用原始套接字（IPv4 的 ICMP、IPv6 的 ICMPv6），挂在 uloop 上，不启动 `ping` 进程。
+- **频率**：每 10 秒对每个目标发一个回显请求，2 秒内没有回复算丢包。
+- **汇总**：每个目标每分钟、每小时一条记录：发送数、丢失数、平均、最小、最大往返时间（微秒）。
+- **断网判定**（`core/probe`，纯函数）：
+  - 除上一跳网关以外的所有目标连续 3 轮不通，记一次断网，开始时间是这 3 轮里的第一轮；之后任意一个目标通了，记为结束。
+  - 除上一跳以外没有配置任何目标时，不判定断网。
+  - 正在进行的断网只在内存里，结束后才写入记录。守护进程停止时，把它当作在停止时刻结束。
+- **断网原因**：订阅 ubus 事件 `network.interface`（netifd 广播的 `ifup`、`ifdown`）。
+  - **重新拨号**（`redial`）：断网开始前 30 秒到结束之间，WAN 出现过 `ifdown`，并且 60 秒内又 `ifup` 了。
+  - **WAN 断开**（`wan_down`）：WAN `ifdown` 超过 60 秒，或者一直没有恢复。
+  - **上游不通**（`upstream`）：期间 WAN 没有 `ifdown`。
+  - netifd 的 `ifdown` 会发两次，只记录状态的变化。
+- **WAN 事件**：WAN 接口的上下线同时写进事件表（`wan_down`、`wan_up`），一键诊断的"最近 24 小时重拨次数"用它。
 
 ### 5.4 在线状态（主路由）
 
@@ -205,21 +237,42 @@ modules/routelink-native/  新增 Android 前台服务和实时更新通知
 
 | 数据 | 保留期 |
 |---|---|
+| 信号：最近的采样（每台终端 300 个） | 只在内存 |
 | 信号：分钟汇总（平均值、最小值） | 7 天 |
 | 信号：小时汇总 | 30 天 |
 | 延迟：分钟汇总（平均、最大、丢包率） | 7 天 |
 | 延迟：小时汇总 | 90 天 |
 | 断网记录 | 1 年 |
 | DNS 记录 | 7 天，最多 10 万条 |
-| 访问去向 | 7 天 |
+| 访问去向 | 和 DNS 记录相同（默认 7 天） |
 | 事件 | 90 天 |
+| 测速结果 | 最近 100 次 |
 
 ### 6.2 格式
 
-- **记录**：每一层一个文件，记录是 32 字节的定长二进制结构，追加写入。一条流量记录包括：时间戳、设备序号、分类、连接数、收发字节。同一台设备在同一个桶里，每个分类各占一条记录。WAN 口每个桶都写一条记录，流量为 0 时也写，查询时用它区分"没有流量"和"数据缺失"。
+- **流量记录**（`core/store`）：每一层一个文件，记录是 32 字节的定长二进制结构，追加写入。一条流量记录包括：时间戳、设备序号、分类、连接数、收发字节。同一台设备在同一个桶里，每个分类各占一条记录。WAN 口每个桶都写一条记录，流量为 0 时也写，查询时用它区分"没有流量"和"数据缺失"。
+- **定长记录日志**（`core/series`，P2 起）：信号、延迟、断网共用。记录 32 字节，开头 4 字节是时间戳，追加写入，按保留期裁剪，按时间范围扫描。
+- **变长记录日志**（`core/vlog`，P4）：DNS 记录和访问去向用。每条记录是"2 字节长度 + 内容 + 2 字节长度"，所以可以从新到旧倒着读（按 64 KB 一块），页面要的正是最新的记录。
+- **共同的规则**：多字节字段一律按小端存，大端的 MIPS 上也一样；记录先留在内存里，写盘时追加；写盘失败时文件长度不变；文件头损坏时把文件改名为 `.bad` 再新建。
 - **设备表**：MAC 和序号的对应关系、首次和最近出现时间，存成一个 JSON 文件。
-- **原子写入**：先写临时文件，再改名替换。
+- **原子写入**：JSON 文件都是先写临时文件，再改名替换。
 - **为什么不用 SQLite 和 RRD**：SQLite 在小路由器上太重；RRD 每台设备每项指标一个文件，时间范围也固定。
+
+数据目录里的文件：
+
+| 文件 | 格式 | 内容 |
+|---|---|---|
+| `traffic.minute`、`traffic.hour`、`traffic.day`、`traffic.month` | core/store | 流量 |
+| `events.bin` | 定长记录 | 事件 |
+| `devices.json` | JSON | 设备表 |
+| `signal.minute`、`signal.hour` | core/series | 信号汇总 |
+| `latency.minute`、`latency.hour` | core/series | 延迟汇总 |
+| `outages` | core/series | 断网：开始、结束、原因 |
+| `latency.targets.json` | JSON | 探测目标的编号 |
+| `speedtest.json` | JSON | 测速结果 |
+| `quota.json` | JSON | 配额的运行状态（§9.2） |
+| `dns.log` | core/vlog | DNS 记录 |
+| `dest.log` | core/vlog | 访问去向 |
 
 ### 6.3 写盘
 
@@ -230,10 +283,18 @@ modules/routelink-native/  新增 Android 前台服务和实时更新通知
   - 间隔也可以手动指定。
 - **额外写盘**：服务停止、重启路由器、升级固件之前，也各写一次。这几次写盘会把还没满的这一分钟也写下去。
 - **升级固件**：数据目录写进 `/lib/upgrade/keep.d/routelink`，升级后数据保留。
-- **大小上限**：默认不超过数据目录所在分区剩余空间的 10%，最多 32 MB。超出时，先从最细的层开始删最旧的数据。
+- **大小上限**：默认不超过数据目录所在分区剩余空间的 10%，最多 32 MB。每天裁剪一次，各类数据分别有上限，超出时删最旧的数据：
+
+| 数据 | 最多占上限的 |
+|---|---|
+| 信号 | 3/8：分钟 1/4，小时 1/8 |
+| 延迟和断网 | 7/32：分钟 1/8，小时 1/16，断网 1/32 |
+| DNS 记录和访问去向 | 合计 1/8（超出时 DNS 记录占 2/3，访问去向占 1/3） |
+| 流量 | 其余部分，但至少一半；超出时先从最细的层开始删 |
+
 - **重启后的恢复**：
   - 背景：小时、天、月的当前桶只在内存里，直到这个时段结束才写成记录。
-  - 处理：守护进程启动时，先补写停机期间已经结束的小时、天、月记录（由更细一级的记录汇总），再用已存的更细一级记录重建当前的桶。
+  - 处理：守护进程启动时，先补写停机期间已经结束的小时、天、月记录（由更细一级的记录汇总），再用已存的更细一级记录重建当前的桶。信号和延迟的小时记录也这样用分钟记录补写和重建。
   - 保留期下限：恢复要靠更细一级的数据，所以分钟数据至少保留 2 小时，按天数据至少保留 62 天。
 - **断电**：最多丢失一个写盘间隔的分钟数据，App 和 LuCI 的图表在缺口处断开，并标注"数据缺失"。
 
@@ -264,49 +325,119 @@ modules/routelink-native/  新增 Android 前台服务和实时更新通知
 
 | 方法 | 参数 | 返回 | 期 |
 |---|---|---|---|
-| `info` | — | 插件版本、接口版本号 `api`、角色、启用的模块、加速模式、nlbwmon 冲突、连接跟踪计数（`nf_conntrack_acct`）是否打开、数据目录和占用、是否已对时 | P1 |
-| `devices` | — | 设备列表：MAC、名称、IP（IPv4 和 IPv6）、首次和最近出现时间、是否在线、是否信任、是否随机 MAC、今日用量、当前速率 | P1 |
-| `live` | — | 申请或续期实时租约；同时返回 WAN 速率、各设备速率、在线数、占用最多的设备 | P1 |
-| `history` | `mac?`、`start`、`end`、`class?`（internet/lan/router/wan/all）、`hours?`（每天的时段） | 曲线数据。按时间范围自动选择粒度，最多 500 个点 | P1 |
+| `info` | — | 插件版本、接口版本号 `api`、角色 `roles`、正在运行的模块 `modules`、支持的全部模块 `capabilities`（§4.1）、加速模式、nlbwmon 冲突、连接跟踪计数（`nf_conntrack_acct`）是否打开、数据目录和占用、是否已对时、各类数据的保留期、限速和断网设置失败的原因 `limits_error`（空串表示正常）、DNS 记录是否开启 `dns_enabled` | P1，P2～P4 补充字段 |
+| `devices` | — | 设备列表：MAC、名称、IP（IPv4 和 IPv6）、首次和最近出现时间、是否在线、是否信任和是否关注（读自 UCI 的 `device` 段）、是否随机 MAC、今日用量、当前速率。AP 上已连接的终端另带所在接口和信号 | P1 |
+| `live` | — | 申请或续期实时租约；同时返回 WAN 速率、各设备速率（从高到低）、在线数 | P1 |
+| `history` | `mac?`、`start`、`end`、`class?`（internet/lan/router/wan/all）、`hours?`（每天的时段）、`max_points?` | 曲线数据。按时间范围自动选择粒度，默认最多 500 个点，最多可以要 1000 个 | P1 |
 | `summary` | `start`、`end`、`class?`、`hours?`、`sort`、`limit`、`offset` | 时间段内各设备的用量和排行 | P1 |
-| `events` | `start`、`end`、`types?`、`mac?` | 上下线、新设备、配额、断网等事件 | P1 |
-| `stations` | — | 当前无线终端的详细信息（AP 角色） | P2 |
-| `signal` | `mac`、`start`、`end` | 信号和速率的历史 | P2 |
-| `survey` | — | 每个射频的噪声和繁忙度 | P2 |
-| `latency` | `start`、`end`、`target?` | 延迟和丢包的曲线 | P3 |
-| `outages` | `start`、`end` | 断网记录 | P3 |
-| `speedtest_start` | `server?` | 开始测速，返回任务 ID | P3 |
-| `speedtest_status` | `id?` | 测速进度和结果；不带 ID 时返回历史结果 | P3 |
-| `quotas` | — | 每条配额的当前用量和状态 | P4 |
-| `destinations` | `mac`、`start`、`end`、`limit` | 访问去向排行（域名或 IP，及其流量） | P4 |
-| `dns` | `mac?`、`start`、`end`、`q?`、`limit`、`offset` | DNS 记录 | P4 |
-| `notify_test` | `section` | 向指定渠道发送一条测试消息 | P4 |
-| `reset` | `scope` | 清空指定类别的数据 | P1 |
+| `events` | `start`、`end`、`types?`、`mac?`、`limit?`、`offset?` | 事件：上线、下线、新设备（P1）；无线连接和断开，`value` 是频率（P2）；WAN 下线和上线（P3）；配额到 80%、用完、新周期开始，以及调试用的限速生效（P4） | P1 |
+| `stations` | `live?` | 正在工作的 AP 接口（SSID、BSSID、频率、信道、频宽、噪声、终端数）和已连接终端的详细信息（§5.2）、当前采样间隔。`live: true` 申请或续期 30 秒的无线实时租约 | P2 |
+| `signal` | `mac`、`start`、`end`、`max_points?` | 信号和速率的历史，每点是：时间、平均信号、最小信号、平均发送和接收协商速率（AP 的角度）、重传、失败。粒度 `tier`：`live`（内存里的原始采样，`start` 要在路由器时钟的 600 秒以内）、`minute`、`hour` | P2 |
+| `survey` | — | `radios`：每个射频当前信道的噪声、繁忙时间和繁忙比例；`channels`：扫描留下的其他信道的数据，可能为空 | P2 |
+| `latency` | `start`、`end`、`target?`（IP）、`max_points?` | 探测目标的列表（编号、IP、上一跳还是自定义），每个目标的曲线（平均、最大往返时间和丢包率）和汇总。往返时间保留 1 位小数 | P3 |
+| `outages` | `start`、`end` | 断网次数、累计时长、可用率、断网列表（最多 1000 条，每条带原因，进行中的标 `ongoing`）。可用率只在有探测数据的部分里计算，没有数据时为 null | P3 |
+| `speedtest_start` | `server?` | 开始测速，返回 `{id}`。已经在测时返回正在进行的那次 `{id, already: true}`（libubus 没有"忙"这个状态码） | P3 |
+| `speedtest_status` | `id?` | 带 ID：阶段（latency、download、upload、done、failed）、进度、结果。不带 ID：历史结果，新的在前；正在测时另带 `current` | P3 |
+| `quotas` | — | 每条配额：UCI 段名、MAC、周期起止、额度和已用字节、百分比、状态（ok、warned、exceeded、allowed）、放行到何时、动作 | P4 |
+| `quota_allow` | `section`、`until`（`hour` 或 `period`） | 临时放行：放行 1 小时，或者放行到本周期结束 | P4 |
+| `destinations` | `mac`、`start`、`end`、`limit?` | 访问去向排行：域名（能对上时）、IP、收发字节、连接数。默认 100 条，最多 500 条 | P4 |
+| `dns` | `mac?`、`start`、`end`、`q?`、`limit?`、`offset?` | DNS 记录：时间、设备、域名、查询类型、响应码、解析结果。新的在前，每页最多 1000 条，`count` 是总数 | P4 |
+| `notify_test` | `section` | 向指定渠道发一条测试消息，发送结束后返回 `{ok, error?}`，最多等 15 秒 | P4 |
+| `notify_status` | — | 每个渠道最近一次成功的时间、最近一次失败的时间和原因；等待发送的条数 | P4 |
+| `reset` | `scope`（traffic、events、signal、devices、latency、dns、all） | 清空指定类别的数据 | P1 |
 | `commit` | — | 立即写盘（设置页的按钮和升级固件前的钩子用） | P1 |
 | `ntp_synced` | — | 内部方法，由 ntpd 的 hotplug 脚本调用，不授权给任何账号 | P1 |
 
-- **大小限制**：所有返回结果都分页或降采样，每条消息控制在 ubus 的 1 MB 上限以内。
+- **大小限制**：所有返回结果都分页或降采样，每条消息控制在 ubus 的 1 MB 上限以内。曲线类方法的 `max_points` 都是 1～1000。
+- **错误**：参数不对返回 `INVALID_ARGUMENT`；没见过的 MAC、不认识的探测目标、配额段或渠道返回 `NOT_FOUND`；当前角色做不了的事（比如在 AP 上测速）返回 `NOT_SUPPORTED`。
 - **版本兼容**：
-  - 接口版本号 `api` 是整数，只在不兼容的改动时加 1。
+  - 接口版本号 `api` 是整数，只在不兼容的改动时加 1。P2～P4 新增的方法和字段都是兼容的改动，`api` 仍然是 1。
   - App 记录自己支持的范围：发现插件太旧，提示升级插件；发现插件太新，提示升级 App。
 
 ### 7.2 UCI 配置 `/etc/config/routelink`
 
-具体字段名在实现时确定，结构如下：
-
 ```
-config routelink 'main'          # 开关、数据目录、写盘间隔、大小上限、采样间隔、各模块开关
-config retention 'retention'     # 各层的保留期
-config probe 'probe'             # 延迟探测的目标和间隔
-config dns 'dns'                 # DNS 记录开关（默认关闭）
-config speedtest 'speedtest'     # 测速服务器
-config device                    # 每台设备一段：mac、trusted（信任）、watch（关注上下线）
-config limit                     # 限速：mac、上传和下载速率、星期、起止时间、enabled
-config quota                     # 配额：mac、周期（day/week/month）、重置日、额度、方向、动作（断网/限速）
-config notify                    # 推送渠道：类型、地址或令牌、订阅的事件
+config routelink 'main'
+	option enabled '1'
+	option data_dir '/etc/routelink'
+	option commit_interval '0'      # 0 = 自动：闪存上 60 分钟，其他 10 分钟
+	option max_size_mb '32'
+	option max_size_percent '10'
+	option sample_interval '30'
+	option live_interval '2'
+	option traffic '1'              # 流量模块（主路由）
+	option wifi '1'                 # 无线采样（AP 角色）
+
+config retention 'retention'
+	option minute_hours '48'
+	option hour_days '90'
+	option day_days '730'
+	option event_days '90'
+	option signal_minute_days '7'
+	option signal_hour_days '30'
+	option latency_minute_days '7'
+	option latency_hour_days '90'
+	option outage_days '365'
+
+config probe 'probe'
+	option enabled '1'
+	option gateway '1'              # 是否探测 WAN 的上一跳
+	list target '223.5.5.5'         # 只接受 IP，最多 8 个
+	list target '119.29.29.29'
+	list target '1.1.1.1'
+
+config speedtest 'speedtest'
+	option server ''                # 空 = Cloudflare；否则 LibreSpeed 的基础地址
+	option streams '4'              # 1～8
+	option duration '10'            # 每个方向的秒数，5～30
+
+config dns 'dns'
+	option enabled '0'              # DNS 记录和访问去向，默认关闭
+	option keep_days '7'
+	option max_records '100000'
+
+config notify_settings 'notify'
+	option lang 'auto'              # auto、zh_cn 或 en（§11）
+
+config device                     # 每台设备一段，段名不固定
+	option mac 'AA:BB:CC:DD:EE:FF'
+	option trusted '1'              # 信任（WF-3）
+	option watch '0'                # 关注上下线（推送）
+
+config limit                      # 限速，每条规则一段
+	option mac 'AA:BB:CC:DD:EE:FF'
+	option enabled '1'
+	option download '8000'          # kbit/s，0 = 不限
+	option upload '2000'
+	list weekdays 'mon'             # mon～sun，不写 = 每天
+	option start_time '20:00'       # 两个都不写 = 全天
+	option stop_time '23:00'
+
+config quota                      # 配额，每条规则一段
+	option mac 'AA:BB:CC:DD:EE:FF'
+	option enabled '1'
+	option period 'month'           # day | week | month
+	option reset_day '1'            # 周：1～7（星期一 = 1）；月：1～28
+	option limit_mb '102400'
+	option direction 'total'        # total | download
+	option action 'block'           # block | limit
+	option limit_download '1000'    # action=limit 时的速率，kbit/s
+	option limit_upload '500'
+
+config notify                     # 推送渠道，每个渠道一段
+	option type 'bark'              # webhook | bark | serverchan | pushplus | telegram | wecom | dingtalk | feishu
+	option enabled '1'
+	option name ''
+	option url ''                   # Webhook、Bark 服务器、企业微信/钉钉/飞书的地址
+	option template ''              # Webhook 的 JSON 模板，{title}、{body} 会被替换
+	option token ''                 # Bark key、SendKey、PushPlus token、Telegram bot token
+	option chat_id ''               # Telegram
+	option secret ''                # 钉钉、飞书的加签密钥
+	list events 'device_new'        # device_new | device_watch | quota | outage
 ```
 
-- **读写方式**：LuCI 和 App 都直接读写 UCI。
+- **默认配置**：软件包只带命名段（`main`、`retention`、`probe`、`speedtest`、`dns`、`notify`）；`device`、`limit`、`quota`、`notify` 渠道段由 LuCI 和 App 添加。从旧版本保留下来的配置缺少新的命名段时，守护进程按默认值运行；LuCI 和 App 保存设置时再补上这些段。
+- **读写方式**：LuCI 和 App 都直接读写 UCI。App 用 `uci apply` 应用，不回滚。
 - **生效方式**：init 脚本里注册 `procd_add_reload_trigger routelink`，提交改动后守护进程自动重新加载。
 - **为什么不走安全应用**：这些配置不会导致断网，不需要回滚。
 
@@ -316,8 +447,10 @@ ACL 文件是 `/usr/share/rpcd/acl.d/routelink.json`，组名 `routelink`，分�
 
 | 部分 | 内容 |
 |---|---|
-| read | 所有查询方法，以及 UCI `routelink` 的读权限 |
-| write | `speedtest_start`、`notify_test`、`reset`、`commit`，以及 UCI `routelink` 的写权限 |
+| read | 所有查询方法：`info`、`devices`、`live`、`history`、`summary`、`events`、`stations`、`signal`、`survey`、`latency`、`outages`、`speedtest_status`、`quotas`、`destinations`、`dns`、`notify_status`；以及 UCI `routelink` 的读权限 |
+| write | `reset`、`commit`、`speedtest_start`、`quota_allow`、`notify_test`，以及 UCI `routelink` 的写权限 |
+
+`live` 和 `stations` 的 `live: true` 只是加快采样，归在读权限里。
 
 - **放在 `routelinkd` 包里**：rpcd 里 root 的"全部权限"是所有 ACL 组的并集，没有任何组授权 `routelink` 对象时，连 root 也调不了。所以 ACL 跟着守护进程安装，不装 LuCI 包 App 也能用。
 - **生效**：安装后重载 rpcd，新的 ACL 才生效。
@@ -334,85 +467,133 @@ ACL 文件是 `/usr/share/rpcd/acl.d/routelink.json`，组名 `routelink`，分�
 |---|---|---|
 | 概览 | 角色和状态、冲突与加速提示、WAN 实时速率、今日排行前 5 | P1 |
 | 流量 | 时间段选择、上下行曲线、设备排行、实时速率表、CSV 导出 | P1 |
-| 设备详情（流量页里的弹窗） | 曲线、上下线记录；P4 起加上访问去向和 DNS | P1 |
-| 无线 | 终端信号表、信号历史、信道繁忙度 | P2 |
-| 延迟与断网 | 延迟曲线、丢包、断网列表、测速 | P3 |
-| 限速与配额 | 规则列表和编辑 | P4 |
-| 访问记录 | DNS 记录（可搜索）、访问去向 | P4 |
-| 推送 | 渠道配置、事件订阅、测试发送 | P4 |
-| 设置 | 数据目录、写盘间隔、保留期、模块开关、清空数据 | P1 |
+| 设备详情（流量页里的弹窗） | 曲线、上下线记录；P4 起加上访问去向和 DNS 记录（DNS 记录关着又没有旧数据时，显示开启的入口） | P1、P4 |
+| 无线 | 终端信号表（按信号排序，按质量评级着色）、选中终端的信号历史曲线、信道繁忙度表 | P2 |
+| 延迟与断网 | 时间段、每个目标的延迟曲线和丢包柱、可用率、断网列表、测速按钮和历史 | P3 |
+| 限速与配额 | 限速规则和配额规则的列表和编辑；配额的当前用量和临时放行；硬件加速和 `limits_error` 的提示 | P4 |
+| 访问记录 | DNS 记录的开关和保留期；按设备和时间段查 DNS 记录（可搜索）和访问去向 | P4 |
+| 推送 | 消息语言；渠道配置、事件订阅、测试发送、最近一次发送的结果；设备的关注和信任 | P4 |
+| 设置 | 数据目录、写盘间隔、大小上限、采样间隔、模块开关（流量、无线）、各类保留期、探测目标、测速服务器、按类别清空数据 | P1～P3 |
 
-AP 角色只显示"无线"和"设置"两页。
+- **按角色显示**：无线页只在 AP 角色时显示；只做 AP 的路由器只显示"无线"和"设置"两页。菜单靠 §4.1 的标记文件判断。
+- **jsmin 的坑**：LuCI 构建时的 jsmin 会把 `return` 后面的正则表达式当成除号，页面里要避开这种写法。
 
 ## 9. 插件：限速与配额
 
 ### 9.1 限速
 
-- **规则**：按设备分别设置上传和下载的速率上限，可以只在指定的星期和时段生效。时段的切换由守护进程按路由器的本地时间执行。
-- **实现**：
-  - **上传**：在 LAN 侧的物理口和无线口的入方向，用 tc 的 ingress 限速，按源 MAC 匹配。
-  - **下载**：在同一批接口的出方向挂 HTB 队列，用 flower 按目的 MAC 分类后限速。
-  - **为什么这样做**：软件加速后的数据包仍然会经过这两处，所以开着软件加速也有效。硬件加速下无效，界面会提示。
-- **技术验证**：P4 的第一个任务，在 Docker 测试路由器上，分别在开和关软件加速的情况下验证限速是否准确（误差在 ±10% 以内）。验证不通过时，退而采用 Bandix 的做法：设了限速就提示用户关闭软件加速。
+- **规则**：按设备分别设置上传和下载的速率上限，可以只在指定的星期和时段生效。
+  - 守护进程每分钟按路由器的本地时间判断哪些规则生效（`core/schedule`）。结束时间不晚于开始时间的时段跨过午夜，算在开始的那一天。
+  - 同一台设备有多条规则同时生效，或者配额用完后被限速（§9.2）时，每个方向取最低的那个速率。
+  - 只在主路由上执行。
+- **接口**：LAN 网桥的全部成员口，包括有线口和无线口，从 netifd 的 `network.device status` 读 `bridge-members`。LAN 接口是网桥上的 VLAN 时取下面那个网桥；不是网桥时就用这个接口本身。
+- **下载**：每个口的出方向挂 HTB（`handle 1:`，默认类 `1:1` 不限速），每台设备一个类（从 `1:10` 开始），用 flower 按目的 MAC 分类。
+- **上传**：
+  - 每个口挂 `clsact`，入方向用 flower 按源 MAC 匹配被限速的设备，用 `mirred egress redirect` 把它们的包转到同一个 ifb 设备 `rl-ifb0`。
+  - `rl-ifb0` 的出方向挂同样的 HTB，每台设备一个类，用 flower 按源 MAC 分类。所以一台设备的上传限速对所有口合计生效。
+  - 为什么不用 police：CI 实测 police 丢包对 TCP 太狠，速率只能达到限额的 50%～85%。
+  - `rl-ifb0` 由守护进程通过 rtnetlink 创建，先于各个口设置好，和各个口一起检查；没有规则限制上传时删掉。创建不了（比如缺 `kmod-ifb`）时只关掉上传限速，下载限速照常，原因放在 `limits_error` 里。
+- **下发**：
+  - 脚本由 `core/tcgen` 生成，启动 `tc -force -batch -` 执行，不直接写 netlink。每个口先清掉自己的设置，再重新下发。
+  - `wifi reload`、网口重新上下线都会让口上的设置丢失。守护进程每分钟用 rtnetlink 检查一遍每个口上是否还有自己的 qdisc，没有就重新下发；收到 netifd 的 `network.device` 事件后 2 秒也检查一次。
+  - 设置失败（缺内核模块、没有 tc、没有 LAN 口等）时不反复重试，直到规则或接口变了、或者配置重新加载；原因放在 `info.limits_error` 里，App 和 LuCI 显示出来。
+  - 规则变化时写一条调试用的 `limit_applied` 事件。
+- **为什么开着软件加速也有效**：加速后的数据包仍然经过网桥成员口的入方向和出方向。硬件加速下无效，界面会提示。
+- **技术验证**：在 CI 上做（`test/agent/limits.agent.ts`）。本机 Docker 用的 WSL2 内核没有 HTB，容器里也装不了模块，本机只检查错误报告；CI 先在宿主机上加载 `sch_htb`、`cls_flower`、`act_mirred`、`ifb`。测试写一条 UCI `limit` 规则，由守护进程自己下发，然后：
+  - 分别在开和关软件加速时测下载和上传，误差要求 ±10%；
+  - 没有规则的设备速度不受影响；
+  - 口上的 qdisc 丢了以后限速会回来；删掉规则后限速撤掉；不在生效时段时不限速。
+  - 验证不通过时，退而采用 Bandix 的做法：设了限速就提示用户关闭软件加速。
 
 ### 9.2 配额
 
-- **周期**：按天、周或月计算，可以设置每月的重置日。按路由器的本地时间计算。
-- **方向**：可以统计总量，也可以只统计下载。
-- **动作**：
-  - 用到 80% 时推送提醒。
-  - 用到 100% 时，按配置二选一：断开该设备的互联网访问，或者把它限速到指定速度。
+- **周期**：按天、周或月计算（`core/quota`），都从路由器本地时间的零点开始。
+  - 周：重置日是星期几（星期一 = 1）。月：重置日是 1～28 号。
+  - 用 `mktime` 处理夏令时，切换那天按 23 或 25 小时算。
+- **用量**：只算这台设备的互联网流量（§5.1 的分类），来自按天的记录加上今天还没结束的桶。可以统计总量，也可以只统计下载。所以配额需要流量模块，只在主路由上运行。
+- **判断**：守护进程每分钟算一次。
+  - 用到 80%（`limit - limit / 5`）时：写 `quota_warn` 事件，推送提醒。
+  - 用到 100% 时：写 `quota_exceeded` 事件，推送，并按配置二选一：断开该设备的互联网访问，或者把它限速到 `limit_download`、`limit_upload`（和限速规则一起取最低值，§9.1）。
+  - 新周期开始时：写 `quota_reset` 事件，自动恢复。
+  - 额度改大以后用量又低于额度时，取消断网或限速；低于 80% 时，提醒也重新计算。
+- **运行状态**：本周期的起点、是否已提醒、是否已执行动作、临时放行到何时，存在数据目录的 `quota.json` 里（先写临时文件再改名），重启后按 UCI 段名和 MAC 接上。
 - **断网的实现**：
-  - 在 fw4 的 `chain-pre/forward` 引用里，拦截 nftables 集合 `routelink_block` 里的源 MAC，以及这台设备的 IP 集合。
-  - 同时通过 netlink 删除这台设备现有的连接跟踪条目。这样已经走加速通道的连接，以及已经建立的连接，都会被切断。
+  - 用插件自己的 nftables 表 `inet routelink`，不放进 fw4。表里有 MAC 集合 `block` 和本地网段集合 `local4`、`local6`；`forward` 链挂在 `filter - 1` 优先级（紧挨在 fw4 的 forward 链前面），丢弃源 MAC 在 `block` 里、目的地址不在本地网段的包。
+  - 表由 `core/nftgen` 生成，用 `nft -f -` 加载，每次在一个事务里先删后建；没有被断网的设备时只删不建，不留东西。
+  - 为什么用自己的表：fw4 每次重载都会重建 `inet fw4` 表，引用里的集合会被清空；自己的表不受影响，也不依赖 fw4 的内部结构。断网期间守护进程仍然每分钟检查一次，表不见了就重新加载。
+  - 新断网的设备：通过 ctnetlink 按它当前的 IPv4 和 IPv6 地址（来自邻居表）删除连接跟踪条目。已经建立的连接和已经走加速通道的连接，都因此失效。
   - 断开只影响上外网，局域网访问不受影响。
-- **恢复**：到了重置日自动恢复。也可以在 App 或 LuCI 里手动"临时放行"，可选放行 1 小时或放行到本周期结束。
+  - 加载失败（比如没有 `nft`）时，原因同样放在 `info.limits_error` 里。
+- **恢复**：到了新周期自动恢复。也可以在 App 或 LuCI 里手动"临时放行"（`quota_allow`，写权限）：放行 1 小时，或者放行到本周期结束。
 
 ## 10. 插件：DNS 记录与访问去向
 
+- **抓包**（`sys/dnscap`）：
+  - 每个 LAN 接口（通常是网桥）开一个 AF_PACKET 套接字。BPF 过滤器只放行路由器发出的、源端口是 UDP 或 TCP 53 的包，也就是发给局域网设备的 DNS 应答，不管它来自路由器自己的解析服务，还是从外面转发进来的。包的目的 MAC 就是发起查询的设备。
+  - 只看 IPv4 的首个分片；IPv6 只看没有扩展头的包。TCP 只解析一个分段里完整的报文。
+- **解析**（`core/dns`）：每次读取都做边界检查；压缩指针只能往前指，最多跳 16 次；处理 A、AAAA、CNAME，以及截断和畸形的报文。单元测试里用随机数据喂了 2000 次，在 ASan、UBSan 下不出错。
 - **DNS 记录**：
-  - 在 LAN 侧的接口上开一个 AF_PACKET 套接字，用 BPF 过滤器只抓 UDP 和 TCP 的 53 端口，解析请求和应答。
-  - 每条记录包括：时间、设备、域名、查询类型、解析结果、响应码。
-  - 解析结果同时用来维护一张"IP → 域名"的缓存表，按 TTL 过期。
-- **访问去向**：按"设备 × 小时"汇总每个对端地址的流量，对端地址能对上域名时显示域名。每台设备每小时最多保留 100 条。
+  - 每条记录包括：时间、设备、域名、查询类型、响应码、解析结果（最多 8 个地址）。
+  - 存在 `dns.log`（`core/vlog`），默认保留 7 天、最多 10 万条。内存里最多攒 2000 条，随写盘一起写入，攒满时提前写。查询时从新到旧扫描文件。
+  - 解析结果同时用来维护一张"IP → 域名"的缓存表，按 TTL 过期，最多 4096 条。
+- **访问去向**：
+  - 流量归属时，把互联网类连接的对端地址按"设备 × 小时"累计收发字节和连接数。当前小时在内存里。
+  - 一个小时结束时，每台设备取流量最大的 100 个对端，按缓存换成域名，写进 `dest.log`。一条记录装不下 100 个时，丢掉流量最少的几个。
+  - 查询时把时间段内各小时的记录合并，按流量排序。
+  - 保留期和 DNS 记录相同。
 - **局限**：用了 DoH、DoT 等加密 DNS 的设备看不到域名，只显示 IP。
-- **默认关闭**：开启时，App 和 LuCI 都会说明记录哪些内容、保留多久。
+- **默认关闭**：DNS 记录和访问去向一起开关，只在主路由上运行。开启时，App 和 LuCI 都会说明记录哪些内容、保留多久。
 
 ## 11. 插件：推送
 
-- **渠道**：可以同时开多个，都用系统自带的 `uclient-fetch` 发送 HTTPS 请求。
+- **运行位置**：只在主路由上运行。设置页在 LuCI 的"推送"页，以及 App 的"更多 → 路由器插件 → 推送"。
+- **渠道**：每个渠道是 UCI 里的一个 `notify` 段（§7.2），可以同时开多个。
 
-| 渠道 | 需要填写 |
+| 渠道（`type`） | 需要填写 |
 |---|---|
-| Webhook | URL、JSON 模板 |
-| Bark | 服务器地址、设备 key |
-| Server酱 | SendKey |
-| PushPlus | token |
-| Telegram | Bot token、chat ID |
-| 企业微信、钉钉、飞书群机器人 | Webhook 地址（钉钉、飞书可选加签密钥） |
+| Webhook（`webhook`） | URL、JSON 模板（`{title}`、`{body}` 会被替换） |
+| Bark（`bark`） | 服务器地址（不填时用 `https://api.day.app`）、设备 key |
+| Server酱（`serverchan`） | SendKey |
+| PushPlus（`pushplus`） | token |
+| Telegram（`telegram`） | Bot token、chat ID |
+| 企业微信、钉钉、飞书群机器人（`wecom`、`dingtalk`、`feishu`） | Webhook 地址（钉钉、飞书可选加签密钥） |
 
-- **事件**：
+- **发送**（`sys/notify`）：
+  - 每条消息启动一个 `uclient-fetch` 子进程发送，超时 10 秒。依赖 `ca-bundle` 校验 HTTPS 证书。
+  - JSON 请求体用 `--header=Content-Type: application/json` 发送。23.05 的 `uclient-fetch` 没有 `--header`，只能按表单发：Bark、Server酱、PushPlus、Telegram 改用表单或 GET；其他渠道仍发 JSON 内容，靠服务端不检查 Content-Type。
+  - 钉钉和飞书的加签用 HMAC-SHA256 和 Base64，在 `core/sha256` 里自己实现，用标准测试向量做单元测试，并用 Python 的 hmac 核对过。
+  - 返回 2xx 时，还会检查服务在 JSON 里报告的错误（`errcode`、`code`、`ok: false`）；Webhook 不检查。
+- **事件**（每个渠道用 `list events` 订阅，新建渠道时默认四项全选）：
 
-| 事件 | 默认 |
+| 事件（`events` 的值） | 内容 |
 |---|---|
-| 新设备接入 | 开 |
-| 关注设备的上线和下线（按设备勾选） | 开（只对勾选的设备生效） |
-| 配额用到 80%、100% | 开 |
-| 断网和恢复 | 开。断网期间消息发不出去，恢复后补发一条，带上断网时长 |
+| 新设备接入（`device_new`） | 设备名称、IP、MAC。设备表是空的（第一次启动、清空了设备）时，头 3 分钟不推送，免得把所有设备都报一遍 |
+| 关注设备的上线和下线（`device_watch`） | 只对 `device` 段里 `watch` 为 1 的设备生效 |
+| 配额（`quota`） | 用到 80% 的提醒；用完后断网或限速 |
+| 断网（`outage`） | 断网期间消息发不出去，恢复后发一条，带上断网时长和原因 |
 
-- **合并**：1 分钟内的多个事件合成一条消息发送。
-- **语言**：消息的语言跟随 LuCI 的语言设置。
-- **失败处理**：发送失败时重试 3 次。最近一次失败的原因保存下来，在推送设置页显示。
+- **合并**：从第一个事件起 1 分钟内的事件合成一条消息发送，一条最多 16 个事件。断网期间这一批先留着，恢复后再发；最多等 10 分钟，因为在过滤 ICMP 的网络里探测会一直判定为断网。
+- **语言**：UCI `notify.lang`。`auto` 时跟随 LuCI 的语言；LuCI 也是 `auto` 时，路由器时区在中国大陆、香港、澳门、台湾的用中文，否则用英文。
+- **失败处理**：发送失败时重试 3 次（10 秒、1 分钟、5 分钟后）。每个渠道最近一次成功和失败的时间、失败原因通过 `notify_status` 读取，在推送设置页显示。
+- **测试**：`notify_test` 立即向指定渠道发一条测试消息，等发送结束（最多 15 秒）后返回结果。
 
 ## 12. 插件：路由器端测速
 
-- **服务器**：默认用 Cloudflare 测速节点（`speed.cloudflare.com` 的 `__down`、`__up`）。也可以填自建的 LibreSpeed 服务器（`garbage.php`、`empty.php`）。
+- **服务器**：UCI `speedtest.server`，手机测速（§18.4）也用同一个设置。
+  - **默认 Cloudflare**：下载 `http://speed.cloudflare.com/__down?bytes=25000000`，上传 `http://speed.cloudflare.com/__up`。
+    - 每次只下载 25 MB，下完再发起：Cloudflare 对超过约 50 MB 的下载返回 403。
+    - 用 http 而不是 https：`uclient-fetch --post-file` 在 TLS 上发分块内容，大约 80 KB 后就会卡住。
+  - **LibreSpeed**：填服务器的基础地址，用 `garbage.php?ckSize=100` 和 `empty.php`。填 https 地址时上传的文件只有 48 KB，上传结果会偏低。
+- **运行方式**：`speedtest_start` fork 出一个子进程，解析域名、计时、等待下载进程这些会阻塞的事都在子进程里做。子进程通过管道向守护进程报告阶段、进度和结果。
 - **测法**：
-  - **下载**：同时启动 4～8 个 `uclient-fetch` 下载，持续 10 秒，用这段时间里 WAN 口接收计数的增量计算速率。
-  - **上传**：同样并发，用 POST 上传，按 WAN 口发送计数的增量计算。
-  - **延迟**：发 10 个小请求，取往返时间的中位数，抖动取相邻两次的平均差值。
-- **记录**：结果保存在路由器上，保留最近 100 次。
-- **限制**：同一时间只能进行一次测速。
+  - **延迟**：对测速服务器的端口（URL 里的端口，或者 80、443）做 10 次 TCP 握手计时，取中位数；抖动取相邻两次差值的平均。
+  - **下载**：同时运行 `streams`（默认 4，最多 8）个 `uclient-fetch -O /dev/null`，结束的立即重启，持续 `duration`（默认 10）秒。每 200 毫秒读一次 WAN 口的接收计数，去掉第 1 秒的爬升后计算速率。
+  - **上传**：在 `/tmp` 生成一个随机内容的文件（8 MB 和可用内存的 1/64 中较小的那个，至少 256 KB），每个并发连接循环 POST 它，按 WAN 口发送计数计算。
+  - 速率用的是 WAN 口计数器，同一时间其他设备的流量也会算进去，页面上注明。
+- **记录**：结果保存在 `speedtest.json`，保留最近 100 次。
+- **限制**：
+  - 同一时间只能进行一次测速。已经在测时，`speedtest_start` 返回正在进行的那次（`already: true`）。
+  - 只在主路由上可用（要用 WAN 计数器）。
 
 ## 13. 打包、发布与一键安装
 
@@ -424,7 +605,18 @@ AP 角色只显示"无线"和"设置"两页。
 | `luci-app-routelink` | 不分架构（all） | LuCI 页面、菜单 |
 | `luci-i18n-routelink-zh-cn` | 不分架构（all） | 中文翻译 |
 
-- **依赖**：只依赖官方软件源里有的包：libubox、libubus、libuci、libjson-c、libmnl、kmod-nf-conntrack-netlink；P4 再加上限速需要的 tc-tiny 和 kmod-sched 系列。
+- **依赖**：只依赖官方软件源里有的包：
+
+| 包 | 用途 |
+|---|---|
+| libubox、libubus、libuci、libblobmsg-json、libjson-c | 守护进程本身 |
+| libmnl | netlink：连接跟踪、邻居表、nl80211、ifb |
+| kmod-nf-conntrack-netlink | 流量采集；配额断网时删除连接 |
+| uclient-fetch | 路由器测速、推送 |
+| ca-bundle | 推送的 HTTPS 证书校验 |
+| tc-tiny、kmod-sched-core、kmod-sched-flower、kmod-ifb | 限速：HTB 和 mirred 在 kmod-sched-core 里，另外是 flower 和 ifb；不需要 kmod-sched-act-police |
+
+- **nft**：配额断网用的 `nft` 是 fw4 自带的，不单独依赖。
 - **版本号**：`PKG_VERSION` 用纯语义化版本，比如 `1.2.0`；`PKG_RELEASE` 用整数。接口版本号 `api` 单独维护。
 
 ### 13.2 CI 与发布
@@ -432,7 +624,8 @@ AP 角色只显示"无线"和"设置"两页。
 - **CI 工作流**：用 `openwrt/gh-action-sdk` 编译，矩阵放在可复用的 `.github/workflows/openwrt-build.yml` 里。
   - 版本：23.05、24.10、25.12。前两个出 ipk，25.12 出 apk。
   - 架构：x86_64、aarch64_cortex-a53、aarch64_cortex-a72、aarch64_generic、arm_cortex-a7_neon-vfpv4、arm_cortex-a9_vfpv3-d16、arm_cortex-a15_neon-vfpv4、mipsel_24kc、mips_24kc。
-  - `openwrt.yml`：每次推送时运行，内容是单元测试、init 脚本格式检查、不签名的编译，以及 Docker 上的准确性集成测试（§21）。
+  - `openwrt.yml`：每次推送时运行，内容是单元测试、init 脚本格式检查、不签名的编译，以及 Docker 上的集成测试（§21）。限速测试要用宿主机内核的模块，所以先在宿主机上加载 `sch_htb`、`cls_flower`、`act_mirred`、`ifb` 和 flowtable 相关模块。
+  - `integration.yml`：QEMU 上的无线测试（§21）。推送到 main 并且 `openwrt/routelinkd/**` 有变化时也会触发（连带跑整套 App 集成测试），也可以手动运行。
 - **发布**（`openwrt-release.yml`，打 `agent-v*` 标签时触发）：
   - 带签名编译，然后把安装包上传到 GitHub Releases。文件名带上 OpenWrt 版本和架构，保证不重名。
   - 同时生成 `manifest.json`，内容包括：版本、接口版本号、每个"版本 × 架构"对应的文件名和 SHA-256。
@@ -485,25 +678,30 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
 
 ## 14. App：网络组（NG）
 
+- **只在 App 里**：网络组是 App 的概念，路由器和插件都不知道自己在哪个组里。
 - **数据模型**：
-  - 路由器配置增加 `role` 字段，取值为 `gateway`（主路由）、`ap` 或 `standalone`（独立）。
+  - 路由器配置增加 `role` 字段，取值为 `gateway`（主路由）、`ap` 或 `standalone`（独立），没有这个字段时按 `standalone`。
   - AP 增加 `gatewayId` 字段，指向它所属的主路由。
 - **建组**：
-  - 在"管理路由器"里编辑某台路由器，选择"作为 AP 加入某台主路由"。
-  - **自动建议**：添加路由器时，如果满足以下任一情况，App 会建议把它加入网络组：
-    - 它在某台已添加主路由的局域网里、有无线、默认网关正是那台主路由
-    - 插件报告它的角色是 AP
+  - 在路由器详情页的"网络组"一节里，选择独立、主路由，或者"作为 AP 加入某台主路由"。
+  - **自动建议**：添加路由器时，登录成功、保存以后再判断（最多等 6 秒）。满足以下任一情况，App 会建议把它加入网络组：
+    - 它有无线，并且默认路由的下一跳是某台已保存的路由器
+    - 插件报告的角色只有 AP。这时建议加入下一跳那台路由器；找不到时，如果只有一台主路由，就建议那台
   - 添加 AP 时，有"使用主路由的密码"快捷选项。
-- **切换面板**：只列主路由，AP 缩进显示在它下面。AP 也可以单独选中来管理。
-- **合并数据**（`src/api/group/`）：
-  - 对组内每台路由器各自调用，再合并结果。`RouterConnection` 不改。
-  - **设备**：身份、IP、租约来自主路由；无线信息来自终端所在的那台 AP。漫游过程中两台 AP 都报告同一台终端时，取空闲时间短的那台。每台设备增加 `ap` 字段，记录 AP 名称、频段和 SSID。
-  - **无线 Tab**：按 AP 分组显示射频和 SSID。
-  - **同名 SSID 同步**：修改 SSID 名称、密码或加密方式时，提示"同步到组内所有同名 SSID"，保证终端在 AP 之间无缝漫游。每台 AP 各自走主设计 §11 的应用流程。
+- **切换面板**：只列主路由和独立路由器，AP 缩进显示在它的主路由下面。AP 也可以单独选中来管理。主路由已经删掉的 AP 显示在顶层。
+- **组内连接**（`src/api/group/`）：
+  - 主路由用当前的连接；每台 AP 用各自保存的密码登录，`RouterConnection` 不改。
+  - AP 没有保存密码时，当作离线处理，提示条里给出"输入密码"。
+- **合并数据**：
+  - 对组内每台路由器各自调用，再合并结果。
+  - **设备**：身份、IP、租约来自主路由；无线信息来自终端所在的那台 AP（装了插件用 `stations`，否则用 iwinfo `assoclist`）。漫游过程中两台 AP 都报告同一台终端时，取空闲时间短的那台。每台设备增加 `ap` 字段，记录路由器、名称、频段和 SSID。
+  - **无线 Tab**：按路由器分组显示射频和 SSID。编辑射频和 Wi-Fi 的页面带可选参数 `router`（组内成员的 id），查询和写入都走那台路由器的连接。
+  - **同名 SSID 同步**：修改 SSID 名称、密码或加密方式时，提示"同步到组内所有同名 SSID"，保证终端在 AP 之间无缝漫游。这三项一起同步；每台路由器各自走主设计 §11 的应用流程，一台应用一次；手机连着的那台最后应用，并且不回滚。
 - **踢下线**：自动发到终端所在的那台 AP。
 - **AP 离线**：
   - 合并时跳过这台 AP，页面显示提示条。
   - 挂在这台 AP 上的设备，无线信息显示为"未知"。
+- **演示模式**：演示路由器带一台演示 AP（`RouteLink Demo AP`），插件角色是 AP，部分无线设备挂在它上面，有一台 iPhone 每天固定时间漫游过去。
 
 ## 15. App：流量（TR）
 
@@ -529,7 +727,7 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
   - P4 起增加访问去向、DNS 记录、限速和配额的入口。
 - **WAN 口历史（TR-5）**：按日、按月的柱状图。
 - **导出（TR-6）**：把当前时间段的数据导出为 CSV（各设备的总量和时间序列），通过系统分享面板发出。
-- **限速和配额设置（TR-7）**：从设备详情进入，编辑这台设备的规则。另有一个总列表，列出所有规则和当前用量。
+- **限速和配额设置（TR-7）**：从设备详情进入，编辑这台设备的规则。另有一个总列表，列出所有规则和配额的当前用量。配额页显示本周期的用量，超额的设备可以临时放行 1 小时或到本周期结束。规则直接写 UCI（`services/agent-rules.ts`）；`info.limits_error` 和硬件加速在页面上提示。
 - **访问去向和 DNS 记录（TR-8）**：
   - 设备详情里显示去向排行和 DNS 记录，DNS 记录可以搜索。
   - DNS 记录没开启时，显示开启按钮，并附上隐私说明。
@@ -548,25 +746,29 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
   - **操作**："停止"按钮；点击通知打开概览页。
 - **状态栏胶囊和上岛（LU-2）**：
   - **胶囊文字**：用 `setShortCriticalText` 显示下行速率，格式类似 `↓12.3M`，不超过 7 个字符。
-  - **Android 17**：用 `Notification.MetricStyle` 显示 ↓、↑、在线数三项。这需要 compileSdk 37（通过 `expo-build-properties` 设置），targetSdk 保持 36。如果编译不过，就退回 Android 16 的样式。
+  - **Android 17**：用 `Notification.MetricStyle` 显示 ↓、↑、在线数三项，下载设为最重要的一项（`setCriticalMetric`，状态栏胶囊显示它）。
+    - 不改 compileSdk：项目仍按 API 36 编译，API 37 的 `MetricStyle`、`Metric`、`FixedFloat` 等类通过反射构造，再用 `Notification.Builder.recoverBuilder` 套到兼容库建好的通知上。
+    - API 37 以下，或者反射找不到预期的接口时，保持 BigText 样式。
   - **Android 16 QPR1 及以上**：用 BigText 样式，并申请推广。
   - **更低的版本**：普通常驻通知，内容相同。
 - **离线提醒（LU-3）**：
   - 连续 2 次连不上路由器时，标题变成"路由器已离线"，并震动一次。
   - 恢复后显示"已恢复（离线 3 分 20 秒）"，下一次刷新时回到正常显示。
 - **刷新**：
-  - 间隔跟随概览页的刷新设置，默认 2 秒。
-  - 装了插件时，每次只调用一个 `routelink.live`。
-  - 没装插件时，WAN 速率用 `luci-rpc getNetworkDevices` 计算，每次刷新都更新；在线设备数每 10 秒更新一次。
+  - 间隔跟随概览页的刷新设置，默认 2 秒（可以是 1～60 秒）。
+  - 装了插件时，每次只调用一个 `routelink live`。插件不见了，自动改用下面的 LuCI 计数。
+  - 没装插件时，WAN 速率用 `luci-rpc getNetworkDevices` 的计数计算，每次刷新都更新；在线设备数每 10 秒用 `ip -4 neigh show` 数一次。
+  - App 在前台时，概览页拿到的数据也通过 `updateLiveMonitor` 交给通知，服务跳过下一次请求，避免重复请求。
 - **实现**：
   - **前台服务**：在 `modules/routelink-native` 里新增 `LiveMonitorService`，类型是 `connectedDevice`，没有 6 小时的运行上限。
-    - 需要的权限：`FOREGROUND_SERVICE`、`FOREGROUND_SERVICE_CONNECTED_DEVICE`、`CHANGE_NETWORK_STATE`、`POST_NOTIFICATIONS`、`POST_PROMOTED_NOTIFICATIONS`。
+    - 需要的权限：`FOREGROUND_SERVICE`、`FOREGROUND_SERVICE_CONNECTED_DEVICE`、`CHANGE_NETWORK_STATE`、`POST_NOTIFICATIONS`、`POST_PROMOTED_NOTIFICATIONS`，另外有 `VIBRATE`（离线提醒）和 `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`（电池优化引导）。
     - 服务负责：显示通知、处理"停止"按钮、到时自动结束。
-  - **轮询**：前台服务启动一个 Headless JS 任务，复用现有的 JS 连接层，包括登录回退和会话续期。
-    - **为什么用 Headless JS**：React Native 在后台会暂停普通的定时器，Headless JS 任务运行期间不会暂停。
-    - **技术验证**：P4 先验证这一点在 RN 0.86 新架构下是否成立。
-    - **验证不通过时**：改用 Kotlin 原生轮询。开始监控时，JS 把路由器地址、会话 ID 和证书指纹交给原生代码。会话失效后，通知提示"请打开 App 重新连接"。
-  - **原生接口**：`startLiveMonitor({ routerId, durationMin })`、`updateLiveMonitor(payload)`、`stopLiveMonitor()`，以及 `onLiveMonitorStopped` 事件。
+  - **轮询用 Kotlin**：不用 Headless JS。M4 已经实测，App 在后台启动时 JS 定时器不运行，Headless JS 依赖同样的定时器。
+    - 开始监控时，JS 单独登录一个会话交给服务，连同路由器地址、证书指纹、WAN 设备名、数据来源（插件、LuCI 或演示）和已经翻译好的通知文字。服务自己从不登录，也接触不到密码。
+    - rpcd 的会话每次访问都会续期，轮询期间不会过期。真的失效了（比如路由器重启），App 进程还在时由 JS 重新登录并把新会话交给服务；否则通知提示"请打开 App 重新连接"。
+    - 证书和保存的指纹对不上时，停止监控，并留一条通知说明原因。
+  - **原生接口**：`startLiveMonitor(config)`、`updateLiveMonitor(update)`、`stopLiveMonitor()`、`getLiveMonitorState()`、`getLiveMonitorSupport()`（系统版本、能否推广、通知和电池优化的状态、厂商）、`clearLiveMonitorInterruption()`；事件 `onLiveMonitorStopped`（原因：用户停止、到时、证书出错、被系统杀掉）和 `onLiveMonitorStatus`。
+  - **验证情况**：在 API 34 模拟器上验证了刷新、后台继续、通知里的停止、到时结束、离线提醒和恢复、无插件模式、rpcd 重启后的会话续上、被强制停止后的"中断"提示。Android 16 QPR1（API 36.1）上的状态栏胶囊和推广通知还没验证。
 - **权限和引导（LU-4）**：
   - **通知权限**：Android 13 起需要运行时申请。
   - **推广通知**：用 `canPostPromotedNotifications()` 检查。用户关掉了就引导去系统设置打开。
@@ -596,8 +798,9 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
   信噪比低于 20 dB 时降一级。
 
 - **单台详情**：
-  - 最近 5 分钟的信号和速率曲线，每秒刷新，用的是实时租约。
+  - 最近 5 分钟的信号和速率曲线，每秒刷新，用的是 `stations` 的无线实时租约（`live: true`）。曲线的时间范围按路由器的时钟算，因为手机和路由器的时钟可能不一致，而 `signal` 的实时层要求起点在路由器时钟的 600 秒以内。
   - 历史曲线（配合时间段筛选）、漫游记录、重传率。
+- **缺数据时**：驱动不报信号时用平均信号代替。
 - **提示**：
   - 信号在一般及以下时，建议靠近 AP 或者增加 AP。
   - 协商速率低于这个频段常见水平的一半时，也会提示。
@@ -609,9 +812,10 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
   - 组内每台 AP 的每个射频都扫描一遍。
   - 用组内 AP 的 BSSID 识别出"自家"的网络。
   - 扫描期间 AP 会短暂离开当前信道，扫描前会提示。
+- **邻居网络的频宽**：从 iwinfo 扫描结果里的 `ht_operation`、`vht_operation`（信标里宣告的工作参数）算出每个网络占用的频段；没有这两项时按 20 MHz 计算。
 - **信道占用图**：
   - 横轴是信道，每个网络画成一个覆盖它所占频宽的梯形，高度代表信号强度，自家 AP 高亮。
-  - 下面有一张表，列出每个信道上的网络数、最强信号和繁忙度。繁忙度来自插件，只有当前信道有。
+  - 下面有一张表，列出每个信道上的网络数、最强信号和繁忙度。繁忙度来自插件的 `survey`：主要是当前信道；其他信道只有驱动扫描后留下了数据时才有。
 - **推荐算法**（`src/features/wifi-tools/channel.ts`，纯函数，有单元测试）：
   - **可选信道**：取自射频的 `freqlist`，已经按国家码、限制项和当前频宽过滤。
     - 2.4 GHz 只在 1、6、11 里选。
@@ -644,7 +848,7 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
   - **说明一**：踢下线只是暂时的，对方知道密码还会再连上，彻底解决要改密码。
   - **说明二**：开了私有地址的手机显示不出厂商，不一定是蹭网的。
 - **信任列表**：
-  - **装了插件**：存在主路由的 UCI `routelink` 的 `device` 段里，LuCI 和推送共用这一份。
+  - **装了插件**：存在主路由的 UCI `routelink` 的 `device` 段里（`trusted`，段名不固定），LuCI 和推送共用这一份。App 用 `uci apply` 写入，不回滚。
   - **没装插件**：存在 App 本地，按主路由分开保存。
   - **之后装上插件**：App 自动把本地的列表迁移到路由器。
 
@@ -657,9 +861,11 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
 |---|---|
 | 高 | WPA3（`sae`）；或 WPA2/WPA3 混合（`sae-mixed`）并开启了管理帧保护 |
 | 中 | WPA2（`psk2`，AES）；WPA2/WPA3 混合但没开管理帧保护；OWE（加密，但不验证身份） |
-| 低 | WPA/WPA2 混合（`psk-mixed`，兼容 TKIP）；WPA（`psk`） |
+| 低 | WPA/WPA2 混合（`psk-mixed`，兼容 TKIP）；WPA（`psk`）；带 TKIP 的 WPA2 |
 | 危险 | WEP；开放网络 |
 
+- **管理帧保护按实际生效的值算**：没写 `ieee80211w` 时，按 OpenWrt hostapd 的默认值（WPA3 和 OWE 必需，WPA2/WPA3 混合可选，其他关闭）。所以没写 `ieee80211w` 的 `sae-mixed` 算"高"。
+- **企业模式**（802.1X）：按对应的个人模式评级，但不提供升级加密的修复，留给搭建它的人处理。
 - **附加检查**：
 
 | 检查项 | 判定 |
@@ -671,12 +877,13 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
 | 隐藏 SSID | 说明它并不能提高安全性 |
 
 - **密码强度规则**：
-  - **弱**：满足任一条——长度少于 10 位、只有数字、在内置的常见密码表里（约 1000 条）、是键盘连续按键、包含 SSID。
-  - **中**：长度 10～13 位，并且至少包含两类字符。
+  - **弱**：满足任一条——长度少于 10 位；只有数字；是常见密码，或者常见单词前后加数字、符号；是键盘连续按键、字母数字顺序或者重复的片段；包含 SSID；只有一类字符并且少于 16 位。
+  - **常见密码**：内置一张常见弱密码表（数字串、键盘序列、常见单词和拼音），再加上上面的规则判断，不追求条数。
+  - **中**：不弱也不强的。
   - **强**：长度至少 14 位并且至少两类字符；或者长度至少 12 位并且至少三类字符。
 - **一键修复**：
-  - **升级加密**：升级到 WPA2/WPA3 混合模式。先通过 `luci getFeatures` 确认路由器支持 SAE。不建议纯 WPA3，因为老设备会连不上。
-  - **其他修复**：关闭 WPS、开启管理帧保护（`ieee80211w=1`）、生成强密码（附分享二维码）。
+  - **升级加密**：`luci getFeatures` 的 `hostapd.sae` 为真时，升级到 WPA2/WPA3 混合模式（`sae-mixed`）。读不到这个字段（旧版本）时，只对"低"和"危险"两级给出升级到 WPA2（`psk2+ccmp`）。不建议纯 WPA3，因为老设备会连不上。
+  - **其他修复**：关闭 WPS；开启管理帧保护（`ieee80211w=1`；WPA、WPA/WPA2 混合和带 TKIP 的网络不能单独开，靠升级加密解决）；访客网络开启客户端隔离；生成强密码（16 位，分 4 组，不用容易看错的字符，附分享二维码）。
   - **应用方式**：都走 WL-2 的修改流程。如果改的是手机当前连接的 SSID，按主设计 §11 的规定不走回滚，并提示重新连接。最后提示同步到所有同名 SSID。
 
 ## 18. App：诊断（DG）
@@ -688,12 +895,12 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
 
 | 段 | 检查内容 | 警告 | 异常 |
 |---|---|---|---|
-| 手机到 Wi-Fi | AP 收到的手机信号、协商速率、频段；手机访问路由器的往返时间（测 5 次，看平均值和抖动）。Android 另外显示手机自己测到的信号 | 信号 < −75 dBm；往返时间 > 30 ms | 信号 < −82 dBm；往返时间 > 100 ms 或有丢包 |
+| 手机到 Wi-Fi | AP 收到的手机信号、协商速率、频段；手机访问路由器的往返时间（对路由器发 5 次 HTTP 请求计时，看平均值和抖动；包含 HTTP 的开销，门槛已经留了余量） | 信号 < −75 dBm；往返时间 > 30 ms | 信号 < −82 dBm；往返时间 > 100 ms 或有丢包 |
 | AP 到主路由 | 从 AP 上 ping 主路由 | 丢包 > 1% | 丢包 > 10% |
-| 主路由的 WAN | 接口是否在线、有没有拿到 IP、拨号状态、在线时长、最近 24 小时的重拨次数 | 重拨 ≥ 1 次 | 没有 IP，或者接口不在线 |
+| 主路由的 WAN | 接口是否在线、有没有拿到 IP、拨号状态、在线时长、最近 24 小时的重拨次数（来自插件的 `wan_down` 事件；没装插件时从接口的在线时长推断） | 重拨 ≥ 1 次 | 没有 IP，或者接口不在线 |
 | 上游网关 | 从主路由 ping WAN 口的上一跳 | 丢包 > 2% | 不通 |
 | DNS | 用路由器的 DNS 解析两个常见域名 | 耗时 > 500 ms | 解析失败 |
-| 外网 | 从主路由 ping 公共地址，并做一次 HTTP 204 检查 | 丢包 > 2% | 丢包 > 10%，或者 HTTP 检查失败 |
+| 外网 | 从主路由 ping 公共地址；由手机做 HTTP 204 检查 | 丢包 > 2% | 丢包 > 10%，或者 HTTP 检查失败 |
 | 近期稳定性（需要插件） | 最近 24 小时的丢包率、断网次数 | 丢包率 > 1%，或断网 ≥ 1 次 | 断网 ≥ 3 次 |
 | Wi-Fi 安全 | WF-4 的结论 | 中 | 低或危险 |
 
@@ -703,7 +910,9 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
   - WAN 拿不到 IP：检查光猫和拨号账号。
   - 上游丢包严重：可能是运营商的问题，附上断网记录的入口作为证据。
 - **路由器端命令**：用 DG-2 同样的执行方式，不装插件也能做。"近期稳定性"一段在没装插件时跳过。
-- **分享**：诊断结果可以生成图片或文字分享出去。
+- **HTTP 204 检查由手机做**：在路由器上执行 `wget` 需要额外的 ACL，而手机的请求同样经过路由器。依次试 `connectivitycheck.gstatic.com`、`www.google.cn`、`cp.cloudflare.com` 的 `generate_204`，5 秒内任意一个返回 204 就算通过。
+- **手机自己的信号**：原生模块拿不到手机自己测到的 Wi-Fi 信号，所以只显示 AP 收到的信号。
+- **分享**：诊断结果以文字分享出去。生成图片要新增截图依赖，没有做。
 
 ### 18.2 DG-2 诊断工具
 
@@ -711,22 +920,23 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
   - 可以选在主路由或组内任意一台 AP 上执行。
   - 参数包括次数、IPv4 或 IPv6。
 - **执行方式**：通过 LuCI 诊断页本来就有的 `file exec` 权限运行，所以不装插件也能用。
+  - 命令路径用 LuCI 诊断页 ACL 里的 `/bin/ping`、`/bin/ping6`、`/bin/traceroute`、`/bin/traceroute6`、`/usr/bin/nslookup`（三个版本上都是 busybox 的链接）。IPv6 用 `ping6`、`traceroute6`。
   - 这几个命令的超时延长到 60 秒。
-  - traceroute 默认用 `-w 1 -q 1 -m 20`，保证能在 60 秒内跑完。
+  - traceroute 默认用 `-n -w 1 -q 1 -m 20`，保证能在 60 秒内跑完。
 - **结果**：同时显示原始输出和整理后的摘要，比如平均延迟、丢包率、每一跳的列表。
 
 ### 18.3 DG-3 断网和延迟记录（需要插件）
 
 - **图表**：配合时间段筛选，显示每个探测目标的延迟曲线（平均值和最大值）和丢包柱状图。
 - **统计**：可用率（比如 99.95%）、断网次数、累计断网时长。
-- **断网列表**：每次断网的开始时间、结束时间、时长和原因（WAN 断开、重新拨号、上游不通）。
-- **导出**：可以导出 CSV 或文字，找运营商投诉时当证据。
+- **断网列表**：每次断网的开始时间、结束时间、时长和原因（WAN 断开、重新拨号、上游不通，判断规则见 §5.3）。
+- **导出**：可以导出 CSV 或文字，找运营商投诉时当证据。CSV 每个目标取 1000 个点（插件的上限）。
 
 ### 18.4 DG-4 测速
 
 - **手机测速**：
-  - 由手机通过原生 HTTP 模块直接测，用 4 个并发连接，下载和上传各测 10 秒，再测延迟和抖动。
-  - 服务器和路由器端相同：默认 Cloudflare，也可以填 LibreSpeed。
+  - 由手机直接发 HTTP 请求测：先测延迟和抖动，再用 4 个并发连接，下载和上传各测 10 秒。下载边收边计数，和路由器一样去掉第 1 秒；上传循环 POST。
+  - 服务器和路由器端是同一个设置（UCI `speedtest.server`）：默认 Cloudflare，也可以填 LibreSpeed。手机走 https，Cloudflare 同样每次只下载 25 MB。
   - 结果反映的是"Wi-Fi + 宽带"。
 - **路由器测速**：由插件执行（§12），只反映宽带本身的速度。
 - **对比测速**：两个依次测完后给出结论：
@@ -803,20 +1013,23 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
 | 一键安装失败 | 按 §13.3 第 10 步分别提示 |
 | 推送发送失败 | 插件记下最近一次失败的原因，在推送设置页显示 |
 | 实时监控被系统杀掉 | 下次打开 App 时提示，并引导关闭电池优化 |
-| 限速在当前加速模式下无效 | 提示关闭软件加速（§9.1） |
+| 开着硬件加速时设限速或配额 | 提示走硬件加速的连接不受限速、也不计入配额，要关掉硬件加速（软件加速没关系） |
+| 限速或断网设置失败（缺内核模块、没有 tc 或 nft、没有 LAN 口） | 插件不反复重试，原因放在 `info.limits_error` 里，App 和 LuCI 显示出来（§9） |
+| 组内的 AP 没有保存密码 | 当作离线处理，提示条里给出"输入密码"（§14） |
+| 实时监控的会话失效 | App 进程还在时自动重新登录；否则通知提示"请打开 App 重新连接"（§16） |
 
 ## 21. 测试
 
 | 类别 | 内容 |
 |---|---|
-| 守护进程单元测试 | 在 Linux 主机上编译运行，开启 ASan 和 UBSan。覆盖：计数差值和 DESTROY 补齐、计数器回退、分层汇总和裁剪、时区对齐、配额周期计算、推送合并、DNS 报文解析。在 `openwrt.yml` 里运行 |
-| 插件集成测试（Docker） | 在 `scripts/dev-router.sh` 的测试路由器上安装 x86_64 包，另起一个"终端"容器（在 routelink-lan 网络里）和一个"外网服务器"容器（在 routelink-wan 网络里）。测试项：① 分别在开和关软件加速的情况下传输已知大小的数据，每台设备的统计误差小于 2%；② 发 1000 个短连接，一个都不漏；③ IPv6；④ 配额断网后，已有的连接确实被切断；⑤ 限速误差在 ±10% 以内（§9.1 的技术验证）；⑥ 延迟探测和断网判定（在测试中断开 WAN 网络） |
-| 插件无线测试（QEMU） | 用 QEMU 跑 OpenWrt x86-64，加载 mac80211_hwsim，建虚拟 AP 和虚拟终端。测试终端采样、连接和断开事件、信道繁忙度 |
+| 守护进程单元测试 | 在 Linux 主机上编译运行，开启 ASan 和 UBSan。覆盖：计数差值和 DESTROY 补齐、计数器回退、分层汇总和裁剪、时区对齐、定长和变长记录日志、信号汇总、延迟汇总和断网判定、配额周期（含夏令时）和限速时段、tc 和 nftables 脚本生成、推送的消息格式、合并和各渠道的请求、HMAC-SHA256（标准测试向量）、DNS 报文解析（含随机数据）。在 `openwrt.yml` 里运行 |
+| 插件集成测试（Docker） | 在 `scripts/agent-router.sh` 的测试路由器上安装 x86_64 包，再用 `scripts/traffic-lab.sh` 起一个"终端"容器（在 LAN 网络里）和一个"外网服务器"容器（在 WAN 网络里，带 DNS 应答、Webhook 接收和 LibreSpeed 式的测速接口）。测试项：① 分别在开和关软件加速的情况下传输已知大小的数据，每台设备的统计误差小于 2%；② 发 1000 个短连接，一个都不漏；③ IPv6；④ 配额断网后，已有的连接确实被切断，局域网仍然能通，临时放行后恢复；⑤ 限速误差在 ±10% 以内（§9.1 的技术验证，要用宿主机内核的模块，只在 CI 上跑）；⑥ 延迟探测和断网判定：在测试中 `ifdown wan` 再恢复（Docker 里拔网线和 `docker network disconnect` 都不会产生 netifd 的事件），以及只断服务器那边；⑦ 路由器测速；⑧ DNS 记录和访问去向；⑨ 推送发到 Webhook 接收器 |
+| 插件无线测试（QEMU） | 用 QEMU 跑 OpenWrt x86-64，加载 mac80211_hwsim，建虚拟 AP；多加一个 hwsim 射频跑 `wpa_supplicant` 作为终端（`scripts/ci/plugin-wireless.sh`）。测试终端采样、连接和断开事件、信道繁忙度、信号的分钟数据。hwsim 只在扫描时更新信道计数，所以射频当前信道的繁忙度在这里一直是空的，这部分只有单元测试覆盖 |
 | 版本覆盖 | 集成测试在 23.05、24.10、25.12 三个版本上都跑一遍 |
 | App 单元测试（Jest） | 插件接口的解析（样本从 Docker 路由器录制）；网络组的数据合并；信道推荐算法；安全评级和密码强度；一键诊断的规则；时间段换算（含跨时区）；CSV 导出；一键安装的状态流转（用假连接） |
 | App 组件测试（RNTL） | 时间段选择器；查蹭网首次使用时的信任流程 |
 | 演示模式 | 契约测试覆盖所有 `routelink.*` 接口 |
-| 实时监控 | 在 Android 16 QPR1 和 Android 17 的模拟器上确认状态栏胶囊。有条件时在 OPPO、一加、小米的真机上测试，结果写进 §3.1 |
+| 实时监控 | 在 Android 16 QPR1 和 Android 17 的模拟器上确认状态栏胶囊。有条件时在 OPPO、一加、小米的真机上测试，结果写进 §3.1。目前只在 API 34 模拟器上验证过（§16） |
 | 真实环境 | 每期结束时，在用户的 x86 主路由和 OpenWrt AP 上把这一期的功能逐个过一遍 |
 | 性能 | 在用户的设备上实测 §6.5 的指标。MIPS 平台的指标用 QEMU 粗略估算，结果注明"未经实机验证" |
 
@@ -831,15 +1044,22 @@ rpcd 的权限不允许执行任意命令，所以安装借用 LuCI 软件包管
 | **P3 诊断** | AG-10、AG-11；DG-1～4；LuCI 延迟与断网页 | 一键诊断、诊断工具、断网记录、两种测速在真实网络里可用 |
 | **P4 管控、推送、上岛** | AG-12～14；TR-7、TR-8；LU-1～4；LuCI 限速与配额、访问记录、推送页 | §9.1 和 §16 的两项技术验证有结论；限速、配额、DNS 记录、推送可用；Android 16 QPR1 及以上的模拟器上，实时监控出现在状态栏胶囊里；打标签 `agent-v1.0.0` |
 
-每一期单独写实施计划，按"计划 → 实现 → 测试 → 推送"推进。
+每一期单独写实施计划，按"计划 → 实现 → 测试 → 推送"推进。P2、P3、P4 在同一个分支里连续实施，最后一起提一个 PR。
+
+还没达成的完成标准：
+
+- 真实网络里的验收（用户的主路由和 AP）放到 P2～P4 结束后一起做。
+- Android 16 QPR1 及以上模拟器上的状态栏胶囊：本机只有 API 34 的镜像，留到以后（§16）。
+- 打 `agent-v1.0.0` 标签：要先征得用户同意，不和 P2～P4 的 PR 一起做。
 
 ## 23. 风险与应对
 
 | 风险 | 应对 |
 |---|---|
-| 开着软件加速时，tc 限速可能无效 | P4 先做技术验证。不行就提示用户关闭软件加速 |
-| RN 新架构下，Headless JS 在后台可能停住 | P4 先做技术验证。不行就改用 Kotlin 原生轮询 |
-| compileSdk 37 可能编译不过 | 退回 Android 16 的样式，不用 MetricStyle |
+| 开着软件加速时，tc 限速可能无效 | P4 的技术验证在 CI 上做，开、关软件加速各测一次（§9.1）。上传用 police 时 TCP 只能达到限额的 50%～85%，所以改为经 ifb 整形。不行就提示用户关闭软件加速 |
+| RN 新架构下，Headless JS 在后台可能停住 | M4 已经实测后台启动时 JS 定时器不运行，所以直接用 Kotlin 原生轮询（§16） |
+| compileSdk 37 可能编译不过 | 不改 compileSdk，通过反射调用 MetricStyle；API 37 以下或接口不符时用 BigText 样式（§16） |
+| 本机 Docker 的内核缺 tc 模块 | 限速测试只在 CI 上跑（§21） |
 | 硬件加速下统计偏少 | 检测并提示；x86 没有这个问题 |
 | 国内访问 GitHub 不稳定 | 支持填写镜像地址；安装包下载后用 SHA-256 校验 |
 | Telegram 在国内连不上 | 提供多种国内推送渠道 |
