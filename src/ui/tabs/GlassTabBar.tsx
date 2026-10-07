@@ -1,5 +1,5 @@
 import type { TabTriggerSlotProps } from 'expo-router/ui';
-import { Children, createContext, forwardRef, useContext, useEffect, type ReactNode } from 'react';
+import { Children, createContext, forwardRef, useContext, useEffect, useSyncExternalStore, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View, type View as RNView, type ViewProps } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, type SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,15 +19,41 @@ interface BarState {
 
 const BarContext = createContext<BarState | null>(null);
 
+/**
+ * Whether the floating bar is on screen. The bar hides on second- and third-level pages; the tab layout
+ * (the only writer) publishes it here so screens and toasts can drop their bar clearance without
+ * depending on the router.
+ */
+let barVisible = true;
+const barListeners = new Set<() => void>();
+
+export function setTabBarVisible(visible: boolean) {
+  if (barVisible === visible) return;
+  barVisible = visible;
+  barListeners.forEach((l) => l());
+}
+
+export function useTabBarVisible(): boolean {
+  return useSyncExternalStore(
+    (l) => {
+      barListeners.add(l);
+      return () => void barListeners.delete(l);
+    },
+    () => barVisible,
+    () => true,
+  );
+}
+
 /** Bottom padding screens need so the floating bar does not cover their last rows. */
 export function useTabBarSpace(): number {
   const insets = useSafeAreaInsets();
-  return TAB_BAR_HEIGHT + insets.bottom + BAR_MARGIN + 8;
+  const visible = useTabBarVisible();
+  return visible ? TAB_BAR_HEIGHT + insets.bottom + BAR_MARGIN + 8 : insets.bottom;
 }
 
 /** Floating capsule (Android). A glass "droplet" springs to the focused tab. */
-export const GlassTabBar = forwardRef<RNView, ViewProps & { children: ReactNode }>(function GlassTabBar(
-  { children, style, ...rest },
+export const GlassTabBar = forwardRef<RNView, ViewProps & { children: ReactNode; hidden?: boolean }>(function GlassTabBar(
+  { children, style, hidden, ...rest },
   ref,
 ) {
   const insets = useSafeAreaInsets();
@@ -43,7 +69,9 @@ export const GlassTabBar = forwardRef<RNView, ViewProps & { children: ReactNode 
 
   return (
     <BarContext.Provider value={{ focused }}>
-      <View pointerEvents="box-none" style={[styles.wrap, { bottom: insets.bottom + 8 }]}>
+      <View
+        pointerEvents={hidden ? 'none' : 'box-none'}
+        style={[styles.wrap, { bottom: insets.bottom + 8 }, hidden && styles.hidden]}>
         <GlassSurface
           variant="floating"
           radius={TAB_BAR_HEIGHT / 2}
@@ -92,6 +120,7 @@ export const GlassTabButton = forwardRef<RNView, ButtonProps>(function GlassTabB
 });
 
 const styles = StyleSheet.create({
+  hidden: { display: 'none' },
   wrap: { position: 'absolute', left: BAR_MARGIN, right: BAR_MARGIN },
   bar: { height: TAB_BAR_HEIGHT, padding: BAR_PADDING, justifyContent: 'center' },
   row: { flexDirection: 'row', flex: 1 },

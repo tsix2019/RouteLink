@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from './AppText';
 import { GlassSurface } from './glass/GlassSurface';
 import { Icon } from './Icon';
-import { TAB_BAR_HEIGHT } from './tabs/GlassTabBar';
+import { TAB_BAR_HEIGHT, useTabBarVisible } from './tabs/GlassTabBar';
 import { useTheme } from './theme/ThemeProvider';
 import { spacing } from './theme/tokens';
 
@@ -43,7 +43,8 @@ function ToastView({ toast }: { toast: ToastState }) {
   const color = { success: colors.success, warning: colors.warning, error: colors.danger, info: colors.accent }[
     toast.tone
   ];
-  const bottom = insets.bottom + (Platform.OS === 'android' ? TAB_BAR_HEIGHT + 24 : 96);
+  const barVisible = useTabBarVisible();
+  const bottom = insets.bottom + (Platform.OS === 'android' ? (barVisible ? TAB_BAR_HEIGHT + 24 : 24) : 96);
   return (
     <View pointerEvents="none" style={[styles.wrap, { bottom }]}>
       <Animated.View entering={FadeInDown} exiting={FadeOutDown}>
