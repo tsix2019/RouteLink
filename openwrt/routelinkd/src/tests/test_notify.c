@@ -125,6 +125,7 @@ static void test_requests(void)
 	c.url = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=k";
 	rl_notify_build(RL_NT_WECOM, &c, "T", "B", 0, &r);
 	T_EQ_STR(r.body, "{\"msgtype\":\"text\",\"text\":{\"content\":\"T\\nB\"}}");
+	T_EQ_I64(r.kind, RL_NB_JSON);
 }
 
 /* Signatures checked against Python's hmac/base64 for the same inputs. */
@@ -145,6 +146,84 @@ static void test_signed_requests(void)
 	T_EQ_STR(r.body, "{\"msg_type\":\"text\",\"content\":{\"text\":\"T\\nB\"}}");
 }
 
+/* uclient-fetch without --header (23.05): forms and GETs where the service takes them. */
+static void test_legacy_requests(void)
+{
+	rl_notify_request r;
+	rl_notify_conf c = { .token = "k/1", .url = "https://bark.example/" };
+	T_EQ_I64(rl_notify_build_legacy(RL_NT_BARK, &c, "T", "a b&c", 0, &r), 0);
+	T_EQ_I64(r.kind, RL_NB_FORM);
+	T_EQ_STR(r.url, "https://bark.example/k%2F1");
+	T_EQ_STR(r.body, "title=T&body=a%20b%26c&group=RouteLink");
+
+	memset(&c, 0, sizeof(c));
+	c.token = "SCT1";
+	T_EQ_I64(rl_notify_build_legacy(RL_NT_SERVERCHAN, &c, "T", "B\n2", 0, &r), 0);
+	T_EQ_I64(r.kind, RL_NB_FORM);
+	T_EQ_STR(r.url, "https://sctapi.ftqq.com/SCT1.send");
+	T_EQ_STR(r.body, "title=T&desp=B%0A2");
+
+	memset(&c, 0, sizeof(c));
+	c.token = "1:a";
+	c.chat_id = "-5";
+	T_EQ_I64(rl_notify_build_legacy(RL_NT_TELEGRAM, &c, "T", "B", 0, &r), 0);
+	T_EQ_STR(r.body, "chat_id=-5&text=T%0AB");
+
+	memset(&c, 0, sizeof(c));
+	c.token = "tok";
+	T_EQ_I64(rl_notify_build_legacy(RL_NT_PUSHPLUS, &c, "标题", "B", 0, &r), 0);
+	T_EQ_I64(r.kind, RL_NB_GET);
+	T_EQ_STR(r.body, "");
+	T_EQ_STR(r.url, "https://www.pushplus.plus/send?token=tok&title=%E6%A0%87%E9%A2%98&content=B&template=txt");
+	/* too long for a URL: shortened on a character boundary */
+	char body[2000] = "";
+	for (int i = 0; i < 300; i++)
+		strcat(body, "流");
+	T_EQ_I64(rl_notify_build_legacy(RL_NT_PUSHPLUS, &c, "T", body, 0, &r), 0);
+	T_ASSERT(strlen(r.url) < RL_NOTIFY_URL_MAX);
+	T_ASSERT(strstr(r.url, "%E6%B5%81&template=txt") != NULL);
+
+	/* the rest keep JSON */
+	memset(&c, 0, sizeof(c));
+	c.url = "https://qyapi.weixin.qq.com/x";
+	T_EQ_I64(rl_notify_build_legacy(RL_NT_WECOM, &c, "T", "B", 0, &r), 0);
+	T_EQ_I64(r.kind, RL_NB_JSON);
+	T_EQ_STR(r.body, "{\"msgtype\":\"text\",\"text\":{\"content\":\"T\\nB\"}}");
+}
+
+static void test_responses(void)
+{
+	char err[128];
+	T_EQ_I64(rl_notify_check_response(RL_NT_DINGTALK, "{\"errcode\":0,\"errmsg\":\"ok\"}", err, sizeof(err)), 0);
+	T_EQ_I64(rl_notify_check_response(RL_NT_DINGTALK, "{\"errcode\":310000,\"errmsg\":\"sign not match\"}", err,
+					  sizeof(err)),
+		 -1);
+	T_EQ_STR(err, "sign not match");
+	T_EQ_I64(rl_notify_check_response(RL_NT_BARK, "{\"code\":200,\"message\":\"success\"}", err, sizeof(err)), 0);
+	T_EQ_I64(rl_notify_check_response(RL_NT_SERVERCHAN, "{\"code\":0,\"message\":\"\",\"data\":{}}", err, sizeof(err)),
+		 0);
+	T_EQ_I64(rl_notify_check_response(RL_NT_PUSHPLUS, "{\"code\":903,\"msg\":\"无效的用户token\"}", err, sizeof(err)), -1);
+	T_EQ_STR(err, "无效的用户token");
+	T_EQ_I64(rl_notify_check_response(RL_NT_FEISHU, "{\"code\":19021}", err, sizeof(err)), -1);
+	T_EQ_STR(err, "code 19021");
+	T_EQ_I64(rl_notify_check_response(RL_NT_TELEGRAM, "{\"ok\":false,\"description\":\"chat not found\"}", err,
+					  sizeof(err)),
+		 -1);
+	T_EQ_STR(err, "chat not found");
+	T_EQ_I64(rl_notify_check_response(RL_NT_TELEGRAM, "{\"ok\":true,\"result\":{}}", err, sizeof(err)), 0);
+	/* webhooks, and bodies that are not JSON, only count the HTTP status */
+	T_EQ_I64(rl_notify_check_response(RL_NT_WEBHOOK, "{\"code\":1}", err, sizeof(err)), 0);
+	T_EQ_I64(rl_notify_check_response(RL_NT_WECOM, "OK", err, sizeof(err)), 0);
+	T_EQ_I64(rl_notify_check_response(RL_NT_WECOM, "", err, sizeof(err)), 0);
+
+	char title[64], body[128];
+	rl_notify_test_text(true, "Home", title, sizeof(title), body, sizeof(body));
+	T_EQ_STR(title, "RouteLink 测试消息");
+	T_EQ_STR(body, "推送设置正确。\nHome");
+	rl_notify_test_text(false, "", title, sizeof(title), body, sizeof(body));
+	T_EQ_STR(body, "Push notifications are set up correctly.");
+}
+
 int main(void)
 {
 	T_RUN(test_subscriptions);
@@ -154,5 +233,7 @@ int main(void)
 	T_RUN(test_escape);
 	T_RUN(test_requests);
 	T_RUN(test_signed_requests);
+	T_RUN(test_legacy_requests);
+	T_RUN(test_responses);
 	T_DONE();
 }

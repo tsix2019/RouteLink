@@ -82,14 +82,38 @@ typedef struct {
 #define RL_NOTIFY_URL_MAX 1024
 #define RL_NOTIFY_BODY_MAX 4096
 
+/* How the body goes out. */
+typedef enum {
+	RL_NB_JSON, /* POST, Content-Type: application/json */
+	RL_NB_FORM, /* POST, application/x-www-form-urlencoded */
+	RL_NB_GET,  /* GET, everything in the URL (body empty) */
+} rl_notify_body_kind;
+
 typedef struct {
 	char url[RL_NOTIFY_URL_MAX];
-	char body[RL_NOTIFY_BODY_MAX]; /* always JSON */
+	char body[RL_NOTIFY_BODY_MAX];
+	rl_notify_body_kind kind;
 } rl_notify_request;
 
 /* 0, or -1 when the channel is missing what it needs or the result does not fit. now_ms signs requests. */
 int rl_notify_build(rl_notify_type t, const rl_notify_conf *c, const char *title, const char *body, int64_t now_ms,
 		    rl_notify_request *out);
+/*
+ * The same for an uclient-fetch without --header (OpenWrt 23.05), which always posts as a form: channels
+ * that take a form or a GET get one (Bark, ServerChan, PushPlus, Telegram); the others keep their JSON
+ * body and depend on the service not checking the content type.
+ */
+int rl_notify_build_legacy(rl_notify_type t, const rl_notify_conf *c, const char *title, const char *body,
+			   int64_t now_ms, rl_notify_request *out);
+
+/*
+ * Checks a 2xx response body for an error the service reports in JSON (errcode, code, ok:false); webhooks
+ * are not checked. 0 when fine, else -1 with the service's message in err.
+ */
+int rl_notify_check_response(rl_notify_type t, const char *response, char *err, size_t err_size);
+
+/* The test message of notify_test. */
+void rl_notify_test_text(bool zh, const char *router, char *title, size_t title_size, char *body, size_t body_size);
 
 /* JSON string contents (no quotes). Returns the length, or (size_t)-1 when it does not fit. */
 size_t rl_json_escape(const char *in, char *out, size_t size);

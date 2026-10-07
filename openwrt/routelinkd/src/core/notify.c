@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <inttypes.h>
+#include <json-c/json.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -320,6 +321,7 @@ int rl_notify_build(rl_notify_type t, const rl_notify_conf *c, const char *title
 	char text[RL_NOTIFY_BODY_MAX / 2];
 	snprintf(text, sizeof(text), "%s\n%s", title, body);
 	memset(out, 0, sizeof(*out));
+	out->kind = RL_NB_JSON;
 	switch (t) {
 	case RL_NT_WEBHOOK:
 		if (!set(c->url) || url(out, "%s", c->url) < 0)
@@ -401,4 +403,153 @@ int rl_notify_build(rl_notify_type t, const rl_notify_conf *c, const char *title
 	}
 	}
 	return -1;
+}
+
+/* Appends key=value (value percent-encoded) to a form body. */
+static int form(rl_notify_request *out, size_t *len, const char *key, const char *value)
+{
+	size_t l = *len;
+	int n = snprintf(out->body + l, RL_NOTIFY_BODY_MAX - l, "%s%s=", l ? "&" : "", key);
+	if (n < 0 || (size_t)n >= RL_NOTIFY_BODY_MAX - l)
+		return -1;
+	l += (size_t)n;
+	size_t e = rl_url_encode(value, out->body + l, RL_NOTIFY_BODY_MAX - l);
+	if (e == (size_t)-1)
+		return -1;
+	*len = l + e;
+	return 0;
+}
+
+/* Cuts s to at most max bytes without splitting a UTF-8 sequence. */
+static void cut_utf8(char *s, size_t max)
+{
+	size_t n = strlen(s);
+	if (n <= max)
+		return;
+	while (max > 0 && ((unsigned char)s[max] & 0xc0) == 0x80)
+		max--;
+	s[max] = '\0';
+}
+
+int rl_notify_build_legacy(rl_notify_type t, const rl_notify_conf *c, const char *title, const char *body,
+			   int64_t now_ms, rl_notify_request *out)
+{
+	size_t len = 0;
+	switch (t) {
+	case RL_NT_BARK: {
+		/* POST /<key> with form fields (the JSON endpoint /push needs the content type) */
+		if (!set(c->token))
+			return -1;
+		memset(out, 0, sizeof(*out));
+		out->kind = RL_NB_FORM;
+		const char *base = set(c->url) ? c->url : "https://api.day.app";
+		size_t l = strlen(base);
+		char key[256];
+		if (rl_url_encode(c->token, key, sizeof(key)) == (size_t)-1 ||
+		    url(out, "%.*s/%s", (int)(l && base[l - 1] == '/' ? l - 1 : l), base, key) < 0)
+			return -1;
+		return form(out, &len, "title", title) || form(out, &len, "body", body) ||
+				       form(out, &len, "group", "RouteLink")
+			       ? -1
+			       : 0;
+	}
+	case RL_NT_SERVERCHAN:
+		if (rl_notify_build(t, c, title, body, now_ms, out) < 0)
+			return -1;
+		out->kind = RL_NB_FORM;
+		return form(out, &len, "title", title) || form(out, &len, "desp", body) ? -1 : 0;
+	case RL_NT_TELEGRAM: {
+		if (rl_notify_build(t, c, title, body, now_ms, out) < 0)
+			return -1;
+		char text[RL_NOTIFY_BODY_MAX / 2];
+		snprintf(text, sizeof(text), "%s\n%s", title, body);
+		out->kind = RL_NB_FORM;
+		return form(out, &len, "chat_id", c->chat_id) || form(out, &len, "text", text) ? -1 : 0;
+	}
+	case RL_NT_PUSHPLUS: {
+		/* GET with query parameters; a long message is shortened to fit the URL */
+		if (!set(c->token))
+			return -1;
+		char content[RL_NOTIFY_BODY_MAX / 2], tok[256], ttl[512], enc[RL_NOTIFY_URL_MAX];
+		if (rl_url_encode(c->token, tok, sizeof(tok)) == (size_t)-1)
+			return -1;
+		snprintf(ttl, sizeof(ttl), "%s", title);
+		cut_utf8(ttl, 100);
+		char ettl[RL_NOTIFY_URL_MAX / 2];
+		if (rl_url_encode(ttl, ettl, sizeof(ettl)) == (size_t)-1)
+			return -1;
+		snprintf(content, sizeof(content), "%s", body);
+		memset(out, 0, sizeof(*out));
+		out->kind = RL_NB_GET;
+		for (;;) {
+			if (rl_url_encode(content, enc, sizeof(enc)) != (size_t)-1 &&
+			    url(out, "https://www.pushplus.plus/send?token=%s&title=%s&content=%s&template=txt", tok, ettl,
+				enc) == 0)
+				return 0;
+			size_t n = strlen(content);
+			if (!n)
+				return -1;
+			cut_utf8(content, n * 3 / 4);
+		}
+	}
+	default:
+		return rl_notify_build(t, c, title, body, now_ms, out);
+	}
+}
+
+static const char *str_of(json_object *o, const char *const keys[])
+{
+	json_object *v;
+	for (int i = 0; keys[i]; i++)
+		if (json_object_object_get_ex(o, keys[i], &v) && json_object_is_type(v, json_type_string))
+			return json_object_get_string(v);
+	return NULL;
+}
+
+int rl_notify_check_response(rl_notify_type t, const char *response, char *err, size_t err_size)
+{
+	static const char *const desc[] = { "description", "error", NULL };
+	static const char *const msg[] = { "errmsg", "msg", "message", "StatusMessage", NULL };
+	err[0] = '\0';
+	if (t == RL_NT_WEBHOOK || !response || !response[0])
+		return 0;
+	json_object *o = json_tokener_parse(response), *v;
+	if (!o || !json_object_is_type(o, json_type_object)) {
+		json_object_put(o);
+		return 0; /* not JSON: the HTTP status said it worked */
+	}
+	int rc = 0;
+	const char *text = NULL;
+	if (json_object_object_get_ex(o, "ok", &v) && json_object_is_type(v, json_type_boolean) &&
+	    !json_object_get_boolean(v)) {
+		rc = -1;
+		text = str_of(o, desc);
+	} else if (json_object_object_get_ex(o, "errcode", &v) && json_object_get_int64(v) != 0) {
+		rc = -1;
+		text = str_of(o, msg);
+		if (!text)
+			snprintf(err, err_size, "errcode %" PRId64, json_object_get_int64(v));
+	} else if (json_object_object_get_ex(o, "code", &v) &&
+		   (json_object_is_type(v, json_type_int) || json_object_is_type(v, json_type_string))) {
+		int64_t code = json_object_get_int64(v);
+		if (code != 0 && code != 200) {
+			rc = -1;
+			text = str_of(o, msg);
+			if (!text)
+				snprintf(err, err_size, "code %" PRId64, code);
+		}
+	}
+	if (rc && text)
+		snprintf(err, err_size, "%s", text);
+	else if (rc && !err[0])
+		snprintf(err, err_size, "the service reported an error");
+	json_object_put(o);
+	return rc;
+}
+
+void rl_notify_test_text(bool zh, const char *router, char *title, size_t title_size, char *body, size_t body_size)
+{
+	snprintf(title, title_size, "%s", zh ? "RouteLink 测试消息" : "RouteLink test message");
+	snprintf(body, body_size, "%s%s%s", zh ? "推送设置正确。" : "Push notifications are set up correctly.",
+		 router && router[0] ? "\n" : "", router ? router : "");
 }
