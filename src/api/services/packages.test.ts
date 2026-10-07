@@ -50,6 +50,15 @@ describe('detectPackageEnv', () => {
     });
   });
 
+  it('reads Kwrt 25.12: a snapshot version, and opkg where OpenWrt 25.12 has apk', async () => {
+    await expect(detectPackageEnv(router({ release: '25.12-SNAPSHOT' }))).resolves.toMatchObject({
+      release: '25.12',
+      arch: 'x86_64',
+      manager: 'opkg',
+      uploadPath: '/tmp/upload.ipk',
+    });
+  });
+
   it('notices missing package lists', async () => {
     await expect(detectPackageEnv(router({ lists: false }))).resolves.toMatchObject({ hasLists: false });
     await expect(detectPackageEnv(router({ apk: true, release: '25.12.5', lists: false }))).resolves.toMatchObject({

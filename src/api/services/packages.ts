@@ -76,7 +76,9 @@ export async function detectPackageEnv(conn: RouterConnection): Promise<PackageE
     accessFor(OPKG_CALL, '/tmp/upload.ipk'),
   ]);
   const version = data<{ release?: { version?: string } }>(r[0])?.release?.version ?? '';
-  if (!/^\d+\.\d+/.test(version)) return { unsupported: 'not-openwrt' };
+  // "24.10.8", or "25.12-SNAPSHOT" on Kwrt
+  const release = /^\d+\.\d+/.exec(version)?.[0];
+  if (!release) return { unsupported: 'not-openwrt' };
 
   const helper = r[2].ok ? PACKAGE_MANAGER_CALL : r[3].ok ? OPKG_CALL : null;
   // Accounts other than root may not even stat files: that is missing permission, not a missing helper.
@@ -93,7 +95,7 @@ export async function detectPackageEnv(conn: RouterConnection): Promise<PackageE
   const hasLists =
     manager === 'apk' ? entries.some((e) => e.name.endsWith('.adb')) : entries.some((e) => !e.name.endsWith('.sig'));
   return {
-    release: version.split('.').slice(0, 2).join('.'),
+    release,
     arch,
     manager,
     helper,

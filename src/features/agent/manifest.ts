@@ -19,7 +19,10 @@ export interface Manifest {
   api: number;
   tag?: string;
   prerelease?: boolean;
-  /** "<release>/<arch>", e.g. "24.10/x86_64". */
+  /**
+   * "<release>/<arch>" in the release's own format, e.g. "24.10/x86_64" (ipk) or "25.12/x86_64" (apk);
+   * "<release>/<arch>/<format>" for the other one, e.g. "25.12/x86_64/ipk" for forks that kept opkg (Kwrt).
+   */
   targets: Record<string, { format: 'ipk' | 'apk'; files: ManifestFile[] }>;
 }
 
@@ -71,15 +74,21 @@ export function parseManifest(json: unknown): Manifest {
   };
 }
 
-/** The router's packages in install order, or why there are none. */
+/**
+ * The router's packages in install order, or why there are none. Packages are picked by the package
+ * manager the router really has, not the one its release usually has: Kwrt 25.12 kept opkg.
+ */
 export function pickTarget(m: Manifest, env: PackageEnv): ManifestFile[] | 'unsupported-release' | 'unsupported-arch' {
   const format = env.manager === 'apk' ? 'apk' : 'ipk';
-  const target = m.targets[`${env.release}/${env.arch}`];
-  if (!target || target.format !== format) {
-    const releaseKnown = Object.entries(m.targets).some(
-      ([k, t]) => k.startsWith(`${env.release}/`) && t.format === format,
-    );
-    return releaseKnown ? 'unsupported-arch' : 'unsupported-release';
+  const usable = Object.entries(m.targets)
+    .filter(([, t]) => t.format === format)
+    .map(([key, t]) => {
+      const [release, arch] = key.split('/');
+      return { release, arch, files: t.files };
+    });
+  const target = usable.find((t) => t.release === env.release && t.arch === env.arch);
+  if (!target) {
+    return usable.some((t) => t.release === env.release) ? 'unsupported-arch' : 'unsupported-release';
   }
   const order = INSTALL_ORDER as readonly string[];
   return target.files

@@ -29,6 +29,10 @@ const raw = {
       format: 'apk',
       files: [{ ...file('routelinkd', '25.12'), name: 'routelinkd-0.1.0-r1_25.12_x86_64.apk' }],
     },
+    '25.12/x86_64/ipk': {
+      format: 'ipk',
+      files: [file('routelinkd', '25.12')],
+    },
   },
 };
 
@@ -47,7 +51,7 @@ describe('parseManifest', () => {
   it('reads what scripts/agent-manifest.ts writes', () => {
     const m = parseManifest(raw);
     expect(m.version).toBe('0.1.0');
-    expect(Object.keys(m.targets)).toEqual(['24.10/x86_64', '25.12/x86_64']);
+    expect(Object.keys(m.targets)).toEqual(['24.10/x86_64', '25.12/x86_64', '25.12/x86_64/ipk']);
   });
 
   it('rejects anything that is not a manifest', () => {
@@ -76,9 +80,18 @@ describe('pickTarget', () => {
     expect(pickTarget(m, env('22.03', 'x86_64'))).toBe('unsupported-release');
   });
 
-  it('needs the package format of the router’s package manager', () => {
-    expect(pickTarget(m, env('25.12', 'x86_64', 'opkg'))).toBe('unsupported-release');
-    expect(Array.isArray(pickTarget(m, env('25.12', 'x86_64', 'apk')))).toBe(true);
+  it('picks by the router’s package manager, not by what its release usually has', () => {
+    const names = (r: ReturnType<typeof pickTarget>) => (Array.isArray(r) ? r.map((f) => f.name) : r);
+    expect(names(pickTarget(m, env('25.12', 'x86_64', 'apk')))).toEqual(['routelinkd-0.1.0-r1_25.12_x86_64.apk']);
+    // Kwrt 25.12 kept opkg
+    expect(names(pickTarget(m, env('25.12', 'x86_64', 'opkg')))).toEqual(['routelinkd_0.1.0-r1_25.12_x86_64.ipk']);
+    expect(pickTarget(m, env('25.12', 'mips_24kc', 'opkg'))).toBe('unsupported-arch');
+    expect(pickTarget(m, env('24.10', 'x86_64', 'apk'))).toBe('unsupported-release');
+  });
+
+  it('finds nothing for opkg on 25.12 in a manifest from before 25.12 had ipk packages', () => {
+    const { '25.12/x86_64/ipk': _ipk, ...targets } = raw.targets;
+    expect(pickTarget(parseManifest({ ...raw, targets }), env('25.12', 'x86_64', 'opkg'))).toBe('unsupported-release');
   });
 });
 

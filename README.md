@@ -179,7 +179,7 @@ RouteLink 插件装在路由器上，统计每台设备的上传和下载并保�
 - **怎么统计**：按设备 MAC 汇总连接跟踪的计数，IPv4、IPv6 都算；开着软件加速（flow offloading）也准确，在 Docker 实验环境里和终端网卡的字节数逐字节一致。
 - **保存多久**：按分钟保存 48 小时，按小时保存 90 天，按天保存 2 年；数据在路由器的 `/etc/routelink`，默认每 10 分钟写一次闪存，占用上限 32 MB，升级固件时会保留。
 - **占用**：在 x86 上（Docker 实测）52 台设备、5000 个连接时，平时占单核 0.04%，内存 1.7 MB。
-- **支持**：OpenWrt 23.05、24.10、25.12；架构 x86_64、aarch64（cortex-a53、cortex-a72、generic）、arm（cortex-a7、cortex-a9、cortex-a15）、mipsel_24kc、mips_24kc。
+- **支持**：OpenWrt 23.05、24.10、25.12，以及基于 25.12 但仍用 opkg 的固件（如 Kwrt）；架构 x86_64、aarch64（cortex-a53、cortex-a72、generic）、arm（cortex-a7、cortex-a9、cortex-a15）、mipsel_24kc、mips_24kc。
 
 **安装**
 
@@ -187,7 +187,7 @@ RouteLink 插件装在路由器上，统计每台设备的上传和下载并保�
 - **手动安装**：从 [Releases](https://github.com/tsix2019/RouteLink/releases) 下载对应版本和架构的安装包（`manifest.json` 里有清单），传到路由器上安装。架构可以用 `. /etc/openwrt_release; echo $DISTRIB_ARCH` 查看。
 
   ```sh
-  # OpenWrt 23.05 / 24.10
+  # OpenWrt 23.05 / 24.10，以及仍用 opkg 的 25.12 固件（如 Kwrt，用 25.12 的 .ipk 包）
   opkg update
   opkg install routelinkd_*.ipk luci-app-routelink_*.ipk luci-i18n-routelink-zh-cn_*.ipk
 
@@ -200,7 +200,7 @@ RouteLink 插件装在路由器上，统计每台设备的上传和下载并保�
 - **添加软件源**（以后可以在 LuCI 的软件包页面升级）。把 `24.10`、`x86_64` 换成你的版本和架构：
 
   ```sh
-  # OpenWrt 23.05 / 24.10
+  # OpenWrt 23.05 / 24.10，以及仍用 opkg 的 25.12 固件（地址里写 25.12）
   wget -O /etc/opkg/keys/a276fe73982c5f59 https://tsix2019.github.io/RouteLink/agent/keys/a276fe73982c5f59
   echo 'src/gz routelink https://tsix2019.github.io/RouteLink/agent/24.10/x86_64' >> /etc/opkg/customfeeds.conf
   opkg update && opkg install routelinkd luci-app-routelink luci-i18n-routelink-zh-cn
