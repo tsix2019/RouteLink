@@ -53,6 +53,8 @@ class LiveMonitorService : Service() {
   private var recovered: String? = null
   /** When the app last handed over a sample of its own (elapsedRealtime). */
   private var pushedAt = 0L
+  /** When the service last asked the router itself (elapsedRealtime). */
+  private var polledAt = 0L
   private var stopping = false
 
   override fun onBind(intent: Intent?): IBinder? = null
@@ -193,13 +195,18 @@ class LiveMonitorService : Service() {
   // ---- polling ----
 
   private suspend fun tick(cfg: LiveConfig) {
-    // The overview polls the same data while it is on screen and hands it over: no second request.
-    if (SystemClock.elapsedRealtime() - pushedAt < cfg.intervalMs * 3 / 2) return
+    // The overview polls the same data while it is on screen and hands it over: no second request, except
+    // now and then, or rpcd drops the service's idle session (300 s) and the first poll in the background fails.
+    val now = SystemClock.elapsedRealtime()
+    val pushed = now - pushedAt < cfg.intervalMs * 3 / 2
+    if (pushed && now - polledAt < KEEP_ALIVE_MS) return
     if (status == "session-expired") return
     val p = poller ?: return
+    polledAt = now
     try {
       val s = p.poll(cfg.intervalMs)
-      onSuccess(s)
+      // a keep-alive's rates span minutes (luci counters): the app's sample stays
+      onSuccess(if (pushed) null else s)
     } catch (f: PollFailure) {
       when (f) {
         is PollFailure.SessionGone -> setStatus("session-expired")
@@ -405,5 +412,6 @@ class LiveMonitorService : Service() {
     const val ACTION_START = "expo.modules.routelinknative.live.START"
     const val ACTION_STOP = "expo.modules.routelinknative.live.STOP"
     private const val MIN_GAP_MS = 250L
+    private const val KEEP_ALIVE_MS = 120_000L
   }
 }

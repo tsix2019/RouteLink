@@ -12,10 +12,12 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.EOFException
 import java.io.InterruptedIOException
 import java.net.ConnectException
 import java.net.NoRouteToHostException
 import java.net.PortUnreachableException
+import java.net.SocketException
 import java.net.UnknownHostException
 import java.security.cert.CertificateException
 import java.text.SimpleDateFormat
@@ -180,7 +182,9 @@ internal class HttpEngine {
     return when {
       any { it is CertificateException && it.message == PIN_MISMATCH } || any { it.message?.contains(PIN_MISMATCH) == true } ->
         NativeError("ERR_TLS_PIN_MISMATCH", "certificate does not match the pinned fingerprint", e)
-      mode == "system" && any { it is SSLHandshakeException || it is SSLPeerUnverifiedException } ->
+      // A handshake the network cut short (router rebooting, Wi-Fi flapping) says nothing about the certificate.
+      mode == "system" && any { it is SSLHandshakeException || it is SSLPeerUnverifiedException } &&
+        !any { it is EOFException || it is SocketException } ->
         NativeError("ERR_TLS_UNTRUSTED", "server certificate is not trusted", e)
       any { it is UnknownHostException } -> NativeError("ERR_DNS", message, e)
       any { it is InterruptedIOException } -> NativeError("ERR_TIMEOUT", "request timed out", e)
