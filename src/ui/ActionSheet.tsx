@@ -33,7 +33,7 @@ export function ActionSheet({
   title?: string;
   message?: string;
   actions: SheetAction[];
-  /** Defaults to Cancel. */
+  /** Defaults to Cancel; "Got it" when the sheet only explains something. */
   cancelLabel?: string;
   onCancel(): void;
 }) {

@@ -44,11 +44,56 @@
   "widget": {
     "online": "Online",
     "offline": "Unreachable",
-    "noRouter": "Open the app to add a router",
+    "noData": "Open the app to see your router",
     "devices_one": "{{count}} device online",
     "devices_other": "{{count}} devices online",
     "updated": "Updated {{time}}",
-    "name": "Router Status",
-    "description": "The current router's state, speed and devices online"
+    "refreshing": "Refreshing…",
+    "refresh": "Refresh",
+    "down": "Down",
+    "up": "Up",
+    "wifiCount": "Wi‑Fi {{n}}",
+    "wiredCount": "Wired {{n}}",
+    "cpu": "CPU",
+    "memory": "RAM",
+    "temperature": "Temp",
+    "uptime": "Up {{time}}",
+    "wan": "WAN",
+    "wanUp": "Connected",
+    "wanDown": "Disconnected",
+    "noWan": "No WAN interface",
+    "kinds": {
+      "router": {
+        "name": "Router Status",
+        "description": "State, speed and devices online"
+      },
+      "speed": {
+        "name": "Speed",
+        "description": "WAN download and upload rates; tap ↻ to measure now"
+      },
+      "devices": {
+        "name": "Devices Online",
+        "description": "How many devices are online, Wi‑Fi and wired, by name"
+      },
+      "system": {
+        "name": "System",
+        "description": "CPU load, memory, temperature and uptime"
+      },
+      "wan": {
+        "name": "WAN",
+        "description": "Whether the internet link is up, its IP address and type"
+      },
+      "shortcuts": {
+        "name": "Shortcuts",
+        "description": "Wi‑Fi QR code, devices, terminal and the AI assistant in one tap"
+      }
+    },
+    "shortcut": {
+      "wifiQr": "Wi‑Fi QR",
+      "devices": "Devices",
+      "terminal": "Terminal",
+      "assistant": "Assistant",
+      "traffic": "Traffic"
+    }
   }
 }

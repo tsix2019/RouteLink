@@ -9,11 +9,16 @@ import type { ChatMessage } from '@/ai/types';
 
 import { kvStorage } from './storage';
 
-/** One router's conversation with the assistant (design §18: kept on the phone, per router). */
+/** One conversation with the assistant (design §18): kept on the phone, about the router it was held with. */
 export interface Conversation {
+  id: string;
+  routerId: string;
+  /** The first question, or the name the user gave it. */
+  title: string;
   messages: ChatMessage[];
   /** Device codes handed to the AI in this conversation ("d3" → MAC). */
   refs: Record<string, string>;
+  createdAt: number;
   updatedAt: number;
 }
 
@@ -22,20 +27,34 @@ interface AssistantData {
   privacy: Privacy;
   /** The user has read what is sent and agreed. */
   consented: boolean;
+  /** By id. */
   conversations: Record<string, Conversation>;
 }
 
 interface AssistantState extends AssistantData {
   hydrated: boolean;
+  /**
+   * The conversation each router's assistant shows, by router id; none is a new one. Not saved: the
+   * assistant starts a new conversation after a restart, and the old ones wait in the history.
+   */
+  current: Record<string, string>;
   setProvider(patch: Partial<ProviderSettings>): void;
   setPrivacy(patch: Partial<Privacy>): void;
   consent(): void;
-  save(routerId: string, conversation: Omit<Conversation, 'updatedAt'>): void;
+  /** Stores a conversation's messages; a new one is named after its first question. */
+  save(c: { id: string; routerId: string; messages: ChatMessage[]; refs: Record<string, string> }): void;
+  open(routerId: string, id: string | null): void;
+  rename(id: string, title: string): void;
+  remove(id: string): void;
+  /** One router's conversations, or every one. */
   clear(routerId?: string): void;
 }
 
-/** Messages kept per router: enough to read back, small enough for the key-value store. */
+/** Messages kept per conversation: enough to read back, small enough for the key-value store. */
 const KEEP = 60;
+/** Conversations kept per router; the ones untouched longest go first. */
+export const KEEP_CONVERSATIONS = 50;
+const TITLE_LENGTH = 60;
 
 export const apiKeyName = (preset: PresetId) => `ai.${preset}.api-key`;
 const SECURE = { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK };
@@ -46,6 +65,37 @@ export async function setApiKey(preset: PresetId, key: string | null) {
   else await SecureStore.deleteItemAsync(apiKeyName(preset));
 }
 
+export const newConversationId = () => `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+
+/** The first question on one line, cut to a title's length. */
+export function titleOf(messages: ChatMessage[]): string {
+  const first = messages.find((m) => m.role === 'user' && m.text.trim());
+  const line = first ? first.text.replace(/\s+/g, ' ').trim() : '';
+  return line.length > TITLE_LENGTH ? `${line.slice(0, TITLE_LENGTH - 1)}…` : line;
+}
+
+/** Version 1 kept one conversation per router, keyed by the router's id. */
+type V1Conversations = Record<string, { messages?: ChatMessage[]; refs?: Record<string, string>; updatedAt?: number }>;
+
+function fromV1(old: V1Conversations) {
+  const conversations: Record<string, Conversation> = {};
+  for (const [routerId, c] of Object.entries(old)) {
+    if (!c.messages?.length) continue;
+    const id = newConversationId();
+    const time = c.updatedAt ?? Date.now();
+    conversations[id] = {
+      id,
+      routerId,
+      title: titleOf(c.messages),
+      messages: c.messages,
+      refs: c.refs ?? {},
+      createdAt: time,
+      updatedAt: time,
+    };
+  }
+  return conversations;
+}
+
 export const useAssistant = create<AssistantState>()(
   persist(
     (set) => ({
@@ -53,6 +103,7 @@ export const useAssistant = create<AssistantState>()(
       privacy: DEFAULT_PRIVACY,
       consented: false,
       conversations: {},
+      current: {},
       hydrated: false,
       setProvider: (patch) =>
         set((s) => {
@@ -66,35 +117,76 @@ export const useAssistant = create<AssistantState>()(
         }),
       setPrivacy: (patch) => set((s) => ({ privacy: { ...s.privacy, ...patch } })),
       consent: () => set({ consented: true }),
-      save: (routerId, c) =>
-        set((s) => ({
-          conversations: {
+      save: ({ id, routerId, messages, refs }) =>
+        set((s) => {
+          const now = Date.now();
+          const before = s.conversations[id];
+          const conversations = {
             ...s.conversations,
-            [routerId]: {
+            [id]: {
+              id,
+              routerId,
+              title: before?.title || titleOf(messages),
               // Provider blocks (thinking) only matter inside a turn; a saved conversation is between turns.
-              messages: c.messages
+              messages: messages
                 .slice(-KEEP)
                 .map((m) => (m.role === 'assistant' ? { role: m.role, text: m.text, calls: m.calls } : m)),
-              refs: c.refs,
-              updatedAt: Date.now(),
+              refs,
+              createdAt: before?.createdAt ?? now,
+              updatedAt: now,
             },
-          },
-        })),
+          };
+          const mine = Object.values(conversations)
+            .filter((c) => c.routerId === routerId)
+            .sort((a, b) => b.updatedAt - a.updatedAt);
+          for (const old of mine.slice(KEEP_CONVERSATIONS)) delete conversations[old.id];
+          return { conversations };
+        }),
+      open: (routerId, id) =>
+        set((s) => {
+          const { [routerId]: _old, ...rest } = s.current;
+          return { current: id ? { ...rest, [routerId]: id } : rest };
+        }),
+      rename: (id, title) =>
+        set((s) => {
+          const c = s.conversations[id];
+          const name = title.replace(/\s+/g, ' ').trim();
+          if (!c || !name) return {};
+          return { conversations: { ...s.conversations, [id]: { ...c, title: name } } };
+        }),
+      remove: (id) =>
+        set((s) => {
+          const { [id]: _gone, ...conversations } = s.conversations;
+          const current = Object.fromEntries(Object.entries(s.current).filter(([, open]) => open !== id));
+          return { conversations, current };
+        }),
       clear: (routerId) =>
         set((s) => {
-          if (!routerId) return { conversations: {} };
-          const { [routerId]: _gone, ...rest } = s.conversations;
-          return { conversations: rest };
+          if (!routerId) return { conversations: {}, current: {} };
+          const conversations = Object.fromEntries(
+            Object.entries(s.conversations).filter(([, c]) => c.routerId !== routerId),
+          );
+          const { [routerId]: _open, ...current } = s.current;
+          return { conversations, current };
         }),
     }),
     {
       name: 'routelink.assistant',
-      version: 1,
+      version: 2,
       storage: kvStorage,
-      partialize: ({ provider, privacy, consented, conversations }) => {
-        // The demo router's conversation resets with the app, like every other change in demo mode.
-        const { [DEMO_ROUTER_ID]: _demo, ...kept } = conversations;
-        return { provider, privacy, consented, conversations: kept };
+      partialize: ({ provider, privacy, consented, conversations }) => ({
+        provider,
+        privacy,
+        consented,
+        // The demo router's conversations reset with the app, like every other change in demo mode.
+        conversations: Object.fromEntries(
+          Object.entries(conversations).filter(([, c]) => c.routerId !== DEMO_ROUTER_ID),
+        ),
+      }),
+      migrate: (persisted, version) => {
+        const state = persisted as Omit<AssistantData, 'conversations'> & { conversations?: unknown };
+        if (version < 2) return { ...state, conversations: fromV1((state.conversations ?? {}) as V1Conversations) };
+        return state as AssistantData;
       },
       onRehydrateStorage: () => () => useAssistant.setState({ hydrated: true }),
     },

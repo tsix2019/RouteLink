@@ -4,12 +4,39 @@ const VERSION = '1.1.0';
 /** 1.2.3 → 10203, so every release is an upgrade of the one before (v0.1.0 shipped with the default, 1). */
 const BUILD = VERSION.split('.').reduce((n, part) => n * 100 + Number(part), 0);
 
+/**
+ * One Android home-screen widget (react-native-android-widget, src/widgets/catalog.ts). The picker shows
+ * `previewImage`, a screenshot of the widget with the demo router (English; the Chinese one is
+ * widget-preview-zh-<key>.png, plugins/with-widget-strings.js).
+ */
+function androidWidget(
+  name: string,
+  key: string,
+  { min, cells, refresh = true }: { min: [number, number]; cells: [number, number]; refresh?: boolean },
+) {
+  return {
+    name,
+    label: `@string/routelink_widget_${key}_label`,
+    description: `@string/routelink_widget_${key}_description`,
+    minWidth: `${min[0]}dp` as const,
+    minHeight: `${min[1]}dp` as const,
+    targetCellWidth: cells[0],
+    targetCellHeight: cells[1],
+    resizeMode: 'horizontal|vertical' as const,
+    previewImage: `./assets/images/widget-preview-${key}.png` as const,
+    // Android's minimum: the widgets read the router again then; the app and the background check push
+    // fresher data. The shortcuts never change.
+    updatePeriodMillis: refresh ? 1_800_000 : 0,
+  };
+}
+
 const config: ExpoConfig = {
   name: 'RouteLink',
   slug: 'routelink',
   scheme: 'routelink',
   version: VERSION,
-  orientation: 'portrait',
+  // Portrait, but the SSH terminal may turn (design §17): the root stack keeps every other screen upright.
+  orientation: 'default',
   userInterfaceStyle: 'automatic',
   icon: './assets/images/icon.png',
   ios: {
@@ -48,9 +75,13 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
-        backgroundColor: '#0A5BFF',
-        image: './assets/images/splash-icon.png',
+        // No enlarged icon: the splash is just the app's own page background (a transparent image,
+        // since Android 12+ would otherwise draw the launcher icon), so it hands over to the first
+        // screen without a visible step.
+        backgroundColor: '#F2F2F7',
+        image: './assets/images/splash-blank.png',
         imageWidth: 96,
+        dark: { backgroundColor: '#000000', image: './assets/images/splash-blank.png' },
       },
     ],
     'expo-localization',
@@ -110,24 +141,19 @@ const config: ExpoConfig = {
     [
       'react-native-android-widget',
       {
+        // Names and descriptions in English and Chinese: plugins/with-widget-strings.js. Sizes in cells: the
+        // launcher's grid decides how many dp that is; every widget lays itself out for the size it gets.
         widgets: [
-          {
-            name: 'RouterWidget',
-            label: 'RouteLink',
-            description: 'Router status, speed and devices online',
-            minWidth: '110dp',
-            minHeight: '110dp',
-            targetCellWidth: 2,
-            targetCellHeight: 2,
-            resizeMode: 'horizontal|vertical',
-            // What the widget picker shows (the demo router, from the emulator).
-            previewImage: './assets/images/widget-preview.png',
-            // Android's minimum; the app and the background check push fresher data.
-            updatePeriodMillis: 1_800_000,
-          },
+          androidWidget('RouterWidget', 'router', { min: [110, 110], cells: [2, 2] }),
+          androidWidget('SpeedWidget', 'speed', { min: [110, 40], cells: [2, 1] }),
+          androidWidget('DevicesWidget', 'devices', { min: [110, 110], cells: [4, 2] }),
+          androidWidget('SystemWidget', 'system', { min: [110, 110], cells: [2, 2] }),
+          androidWidget('WanWidget', 'wan', { min: [110, 40], cells: [3, 1] }),
+          androidWidget('ShortcutsWidget', 'shortcuts', { min: [180, 40], cells: [4, 1], refresh: false }),
         ],
       },
     ],
+    './plugins/with-widget-strings',
     'expo-background-task',
     // A white glyph: Android draws notification icons as a silhouette, tinted with the colour.
     ['expo-notifications', { icon: './assets/images/notification-icon.png', color: '#0A5BFF' }],

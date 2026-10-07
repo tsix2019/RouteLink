@@ -13,6 +13,7 @@ import {
 } from '@/api/services/guest';
 import { stageAndApply, type ApplyOutcome } from '@/api/uci';
 import type { UbusCall } from '@/api/ubus/types';
+import { randomPassword } from '@/features/wireless/guestPassword';
 import { bandLabel } from '@/features/wireless/labels';
 import { useRouterMutation, useRouterQuery } from '@/hooks/router-queries';
 import { useT } from '@/i18n';
@@ -30,12 +31,6 @@ import { spacing } from '@/ui/theme/tokens';
 import { useToast } from '@/ui/Toast';
 
 const SECURITY: GuestInput['encryption'][] = ['sae-mixed', 'psk2', 'none'];
-
-/** A password guests can type: no look-alike characters. */
-function randomPassword(): string {
-  const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
-  return Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-}
 
 type Pending = { title: string; consequence: string; changes: UbusCall[] };
 

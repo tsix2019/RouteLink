@@ -91,7 +91,7 @@ function RootStack() {
   return (
     <View style={[styles.flex, { backgroundColor: colors.background }]}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: styles.transparent }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: styles.transparent, orientation: 'portrait_up' }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="welcome" />
         <Stack.Screen name="demo" options={{ animation: 'none' }} />
@@ -103,7 +103,7 @@ function RootStack() {
         <Stack.Screen name="wifi-qr" options={sheetOptions([0.85, 1])} />
         <Stack.Screen name="reboot" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
         <Stack.Screen name="maintenance" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
-        <Stack.Screen name="terminal" options={{ presentation: 'fullScreenModal' }} />
+        <Stack.Screen name="terminal" options={{ presentation: 'fullScreenModal', orientation: 'default' }} />
         <Stack.Screen name="assistant" options={{ presentation: 'fullScreenModal' }} />
       </Stack>
     </View>

@@ -144,3 +144,9 @@ export const useRouters = create<RoutersState>()(
 );
 
 export const sortedRouters = (routers: RouterProfile[]) => [...routers].sort((a, b) => a.order - b.order);
+
+/** The router the app opens on: the selected one, else (no valid selection yet) the most recently used. */
+export const activeProfile = (routers: RouterProfile[], activeId: string | null): RouterProfile | null =>
+  routers.find((r) => r.id === activeId) ??
+  [...routers].sort((a, b) => (b.lastUsedAt ?? 0) - (a.lastUsedAt ?? 0))[0] ??
+  null;

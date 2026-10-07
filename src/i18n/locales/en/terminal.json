@@ -11,6 +11,8 @@
   "reconnect": "Reconnect",
   "fontSmaller": "Smaller text",
   "fontLarger": "Larger text",
+  "landscape": "Landscape",
+  "portrait": "Portrait",
   "paste": "Paste",
   "copy": "Copy selected text",
   "copied": "Copied",

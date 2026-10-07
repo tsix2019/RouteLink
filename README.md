@@ -22,7 +22,7 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - **改配置更安全**：所有改动都走 OpenWrt 自带的"应用 + 确认"机制，App 联系不上路由器时，路由器会在 90 秒后自动撤销改动；会断网的操作都有分级的风险提示。
 - **SSH 终端**：在 App 里直接用路由器的命令行；第一次连接时确认主机指纹，之后指纹变了会拦下来；可以一键把 App 的密钥装到路由器上。
 - **AI 助手**：用你自己的 API Key（Claude、OpenAI、DeepSeek、通义千问，或本地的 Ollama）问路由器的情况；需要改设置时先请你确认。
-- **桌面小组件和掉线通知**：桌面上看当前路由器的状态、速率和在线设备数；路由器连不上、恢复、有新设备接入时发通知。
+- **桌面小组件和掉线通知**：桌面上看当前路由器的状态、速率和在线设备数（Android 另有网速、在线设备、系统资源、外网、快捷操作 5 种，点 ↻ 立即刷新）；路由器连不上、恢复、有新设备接入时发通知。
 - **演示模式**：没有路由器也能先试用，内置一台模拟的 OpenWrt 路由器。
 - **隐私**：不收集任何数据，App 只和你添加的路由器通信，只在你检查更新、打开自动检查更新或安装插件时访问 GitHub；AI 助手只在你自己启用后，才联系你选的服务商。
 
@@ -141,9 +141,11 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - ✅ 检查 App 更新：Android 在 App 里下载、校验并安装新版本，iOS 打开发布页；可以打开每天自动检查（默认关闭）
 - ✅ 进程（结束、重新加载）、软件包（搜索、安装、卸载）、计划任务、LED、系统（时区、同步手机时间、修改管理密码）
 - ✅ 备份与恢复、固件升级（官方 OpenWrt 和 ImmortalWrt 可以在线升级，也可以用本地文件）、恢复出厂。这几项都是高风险操作：先提示备份，勾选并输入路由器名称才能继续，执行时全屏提示不要断电
-- ✅ SSH 终端：密码或密钥登录、主机指纹确认和固定、快捷键栏（Esc、Tab、Ctrl、方向键）、调整字号；一键把 App 的公钥装到路由器
-- ✅ AI 助手：Claude、OpenAI、DeepSeek、通义千问、Ollama 或任意 OpenAI 兼容的服务，用你自己的 API Key；查状态、设备、日志，改设置（踢掉或拉黑设备、改 Wi-Fi、加端口转发、重启服务或路由器）前在对话里请你确认；可以选择发送哪些数据、是否打码
+- ✅ SSH 终端：密码或密钥登录、主机指纹确认和固定、快捷键栏（Esc、Tab、Ctrl、方向键）、调整字号、手指滑动翻看输出、横屏；一键把 App 的公钥装到路由器
+- ✅ AI 助手：Claude、OpenAI、DeepSeek、通义千问、Ollama 或任意 OpenAI 兼容的服务，用你自己的 API Key；查状态、设备、日志，改设置（踢掉或拉黑设备、改 Wi-Fi、加端口转发、重启服务或路由器）前在对话里请你确认；可以选择发送哪些数据、是否打码；每台路由器保存多段对话，可以搜索、重命名、删除
 - ✅ 桌面小组件（iOS、Android）：当前路由器的在线状态、速率、在线设备数，点按打开 App
+  - Android 共 6 种：路由器状态、网速、在线设备、系统资源、外网、快捷操作。点小组件上的 ↻ 在后台读一次路由器（需要保存了密码），系统大约每半小时也会自动更新一次。在「更多 → 桌面小组件」里预览和添加
+  - 从 App 里添加时没反应：小米、vivo、OPPO、华为、荣耀等手机默认不允许 App 往桌面添加东西，要在 RouteLink 的应用权限里打开「桌面快捷方式」，App 会提示并带你去设置页；也可以长按桌面空白处，从「小组件」里手动添加
 - ✅ 后台通知：路由器连不上、恢复、有新设备接入（按路由器开关，需要保存密码）
 - 🚧 限速和流量配额、访问去向和 DNS 记录、上下线推送、Android 实时监控（P4）
 
@@ -180,7 +182,7 @@ RouteLink 插件装在路由器上，统计每台设备的上传和下载并保�
 - **怎么统计**：按设备 MAC 汇总连接跟踪的计数，IPv4、IPv6 都算；开着软件加速（flow offloading）也准确，在 Docker 实验环境里和终端网卡的字节数逐字节一致。
 - **保存多久**：按分钟保存 48 小时，按小时保存 90 天，按天保存 2 年；数据在路由器的 `/etc/routelink`，默认每 10 分钟写一次闪存，占用上限 32 MB，升级固件时会保留。
 - **占用**：在 x86 上（Docker 实测）52 台设备、5000 个连接时，平时占单核 0.04%，内存 1.7 MB。
-- **支持**：OpenWrt 23.05、24.10、25.12；架构 x86_64、aarch64（cortex-a53、cortex-a72、generic）、arm（cortex-a7、cortex-a9、cortex-a15）、mipsel_24kc、mips_24kc。
+- **支持**：OpenWrt 23.05、24.10、25.12，以及基于 25.12 但仍用 opkg 的固件（如 Kwrt）；架构 x86_64、aarch64（cortex-a53、cortex-a72、generic）、arm（cortex-a7、cortex-a9、cortex-a15）、mipsel_24kc、mips_24kc。
 
 **安装**
 
@@ -188,7 +190,7 @@ RouteLink 插件装在路由器上，统计每台设备的上传和下载并保�
 - **手动安装**：从 [Releases](https://github.com/tsix2019/RouteLink/releases) 下载对应版本和架构的安装包（`manifest.json` 里有清单），传到路由器上安装。架构可以用 `. /etc/openwrt_release; echo $DISTRIB_ARCH` 查看。
 
   ```sh
-  # OpenWrt 23.05 / 24.10
+  # OpenWrt 23.05 / 24.10，以及仍用 opkg 的 25.12 固件（如 Kwrt，用 25.12 的 .ipk 包）
   opkg update
   opkg install routelinkd_*.ipk luci-app-routelink_*.ipk luci-i18n-routelink-zh-cn_*.ipk
 
@@ -201,7 +203,7 @@ RouteLink 插件装在路由器上，统计每台设备的上传和下载并保�
 - **添加软件源**（以后可以在 LuCI 的软件包页面升级）。把 `24.10`、`x86_64` 换成你的版本和架构：
 
   ```sh
-  # OpenWrt 23.05 / 24.10
+  # OpenWrt 23.05 / 24.10，以及仍用 opkg 的 25.12 固件（地址里写 25.12）
   wget -O /etc/opkg/keys/a276fe73982c5f59 https://tsix2019.github.io/RouteLink/agent/keys/a276fe73982c5f59
   echo 'src/gz routelink https://tsix2019.github.io/RouteLink/agent/24.10/x86_64' >> /etc/opkg/customfeeds.conf
   opkg update && opkg install routelinkd luci-app-routelink luci-i18n-routelink-zh-cn
