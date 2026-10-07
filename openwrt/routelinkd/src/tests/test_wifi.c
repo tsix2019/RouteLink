@@ -473,6 +473,7 @@ static void test_query_minute(void)
 	/* invalid arguments */
 	T_EQ_I64(rl_sig_query(&c, 3, H(0, 4, 0), H(0, 4, 0), 0, &h), -1);
 	T_EQ_I64(rl_sig_query(&c, 3, 0, H(0, 4, 0), 0, &h), -1);
+	T_EQ_I64(rl_sig_query(&c, 3, INT64_MIN + 3600, H(0, 4, 0), 0, &h), -1); /* end - start overflows */
 	T_EQ_I64(rl_sig_query(&c, 3, H(0, 0, 0), H(0, 4, 0), RL_SIGQ_MAX_POINTS + 1, &h), -1);
 	rl_series_close(mi);
 	rl_series_close(ho);

@@ -718,7 +718,7 @@ int rl_sig_query(const rl_sigq_ctx *c, uint16_t dev, int64_t start, int64_t end,
 	memset(out, 0, sizeof(*out));
 	if (!max_points)
 		max_points = RL_SIGQ_DEFAULT_POINTS;
-	if (start >= end || end - start > RL_SIGQ_MAX_RANGE || max_points < 1 || max_points > RL_SIGQ_MAX_POINTS)
+	if (!rl_range_ok(start, end, RL_SIGQ_MAX_RANGE) || max_points < 1 || max_points > RL_SIGQ_MAX_POINTS)
 		return -1;
 	const rl_wifi_sta *st = c->wifi ? rl_wifi_find_dev(c->wifi, dev) : NULL;
 	if (st && start >= c->now - RL_WIFI_LIVE_RANGE && live_query(c, st, start, end, max_points, out))

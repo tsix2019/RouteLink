@@ -11,6 +11,7 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <syslog.h>
 #include <time.h>
@@ -18,10 +19,11 @@
 
 #include <libubox/uloop.h>
 
+#include "sys/daemon.h"
 #include "sys/speedtest.h"
 
 #define FETCH "/bin/uclient-fetch"
-#define UPLOAD_FILE "/tmp/routelink-speedtest.bin"
+#define UPLOAD_FILE RL_RUN_DIR "/speedtest.bin" /* RAM; only root writes there */
 #define UPLOAD_MAX (8 << 20)
 #define UPLOAD_MIN (256 << 10)
 #define UPLOAD_TLS (48 << 10)
@@ -245,7 +247,8 @@ static bool make_upload_file(bool tls)
 		size = UPLOAD_MIN;
 	if (tls)
 		size = UPLOAD_TLS;
-	int fd = open(UPLOAD_FILE, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
+	mkdir(RL_RUN_DIR, 0755);
+	int fd = open(UPLOAD_FILE, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC | O_NOFOLLOW, 0600);
 	if (fd < 0)
 		return false;
 	uint64_t x = (uint64_t)mono_us() | 1, buf[8192];

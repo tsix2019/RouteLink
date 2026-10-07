@@ -1129,7 +1129,7 @@ static int m_destinations(struct ubus_context *ctx, struct ubus_object *obj, str
 	if (!tb[DS_MAC] || !tb[DS_START] || !tb[DS_END] || !rl_mac_parse(blobmsg_get_string(tb[DS_MAC]), &mac))
 		return UBUS_STATUS_INVALID_ARGUMENT;
 	int64_t start = get_i64(tb[DS_START], 0), end = get_i64(tb[DS_END], 0), limit = get_i64(tb[DS_LIMIT], 100);
-	if (start >= end || limit < 1 || limit > MAX_DEST_OUT)
+	if (start < 0 || start >= end || limit < 1 || limit > MAX_DEST_OUT)
 		return UBUS_STATUS_INVALID_ARGUMENT;
 	if (!rl_devtab_find(D->devs, &mac))
 		return UBUS_STATUS_NOT_FOUND;

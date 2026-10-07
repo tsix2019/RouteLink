@@ -304,6 +304,8 @@ static void test_query(void)
 	T_EQ_I64(rl_lat_query(&c, 100, 200, 1001, ~0ULL, 0, &q), -1);
 	T_EQ_I64(rl_lat_query(&c, 100, 200, -1, ~0ULL, 0, &q), -1);
 	T_EQ_I64(rl_lat_query(&c, 0, RL_LATQ_MAX_RANGE + 1, 0, ~0ULL, 0, &q), -1);
+	/* end - start would overflow into a short range (a crash once: billions of points) */
+	T_EQ_I64(rl_lat_query(&c, INT64_MIN + 3600, H(0, 0, 0), 0, ~0ULL, ~0ULL, &q), -1);
 
 	/* older than the minute retention: hours, here only the open one (id 2 counts in the hour it was reused) */
 	c.now = H(0, 5, 30) + 8 * 86400;
@@ -355,6 +357,7 @@ static void test_outages(void)
 
 	rl_latq_ctx c = { .minute = m, .outages = o, .open = &l, .targets = &t, .now = H(2, 30, 0), .minute_days = 7 };
 	rl_outage_list r;
+	T_EQ_I64(rl_outage_query(&c, NULL, INT64_MIN + 3600, H(0, 0, 0), &r), -1);
 	T_EQ_I64(rl_outage_query(&c, NULL, H(1, 0, 0), H(2, 0, 0), &r), 0);
 	T_EQ_U64(r.count, 2);
 	T_EQ_I64(r.total_sec, 40 + 200);

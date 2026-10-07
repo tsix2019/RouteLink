@@ -329,7 +329,7 @@ int rl_lat_query(const rl_latq_ctx *c, int64_t start, int64_t end, int max_point
 	memset(out, 0, sizeof(*out));
 	if (!max_points)
 		max_points = RL_LATQ_DEFAULT_POINTS;
-	if (start >= end || end - start > RL_LATQ_MAX_RANGE || max_points < 1 || max_points > RL_LATQ_MAX_POINTS)
+	if (!rl_range_ok(start, end, RL_LATQ_MAX_RANGE) || max_points < 1 || max_points > RL_LATQ_MAX_POINTS)
 		return -1;
 	int t = tier_for(c, start);
 	rl_series *s = t == T_MIN ? c->minute : c->hour;
@@ -464,7 +464,7 @@ static int64_t probed_seconds(const rl_latq_ctx *c, int64_t start, int64_t to)
 int rl_outage_query(const rl_latq_ctx *c, const rl_outage *state, int64_t start, int64_t end, rl_outage_list *out)
 {
 	memset(out, 0, sizeof(*out));
-	if (start >= end || end - start > RL_LATQ_MAX_RANGE)
+	if (!rl_range_ok(start, end, RL_LATQ_MAX_RANGE))
 		return -1;
 	outage_ctx o = { .l = out, .start = start, .to = RL_MIN(end, c->now) };
 	if (c->outages)

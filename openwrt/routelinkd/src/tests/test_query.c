@@ -129,6 +129,8 @@ static void bad_arguments(void)
 	T_EQ_I64(rl_query_history(&ctx, &q, &h), -1);
 	q = (rl_history_q){ .start = NOW - 60, .end = NOW, .dev = 2, .max_points = 5000 };
 	T_EQ_I64(rl_query_history(&ctx, &q, &h), -1);
+	q = (rl_history_q){ .start = INT64_MIN + 3600, .end = NOW, .dev = 2 }; /* end - start overflows */
+	T_EQ_I64(rl_query_history(&ctx, &q, &h), -1);
 	q = (rl_history_q){ .start = 0, .end = NOW, .dev = 2 };
 	T_EQ_I64(rl_query_history(&ctx, &q, &h), -1);
 	q = (rl_history_q){ .start = NOW - 60, .end = NOW, .dev = 2, .hours_mask = 1u << 24 };

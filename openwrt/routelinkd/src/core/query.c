@@ -112,7 +112,7 @@ int rl_query_history(const rl_qctx *c, const rl_history_q *q, rl_history *out)
 	int max_points = q->max_points ? q->max_points : RL_QUERY_DEFAULT_POINTS;
 	if (q->start >= q->end)
 		return fail("start must be before end");
-	if (q->end - q->start > RL_QUERY_MAX_RANGE)
+	if (!rl_range_ok(q->start, q->end, RL_QUERY_MAX_RANGE))
 		return fail("range too long");
 	if (max_points < 1 || max_points > RL_QUERY_MAX_POINTS)
 		return fail("max_points out of range");
@@ -212,7 +212,7 @@ int rl_query_summary(const rl_qctx *c, const rl_summary_q *q, rl_summary *out)
 	memset(out, 0, sizeof(*out));
 	if (q->start >= q->end)
 		return fail("start must be before end");
-	if (q->end - q->start > RL_QUERY_MAX_RANGE)
+	if (!rl_range_ok(q->start, q->end, RL_QUERY_MAX_RANGE))
 		return fail("range too long");
 	if (q->hours_mask >> 24)
 		return fail("hours out of range");

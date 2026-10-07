@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <syslog.h>
 #include <time.h>
@@ -12,6 +13,7 @@
 
 #include <libubox/uloop.h>
 
+#include "sys/daemon.h"
 #include "sys/notify.h"
 #include "sys/proc.h"
 
@@ -236,7 +238,9 @@ static bool start_job(rl_notifier *n, job_t *j)
 	char timeout[24], post[RL_NOTIFY_BODY_MAX + 16], errpath[80];
 	const char *argv[10];
 	int k = 0;
-	snprintf(j->out, sizeof(j->out), "/tmp/routelink-push-%d-%u", (int)getpid(), ++n->seq);
+	/* in the daemon's own directory: only root writes there, so nobody can plant a symlink */
+	mkdir(RL_RUN_DIR, 0755);
+	snprintf(j->out, sizeof(j->out), RL_RUN_DIR "/push-%u", ++n->seq);
 	snprintf(errpath, sizeof(errpath), "%s.err", j->out);
 	snprintf(timeout, sizeof(timeout), "--timeout=%d", FETCH_TIMEOUT);
 	argv[k++] = FETCH;
@@ -259,7 +263,7 @@ static bool start_job(rl_notifier *n, job_t *j)
 	}
 	if (pid == 0) {
 		int null = open("/dev/null", O_RDWR);
-		int err = open(errpath, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+		int err = open(errpath, O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW, 0600);
 		if (null >= 0) {
 			dup2(null, 0);
 			dup2(null, 1);
