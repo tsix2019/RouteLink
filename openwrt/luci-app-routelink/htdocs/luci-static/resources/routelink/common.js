@@ -27,6 +27,15 @@ var callLatency = rpc.declare({ object: 'routelink', method: 'latency', params: 
 var callOutages = rpc.declare({ object: 'routelink', method: 'outages', params: [ 'start', 'end' ] });
 var callSpeedtestStart = rpc.declare({ object: 'routelink', method: 'speedtest_start', params: [ 'server' ] });
 var callSpeedtestStatus = rpc.declare({ object: 'routelink', method: 'speedtest_status', params: [ 'id' ] });
+var callQuotas = rpc.declare({ object: 'routelink', method: 'quotas', expect: { quotas: [] } });
+var callQuotaAllow = rpc.declare({ object: 'routelink', method: 'quota_allow', params: [ 'section', 'until' ] });
+var callDestinations = rpc.declare({
+	object: 'routelink', method: 'destinations',
+	params: [ 'mac', 'start', 'end', 'limit' ]
+});
+var callDns = rpc.declare({ object: 'routelink', method: 'dns', params: [ 'mac', 'start', 'end', 'q', 'limit', 'offset' ] });
+var callNotifyTest = rpc.declare({ object: 'routelink', method: 'notify_test', params: [ 'section' ] });
+var callNotifyStatus = rpc.declare({ object: 'routelink', method: 'notify_status' });
 var callReset = rpc.declare({ object: 'routelink', method: 'reset', params: [ 'scope' ] });
 var callCommit = rpc.declare({ object: 'routelink', method: 'commit' });
 var callInit = rpc.declare({ object: 'rc', method: 'init', params: [ 'name', 'action' ] });
@@ -299,6 +308,72 @@ function bar(value, total, color) {
 	]);
 }
 
+/* ---- limits, DNS log, destinations (P4) ---- */
+
+/* Limit rates are configured in kbit/s. */
+function formatKbps(kbps) {
+	kbps = +kbps || 0;
+	if (!kbps)
+		return _('unlimited');
+	return kbps >= 1000 ? (kbps / 1000).toFixed(kbps % 1000 ? 1 : 0) + ' Mbit/s' : kbps + ' kbit/s';
+}
+
+/* Known devices as choices of a MAC field (it still takes any address). */
+function deviceChoices(o, devices) {
+	(devices || []).forEach(function(d) {
+		var label = deviceLabel(d);
+		if (d.mac && d.mac.indexOf(':') > 0)
+			o.value(d.mac, label === d.mac ? d.mac : '%s (%s)'.format(label, d.mac));
+	});
+}
+
+/* Busiest destinations: host or address, traffic, connections. */
+function destinationTable(list, limit) {
+	var total = 0;
+	list.forEach(function(d) { total += d.rx + d.tx; });
+	var rows = list.slice(0, limit || list.length).map(function(d) {
+		return E('tr', { 'class': 'tr' }, [
+			E('td', { 'class': 'td left' }, d.host ? [ E('strong', {}, d.host), E('br'), E('small', {}, d.ip) ] : d.ip),
+			E('td', { 'class': 'td left' }, formatBytes(d.rx)),
+			E('td', { 'class': 'td left' }, formatBytes(d.tx)),
+			E('td', { 'class': 'td left' }, String(d.conns)),
+			E('td', { 'class': 'td left', width: '20%' }, bar(d.rx + d.tx, total))
+		]);
+	});
+	return E('table', { 'class': 'table' }, [
+		E('tr', { 'class': 'tr table-titles' }, [
+			E('th', { 'class': 'th' }, _('Destination')),
+			E('th', { 'class': 'th' }, _('Download')),
+			E('th', { 'class': 'th' }, _('Upload')),
+			E('th', { 'class': 'th' }, _('Connections')),
+			E('th', { 'class': 'th' }, _('Share'))
+		])
+	].concat(rows.length ? rows : [ E('tr', { 'class': 'tr placeholder' }, E('td', { 'class': 'td' }, _('No destinations in this range.'))) ]));
+}
+
+/* DNS records, newest first; byMac labels the devices (omit to leave the device column out). */
+function dnsTable(records, byMac) {
+	var rows = records.map(function(r) {
+		var result = r.rcode !== 'NOERROR' ? r.rcode : r.answers.length ? r.answers.join(', ') : _('no address');
+		return E('tr', { 'class': 'tr' }, [
+			E('td', { 'class': 'td left', style: 'white-space:nowrap' }, formatTime(r.ts)),
+			byMac ? E('td', { 'class': 'td left' }, deviceLabel(byMac[r.mac] || { mac: r.mac })) : E([]),
+			E('td', { 'class': 'td left', style: 'word-break:break-all' }, r.name),
+			E('td', { 'class': 'td left' }, r.type),
+			E('td', { 'class': 'td left', style: 'word-break:break-all' }, result)
+		]);
+	});
+	return E('table', { 'class': 'table' }, [
+		E('tr', { 'class': 'tr table-titles' }, [
+			E('th', { 'class': 'th' }, _('Time')),
+			byMac ? E('th', { 'class': 'th' }, _('Device')) : E([]),
+			E('th', { 'class': 'th' }, _('Name')),
+			E('th', { 'class': 'th' }, _('Type')),
+			E('th', { 'class': 'th' }, _('Answer'))
+		])
+	].concat(rows.length ? rows : [ E('tr', { 'class': 'tr placeholder' }, E('td', { 'class': 'td' }, _('No lookups in this range.'))) ]));
+}
+
 function csv(rows) {
 	var bom = String.fromCharCode(0xfeff); /* Excel only reads UTF-8 with a BOM */
 	return bom + rows.map(function(r) {
@@ -330,6 +405,12 @@ return baseclass.extend({
 	outages: callOutages,
 	speedtestStart: callSpeedtestStart,
 	speedtestStatus: callSpeedtestStatus,
+	quotas: callQuotas,
+	quotaAllow: callQuotaAllow,
+	destinations: callDestinations,
+	dns: callDns,
+	notifyTest: callNotifyTest,
+	notifyStatus: callNotifyStatus,
 	reset: callReset,
 	commit: callCommit,
 	initAction: callInit,
@@ -353,6 +434,10 @@ return baseclass.extend({
 	formatKbit: formatKbit,
 	formatDuration: formatDuration,
 	signalChart: signalChart,
+	formatKbps: formatKbps,
+	deviceChoices: deviceChoices,
+	destinationTable: destinationTable,
+	dnsTable: dnsTable,
 
 	/* nlbwmon zeroes conntrack counters: offer to stop it. */
 	stopNlbwmon: function() {

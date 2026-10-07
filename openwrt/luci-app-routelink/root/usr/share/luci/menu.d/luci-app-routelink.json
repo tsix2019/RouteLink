@@ -58,6 +58,42 @@
 		}
 	},
 
+	"admin/services/routelink/limits": {
+		"title": "Limits & Quotas",
+		"order": 5,
+		"action": {
+			"type": "view",
+			"path": "routelink/limits"
+		},
+		"depends": {
+			"fs": { "/var/run/routelink/ap-only": "absent" }
+		}
+	},
+
+	"admin/services/routelink/access": {
+		"title": "Access Log",
+		"order": 6,
+		"action": {
+			"type": "view",
+			"path": "routelink/dns"
+		},
+		"depends": {
+			"fs": { "/var/run/routelink/ap-only": "absent" }
+		}
+	},
+
+	"admin/services/routelink/notify": {
+		"title": "Push",
+		"order": 7,
+		"action": {
+			"type": "view",
+			"path": "routelink/notify"
+		},
+		"depends": {
+			"fs": { "/var/run/routelink/ap-only": "absent" }
+		}
+	},
+
 	"admin/services/routelink/settings": {
 		"title": "Settings",
 		"order": 9,

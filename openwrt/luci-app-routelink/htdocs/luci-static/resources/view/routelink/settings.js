@@ -41,7 +41,7 @@ return view.extend({
 	render: function(info) {
 		var self = this;
 		var m = new form.Map('routelink', _('RouteLink settings'),
-			_('Per-device traffic accounting, wireless signal history, latency probes and speed tests for the RouteLink app. Changes apply after "Save & Apply".'));
+			_('Per-device traffic accounting, wireless signal history, latency probes, speed tests, limits, the access log and push messages for the RouteLink app. Changes apply after "Save & Apply".'));
 
 		var s = m.section(form.NamedSection, 'main', 'routelink', _('General'));
 		s.addremove = false;
@@ -177,6 +177,8 @@ return view.extend({
 						_('Clear signal history')), ' ',
 					E('button', { 'class': 'btn cbi-button-negative', click: function() { self.confirmReset('latency', _('Clear latency history and outages?')); } },
 						_('Clear latency history')), ' ',
+					E('button', { 'class': 'btn cbi-button-negative', click: function() { self.confirmReset('dns', _('Clear the DNS log and destinations?')); } },
+						_('Clear access log')), ' ',
 					E('button', { 'class': 'btn cbi-button-negative', click: function() { self.confirmReset('all', _('Clear all data?')); } },
 						_('Clear everything'))
 				])

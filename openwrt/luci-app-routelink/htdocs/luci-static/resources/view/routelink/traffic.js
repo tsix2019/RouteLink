@@ -280,11 +280,21 @@ return view.extend({
 		var self = this, r = this.range(), dev = this.byMac[mac] || { mac: mac };
 		var hours = this.state.preset === 'custom' && this.state.hours ? this.state.hours : undefined;
 		ui.showModal(rl.deviceLabel(dev), [ E('p', { 'class': 'spinning' }, _('Loading…')) ]);
+		/* P4: where it went and what it looked up (DNS logging) */
+		var access = this.info.capabilities.indexOf('dns') >= 0 && mac.indexOf(':') > 0;
 		return Promise.all([
 			rl.history(mac, r[0], r[1], 'all', hours, 200),
-			L.resolveDefault(rl.events(r[0], r[1] + 60, [ 'device_online', 'device_offline', 'device_new' ], mac, 50, 0), { events: [] })
+			L.resolveDefault(rl.events(r[0], r[1] + 60, [ 'device_online', 'device_offline', 'device_new' ], mac, 50, 0), { events: [] }),
+			access ? L.resolveDefault(rl.destinations(mac, r[0], r[1], 10), { destinations: [] }) : null,
+			access ? L.resolveDefault(rl.dns(mac, r[0], r[1], undefined, 20, 0), { count: 0, records: [] }) : null
 		]).then(function(res) {
-			var h = res[0], ev = res[1].events || [];
+			var h = res[0], ev = res[1].events || [], dest = res[2] && res[2].destinations || [], dns = res[3];
+			var accessNodes = !access ? [] : !self.info.dns_enabled && !dest.length && !(dns && dns.count) ?
+				[ E('h4', {}, _('Destinations and DNS lookups')),
+					E('p', {}, [ _('DNS logging is off.') + ' ', E('a', { href: L.url('admin/services/routelink/access') }, _('Access log')) ]) ] :
+				[ E('h4', {}, _('Destinations')), rl.destinationTable(dest),
+					E('h4', {}, _('Latest DNS lookups')), rl.dnsTable(dns.records || []),
+					E('p', {}, E('a', { href: L.url('admin/services/routelink/access') }, _('Access log'))) ];
 			var rx = 0, tx = 0, peak = 0;
 			h.points.forEach(function(p) {
 				rx += p[1] || 0;
@@ -302,9 +312,10 @@ return view.extend({
 				ev.length ? E('ul', {}, ev.map(function(e) {
 					var label = { device_online: _('came online'), device_offline: _('went offline'), device_new: _('first seen') }[e.type] || e.type;
 					return E('li', {}, rl.formatTime(e.ts) + ' — ' + label);
-				})) : E('p', {}, _('No changes in this range.')),
+				})) : E('p', {}, _('No changes in this range.'))
+			].concat(accessNodes, [
 				E('div', { 'class': 'right' }, E('button', { 'class': 'btn', click: ui.hideModal }, _('Close')))
-			]);
+			]));
 		}).catch(function(e) {
 			ui.showModal(rl.deviceLabel(dev), [ E('p', {}, _('Query failed: %s').format(e.message)),
 				E('div', { 'class': 'right' }, E('button', { 'class': 'btn', click: ui.hideModal }, _('Close'))) ]);
