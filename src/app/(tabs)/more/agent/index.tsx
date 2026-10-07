@@ -164,7 +164,13 @@ function AgentContent({ status }: { status: AgentStatus }) {
               { label: t('agent:page.version'), value: info.version },
               {
                 label: t('agent:page.role'),
-                value: info.roles.includes('gateway') ? t('agent:page.roleGateway') : t('agent:page.roleOther'),
+                value: info.roles.includes('gateway')
+                  ? info.roles.includes('ap')
+                    ? t('agent:page.roleGatewayAp')
+                    : t('agent:page.roleGateway')
+                  : info.roles.includes('ap')
+                    ? t('agent:page.roleAp')
+                    : t('agent:page.roleOther'),
               },
               { label: t('agent:page.offload'), value: t(`agent:page.offloadNames.${info.offload}`) },
               {

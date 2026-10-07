@@ -2,7 +2,7 @@
  * Contract for P3 (diagnostics): the demo router and its AP must serve every diagnostics screen. Add each
  * new service function here.
  */
-import { agentEvents, getAgentStatus } from '../../services/agent';
+import { agentEvents, getAgentStatus, type AgentEventType } from '../../services/agent';
 import {
   agentLatency,
   agentOutages,
@@ -57,7 +57,7 @@ describe('demo plugin: latency and outages', () => {
     expect(day.availability).toBeLessThan(100);
     const month = await agentOutages(conn, { start: now - 30 * 86_400, end: now });
     expect(month.count).toBeGreaterThan(day.count);
-    const types = ['wan_down', 'wan_up'];
+    const types: AgentEventType[] = ['wan_down', 'wan_up'];
     expect((await agentEvents(conn, { start: now - 86_400, end: now, types })).count).toBe(0);
     const ev = await agentEvents(conn, { start: now - 30 * 86_400, end: now, types });
     expect(ev.events.map((e) => e.type)).toEqual(expect.arrayContaining(['wan_down', 'wan_up']));

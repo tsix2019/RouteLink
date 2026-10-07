@@ -438,7 +438,7 @@ function IntruderListRow({ row, picked, onPress }: { row: IntruderRow; picked?: 
             <Badge key={tag.label} label={tag.label} tone={tag.tone} />
           ))}
         </View>
-        <AppText variant="footnote" tone="secondary" numberOfLines={1} selectable>
+        <AppText variant="footnote" tone="secondary" numberOfLines={1}>
           {[c.ipv4, c.mac, vendor].filter(Boolean).join(' · ')}
         </AppText>
         <AppText variant="footnote" tone="secondary" numberOfLines={1}>

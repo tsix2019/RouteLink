@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Line, Path } from 'react-native-svg';
 
@@ -62,6 +62,14 @@ export function ChannelChart({
     ];
     return pts.map(([px, py], i) => `${i ? 'L' : 'M'}${px.toFixed(1)},${py.toFixed(1)}`).join('') + 'Z';
   };
+  // A wide band (5 GHz) scrolls: start where the advice is, else at the radio's own channel.
+  const scroll = useRef<ScrollView>(null);
+  const focus = target ?? self;
+  const focusX = focus && width > box ? Math.min(width - box, Math.max(0, x(focus.low) - box * 0.25)) : 0;
+  useEffect(() => {
+    if (box > 0) scroll.current?.scrollTo({ x: focusX, animated: false });
+  }, [box, focusX]);
+
   // Weak ones first, so strong networks are drawn on top.
   const sorted = [...networks].sort((a, b) => a.signal - b.signal);
   const labelled = sorted.filter((n) => (n.own || n.signal >= LABEL_FROM) && n.ssid);
@@ -69,7 +77,12 @@ export function ChannelChart({
   return (
     <View onLayout={(e) => setBox(e.nativeEvent.layout.width)} testID={testID} accessibilityRole="image">
       {box > 0 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={width > box} scrollEnabled={width > box}>
+        <ScrollView
+          ref={scroll}
+          horizontal
+          showsHorizontalScrollIndicator={width > box}
+          scrollEnabled={width > box}
+          contentOffset={{ x: focusX, y: 0 }}>
           <View style={{ width, height }}>
             <Svg width={width} height={height}>
               <Line x1={0} x2={width} y1={base} y2={base} stroke={colors.separator} strokeWidth={1} />
