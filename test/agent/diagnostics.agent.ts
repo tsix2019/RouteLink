@@ -11,6 +11,7 @@ import { execFileSync } from 'node:child_process';
 
 import { nodeHttpClient } from '../../src/api/http/node';
 import { UbusSession } from '../../src/api/ubus/session';
+import { answeredProbes, waitForProbes } from './lab-probes';
 
 const ROUTER_URL = process.env.ROUTER_URL ?? 'http://127.0.0.1:18280';
 const ROUTER = process.env.ROUTER_CONTAINER ?? 'routelink-agent-owrt';
@@ -95,19 +96,18 @@ beforeAll(async () => {
   expect(info.capabilities).toEqual(expect.arrayContaining(['latency', 'speedtest']));
   expect(info.modules).toEqual(expect.arrayContaining(['latency', 'speedtest']));
   savedTargets = sh(ROUTER, 'uci -q get routelink.probe.target || true');
+  const from = now() - 600;
+  const before = await answeredProbes(call, SERVER_IP, from);
   sh(
     ROUTER,
     `uci -q delete routelink.probe.target; uci set routelink.probe=probe; uci set routelink.probe.enabled=1; ` +
       `uci set routelink.probe.gateway=1; uci add_list routelink.probe.target=${SERVER_IP}; ` +
       `uci commit routelink; reload_config`,
   );
-  // a few rounds (10 s apart) to the lab server
-  await waitFor('probes of the lab server', 60, async () => {
-    const { summary } = await serverSummary();
-    return summary && summary.sent - summary.lost >= 3 ? summary : undefined;
-  });
-  // From here on: before the lab server was the target, the default ones may not answer at all (CI runners
-  // drop ICMP to the internet), which the daemon rightly logs as an outage of its own.
+  // A few rounds (10 s apart) answered since the switch, not the ones an earlier suite got (control.agent.ts
+  // probes the lab server too); and an outage the default targets began (CI runners drop ICMP to the
+  // internet) has to be over before the tests below count theirs.
+  await waitForProbes(call, SERVER_IP, from, before + 3);
   started = now();
 });
 

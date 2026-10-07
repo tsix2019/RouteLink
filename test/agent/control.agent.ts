@@ -17,6 +17,7 @@ import { execFileSync } from 'node:child_process';
 
 import { nodeHttpClient } from '../../src/api/http/node';
 import { UbusSession } from '../../src/api/ubus/session';
+import { answeredProbes, waitForProbes } from './lab-probes';
 
 const ROUTER_URL = process.env.ROUTER_URL ?? 'http://127.0.0.1:18280';
 const ROUTER = process.env.ROUTER_CONTAINER ?? 'routelink-agent-owrt';
@@ -115,13 +116,17 @@ beforeAll(async () => {
   // the device must be known to the daemon (destinations refuse unknown MACs)
   sh(CLIENT, `curl -s -o /dev/null http://${SERVER_IP}:8080/1000`);
   // CI runners drop ICMP to the internet: with the default probe targets the daemon sees an outage, and
-  // push messages wait for it to end. Probe the lab server instead.
+  // push messages wait for it to end. Probe the lab server instead, until an answer ended any such outage
+  // (an earlier suite may have restored the default targets a while ago).
   savedTargets = sh(ROUTER, 'uci -q get routelink.probe.target || true');
+  const from = now() - 600;
+  const before = await answeredProbes(call, SERVER_IP, from);
   uci(
     `while uci -q delete routelink.@quota[0]; do :; done; uci -q delete routelink.rltest; uci -q delete routelink.rlfail; ` +
       `uci set routelink.dns=dns; uci set routelink.dns.enabled=0; ` +
       `uci set routelink.probe=probe; uci -q delete routelink.probe.target; uci add_list routelink.probe.target=${SERVER_IP}`,
   );
+  await waitForProbes(call, SERVER_IP, from, before + 1);
   // channels of an earlier run must be gone before the test adds them again (or it may talk to the old ones)
   await waitFor('the old test channels to go', 20, async () =>
     (await channels()).some((c) => TEST_CHANNELS.includes(c)) ? undefined : true,
@@ -244,9 +249,11 @@ describe('quota', () => {
     if (!supported) return;
     // software offloading on: the established connection runs in the flowtable (where the kernel has one)
     sh(ROUTER, 'uci set firewall.@defaults[0].flow_offloading=1; uci commit firewall; fw4 -q reload');
+    // first far above today's use, to read it: the unlimited rate tests (limits.agent.ts) alone move tens of
+    // GB a run, at the speed of a Docker bridge
     uci(
       `uci add routelink quota >/dev/null; uci set routelink.@quota[-1].mac=${mac}; ` +
-        `uci set routelink.@quota[-1].period=day; uci set routelink.@quota[-1].limit_mb=100000; ` +
+        `uci set routelink.@quota[-1].period=day; uci set routelink.@quota[-1].limit_mb=100000000; ` +
         `uci set routelink.@quota[-1].action=block`,
     );
     const q0 = await waitFor('the quota', 20, () => quotaOf(mac));
@@ -262,7 +269,10 @@ describe('quota', () => {
       { env },
     );
     await sleep(3000);
-    sh(CLIENT, `curl -s -o /dev/null http://${SERVER_IP}:8080/${(limitMb + 1) * 1048576}`);
+    // what is left of the quota and a MB more: not the whole quota again, which after the rate tests is tens
+    // of GB that would still be on the way when the block comes (curl then waits for good)
+    const over = (limitMb + 1) * 1048576 - q0.used;
+    sh(CLIENT, `curl -s -m 60 -o /dev/null http://${SERVER_IP}:8080/${over}`);
     // the next sample counts it, the next minute acts on it
     const q = await waitFor('the block', 100, async () => {
       await call('live');
