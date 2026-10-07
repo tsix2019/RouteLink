@@ -144,3 +144,7 @@ config retention 'retention'
 | T7–T11 App 逻辑和演示 | 完成。一键诊断的数据收集（`diagnose.ts`）在演示网络上整套跑通：演示数据里几小时前有一次重新拨号，所以 WAN 和近期稳定性两段是警告 |
 | T12–T16 界面 | 完成（子任务）。HTTP 204 检查依次试 `connectivitycheck.gstatic.com`、`www.google.cn`、`cp.cloudflare.com`，5 秒内任意一个返回 204 就算通过，需要在国内真实网络里确认；手机自己的 Wi-Fi 信号：原生模块的网络信息里没有这一项，暂不显示（§0.8 允许） |
 | `latency` 的 `max_points` | 和 `history` 一样 1～1000；导出 CSV 每个目标取 1000 个点 |
+| CI 集成测试 | `diagnostics.agent.ts` 在 23.05、24.10、25.12 上通过。GitHub 的运行环境不放行出站 ICMP，默认探测目标一直不通，守护进程会如实记一次断网，所以测试从实验环境的服务器开始应答时算起 |
+| 测速上传文件 | 实际取可用内存的 1/64（最少 256 KB，最多 8 MB；https 时 48 KB），比计划的 1/16 小：路由器内存小，而且 4 个连接循环发送同一个文件 |
+| 代码审查 | 修了：`latency`、`signal`（以及 P1 的 `history`、`summary`）的时间范围检查在 `start` 接近 INT64_MIN 时溢出，只读账号就能让守护进程分配巨量内存后退出（改为无符号求差，加了单元测试）；推送和测速的临时文件从 `/tmp` 移到 `/var/run/routelink`；手机测速在慢上行时上传速率被严重高估（2 Mbit/s 算成 160），HTTP 错误页被当成数据测量；一键诊断把"路由器上没能执行 ping"当成 100% 丢包 |
+| T17 收尾 | README 中英文更新，设计文档同步 |
