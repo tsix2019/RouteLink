@@ -343,6 +343,8 @@ int rl_shaper_sync(rl_shaper *s, bool check)
 	}
 	if (!failing)
 		s->error[0] = '\0';
+	if (s->n_rules && !s->n_ports)
+		snprintf(s->error, sizeof(s->error), "no LAN port found to set the limits on");
 	write_marker(s);
 	return applied;
 }
