@@ -24,9 +24,9 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - **AI 助手**：用你自己的 API Key（Claude、OpenAI、DeepSeek、通义千问，或本地的 Ollama）问路由器的情况；需要改设置时先请你确认。
 - **桌面小组件和掉线通知**：桌面上看当前路由器的状态、速率和在线设备数；路由器连不上、恢复、有新设备接入时发通知。
 - **演示模式**：没有路由器也能先试用，内置一台模拟的 OpenWrt 路由器。
-- **隐私**：不收集任何数据，App 只和你添加的路由器通信；AI 助手只在你自己启用后，才联系你选的服务商。
+- **隐私**：不收集任何数据，App 只和你添加的路由器通信，只在你检查更新、打开自动检查更新或安装插件时访问 GitHub；AI 助手只在你自己启用后，才联系你选的服务商。
 
-> App 的四个里程碑（M1～M4）和路由器插件的第一期（P1）已完成，后续功能见下面的功能清单。
+> App 的五个里程碑（M1～M5）和路由器插件的第一期（P1）已完成，后续功能见下面的功能清单。
 
 ## 截图
 
@@ -138,6 +138,7 @@ RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Androi
 - ✅ 网络唤醒常用设备列表
 - ✅ 管理路由器（排序、编辑、删除、证书）、语言、外观、刷新间隔、降低透明度、演示模式
 - ✅ 路由器插件：一键安装、检查更新、重启、清空数据、卸载
+- ✅ 检查 App 更新：Android 在 App 里下载、校验并安装新版本，iOS 打开发布页；可以打开每天自动检查（默认关闭）
 - ✅ 进程（结束、重新加载）、软件包（搜索、安装、卸载）、计划任务、LED、系统（时区、同步手机时间、修改管理密码）
 - ✅ 备份与恢复、固件升级（官方 OpenWrt 和 ImmortalWrt 可以在线升级，也可以用本地文件）、恢复出厂。这几项都是高风险操作：先提示备份，勾选并输入路由器名称才能继续，执行时全屏提示不要断电
 - ✅ SSH 终端：密码或密钥登录、主机指纹确认和固定、快捷键栏（Esc、Tab、Ctrl、方向键）、调整字号；一键把 App 的公钥装到路由器
@@ -226,7 +227,7 @@ RouteLink 插件装在路由器上，统计每台设备的上传和下载并保�
 - 自动发现的探测请求不带任何账号信息。
 - App 生成的 SSH 私钥存在钥匙串里，不会离开手机；装到路由器上的只是公钥。
 - AI 助手默认不启用。只有你填了自己的 API Key、看过说明并同意后，才会把你的问题和回答需要的路由器数据（状态、设备列表、无线和防火墙设置、系统日志）发给你选的服务商。MAC 地址和公网 IP 默认打码，每类数据都可以单独关闭，密码和密钥永远不会发送。对话只存在手机上。
-- 不收集任何统计数据，没有广告，App 不联系任何自有服务器。
+- 不收集任何统计数据，没有广告，App 不联系任何自有服务器；只在你检查更新、打开自动检查更新或安装插件时访问 GitHub。
 - 仓库里的测试数据只来自演示模式和一次性的虚拟路由器（Docker / QEMU），不包含任何真实路由器的数据。
 
 ## 从源码构建
@@ -276,6 +277,8 @@ openwrt/                   路由器插件：routelinkd（C 守护进程）、lu
 - M1 实施计划与执行记录：[docs/superpowers/plans/2026-10-05-routelink-m1.md](docs/superpowers/plans/2026-10-05-routelink-m1.md)
 - 插件设计：[docs/superpowers/specs/2026-10-05-routelink-agent-design.md](docs/superpowers/specs/2026-10-05-routelink-agent-design.md)
 - P1 实施计划与执行记录：[docs/superpowers/plans/2026-10-05-routelink-p1.md](docs/superpowers/plans/2026-10-05-routelink-p1.md)
+- M5 设计（二级页面、软件更新）：[docs/superpowers/specs/2026-10-06-routelink-m5-design.md](docs/superpowers/specs/2026-10-06-routelink-m5-design.md)
+- M5 实施计划与执行记录：[docs/superpowers/plans/2026-10-06-routelink-m5.md](docs/superpowers/plans/2026-10-06-routelink-m5.md)
 
 ## 致谢
 
