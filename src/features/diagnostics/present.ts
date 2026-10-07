@@ -33,6 +33,10 @@ const join = (parts: (string | undefined | false)[]) => parts.filter(Boolean).jo
 export function segmentFacts(t: AppT, lang: AppLanguage, r: SegmentResult, o: { plugin?: boolean } = {}): string[] {
   const f = r.facts;
   const skipped = r.verdict.status === 'skip';
+  // A router command (ping, nslookup) that was refused or failed: the check could not be made.
+  const notRun = text(f, 'notRun');
+  const notRunText = notRun ? t('diagnostics:facts.notRun', { tool: notRun }) : undefined;
+  const notRunLine = notRunText ? [notRunText] : [];
   switch (r.segment) {
     case 'phone-wifi': {
       const signal = num(f, 'signal');
@@ -57,8 +61,10 @@ export function segmentFacts(t: AppT, lang: AppLanguage, r: SegmentResult, o: { 
             ]),
       ];
     }
-    case 'ap-uplink':
-      return [skipped ? t('diagnostics:facts.noAps') : t('diagnostics:facts.apLoss', { list: text(f, 'aps') ?? '—' })];
+    case 'ap-uplink': {
+      const aps = text(f, 'aps');
+      return aps ? [t('diagnostics:facts.apLoss', { list: aps }), ...notRunLine] : [t('diagnostics:facts.noAps')];
+    }
     case 'wan': {
       const proto = text(f, 'proto');
       if (!proto) return [t('diagnostics:facts.wanMissing')];
@@ -82,12 +88,12 @@ export function segmentFacts(t: AppT, lang: AppLanguage, r: SegmentResult, o: { 
           t('diagnostics:facts.nexthop', { ip: hop }),
           avg !== undefined
             ? t('diagnostics:facts.avg', { ms: round1(avg) })
-            : r.verdict.status === 'fail' && t('diagnostics:facts.noReply'),
+            : (notRunText ?? (r.verdict.status === 'fail' && t('diagnostics:facts.noReply'))),
         ]),
       ];
     }
     case 'dns':
-      return [t('diagnostics:facts.dns', { list: text(f, 'ms') ?? '—' })];
+      return [t('diagnostics:facts.dns', { list: text(f, 'ms') ?? '—' }), ...notRunLine];
     case 'internet': {
       const loss = num(f, 'lossPct');
       const avg = num(f, 'avgMs');
@@ -101,6 +107,7 @@ export function segmentFacts(t: AppT, lang: AppLanguage, r: SegmentResult, o: { 
                 avg !== undefined && t('diagnostics:facts.avg', { ms: round1(avg) }),
               ]),
             ]),
+        ...notRunLine,
         ...(http === true
           ? [t('diagnostics:facts.http204Ok')]
           : http === false

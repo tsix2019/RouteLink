@@ -1,5 +1,6 @@
 import type { RouterConnection } from '@/api/connection/types';
 import type { GroupMember } from '@/api/group';
+import { isConnectivityError } from '@/api/http/errors';
 import { agentEvents } from '@/api/services/agent';
 import { agentLatency, agentOutages, lossPct } from '@/api/services/agent-diag';
 import type { Client } from '@/api/services/clients';
@@ -57,12 +58,19 @@ export const DNS_NAMES = ['www.baidu.com', 'www.apple.com'];
 
 const lossOf = (p: PingSummary) => (p.transmitted ? p.lossPct : 100);
 
-async function pingFrom(conn: RouterConnection, host: string, count: number): Promise<PingSummary | null> {
+/**
+ * A ping run on a router: its summary (no replies is 100 % loss), or why it never ran. `failed`: the
+ * router refused the command (no `file exec` for it) or the call failed; `unreachable`: the phone could
+ * not reach that router at all. Neither says anything about the path being pinged.
+ */
+type PingRun = { summary: PingSummary; error?: undefined } | { summary?: undefined; error: 'failed' | 'unreachable' };
+
+async function pingFrom(conn: RouterConnection, host: string, count: number): Promise<PingRun> {
   try {
     const r = await runTool(conn, 'ping', host, { count });
-    return r.tool === 'ping' ? r.summary : null;
-  } catch {
-    return null;
+    return r.tool === 'ping' ? { summary: r.summary } : { error: 'failed' };
+  } catch (e) {
+    return { error: isConnectivityError(e) ? 'unreachable' : 'failed' };
   }
 }
 
@@ -105,10 +113,17 @@ export async function runDiagnosis(
   const lanIp = ifaces.find((i) => i.name === 'lan')?.ipv4[0]?.address;
   const reachable = input.members.filter((m) => m.connection);
   const uplinks = await Promise.all(
-    reachable.map(async (m) => ({ m, p: lanIp ? await pingFrom(m.connection!, lanIp, 5) : null })),
+    reachable.map(async (m) => {
+      const p: PingRun = lanIp ? await pingFrom(m.connection!, lanIp, 5) : { error: 'failed' };
+      // An AP the phone cannot reach at all is cut off: that is its link failing, not the ping.
+      return { m, p, loss: p.summary ? lossOf(p.summary) : p.error === 'unreachable' ? 100 : null };
+    }),
   );
-  report('ap-uplink', apUplink(uplinks.map((u) => ({ lossPct: u.p ? lossOf(u.p) : null }))), {
-    aps: uplinks.map((u) => `${u.m.name}: ${u.p ? `${Math.round(lossOf(u.p))}%` : '—'}`).join(', ') || undefined,
+  const apLoss = (u: (typeof uplinks)[number]) =>
+    u.p.summary ? `${Math.round(lossOf(u.p.summary))}%` : u.p.error === 'unreachable' ? '✕' : '—';
+  report('ap-uplink', apUplink(uplinks.map((u) => ({ lossPct: u.loss }))), {
+    aps: uplinks.map((u) => `${u.m.name}: ${apLoss(u)}`).join(', ') || undefined,
+    notRun: uplinks.some((u) => u.p.error === 'failed') ? 'ping' : undefined,
   });
 
   // 3. The gateway's WAN, with reconnects in the last day from the plugin.
@@ -126,36 +141,43 @@ export async function runDiagnosis(
     redials,
   });
 
-  // 4. The next hop upstream.
-  const hop = w?.gateway ? await pingFrom(input.gateway, w.gateway, 5) : null;
-  report('upstream', upstream({ lossPct: hop ? lossOf(hop) : w?.gateway ? 100 : null }), {
+  // 4. The next hop upstream. A ping that could not run is unknown, not a dead line.
+  const hop = w?.gateway ? await pingFrom(input.gateway, w.gateway, 5) : undefined;
+  report('upstream', upstream({ lossPct: hop?.summary ? lossOf(hop.summary) : null }), {
     nexthop: w?.gateway,
-    avgMs: hop?.avg,
+    avgMs: hop?.summary?.avg,
+    notRun: hop?.error ? 'ping' : undefined,
   });
 
-  // 5 + 6. Public addresses (also decides whether DNS advice makes sense), then names.
-  const pings = await Promise.all(PUBLIC_TARGETS.map((ip) => pingFrom(input.gateway, ip, 4)));
-  const sent = pings.reduce((s, p) => s + (p?.transmitted ?? 4), 0);
-  const got = pings.reduce((s, p) => s + (p?.received ?? 0), 0);
-  const publicLoss = sent ? ((sent - got) / sent) * 100 : null;
+  // 5 + 6. Public addresses and the phone's HTTP check (together they decide whether DNS advice makes
+  // sense), then names. Only pings that ran count; one that sent nothing (no route) lost all four.
+  const runs = await Promise.all(PUBLIC_TARGETS.map((ip) => pingFrom(input.gateway, ip, 4)));
+  const pings = runs.flatMap((p) => (p.summary ? [p.summary] : []));
+  const sent = pings.reduce((s, p) => s + (p.transmitted || 4), 0);
+  const got = pings.reduce((s, p) => s + p.received, 0);
+  const publicLoss = pings.length ? ((sent - got) / sent) * 100 : null;
   const lookups = await Promise.all(
     DNS_NAMES.map(async (name) => {
       try {
         const r = await runTool(input.gateway, 'nslookup', name);
-        return { name, ok: r.tool === 'nslookup' && r.summary.answers.length > 0, ms: r.ms };
+        return { name, ran: true, ok: r.tool === 'nslookup' && r.summary.answers.length > 0, ms: r.ms };
       } catch {
-        return { name, ok: false, ms: 0 };
+        return { name, ran: false, ok: false, ms: 0 };
       }
     }),
   );
-  report('dns', dns(lookups, publicLoss !== null && publicLoss < 100), {
-    ms: lookups.map((l) => `${l.name} ${l.ok ? `${l.ms} ms` : '✕'}`).join(', '),
-  });
   const http = input.http204 ? await input.http204().catch(() => false) : undefined;
+  const online = (publicLoss !== null && publicLoss < 100) || http === true;
+  const resolved = lookups.filter((l) => l.ran);
+  report('dns', dns(resolved, online), {
+    ms: lookups.map((l) => `${l.name} ${!l.ran ? '—' : l.ok ? `${l.ms} ms` : '✕'}`).join(', '),
+    notRun: resolved.length < lookups.length ? 'nslookup' : undefined,
+  });
   report('internet', internet({ lossPct: publicLoss, http204: http }), {
     lossPct: publicLoss,
-    avgMs: pings.find((p) => p?.avg !== undefined)?.avg,
+    avgMs: pings.find((p) => p.avg !== undefined)?.avg,
     http204: http,
+    notRun: pings.length < runs.length ? 'ping' : undefined,
   });
 
   // 7. The last 24 hours from the plugin's probes.

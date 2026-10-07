@@ -47,11 +47,14 @@ export function phoneWifi(f: PhoneWifiFacts): Verdict {
   return verdict(status, status === 'ok' ? [] : weak ? ['move-closer', 'optimize-channel'] : ['optimize-channel']);
 }
 
-/** Each AP pinging the gateway: warn over 1 % loss, fail over 10 %. */
+/**
+ * Each AP pinging the gateway: warn over 1 % loss, fail over 10 %. `null`: the ping could not run there
+ * (command refused, no LAN address to ping), which says nothing about the link and is left out.
+ */
 export function apUplink(aps: { lossPct: number | null }[]): Verdict {
-  if (!aps.length) return verdict('skip');
-  const statuses = aps.map((a) => (a.lossPct === null || a.lossPct > 10 ? 'fail' : a.lossPct > 1 ? 'warn' : 'ok'));
-  const status = worst(...statuses);
+  const known = aps.flatMap((a) => (a.lossPct === null ? [] : [a.lossPct]));
+  if (!known.length) return verdict('skip');
+  const status = worst(...known.map((l) => (l > 10 ? 'fail' : l > 1 ? 'warn' : 'ok')));
   return verdict(status, status === 'ok' ? [] : ['check-ap-cable']);
 }
 
@@ -69,7 +72,10 @@ export function wan(f: WanFacts): Verdict {
   return verdict('ok');
 }
 
-/** Pinging the WAN's next hop: warn over 2 % loss, fail when it does not answer at all. */
+/**
+ * Pinging the WAN's next hop: warn over 2 % loss, fail when it does not answer at all. `null`: no next hop,
+ * or the ping could not run on the router (skipped, not blamed on the provider).
+ */
 export function upstream(f: { lossPct: number | null }): Verdict {
   if (f.lossPct === null) return verdict('skip');
   if (f.lossPct >= 100) return verdict('fail', ['isp-upstream', 'outage-log']);
@@ -85,7 +91,10 @@ export function dns(lookups: { ok: boolean; ms: number }[], internetReachable: b
   return verdict('ok');
 }
 
-/** Ping to public addresses plus the phone's HTTP 204 check: warn over 2 % loss, fail over 10 % or no 204. */
+/**
+ * Ping to public addresses plus the phone's HTTP 204 check: warn over 2 % loss, fail over 10 % or no 204.
+ * `lossPct` is null when the pings could not run on the router; the HTTP check alone decides then.
+ */
 export function internet(f: { lossPct: number | null; http204?: boolean }): Verdict {
   if (f.lossPct === null && f.http204 === undefined) return verdict('skip');
   const status = worst(

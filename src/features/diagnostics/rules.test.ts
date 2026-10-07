@@ -18,7 +18,16 @@ describe('segments', () => {
   it('AP uplinks', () => {
     expect(apUplink([]).status).toBe('skip');
     expect(apUplink([{ lossPct: 0 }, { lossPct: 5 }]).status).toBe('warn');
-    expect(apUplink([{ lossPct: 0 }, { lossPct: null }])).toEqual({ status: 'fail', advice: ['check-ap-cable'] });
+    expect(apUplink([{ lossPct: 0 }, { lossPct: 100 }])).toEqual({ status: 'fail', advice: ['check-ap-cable'] });
+  });
+
+  it('leaves out pings that could not run instead of counting them as loss', () => {
+    expect(apUplink([{ lossPct: 0 }, { lossPct: null }]).status).toBe('ok');
+    expect(apUplink([{ lossPct: null }])).toEqual({ status: 'skip', advice: [] });
+    expect(upstream({ lossPct: null })).toEqual({ status: 'skip', advice: [] });
+    expect(internet({ lossPct: null, http204: true })).toEqual({ status: 'ok', advice: [] });
+    expect(internet({ lossPct: null, http204: false }).status).toBe('fail');
+    expect(internet({ lossPct: null })).toEqual({ status: 'skip', advice: [] });
   });
 
   it('WAN', () => {

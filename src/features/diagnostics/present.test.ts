@@ -64,6 +64,31 @@ it('says why the stability check was skipped', async () => {
   expect(segmentFacts(t(), 'en', stability, { plugin: true })).toEqual(['The plugin returned no latency data']);
 });
 
+it('says when a router command could not run', () => {
+  const r = (segment: SegmentResult['segment'], facts: SegmentResult['facts']): SegmentResult => ({
+    segment,
+    verdict: { status: 'skip', advice: [] },
+    facts,
+  });
+  const facts = (x: SegmentResult) => segmentFacts(t(), 'en', x);
+  expect(facts(r('ap-uplink', { aps: 'AP: —', notRun: 'ping' }))).toEqual([
+    'Loss pinging the gateway: AP: —',
+    'Could not run ping on the router',
+  ]);
+  expect(facts(r('ap-uplink', {}))).toEqual(['No reachable access points in the network group']);
+  expect(facts(r('upstream', { nexthop: '100.64.0.1', notRun: 'ping' }))).toEqual([
+    'Next hop 100.64.0.1 · Could not run ping on the router',
+  ]);
+  expect(facts(r('dns', { ms: 'www.apple.com —', notRun: 'nslookup' }))).toEqual([
+    'Lookups: www.apple.com —',
+    'Could not run nslookup on the router',
+  ]);
+  expect(facts(r('internet', { lossPct: null, http204: true, notRun: 'ping' }))).toEqual([
+    'Could not run ping on the router',
+    'HTTP check passed',
+  ]);
+});
+
 it('heads the result with the nearest problem', () => {
   const r = (segment: SegmentResult['segment'], status: 'ok' | 'warn' | 'fail' | 'skip'): SegmentResult => ({
     segment,

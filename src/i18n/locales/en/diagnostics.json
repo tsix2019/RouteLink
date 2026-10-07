@@ -71,6 +71,7 @@
     "nexthop": "Next hop {{ip}}",
     "avg": "average {{ms}} ms",
     "noReply": "no reply",
+    "notRun": "Could not run {{tool}} on the router",
     "dns": "Lookups: {{list}}",
     "publicLoss": "Loss pinging public addresses {{loss}}%",
     "http204Ok": "HTTP check passed",

@@ -71,6 +71,7 @@
     "nexthop": "上一跳 {{ip}}",
     "avg": "平均 {{ms}} ms",
     "noReply": "不通",
+    "notRun": "无法在路由器上运行 {{tool}}",
     "dns": "解析 {{list}}",
     "publicLoss": "ping 公共地址丢包 {{loss}}%",
     "http204Ok": "HTTP 检查通过",
