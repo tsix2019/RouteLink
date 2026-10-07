@@ -124,7 +124,8 @@ export default function SoftwareUpdate() {
             <Skeleton height={96} radius={12} />
           ) : null}
           {ANDROID && newer.apk ? (
-            <ApkActions apk={newer.apk} htmlUrl={newer.htmlUrl} mirror={mirrorDraft.trim()} />
+            // Keyed by the APK: a newer release found meanwhile starts over (its file is not downloaded yet).
+            <ApkActions key={newer.apk.name} apk={newer.apk} htmlUrl={newer.htmlUrl} mirror={mirrorDraft.trim()} />
           ) : (
             <>
               <GlassButton
