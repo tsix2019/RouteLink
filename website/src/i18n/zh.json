@@ -1,0 +1,465 @@
+{
+  "meta": {
+    "title": "RouteLink — 把 OpenWrt 装进口袋",
+    "description": "RouteLink 是一款管理 OpenWrt 路由器的 iOS 和 Android App：自动发现、按设备统计流量、安全修改配置、SSH 终端、AI 助手、桌面小组件。开源免费，不收集任何数据。"
+  },
+  "nav": {
+    "label": "主导航",
+    "features": "功能",
+    "tour": "导览",
+    "screens": "截图",
+    "plugin": "插件",
+    "privacy": "隐私",
+    "download": "下载",
+    "langShort": "EN",
+    "langLabel": "Switch to English",
+    "theme": "切换浅色或深色",
+    "github": "在 GitHub 上查看",
+    "menu": "菜单"
+  },
+  "hero": {
+    "eyebrow": "开源 · 免费 · iOS 与 Android",
+    "title": "把 <span class=\"grad\">OpenWrt</span><br>装进口袋",
+    "lead": "RouteLink 是为 OpenWrt 路由器打造的手机 App。iOS 26 液态玻璃设计，看状态、管设备、改配置、按设备统计流量，一只手就够了。",
+    "ctaDownload": "免费下载",
+    "ctaGithub": "GitHub",
+    "meta1": "iOS 17+ · Android 8+",
+    "meta2": "OpenWrt 21.02+",
+    "meta3": "最新版本",
+    "cardLive": "实时流量",
+    "down": "下行",
+    "up": "上行",
+    "cardDevices": "在线设备",
+    "cardDevicesSub": "无线 9 · 有线 4",
+    "toastTitle": "新设备接入",
+    "toastBody": "Galaxy-S25 连上了演示路由器",
+    "scroll": "向下滚动"
+  },
+  "marquee": {
+    "label": "兼容性",
+    "tested": "实测 OpenWrt 23.05 · 24.10 · 25.12",
+    "langs": "中文 / English",
+    "mit": "MIT 开源",
+    "noads": "无广告 · 无统计",
+    "demo": "内置演示模式"
+  },
+  "features": {
+    "eyebrow": "功能",
+    "title": "管理路由器要用的，<br>都在手边",
+    "lead": "从查看状态到改防火墙，日常操作都不用再打开 LuCI。",
+    "discover": {
+      "title": "自动发现",
+      "body": "扫描手机所在的局域网，找出 OpenWrt 设备，旁路由也能找到；也可以扫描指定网段或手动输入地址。",
+      "side": "旁路由"
+    },
+    "traffic": {
+      "title": "按设备统计流量",
+      "body": "配合路由器插件，看每台设备的实时速率，以及任意时间段、按天、按月的用量。",
+      "today": "今天",
+      "week": "7 天",
+      "month": "本月"
+    },
+    "safe": {
+      "title": "改配置更安全",
+      "body": "所有改动都走 OpenWrt 自带的“应用 + 确认”：App 联系不上路由器时，路由器 90 秒后自动撤销。",
+      "seconds": "秒",
+      "waiting": "等待 App 确认",
+      "confirmed": "已确认，改动生效",
+      "rolledBack": "联系不上，已自动撤销"
+    },
+    "ssh": {
+      "title": "SSH 终端",
+      "body": "在 App 里直接用路由器的命令行；首次连接确认主机指纹，指纹变了会拦下来。"
+    },
+    "multi": {
+      "title": "多台路由器",
+      "body": "添加多台路由器，在左上角的胶囊里一键切换。",
+      "r1": "家里",
+      "r2": "办公室",
+      "r3": "爸妈家"
+    },
+    "ai": {
+      "title": "AI 助手",
+      "body": "用你自己的 API Key 问路由器的情况；要改设置时，先在对话里请你确认。",
+      "q": "今天谁用流量最多？",
+      "a": "Living-Room-TV 用了 10.0 GB，占今天下行的 38%。要给它限速吗？",
+      "confirm": "限速 Living-Room-TV · 需要你确认",
+      "qwen": "通义千问"
+    },
+    "widgets": {
+      "title": "小组件与通知",
+      "body": "桌面上看路由器状态、速率和在线设备；连不上、恢复、有新设备接入时提醒你。",
+      "toastTitle": "新设备接入",
+      "toastBody": "iPhone-16-Pro 连上了家里的路由器",
+      "now": "刚刚"
+    },
+    "glass": {
+      "title": "iOS 26 液态玻璃",
+      "body": "iOS 上用系统原生的液态玻璃；Android 上按同样的设计绘制悬浮玻璃 Tab 栏、大标题和圆角分组列表。点点下面的 Tab 试试。",
+      "t1": "概览",
+      "t2": "设备",
+      "t3": "无线",
+      "t4": "网络",
+      "t5": "更多"
+    },
+    "demo": {
+      "title": "演示模式",
+      "body": "没有路由器也能先试用：App 内置一台模拟的 OpenWrt 路由器。",
+      "toggle": "演示模式",
+      "router": "演示路由器",
+      "none": "还没有添加路由器"
+    }
+  },
+  "tour": {
+    "eyebrow": "导览",
+    "title": "一台路由器，<br>每个角落都看得清",
+    "s1": {
+      "tag": "概览",
+      "title": "打开就知道一切正常",
+      "body": "型号、固件、负载、内存、温度和外网状态；实时流量曲线、在线设备数，今天谁用得最多也一目了然。"
+    },
+    "s2": {
+      "tag": "设备",
+      "title": "每台设备都叫得出名字",
+      "body": "合并 DHCP 租约、邻居表和无线终端，识别厂商和信号强度。改名、绑定静态 IP、拉黑、踢下线、网络唤醒，家长控制按时段断网。"
+    },
+    "s3": {
+      "tag": "流量",
+      "title": "流量去哪儿了，按设备算清楚",
+      "body": "插件按设备 MAC 汇总连接跟踪计数，开着软件加速也准确。任意时间段的曲线和排行，WAN 口按日按月统计，还能导出 CSV。"
+    },
+    "s4": {
+      "tag": "无线",
+      "title": "把 Wi-Fi 调得更好",
+      "body": "射频、信道、发射功率一手掌握；访客网络一键创建、二维码分享；信道扫描推荐干扰最小的信道，安全检查一键修复。"
+    },
+    "s5": {
+      "tag": "网络",
+      "title": "出了问题，一路查到底",
+      "body": "一键诊断从手机 Wi-Fi、AP 上联、WAN 到 DNS 逐段检查。防火墙、端口转发、WireGuard、VLAN、DDNS、SQM 都能在手机上改。"
+    },
+    "s6": {
+      "tag": "终端与 AI",
+      "title": "需要更深入的时候",
+      "body": "内置 SSH 终端，带 Esc、Tab、Ctrl 和方向键。AI 助手能查状态、设备和日志，改设置前先问你，MAC 和公网 IP 默认打码。"
+    }
+  },
+  "screens": {
+    "eyebrow": "截图",
+    "title": "iOS 和 Android，<br>一样好看",
+    "lead": "所有截图都来自演示模式，并跟随本页的语言和深浅色。",
+    "platform": "选择平台",
+    "prev": "上一张",
+    "next": "下一张"
+  },
+  "shots": {
+    "overview": "概览",
+    "devices": "设备",
+    "device": "设备详情",
+    "wireless": "无线",
+    "network": "网络",
+    "traffic": "流量统计",
+    "trafficDevice": "设备流量",
+    "wan": "WAN 口历史",
+    "firewall": "防火墙",
+    "connections": "实时连接",
+    "parental": "家长控制",
+    "wifiSchedule": "Wi-Fi 定时开关",
+    "wireguard": "WireGuard",
+    "adblock": "广告过滤",
+    "firmware": "固件升级",
+    "packages": "软件包",
+    "terminal": "SSH 终端",
+    "assistant": "AI 助手",
+    "agent": "路由器插件",
+    "more": "更多"
+  },
+  "all": {
+    "eyebrow": "全部功能",
+    "title": "细节，<br>比你想的更多",
+    "tabs": {
+      "overview": "概览",
+      "devices": "设备",
+      "wifi": "无线",
+      "network": "网络",
+      "more": "更多"
+    },
+    "o": {
+      "1": "系统信息：型号、固件、内核、主机名、运行时间",
+      "2": "负载、内存、存储，以及温度（路由器支持时）",
+      "3": "外网状态：协议、IP、网关、DNS、在线时长",
+      "4": "实时流量曲线和在线设备数",
+      "5": "今日流量：上下行和用得最多的设备",
+      "6": "Wi-Fi 二维码分享",
+      "7": "重启路由器，带进度和恢复检测",
+      "8": "问 AI：一键打开 AI 助手"
+    },
+    "d": {
+      "1": "合并 DHCP 租约、邻居表和无线终端，识别厂商",
+      "2": "改名，名字同步到 LuCI 和局域网 DNS",
+      "3": "绑定静态 IP、拉黑、踢下线",
+      "4": "网络唤醒，路由器或 Android 手机发送",
+      "5": "单台设备的流量曲线和上下线记录",
+      "6": "家长控制：按时段断网，跨午夜也可以",
+      "7": "查蹭网：标出没信任过的设备，一键拉黑",
+      "8": "限速和流量配额，用完断网或限速"
+    },
+    "w": {
+      "1": "射频：开关、信道、频宽、发射功率、国家码",
+      "2": "Wi-Fi 名称、密码、加密方式、隐藏",
+      "3": "访客网络一键创建，只能上网、互相隔离",
+      "4": "MAC 过滤和 Wi-Fi 定时开关",
+      "5": "网络组：把多台 AP 当成一个网络管理",
+      "6": "信号监测：信噪比、协商速率、漫游记录",
+      "7": "信道扫描，推荐干扰最小的信道",
+      "8": "Wi-Fi 安全检查，一键修复"
+    },
+    "n": {
+      "1": "接口详情、WAN 和 LAN 设置",
+      "2": "流量统计、WAN 口按日按月用量",
+      "3": "一键诊断，从手机到外网逐段检查",
+      "4": "ping、traceroute、nslookup",
+      "5": "断网和延迟记录，查明断网原因",
+      "6": "手机测速和路由器测速，对比找瓶颈",
+      "7": "防火墙、端口转发、路由表、实时连接",
+      "8": "VLAN、WireGuard、OpenVPN、DDNS、SQM、广告过滤"
+    },
+    "m": {
+      "1": "服务、进程、软件包、计划任务、LED",
+      "2": "系统日志和内核日志，可筛选、分享",
+      "3": "备份恢复、固件在线升级、恢复出厂",
+      "4": "SSH 终端：密钥登录、快捷键栏、横屏",
+      "5": "AI 助手：多段对话，可搜索、重命名",
+      "6": "桌面小组件，Android 上有 6 种",
+      "7": "路由器推送：Bark、Telegram、企业微信、钉钉、飞书等",
+      "8": "Android 实时监控：状态栏胶囊显示速率"
+    }
+  },
+  "plugin": {
+    "eyebrow": "路由器插件",
+    "title": "App 关着，<br>路由器也在记录",
+    "lead": "routelinkd 是一个很小的 C 守护进程，装在路由器上，持续记录每台设备的流量、无线信号、延迟和断网，并执行限速、配额和推送。App 里一键安装，LuCI 里也能查看。",
+    "statCpu": "单核 CPU 占用",
+    "statMem": "内存占用",
+    "statLoad": "台设备 / 个连接实测",
+    "years": "年",
+    "statKeep": "按天保存的流量",
+    "p1": "IPv4 和 IPv6 都统计，开着软件加速也准确",
+    "p2": "限速和配额用 tc 和 nftables 实现，不改你的防火墙配置",
+    "p3": "推送到 Webhook、Bark、Server 酱、PushPlus、Telegram、企业微信、钉钉、飞书",
+    "p4": "数据只保存在你的路由器上，升级固件时保留",
+    "luci": "LuCI：服务 → RouteLink（网页绘制，演示数据，可以点上面的 Tab）",
+    "tabApp": "App 一键安装",
+    "appPath": "更多 → 路由器插件 → 安装插件",
+    "appHint": "需要 root 账号，并且路由器能连上 OpenWrt 官方软件源；国内访问 GitHub 慢时可以填写下载镜像。",
+    "opkgComment": "# OpenWrt 23.05 / 24.10：把 24.10、x86_64 换成你的版本和架构",
+    "apkComment": "# OpenWrt 25.12：把 x86_64 换成你的架构",
+    "copy": "复制",
+    "copied": "已复制",
+    "support": "支持 OpenWrt 23.05、24.10、25.12；架构 x86_64、aarch64、arm、mipsel、mips。"
+  },
+  "privacy": {
+    "eyebrow": "安全与隐私",
+    "title": "你的路由器，<br>只属于你",
+    "lead": "App 只和你添加的路由器通信，不联系任何自有服务器。本网站同样不用 Cookie，也不加载第三方统计。",
+    "keychain": {
+      "title": "密码存进钥匙串",
+      "body": "路由器密码只存在 iOS Keychain / Android Keystore，不写日志；也可以选择不保存。"
+    },
+    "tls": {
+      "title": "证书固定",
+      "body": "自签名证书在首次连接时确认指纹，之后证书变了，App 会拦下连接并提示。"
+    },
+    "ssh": {
+      "title": "主机指纹",
+      "body": "SSH 首次连接确认主机指纹；App 生成的私钥存在钥匙串里，不会离开手机。"
+    },
+    "nodata": {
+      "title": "不收集任何数据",
+      "body": "没有统计、没有广告。只在你检查更新或安装插件时访问 GitHub。"
+    },
+    "ai": {
+      "title": "AI 默认关闭",
+      "body": "启用后才发送回答需要的数据；MAC 和公网 IP 默认打码，密码和密钥永远不会发送。"
+    },
+    "confirm": {
+      "title": "先问再动手",
+      "body": "会断网的操作有分级风险提示；固件升级等高风险操作要输入路由器名称才能继续。"
+    }
+  },
+  "download": {
+    "eyebrow": "下载",
+    "title": "现在就装上试试",
+    "lead": "免费、开源（MIT），没有广告。没有路由器？打开演示模式就能体验全部功能。",
+    "android1": "Android 8.0 或更新版本，ARM 处理器",
+    "android2": "App 里就能检查并安装更新",
+    "androidBtn": "下载 APK",
+    "ios1": "iOS 17 或更新版本，液态玻璃需要 iOS 26",
+    "ios2": "未上架 App Store，用 AltStore、SideStore、Sideloadly 或 TrollStore 安装",
+    "iosBtn": "下载 IPA",
+    "router": "路由器",
+    "router1": "OpenWrt 21.02 或更新版本，装有 LuCI",
+    "router2": "需要的软件包都随 LuCI 一起安装；ImmortalWrt 等衍生版尽量兼容",
+    "allReleases": "所有版本",
+    "latest": "最新版本",
+    "guide": "安装说明",
+    "guideUrl": "https://github.com/tsix2019/RouteLink#%E5%AE%89%E8%A3%85"
+  },
+  "footer": {
+    "tagline": "为 OpenWrt 打造的手机 App。",
+    "links": "页脚链接",
+    "issues": "问题反馈",
+    "license": "MIT 协议",
+    "thanks": "感谢 <a href=\"https://openwrt.org\" rel=\"noopener\">OpenWrt</a>、<a href=\"https://github.com/openwrt/luci\" rel=\"noopener\">LuCI</a> 和 <a href=\"https://expo.dev\" rel=\"noopener\">Expo</a>。",
+    "note": "截图都来自演示模式，不含任何真实路由器的数据。"
+  },
+  "luci": {
+    "crumb": "服务 / RouteLink",
+    "tabs": {
+      "overview": "概览",
+      "traffic": "流量",
+      "latency": "延迟",
+      "limits": "限速与配额",
+      "access": "访问记录",
+      "notify": "推送",
+      "settings": "设置"
+    },
+    "ov": {
+      "wan": "WAN 实时",
+      "online": "13 台设备在线",
+      "legend": "蓝色为下载，橙色为上传。每 2 秒刷新。",
+      "top": "今日流量排行",
+      "status": "状态",
+      "version": "版本",
+      "role": "角色",
+      "roleValue": "主路由（统计流量）",
+      "offload": "流量卸载（加速）",
+      "offloadValue": "软件加速",
+      "clock": "时钟",
+      "clockValue": "已同步",
+      "storage": "存储",
+      "dir": "数据目录"
+    },
+    "tr": {
+      "p1": "最近 1 小时",
+      "p2": "今天",
+      "p3": "昨天",
+      "p4": "最近 7 天",
+      "p5": "本月",
+      "p6": "上月",
+      "p7": "最近 30 天",
+      "type": "流量类型：",
+      "internet": "互联网",
+      "csv": "导出 CSV",
+      "down": "下载",
+      "up": "上传",
+      "wan": "WAN 口",
+      "ranking": "排行",
+      "live": "实时",
+      "device": "设备",
+      "total": "合计",
+      "share": "占比"
+    },
+    "lat": {
+      "title": "延迟与断网",
+      "r1": "1 小时",
+      "r2": "6 小时",
+      "r3": "24 小时",
+      "r4": "7 天",
+      "r5": "30 天",
+      "r6": "90 天",
+      "avail": "可用率",
+      "outages": "断网",
+      "downtime": "断网时长",
+      "gw": "WAN 上一跳网关",
+      "note": "路由器每 10 秒 ping 一次每个目标，2 秒内没有回复算丢包；除上一跳网关外的目标连续 3 轮都不通，记为一次断网。红色柱：丢包；红色底色：断网。",
+      "targets": "探测目标",
+      "target": "目标",
+      "avg": "平均",
+      "worst": "最差",
+      "loss": "丢包",
+      "probes": "探测次数",
+      "outageList": "断网",
+      "start": "开始",
+      "end": "结束",
+      "duration": "时长",
+      "reason": "原因",
+      "reasonWan": "WAN 口断开",
+      "speed": "测速",
+      "speedDesc": "在路由器上测量：先测 TCP 握手延迟，再并发下载和上传各 10 秒。",
+      "speedStart": "开始测速",
+      "server": "服务器",
+      "ping": "延迟",
+      "jitter": "抖动"
+    },
+    "lim": {
+      "desc": "按设备设置限速和流量配额。限速作用在路由器的 LAN 口上，开着软件加速也有效。",
+      "usage": "配额用量",
+      "monthly": "每月",
+      "daily": "每天",
+      "limits": "限速",
+      "enabled": "已启用",
+      "down": "下载（kbit/s）",
+      "up": "上传（kbit/s）",
+      "days": "星期",
+      "time": "时段",
+      "weekdays": "周一至周五",
+      "everyday": "每天",
+      "weekend": "周末",
+      "allDay": "全天",
+      "addLimit": "添加限速",
+      "quotas": "流量配额",
+      "period": "周期",
+      "amount": "额度（MB）",
+      "after": "用完后",
+      "block": "断网",
+      "throttle": "限速"
+    },
+    "acc": {
+      "desc": "设备查询了哪些域名（DNS），以及它们的外网流量去了哪里。默认关闭。",
+      "dns": "DNS 查询",
+      "dest": "访问去向",
+      "time": "时间",
+      "name": "名称",
+      "type": "类型",
+      "result": "解析结果"
+    },
+    "nt": {
+      "desc": "由路由器自己发送，手机没开 App 时也能收到。1 分钟内的多个事件合成一条消息。",
+      "channels": "推送渠道",
+      "name": "名称",
+      "service": "服务",
+      "events": "事件",
+      "last": "最近一次发送",
+      "c1": "我的 iPhone",
+      "c2": "家庭群",
+      "feishu": "飞书",
+      "e1": "新设备、断网和恢复",
+      "e2": "配额提醒",
+      "e3": "全部事件",
+      "l1": "2 分钟前 ✓",
+      "l2": "昨天 ✓",
+      "add": "添加渠道",
+      "watched": "关注的设备",
+      "watch": "关注上下线",
+      "trust": "信任"
+    },
+    "st": {
+      "title": "RouteLink 设置",
+      "desc": "为 RouteLink App 提供按设备的流量统计、无线信号历史、延迟探测、测速、限速、访问记录和推送。",
+      "general": "常规",
+      "enable": "启用",
+      "traffic": "流量统计",
+      "trafficHint": "只在主路由上生效。",
+      "wireless": "无线采样",
+      "wirelessHint": "记录无线终端的信号、协商速率和信道繁忙度。",
+      "dir": "数据目录",
+      "dirHint": "升级固件后保留。",
+      "write": "写盘间隔（秒）",
+      "writeHint": "0 表示自动：闪存上每 60 分钟写一次。",
+      "max": "最大占用（MB）",
+      "probe": "延迟探测",
+      "targets": "探测目标"
+    }
+  }
+}

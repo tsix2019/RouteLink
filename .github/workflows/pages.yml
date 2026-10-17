@@ -1,0 +1,77 @@
+name: Pages
+
+# The whole GitHub Pages site: the product website (website/) at the root and the router plugin feed
+# under /agent/. Pages serves one artifact per deployment, so every deployment carries both:
+# - a website change mirrors the live feed (website/mirror_feed.py checks every file against
+#   manifest.json and the feed indexes, and fails rather than deploy a partial feed);
+# - a plugin release (openwrt-release.yml) calls this workflow with its new feed as an artifact.
+# Pull requests only build the site.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - 'docs/screenshots/**'
+      - 'assets/images/**'
+      - 'assets/icon/**'
+      - '.github/workflows/pages.yml'
+  pull_request:
+    paths:
+      - 'website/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      feed-artifact:
+        description: Artifact with the plugin feed (the contents of /agent/); empty mirrors the live feed
+        type: string
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # the website always comes from the default branch, also when a plugin tag calls this
+          ref: ${{ github.event_name == 'pull_request' && github.ref || github.event.repository.default_branch }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - run: python -m pip install pillow
+      - name: Build the website
+        run: python website/build.py --out _site
+      - name: Plugin feed (from the release)
+        if: ${{ inputs.feed-artifact }}
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.feed-artifact }}
+          path: _site/agent
+      - name: Plugin feed (mirror the live one)
+        if: ${{ !inputs.feed-artifact && github.event_name != 'pull_request' }}
+        run: |
+          python website/mirror_feed.py "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/agent/" _site/agent
+          if [ -f _site/agent/manifest.json ]; then cp -r openwrt/feed/keys _site/agent/keys; fi
+      - uses: actions/upload-pages-artifact@v5
+        if: github.event_name != 'pull_request'
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v5

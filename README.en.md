@@ -13,7 +13,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/tsix2019/RouteLink" alt="MIT"></a>
 </p>
 
-RouteLink is a phone app for managing OpenWrt routers, for iOS and Android, in English and Chinese.
+RouteLink is a phone app for managing OpenWrt routers, for iOS and Android, in English and Chinese. Website: <https://tsix2019.github.io/RouteLink/?lang=en>
 
 - **iOS 26 look**: native Liquid Glass on iOS (tab bar, navigation bar, sheets); on Android the same iOS 26 design is drawn by the app: a floating glass tab bar, large-title navigation bars, rounded grouped lists.
 - **Auto-discovery**: scans the phone's network for OpenWrt, side routers included; or scan a subnet you name, or type an address.
@@ -241,7 +241,7 @@ The RouteLink plugin runs on the router. It records what the app needs while it 
 - **Push notifications** go from the router straight to the services you set up and name the device and the event; DingTalk and Feishu can be signed.
 - **Privacy**: the data stays on your router; the app contacts GitHub only when you check for updates or install the plugin.
 
-<img src="docs/screenshots/luci/en-traffic.png" width="720" alt="LuCI traffic page">
+**LuCI pages** (Services → RouteLink): Overview, Traffic, Latency, Limits & quotas, Destinations, Push and Settings. Try them on the [website](https://tsix2019.github.io/RouteLink/?lang=en#plugin) (drawn in the page, with demo data).
 
 ## Security and privacy
 

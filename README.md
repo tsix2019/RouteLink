@@ -13,7 +13,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/tsix2019/RouteLink" alt="MIT"></a>
 </p>
 
-RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Android，界面有中文和英文。
+RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Android，界面有中文和英文。产品介绍网站：<https://tsix2019.github.io/RouteLink/>
 
 - **iOS 26 风格**：iOS 上用系统原生的液态玻璃（Tab 栏、导航栏、底部面板）；Android 上也按 iOS 26 的样式绘制：悬浮玻璃 Tab 栏、大标题导航栏、圆角分组列表。
 - **自动发现**：扫描手机所在的局域网，找出 OpenWrt 设备，旁路由也能找到；也可以扫描指定网段或手动输入地址。
@@ -241,7 +241,7 @@ RouteLink 插件装在路由器上，持续记录 App 没打开时也需要的�
 - **推送**：由路由器直接发给你设置的推送服务，消息里有设备名和事件；钉钉、飞书可以加签。
 - **隐私**：数据只保存在你的路由器上；App 只在你点检查更新或安装插件时访问 GitHub。
 
-<img src="docs/screenshots/luci/zh-traffic.png" width="720" alt="LuCI 流量页">
+**LuCI 页面**（服务 → RouteLink）分为概览、流量、延迟、限速与配额、访问记录、推送、设置 7 页。可以在[产品网站](https://tsix2019.github.io/RouteLink/#plugin)上直接点开看看（网页绘制，演示数据）。
 
 ## 安全与隐私
 
