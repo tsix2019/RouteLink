@@ -22,7 +22,7 @@ GitHub Pages 已经用 Actions 方式部署了路由器插件的软件源（`/ag
   - 复制 `website/src/`；
   - 校验 `src/i18n/en.json` 和 `zh.json`：键必须一致，不能有空字符串；HTML 里用到的键必须两边都有；
   - 预渲染中文：把 `data-i18n` / `data-i18n-html` / `data-i18n-attr` 填进 HTML，没有 JS 的访客和搜索引擎也能看到内容；
-  - 把 `docs/screenshots/{zh,en}`、`docs/screenshots/luci`、`assets/images/widget-preview-*` 转成 WebP，每张出 720w 和 360w 两个尺寸（LuCI 截图为 1280w / 640w）；已是最新的图片跳过；
+  - 把 `docs/screenshots/{zh,en}` 和 `assets/images/widget-preview-*` 转成 WebP，每张出 720w 和 360w 两个尺寸；已是最新的图片跳过；
   - 生成 favicon、apple-touch-icon 和社交分享图 `og.png`；
   - 把 `package.json` 里的版本号写进页面，作为兜底值。
 - 截图只有 `docs/screenshots` 这一份，CI 里转换，仓库里不存第二份。
@@ -53,7 +53,7 @@ GitHub Pages 已经用 Actions 方式部署了路由器插件的软件源（`/ag
 5. 滚动叙事：左侧分步讲解，右侧吸顶的手机随步骤切换截图，依次是概览、设备、流量、无线、网络工具、终端和 AI。窄屏改为每一步配一张图。
 6. 截图画廊：可切换 iOS / Android，横向滚动并吸附，有左右箭头，可以拖动。
 7. 完整功能清单：按概览、设备、无线、网络、更多分 Tab。
-8. 路由器插件：浏览器外框里放 LuCI 截图，展示资源占用数据（数字递增动画）、保存时长、支持的版本和架构，以及 opkg / apk 安装命令（分 Tab，可一键复制）。
+8. 路由器插件：展示资源占用数据（数字递增动画）、保存时长、支持的版本和架构，以及 opkg / apk 安装命令（分 Tab，可一键复制）。下方是在网页里绘制的插件 LuCI 页面（`js/luci.js`），不用截图：概览、流量、延迟、限速与配额、访问记录、推送、设置 7 个 Tab 都能切换，曲线由脚本画，概览页的 WAN 实时曲线会动，流量页和延迟页的时间段按钮可以点。全部是演示数据，跟随页面的语言和深浅色。
 9. 安全与隐私：钥匙串、证书固定、主机指纹、不收集数据、AI 数据打码、操作确认。
 10. 下载：Android APK、iOS IPA（AltStore、SideStore、Sideloadly、TrollStore），以及路由器要求。
 11. 页脚：协议、致谢和链接。

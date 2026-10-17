@@ -522,63 +522,308 @@
 
     <!-- Router plugin -->
     <section class="section plugin" id="plugin">
-      <div class="container plugin-grid">
-        <div class="plugin-copy">
-          <header class="section-head left" data-reveal>
-            <p class="eyebrow" data-i18n="plugin.eyebrow"></p>
-            <h2 data-i18n-html="plugin.title"></h2>
-            <p class="lead" data-i18n="plugin.lead"></p>
-          </header>
-          <dl class="stats" data-reveal>
-            <div><dt><b data-count="0.04" data-decimals="2">0.04</b>%</dt><dd data-i18n="plugin.statCpu"></dd></div>
-            <div><dt><b data-count="1.7" data-decimals="1">1.7</b> MB</dt><dd data-i18n="plugin.statMem"></dd></div>
-            <div><dt><b data-count="52">52</b> / <b data-count="5000">5000</b></dt><dd data-i18n="plugin.statLoad"></dd></div>
-            <div><dt><b data-count="2">2</b> <span data-i18n="plugin.years"></span></dt><dd data-i18n="plugin.statKeep"></dd></div>
-          </dl>
-          <ul class="checks" data-reveal>
-            <li data-i18n="plugin.p1"></li>
-            <li data-i18n="plugin.p2"></li>
-            <li data-i18n="plugin.p3"></li>
-            <li data-i18n="plugin.p4"></li>
-          </ul>
-        </div>
-        <div class="plugin-visual">
-          <div class="browser glass" data-reveal data-tilt-in>
-            <div class="browser-bar"><i></i><i></i><i></i><span>192.168.8.1/cgi-bin/luci/admin/services/routelink</span></div>
-            <div class="luci-crop"><img data-luci="overview" data-i18n-attr="alt:plugin.luci" loading="lazy" sizes="(min-width: 960px) 760px, 120vw" width="1280" height="900"></div>
+      <div class="container">
+        <div class="plugin-grid">
+          <div class="plugin-copy">
+            <header class="section-head left" data-reveal>
+              <p class="eyebrow" data-i18n="plugin.eyebrow"></p>
+              <h2 data-i18n-html="plugin.title"></h2>
+              <p class="lead" data-i18n="plugin.lead"></p>
+            </header>
+            <ul class="checks" data-reveal>
+              <li data-i18n="plugin.p1"></li>
+              <li data-i18n="plugin.p2"></li>
+              <li data-i18n="plugin.p3"></li>
+              <li data-i18n="plugin.p4"></li>
+            </ul>
           </div>
-          <p class="caption" data-i18n="plugin.luci"></p>
-          <div class="install" data-reveal>
-            <div class="seg" role="tablist" data-seg="install">
-              <button type="button" role="tab" aria-selected="true" data-pane="app" data-i18n="plugin.tabApp"></button>
-              <button type="button" role="tab" aria-selected="false" data-pane="opkg">opkg</button>
-              <button type="button" role="tab" aria-selected="false" data-pane="apk">apk</button>
-              <span class="seg-thumb"></span>
-            </div>
-            <div class="code-pane" data-pane="app">
-              <p class="install-app"><span data-i18n="plugin.appPath"></span></p>
-              <p class="hint" data-i18n="plugin.appHint"></p>
-            </div>
-            <div class="code-pane" data-pane="opkg" hidden>
-              <pre class="code"><code><span class="c" data-i18n="plugin.opkgComment"></span>
+          <div class="plugin-side">
+            <dl class="stats" data-reveal>
+              <div><dt><b data-count="0.04" data-decimals="2">0.04</b>%</dt><dd data-i18n="plugin.statCpu"></dd></div>
+              <div><dt><b data-count="1.7" data-decimals="1">1.7</b> MB</dt><dd data-i18n="plugin.statMem"></dd></div>
+              <div><dt><b data-count="52">52</b> / <b data-count="5000">5000</b></dt><dd data-i18n="plugin.statLoad"></dd></div>
+              <div><dt><b data-count="2">2</b> <span data-i18n="plugin.years"></span></dt><dd data-i18n="plugin.statKeep"></dd></div>
+            </dl>
+            <div class="install" data-reveal>
+              <div class="seg" role="tablist" data-seg="install">
+                <button type="button" role="tab" aria-selected="true" data-pane="app" data-i18n="plugin.tabApp"></button>
+                <button type="button" role="tab" aria-selected="false" data-pane="opkg">opkg</button>
+                <button type="button" role="tab" aria-selected="false" data-pane="apk">apk</button>
+                <span class="seg-thumb"></span>
+              </div>
+              <div class="code-pane" data-pane="app">
+                <p class="install-app"><span data-i18n="plugin.appPath"></span></p>
+                <p class="hint" data-i18n="plugin.appHint"></p>
+              </div>
+              <div class="code-pane" data-pane="opkg" hidden>
+                <pre class="code"><code><span class="c" data-i18n="plugin.opkgComment"></span>
 wget -O /etc/opkg/keys/a276fe73982c5f59 \
   https://tsix2019.github.io/RouteLink/agent/keys/a276fe73982c5f59
 echo 'src/gz routelink https://tsix2019.github.io/RouteLink/agent/24.10/x86_64' \
   &gt;&gt; /etc/opkg/customfeeds.conf
 opkg update &amp;&amp; opkg install routelinkd luci-app-routelink luci-i18n-routelink-zh-cn</code></pre>
-              <button class="copy-btn" type="button" data-copy><svg class="i"><use href="#i-copy"/></svg><span data-i18n="plugin.copy"></span></button>
-            </div>
-            <div class="code-pane" data-pane="apk" hidden>
-              <pre class="code"><code><span class="c" data-i18n="plugin.apkComment"></span>
+                <button class="copy-btn" type="button" data-copy><svg class="i"><use href="#i-copy"/></svg><span data-i18n="plugin.copy"></span></button>
+              </div>
+              <div class="code-pane" data-pane="apk" hidden>
+                <pre class="code"><code><span class="c" data-i18n="plugin.apkComment"></span>
 wget -O /etc/apk/keys/routelink.pem \
   https://tsix2019.github.io/RouteLink/agent/keys/routelink-apk.pem
 echo 'https://tsix2019.github.io/RouteLink/agent/25.12/x86_64/packages.adb' \
   &gt;&gt; /etc/apk/repositories.d/customfeeds.list
 apk update &amp;&amp; apk add routelinkd luci-app-routelink luci-i18n-routelink-zh-cn</code></pre>
-              <button class="copy-btn" type="button" data-copy><svg class="i"><use href="#i-copy"/></svg><span data-i18n="plugin.copy"></span></button>
+                <button class="copy-btn" type="button" data-copy><svg class="i"><use href="#i-copy"/></svg><span data-i18n="plugin.copy"></span></button>
+              </div>
+              <p class="hint" data-i18n="plugin.support"></p>
             </div>
-            <p class="hint" data-i18n="plugin.support"></p>
           </div>
+        </div>
+
+        <!-- The plugin's LuCI page, drawn here with demo data (not a screenshot) -->
+        <div class="lm-wrap" data-reveal>
+          <div class="browser lm glass">
+            <div class="browser-bar"><i></i><i></i><i></i><span>192.168.8.1/cgi-bin/luci/admin/services/routelink/<b data-lm-path>overview</b></span></div>
+            <div class="lm-page">
+              <div class="lm-band"><span class="lm-brand">OpenWrt</span><span class="lm-crumb" data-i18n="luci.crumb"></span></div>
+              <div class="lm-body">
+                <div class="lm-card lm-tabs" role="tablist" data-i18n-attr="aria-label:plugin.luci">
+                  <button type="button" role="tab" aria-selected="true" data-lm="overview" data-i18n="luci.tabs.overview"></button>
+                  <button type="button" role="tab" aria-selected="false" data-lm="traffic" data-i18n="luci.tabs.traffic"></button>
+                  <button type="button" role="tab" aria-selected="false" data-lm="latency" data-i18n="luci.tabs.latency"></button>
+                  <button type="button" role="tab" aria-selected="false" data-lm="limits" data-i18n="luci.tabs.limits"></button>
+                  <button type="button" role="tab" aria-selected="false" data-lm="access" data-i18n="luci.tabs.access"></button>
+                  <button type="button" role="tab" aria-selected="false" data-lm="notify" data-i18n="luci.tabs.notify"></button>
+                  <button type="button" role="tab" aria-selected="false" data-lm="settings" data-i18n="luci.tabs.settings"></button>
+                </div>
+
+                <!-- Overview -->
+                <section class="lm-pane" data-lm-pane="overview">
+                  <div class="lm-card"><h2>RouteLink</h2></div>
+                  <div class="lm-card">
+                    <h3><span data-i18n="luci.ov.wan"></span> ↓ <b data-lm-live="down">30.9</b> Mbit/s ↑ <b data-lm-live="up">6.7</b> Mbit/s · <span data-i18n="luci.ov.online"></span></h3>
+                    <svg class="lm-chart" data-lm-chart="live" viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true"></svg>
+                    <p class="lm-note" data-i18n="luci.ov.legend"></p>
+                  </div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.ov.top"></h3>
+                    <table class="lm-table lm-top">
+                      <tbody>
+                        <tr><td><a>Living-Room-TV</a></td><td>↓ 10.0 GB</td><td>↑ 1.21 GB</td><td><span class="lm-bar" style="--w:100%"></span></td></tr>
+                        <tr><td><a>Desk-PC</a></td><td>↓ 5.24 GB</td><td>↑ 2.08 GB</td><td><span class="lm-bar" style="--w:65%"></span></td></tr>
+                        <tr><td><a>MacBook-Air</a></td><td>↓ 4.47 GB</td><td>↑ 716 MB</td><td><span class="lm-bar" style="--w:46%"></span></td></tr>
+                        <tr><td><a>iPhone-16-Pro</a></td><td>↓ 2.83 GB</td><td>↑ 412 MB</td><td><span class="lm-bar" style="--w:29%"></span></td></tr>
+                        <tr><td><a>Galaxy-S25</a></td><td>↓ 1.16 GB</td><td>↑ 205 MB</td><td><span class="lm-bar" style="--w:12%"></span></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.ov.status"></h3>
+                    <table class="lm-table lm-kv">
+                      <tbody>
+                        <tr><td data-i18n="luci.ov.version"></td><td>1.0.0</td></tr>
+                        <tr><td data-i18n="luci.ov.role"></td><td data-i18n="luci.ov.roleValue"></td></tr>
+                        <tr><td data-i18n="luci.ov.offload"></td><td data-i18n="luci.ov.offloadValue"></td></tr>
+                        <tr><td data-i18n="luci.ov.clock"></td><td data-i18n="luci.ov.clockValue"></td></tr>
+                        <tr><td data-i18n="luci.ov.storage"></td><td>4.4 MB / 32.0 MB</td></tr>
+                        <tr><td data-i18n="luci.ov.dir"></td><td>/etc/routelink</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <!-- Traffic -->
+                <section class="lm-pane" data-lm-pane="traffic" hidden>
+                  <div class="lm-card"><h2 data-i18n="luci.tabs.traffic"></h2></div>
+                  <div class="lm-card">
+                    <div class="lm-btns" data-lm-period>
+                      <button type="button" data-i18n="luci.tr.p1"></button>
+                      <button type="button" class="on" data-i18n="luci.tr.p2"></button>
+                      <button type="button" data-i18n="luci.tr.p3"></button>
+                      <button type="button" data-i18n="luci.tr.p4"></button>
+                      <button type="button" data-i18n="luci.tr.p5"></button>
+                      <button type="button" data-i18n="luci.tr.p6"></button>
+                      <button type="button" data-i18n="luci.tr.p7"></button>
+                    </div>
+                    <div class="lm-filters"><span data-i18n="luci.tr.type"></span><span class="lm-select"><span data-i18n="luci.tr.internet"></span> ⌄</span><span class="lm-btn" data-i18n="luci.tr.csv"></span></div>
+                    <div class="lm-totals">
+                      <div><b>↓ <span data-lm-total="0">14.9 GB</span></b><small data-i18n="luci.tr.down"></small></div>
+                      <div><b>↑ <span data-lm-total="1">2.31 GB</span></b><small data-i18n="luci.tr.up"></small></div>
+                      <div><b data-lm-total="2">15.6 GB / 2.40 GB</b><small data-i18n="luci.tr.wan"></small></div>
+                    </div>
+                    <svg class="lm-chart tall" data-lm-chart="traffic" viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true"></svg>
+                    <div class="lm-axis" data-lm-axis="traffic"><span></span><span></span><span></span></div>
+                  </div>
+                  <div class="lm-card">
+                    <div class="lm-subtabs"><span class="on" data-i18n="luci.tr.ranking"></span><span data-i18n="luci.tr.live"></span></div>
+                    <table class="lm-table lm-rank">
+                      <thead><tr><th data-i18n="luci.tr.device"></th><th data-i18n="luci.tr.down"></th><th data-i18n="luci.tr.up"></th><th data-i18n="luci.tr.total"></th><th data-i18n="luci.tr.share"></th></tr></thead>
+                      <tbody data-lm-rank></tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <!-- Latency -->
+                <section class="lm-pane" data-lm-pane="latency" hidden>
+                  <div class="lm-card"><h2 data-i18n="luci.lat.title"></h2></div>
+                  <div class="lm-card">
+                    <div class="lm-btns" data-lm-lrange>
+                      <button type="button" data-i18n="luci.lat.r1"></button>
+                      <button type="button" data-i18n="luci.lat.r2"></button>
+                      <button type="button" class="on" data-i18n="luci.lat.r3"></button>
+                      <button type="button" data-i18n="luci.lat.r4"></button>
+                      <button type="button" data-i18n="luci.lat.r5"></button>
+                      <button type="button" data-i18n="luci.lat.r6"></button>
+                    </div>
+                    <div class="lm-totals big">
+                      <div><b data-lm-avail>99.91%</b><small data-i18n="luci.lat.avail"></small></div>
+                      <div><b data-lm-outages>1</b><small data-i18n="luci.lat.outages"></small></div>
+                      <div><b data-lm-downtime>1m</b><small data-i18n="luci.lat.downtime"></small></div>
+                    </div>
+                    <svg class="lm-chart tall" data-lm-chart="latency" viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true"></svg>
+                    <div class="lm-axis" data-lm-axis="latency"><span></span><span></span><span></span></div>
+                    <ul class="lm-legend">
+                      <li style="--c:#5e72e4"><span data-i18n="luci.lat.gw"></span> (10.0.0.1)</li>
+                      <li style="--c:#f5a524">223.5.5.5</li>
+                      <li style="--c:#2dce89">119.29.29.29</li>
+                      <li style="--c:#8965e0">1.1.1.1</li>
+                    </ul>
+                    <p class="lm-note" data-i18n="luci.lat.note"></p>
+                  </div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.lat.targets"></h3>
+                    <table class="lm-table">
+                      <thead><tr><th data-i18n="luci.lat.target"></th><th data-i18n="luci.lat.avg"></th><th data-i18n="luci.lat.worst"></th><th data-i18n="luci.lat.loss"></th><th class="hide-narrow" data-i18n="luci.lat.probes"></th></tr></thead>
+                      <tbody>
+                        <tr><td><i class="lm-dot" style="--c:#5e72e4"></i><span data-i18n="luci.lat.gw"></span> (10.0.0.1)</td><td>1.6 ms</td><td>24 ms</td><td>0.1%</td><td class="hide-narrow">8629</td></tr>
+                        <tr><td><i class="lm-dot" style="--c:#f5a524"></i>223.5.5.5</td><td>10 ms</td><td>48 ms</td><td>0.1%</td><td class="hide-narrow">8629</td></tr>
+                        <tr><td><i class="lm-dot" style="--c:#2dce89"></i>119.29.29.29</td><td>16 ms</td><td>61 ms</td><td>0.1%</td><td class="hide-narrow">8629</td></tr>
+                        <tr><td><i class="lm-dot" style="--c:#8965e0"></i>1.1.1.1</td><td>118 ms</td><td>297 ms</td><td>1.0%</td><td class="hide-narrow">8629</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.lat.outageList"></h3>
+                    <table class="lm-table">
+                      <thead><tr><th data-i18n="luci.lat.start"></th><th class="hide-narrow" data-i18n="luci.lat.end"></th><th data-i18n="luci.lat.duration"></th><th data-i18n="luci.lat.reason"></th></tr></thead>
+                      <tbody><tr><td>06:53</td><td class="hide-narrow">06:54</td><td>1m</td><td data-i18n="luci.lat.reasonWan"></td></tr></tbody>
+                    </table>
+                  </div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.lat.speed"></h3>
+                    <p class="lm-desc" data-i18n="luci.lat.speedDesc"></p>
+                    <span class="lm-btn primary" data-i18n="luci.lat.speedStart"></span>
+                    <table class="lm-table">
+                      <thead><tr><th data-i18n="luci.lat.server"></th><th data-i18n="luci.lat.ping"></th><th class="hide-narrow" data-i18n="luci.lat.jitter"></th><th data-i18n="luci.tr.down"></th><th data-i18n="luci.tr.up"></th></tr></thead>
+                      <tbody><tr><td>Cloudflare</td><td>8.4 ms</td><td class="hide-narrow">1.2 ms</td><td>948 Mbit/s</td><td>51.3 Mbit/s</td></tr></tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <!-- Limits and quotas -->
+                <section class="lm-pane" data-lm-pane="limits" hidden>
+                  <div class="lm-card"><h2 data-i18n="luci.tabs.limits"></h2><p class="lm-desc" data-i18n="luci.lim.desc"></p></div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.lim.usage"></h3>
+                    <div class="lm-usage">
+                      <div><b>Galaxy-S25</b><span data-i18n="luci.lim.monthly"></span><span class="lm-meter"><i style="--w:62%"></i></span><small>31.0 GB / 50.0 GB</small></div>
+                      <div class="warn"><b>iPad-Air</b><span data-i18n="luci.lim.daily"></span><span class="lm-meter"><i style="--w:88%"></i></span><small>1.76 GB / 2.00 GB</small></div>
+                    </div>
+                  </div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.lim.limits"></h3>
+                    <table class="lm-table">
+                      <thead><tr><th data-i18n="luci.lim.enabled"></th><th data-i18n="luci.tr.device"></th><th data-i18n="luci.lim.down"></th><th data-i18n="luci.lim.up"></th><th class="hide-narrow" data-i18n="luci.lim.days"></th><th class="hide-narrow" data-i18n="luci.lim.time"></th></tr></thead>
+                      <tbody>
+                        <tr><td><span class="lm-check on"></span></td><td>Living-Room-TV</td><td>20000</td><td>5000</td><td class="hide-narrow" data-i18n="luci.lim.weekdays"></td><td class="hide-narrow">19:00 – 23:00</td></tr>
+                        <tr><td><span class="lm-check on"></span></td><td>Gaming-PC</td><td>50000</td><td>10000</td><td class="hide-narrow" data-i18n="luci.lim.everyday"></td><td class="hide-narrow" data-i18n="luci.lim.allDay"></td></tr>
+                        <tr><td><span class="lm-check"></span></td><td>Work-Laptop</td><td>8000</td><td>2000</td><td class="hide-narrow" data-i18n="luci.lim.weekend"></td><td class="hide-narrow">09:00 – 18:00</td></tr>
+                      </tbody>
+                    </table>
+                    <span class="lm-btn primary" data-i18n="luci.lim.addLimit"></span>
+                  </div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.lim.quotas"></h3>
+                    <table class="lm-table">
+                      <thead><tr><th data-i18n="luci.lim.enabled"></th><th data-i18n="luci.tr.device"></th><th data-i18n="luci.lim.period"></th><th data-i18n="luci.lim.amount"></th><th data-i18n="luci.lim.after"></th></tr></thead>
+                      <tbody>
+                        <tr><td><span class="lm-check on"></span></td><td>Galaxy-S25</td><td data-i18n="luci.lim.monthly"></td><td>51200</td><td data-i18n="luci.lim.block"></td></tr>
+                        <tr><td><span class="lm-check on"></span></td><td>iPad-Air</td><td data-i18n="luci.lim.daily"></td><td>2048</td><td data-i18n="luci.lim.throttle"></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <!-- Destinations and DNS -->
+                <section class="lm-pane" data-lm-pane="access" hidden>
+                  <div class="lm-card"><h2 data-i18n="luci.tabs.access"></h2><p class="lm-desc" data-i18n="luci.acc.desc"></p></div>
+                  <div class="lm-card">
+                    <div class="lm-subtabs"><span class="on" data-i18n="luci.acc.dns"></span><span data-i18n="luci.acc.dest"></span></div>
+                    <div class="lm-filters"><span data-i18n="luci.tr.device"></span><span class="lm-select">iPhone-16-Pro ⌄</span><span class="lm-select"><span data-i18n="luci.tr.p2"></span> ⌄</span><span class="lm-input">github</span></div>
+                    <table class="lm-table">
+                      <thead><tr><th data-i18n="luci.acc.time"></th><th data-i18n="luci.acc.name"></th><th class="hide-narrow" data-i18n="luci.acc.type"></th><th data-i18n="luci.acc.result"></th></tr></thead>
+                      <tbody>
+                        <tr><td>15:12:08</td><td>api.github.com</td><td class="hide-narrow">A</td><td>203.0.113.6</td></tr>
+                        <tr><td>15:12:08</td><td>api.github.com</td><td class="hide-narrow">AAAA</td><td>2001:db8::6</td></tr>
+                        <tr><td>15:09:41</td><td>github.com</td><td class="hide-narrow">A</td><td>203.0.113.3</td></tr>
+                        <tr><td>14:58:17</td><td>objects.githubusercontent.com</td><td class="hide-narrow">A</td><td>198.51.100.133</td></tr>
+                        <tr><td>14:31:02</td><td>avatars.githubusercontent.com</td><td class="hide-narrow">CNAME</td><td>github.map.fastly.net</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <!-- Push -->
+                <section class="lm-pane" data-lm-pane="notify" hidden>
+                  <div class="lm-card"><h2 data-i18n="luci.tabs.notify"></h2><p class="lm-desc" data-i18n="luci.nt.desc"></p></div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.nt.channels"></h3>
+                    <table class="lm-table">
+                      <thead><tr><th data-i18n="luci.lim.enabled"></th><th data-i18n="luci.nt.name"></th><th data-i18n="luci.nt.service"></th><th class="hide-narrow" data-i18n="luci.nt.events"></th><th data-i18n="luci.nt.last"></th></tr></thead>
+                      <tbody>
+                        <tr><td><span class="lm-check on"></span></td><td data-i18n="luci.nt.c1"></td><td>Bark</td><td class="hide-narrow" data-i18n="luci.nt.e1"></td><td class="lm-ok" data-i18n="luci.nt.l1"></td></tr>
+                        <tr><td><span class="lm-check on"></span></td><td data-i18n="luci.nt.c2"></td><td data-i18n="luci.nt.feishu"></td><td class="hide-narrow" data-i18n="luci.nt.e2"></td><td class="lm-ok" data-i18n="luci.nt.l2"></td></tr>
+                        <tr><td><span class="lm-check"></span></td><td>Telegram</td><td>Telegram</td><td class="hide-narrow" data-i18n="luci.nt.e3"></td><td>—</td></tr>
+                      </tbody>
+                    </table>
+                    <span class="lm-btn primary" data-i18n="luci.nt.add"></span>
+                  </div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.nt.watched"></h3>
+                    <table class="lm-table">
+                      <thead><tr><th data-i18n="luci.tr.device"></th><th data-i18n="luci.nt.watch"></th><th data-i18n="luci.nt.trust"></th></tr></thead>
+                      <tbody>
+                        <tr><td>iPhone-16-Pro</td><td><span class="lm-check on"></span></td><td><span class="lm-check on"></span></td></tr>
+                        <tr><td>Front-Camera</td><td><span class="lm-check on"></span></td><td><span class="lm-check on"></span></td></tr>
+                        <tr><td>Galaxy-S25</td><td><span class="lm-check"></span></td><td><span class="lm-check on"></span></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <!-- Settings -->
+                <section class="lm-pane" data-lm-pane="settings" hidden>
+                  <div class="lm-card"><h2 data-i18n="luci.st.title"></h2><p class="lm-desc" data-i18n="luci.st.desc"></p></div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.st.general"></h3>
+                    <div class="lm-form">
+                      <span data-i18n="luci.st.enable"></span><div><span class="lm-check on"></span></div>
+                      <span data-i18n="luci.st.traffic"></span><div><span class="lm-check on"></span><small data-i18n="luci.st.trafficHint"></small></div>
+                      <span data-i18n="luci.st.wireless"></span><div><span class="lm-check on"></span><small data-i18n="luci.st.wirelessHint"></small></div>
+                      <span data-i18n="luci.st.dir"></span><div><span class="lm-input">/etc/routelink</span><small data-i18n="luci.st.dirHint"></small></div>
+                      <span data-i18n="luci.st.write"></span><div><span class="lm-input">0</span><small data-i18n="luci.st.writeHint"></small></div>
+                      <span data-i18n="luci.st.max"></span><div><span class="lm-input">32</span></div>
+                    </div>
+                  </div>
+                  <div class="lm-card">
+                    <h3 data-i18n="luci.st.probe"></h3>
+                    <div class="lm-form">
+                      <span data-i18n="luci.st.targets"></span><div class="lm-chips"><span>223.5.5.5</span><span>119.29.29.29</span><span>1.1.1.1</span><span class="add">+</span></div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <p class="caption" data-i18n="plugin.luci"></p>
         </div>
       </div>
     </section>

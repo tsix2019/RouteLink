@@ -1,21 +1,16 @@
 // Screenshots follow the page: language (zh / en) and theme (light / dark) pick the file.
 //   img[data-shot="ios:overview"]  -> media/shots/<lang>/ios-overview-<theme>.webp (+ -360 for srcset)
-//   img[data-luci="traffic"]       -> media/luci/<lang>-traffic.webp (+ -640)
 //   img[data-widget="router"]      -> media/widgets/widget-preview-[zh-]router.webp
 import { lang, onLang } from './i18n.js';
 import { onTheme, theme } from './theme.js';
 import { $$, reducedMotion } from './util.js';
 
 function source(img) {
-  const { shot, luci, widget } = img.dataset;
+  const { shot, widget } = img.dataset;
   if (shot) {
     const [platform, name] = shot.split(':');
     const base = `media/shots/${lang}/${platform}-${name}-${theme()}`;
     return { src: `${base}.webp`, srcset: `${base}-360.webp 360w, ${base}.webp 720w` };
-  }
-  if (luci) {
-    const base = `media/luci/${lang}-${luci}`;
-    return { src: `${base}.webp`, srcset: `${base}-640.webp 640w, ${base}.webp 1280w` };
   }
   return { src: `media/widgets/widget-preview-${lang === 'zh' ? 'zh-' : ''}${widget}.webp`, srcset: '' };
 }
@@ -68,11 +63,11 @@ export function refresh(img, animate = true) {
 }
 
 export function refreshAll(scope = document) {
-  for (const img of $$('img[data-shot], img[data-luci], img[data-widget]', scope)) refresh(img);
+  for (const img of $$('img[data-shot], img[data-widget]', scope)) refresh(img);
 }
 
 export function initShots() {
-  for (const img of $$('img[data-shot], img[data-luci], img[data-widget]')) refresh(img, false);
+  for (const img of $$('img[data-shot], img[data-widget]')) refresh(img, false);
   onLang(() => refreshAll());
   onTheme(() => refreshAll());
 }

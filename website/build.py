@@ -133,9 +133,6 @@ def image_jobs(media: Path) -> list[tuple[str, str, int, int]]:
         for png in sorted((SCREENSHOTS / lang).glob('*.png')):
             jobs.append((png, media / 'shots' / lang / f'{png.stem}.webp', 720, 82))
             jobs.append((png, media / 'shots' / lang / f'{png.stem}-360.webp', 360, 80))
-    for png in sorted((SCREENSHOTS / 'luci').glob('*.png')):
-        jobs.append((png, media / 'luci' / f'{png.stem}.webp', 1280, 84))
-        jobs.append((png, media / 'luci' / f'{png.stem}-640.webp', 640, 80))
     for png in sorted((ROOT / 'assets' / 'images').glob('widget-preview-*.png')):
         jobs.append((png, media / 'widgets' / f'{png.stem}.webp', 720, 86))
     return [
