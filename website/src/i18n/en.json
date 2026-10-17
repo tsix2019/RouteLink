@@ -1,0 +1,316 @@
+{
+  "meta": {
+    "title": "RouteLink — Your OpenWrt router, in your pocket",
+    "description": "RouteLink is an iOS and Android app for OpenWrt routers: auto-discovery, traffic per device, safe configuration changes, an SSH terminal, an AI assistant and home-screen widgets. Free, open source, no data collection."
+  },
+  "nav": {
+    "label": "Main navigation",
+    "features": "Features",
+    "tour": "Tour",
+    "screens": "Screens",
+    "plugin": "Plugin",
+    "privacy": "Privacy",
+    "download": "Download",
+    "langShort": "中",
+    "langLabel": "切换到中文",
+    "theme": "Switch between light and dark",
+    "github": "View on GitHub",
+    "menu": "Menu"
+  },
+  "hero": {
+    "eyebrow": "Open source · Free · iOS & Android",
+    "title": "Your <span class=\"grad\">OpenWrt</span>,<br>in your pocket",
+    "lead": "RouteLink is a phone app for OpenWrt routers. Liquid Glass design, made for one hand: check the status, manage devices, change settings and see traffic per device.",
+    "ctaDownload": "Download free",
+    "ctaGithub": "GitHub",
+    "meta1": "iOS 17+ · Android 8+",
+    "meta2": "OpenWrt 21.02+",
+    "meta3": "Latest",
+    "cardLive": "Live traffic",
+    "down": "Down",
+    "up": "Up",
+    "cardDevices": "Devices online",
+    "cardDevicesSub": "9 Wi-Fi · 4 wired",
+    "toastTitle": "New device",
+    "toastBody": "Galaxy-S25 joined Demo router",
+    "scroll": "Scroll down"
+  },
+  "marquee": {
+    "label": "Compatibility",
+    "tested": "Tested on OpenWrt 23.05 · 24.10 · 25.12",
+    "langs": "English / 中文",
+    "mit": "MIT licensed",
+    "noads": "No ads · no tracking",
+    "demo": "Built-in demo mode"
+  },
+  "features": {
+    "eyebrow": "Features",
+    "title": "Everything your router needs,<br>right at hand",
+    "lead": "From a quick status check to firewall rules — most days you won't need to open LuCI.",
+    "discover": {
+      "title": "Auto-discovery",
+      "body": "Scans your phone's network for OpenWrt, side routers included. Or scan a subnet you name, or type an address.",
+      "side": "Side router"
+    },
+    "traffic": {
+      "title": "Traffic per device",
+      "body": "With the router plugin: live rates for every device, and usage for any period, per day and per month.",
+      "today": "Today",
+      "week": "7 days",
+      "month": "Month"
+    },
+    "safe": {
+      "title": "Safe changes",
+      "body": "Every change goes through OpenWrt's own apply-and-confirm: if the app can't reach the router afterwards, the router undoes it after 90 seconds.",
+      "seconds": "sec",
+      "waiting": "Waiting for the app",
+      "confirmed": "Confirmed — change kept",
+      "rolledBack": "Unreachable — rolled back"
+    },
+    "ssh": {
+      "title": "SSH terminal",
+      "body": "The router's command line inside the app. Confirm the host key once; the app stops if it ever changes."
+    },
+    "multi": {
+      "title": "Several routers",
+      "body": "Add as many as you like and switch from the capsule in the top-left corner.",
+      "r1": "Home",
+      "r2": "Office",
+      "r3": "Parents'"
+    },
+    "ai": {
+      "title": "AI assistant",
+      "body": "Ask about your router with your own API key. Before it changes anything, it asks you in the chat.",
+      "q": "Who used the most data today?",
+      "a": "Living-Room-TV used 10.0 GB — 38% of today's download. Want me to limit it?",
+      "confirm": "Limit Living-Room-TV · needs your OK",
+      "qwen": "Qwen"
+    },
+    "widgets": {
+      "title": "Widgets & alerts",
+      "body": "Router status, speed and devices online on your home screen; a notification when it goes down, comes back or sees a new device.",
+      "toastTitle": "New device",
+      "toastBody": "iPhone-16-Pro joined Home",
+      "now": "now"
+    },
+    "glass": {
+      "title": "iOS 26 Liquid Glass",
+      "body": "Native Liquid Glass on iOS; on Android the app draws the same design — floating glass tab bar, large titles, rounded grouped lists. Try the tabs below.",
+      "t1": "Overview",
+      "t2": "Devices",
+      "t3": "Wi-Fi",
+      "t4": "Network",
+      "t5": "More"
+    },
+    "demo": {
+      "title": "Demo mode",
+      "body": "No router at hand? Try everything against the simulated OpenWrt router built into the app.",
+      "toggle": "Demo mode",
+      "router": "Demo router",
+      "none": "No router yet"
+    }
+  },
+  "tour": {
+    "eyebrow": "Tour",
+    "title": "Every corner of your router,<br>in plain sight",
+    "s1": {
+      "tag": "Overview",
+      "title": "Know it's fine at a glance",
+      "body": "Model, firmware, load, memory, temperature and internet status; a live traffic chart, devices online, and who used the most today."
+    },
+    "s2": {
+      "tag": "Devices",
+      "title": "Every device, by name",
+      "body": "DHCP leases, the neighbour table and Wi-Fi stations in one list, with vendors and signal. Rename, reserve an IP, block, disconnect, wake — and parental control by schedule."
+    },
+    "s3": {
+      "tag": "Traffic",
+      "title": "Where the data went, device by device",
+      "body": "The plugin adds up connection tracking per device MAC — accurate even with software offloading. Charts and rankings for any period, WAN usage per day and month, CSV export."
+    },
+    "s4": {
+      "tag": "Wi-Fi",
+      "title": "Better Wi-Fi",
+      "body": "Radios, channels and transmit power at hand. A guest network in one step, shared by QR code; a channel scan that picks the least crowded channel; a security check that fixes what it finds."
+    },
+    "s5": {
+      "tag": "Network",
+      "title": "When something breaks, trace it end to end",
+      "body": "One-tap diagnosis checks the phone's Wi-Fi, the access point uplink, WAN and DNS in turn. Firewall, port forwards, WireGuard, VLANs, DDNS and SQM — all editable on the phone."
+    },
+    "s6": {
+      "tag": "Terminal & AI",
+      "title": "When you need to go deeper",
+      "body": "A built-in SSH terminal with Esc, Tab, Ctrl and arrow keys. An AI assistant that looks up status, devices and logs, asks before changing anything, and masks MACs and public IPs by default."
+    }
+  },
+  "screens": {
+    "eyebrow": "Screenshots",
+    "title": "Equally at home<br>on iOS and Android",
+    "lead": "Every screenshot comes from demo mode and follows this page's language and theme.",
+    "platform": "Choose a platform",
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "shots": {
+    "overview": "Overview",
+    "devices": "Devices",
+    "device": "Device details",
+    "wireless": "Wi-Fi",
+    "network": "Network",
+    "traffic": "Traffic",
+    "trafficDevice": "Device traffic",
+    "wan": "WAN history",
+    "firewall": "Firewall",
+    "connections": "Live connections",
+    "parental": "Parental control",
+    "wifiSchedule": "Wi-Fi schedule",
+    "wireguard": "WireGuard",
+    "adblock": "Ad blocking",
+    "firmware": "Firmware upgrade",
+    "packages": "Packages",
+    "terminal": "SSH terminal",
+    "assistant": "AI assistant",
+    "agent": "Router plugin",
+    "more": "More"
+  },
+  "all": {
+    "eyebrow": "All features",
+    "title": "More detail<br>than you'd expect",
+    "tabs": {
+      "overview": "Overview",
+      "devices": "Devices",
+      "wifi": "Wi-Fi",
+      "network": "Network",
+      "more": "More"
+    },
+    "o": {
+      "1": "System: model, firmware, kernel, host name, uptime",
+      "2": "Load, memory, storage — and temperature where the router reports it",
+      "3": "Internet: protocol, IP, gateway, DNS, connected time",
+      "4": "Live traffic chart and devices online",
+      "5": "Today's traffic: download, upload and the busiest devices",
+      "6": "Share Wi-Fi with a QR code",
+      "7": "Reboot, with progress and a check that the router is back",
+      "8": "Ask AI: open the assistant in one tap"
+    },
+    "d": {
+      "1": "One list from DHCP leases, neighbours and Wi-Fi stations, with vendors",
+      "2": "Rename — the name shows up in LuCI and local DNS too",
+      "3": "Reserve an IP, block internet access, disconnect",
+      "4": "Wake-on-LAN, sent by the router or by an Android phone",
+      "5": "Traffic chart and online history of one device",
+      "6": "Parental control by schedule, even across midnight",
+      "7": "Find unknown devices and block them in one tap",
+      "8": "Rate limits and data quotas, blocked or slowed when used up"
+    },
+    "w": {
+      "1": "Radios: on/off, channel, width, transmit power, country",
+      "2": "Networks: name, password, security, hidden",
+      "3": "Guest network in one step: internet only, guests kept apart",
+      "4": "MAC filter and Wi-Fi schedule",
+      "5": "Network groups: manage access points as one network",
+      "6": "Signal monitor: SNR, link rate, roaming log",
+      "7": "Channel scan with the least crowded channel",
+      "8": "Wi-Fi security check with one-tap fixes"
+    },
+    "n": {
+      "1": "Interfaces, WAN and LAN settings",
+      "2": "Traffic stats and WAN usage per day and month",
+      "3": "One-tap diagnosis from the phone to the internet",
+      "4": "ping, traceroute and nslookup",
+      "5": "Outage and latency records, with the cause",
+      "6": "Speed tests on the phone and the router, compared",
+      "7": "Firewall, port forwards, routes, live connections",
+      "8": "VLANs, WireGuard, OpenVPN, DDNS, SQM, ad blocking"
+    },
+    "m": {
+      "1": "Services, processes, packages, scheduled tasks, LEDs",
+      "2": "System and kernel logs — filter and share",
+      "3": "Backup and restore, online firmware upgrade, factory reset",
+      "4": "SSH terminal: key login, key bar, landscape",
+      "5": "AI assistant: several conversations, searchable",
+      "6": "Home-screen widgets — six kinds on Android",
+      "7": "Router push: Bark, Telegram, WeCom, DingTalk, Feishu and more",
+      "8": "Android live monitor: speed in a status bar chip"
+    }
+  },
+  "plugin": {
+    "eyebrow": "Router plugin",
+    "title": "Keeps counting<br>while the app is closed",
+    "lead": "routelinkd is a small C daemon on the router. It keeps recording traffic per device, Wi-Fi signal, latency and outages, and runs rate limits, quotas and push alerts. Install it from the app in one tap; it has a LuCI page too.",
+    "statCpu": "of one CPU core",
+    "statMem": "of memory",
+    "statLoad": "devices / connections tested",
+    "years": "years",
+    "statKeep": "of daily traffic kept",
+    "p1": "Counts IPv4 and IPv6 — accurate with software offloading on",
+    "p2": "Rate limits and quotas with tc and nftables, without touching your firewall config",
+    "p3": "Push to a Webhook, Bark, ServerChan, PushPlus, Telegram, WeCom, DingTalk or Feishu",
+    "p4": "Data stays on your router, and survives firmware upgrades",
+    "luci": "LuCI: Services → RouteLink",
+    "tabApp": "From the app",
+    "appPath": "More → Router plugin → Install plugin",
+    "appHint": "Needs the root account, and the router must reach the official OpenWrt package feeds. If GitHub is slow where you are, enter a download mirror on the same page.",
+    "opkgComment": "# OpenWrt 23.05 / 24.10: replace 24.10 and x86_64 with your release and architecture",
+    "apkComment": "# OpenWrt 25.12: replace x86_64 with your architecture",
+    "copy": "Copy",
+    "copied": "Copied",
+    "support": "OpenWrt 23.05, 24.10 and 25.12; x86_64, aarch64, arm, mipsel and mips."
+  },
+  "privacy": {
+    "eyebrow": "Security & privacy",
+    "title": "Your router<br>stays yours",
+    "lead": "The app talks only to the routers you add — there are no servers of our own. This website uses no cookies and no third-party analytics either.",
+    "keychain": {
+      "title": "Passwords in the keychain",
+      "body": "Router passwords live only in the iOS Keychain or Android Keystore and are never logged — or not saved at all, if you prefer."
+    },
+    "tls": {
+      "title": "Certificate pinning",
+      "body": "Confirm a self-signed certificate's fingerprint on first connection; if it ever changes, the app stops and tells you."
+    },
+    "ssh": {
+      "title": "Host keys",
+      "body": "Confirm the SSH host key on first connection. The app's private key stays in the phone's keychain."
+    },
+    "nodata": {
+      "title": "No data collection",
+      "body": "No analytics, no ads. GitHub is contacted only when you check for updates or install the plugin."
+    },
+    "ai": {
+      "title": "AI off by default",
+      "body": "Once you enable it, only what an answer needs is sent; MACs and public IPs are masked by default, passwords and keys never leave."
+    },
+    "confirm": {
+      "title": "Asks before acting",
+      "body": "Anything that can cut connections comes with a graded warning; the riskiest steps need the router's name typed in."
+    }
+  },
+  "download": {
+    "eyebrow": "Download",
+    "title": "Try it now",
+    "lead": "Free, open source (MIT), no ads. No router? Demo mode lets you try every feature.",
+    "android1": "Android 8.0 or later on ARM",
+    "android2": "Updates install from inside the app",
+    "androidBtn": "Download APK",
+    "ios1": "iOS 17 or later; Liquid Glass needs iOS 26",
+    "ios2": "Not on the App Store — install with AltStore, SideStore, Sideloadly or TrollStore",
+    "iosBtn": "Download IPA",
+    "router": "Router",
+    "router1": "OpenWrt 21.02 or later, with LuCI",
+    "router2": "Everything required ships with LuCI; forks such as ImmortalWrt mostly work",
+    "allReleases": "All releases",
+    "latest": "Latest version",
+    "guide": "Install guide",
+    "guideUrl": "https://github.com/tsix2019/RouteLink/blob/main/README.en.md#install"
+  },
+  "footer": {
+    "tagline": "A phone app for OpenWrt routers.",
+    "links": "Footer links",
+    "issues": "Issues",
+    "license": "MIT License",
+    "thanks": "Thanks to <a href=\"https://openwrt.org\" rel=\"noopener\">OpenWrt</a>, <a href=\"https://github.com/openwrt/luci\" rel=\"noopener\">LuCI</a> and <a href=\"https://expo.dev\" rel=\"noopener\">Expo</a>.",
+    "note": "Screenshots come from demo mode and contain no real router data."
+  }
+}

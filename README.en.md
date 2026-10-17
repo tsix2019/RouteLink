@@ -13,7 +13,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/tsix2019/RouteLink" alt="MIT"></a>
 </p>
 
-RouteLink is a phone app for managing OpenWrt routers, for iOS and Android, in English and Chinese.
+RouteLink is a phone app for managing OpenWrt routers, for iOS and Android, in English and Chinese. Website: <https://tsix2019.github.io/RouteLink/?lang=en>
 
 - **iOS 26 look**: native Liquid Glass on iOS (tab bar, navigation bar, sheets); on Android the same iOS 26 design is drawn by the app: a floating glass tab bar, large-title navigation bars, rounded grouped lists.
 - **Auto-discovery**: scans the phone's network for OpenWrt, side routers included; or scan a subnet you name, or type an address.

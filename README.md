@@ -13,7 +13,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/tsix2019/RouteLink" alt="MIT"></a>
 </p>
 
-RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Android，界面有中文和英文。
+RouteLink 是一款管理 OpenWrt 路由器的手机 App，支持 iOS 和 Android，界面有中文和英文。产品介绍网站：<https://tsix2019.github.io/RouteLink/>
 
 - **iOS 26 风格**：iOS 上用系统原生的液态玻璃（Tab 栏、导航栏、底部面板）；Android 上也按 iOS 26 的样式绘制：悬浮玻璃 Tab 栏、大标题导航栏、圆角分组列表。
 - **自动发现**：扫描手机所在的局域网，找出 OpenWrt 设备，旁路由也能找到；也可以扫描指定网段或手动输入地址。

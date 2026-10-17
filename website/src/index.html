@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title data-i18n="meta.title"></title>
+  <meta name="description" content="" data-i18n-attr="content:meta.description">
+  <meta name="theme-color" content="#f4f6fa" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#05070c" media="(prefers-color-scheme: dark)">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="RouteLink">
+  <meta property="og:title" content="" data-i18n-attr="content:meta.title">
+  <meta property="og:description" content="" data-i18n-attr="content:meta.description">
+  <meta property="og:url" content="https://tsix2019.github.io/RouteLink/">
+  <meta property="og:image" content="https://tsix2019.github.io/RouteLink/media/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://tsix2019.github.io/RouteLink/">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="media/icon-180.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    // Before the first paint: language and theme, so neither flashes. main.js takes over from here.
+    (function () {
+      var d = document.documentElement, lang, theme;
+      try { lang = new URLSearchParams(location.search).get('lang') || localStorage.getItem('rl-lang'); } catch (e) {}
+      if (lang !== 'zh' && lang !== 'en') {
+        lang = /^zh\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || '') ? 'zh' : 'en';
+      }
+      try { theme = localStorage.getItem('rl-theme'); } catch (e) {}
+      if (theme !== 'light' && theme !== 'dark') theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      d.dataset.theme = theme;
+      d.dataset.lang = lang;
+      d.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      d.classList.add('js');
+      setTimeout(function () { d.classList.add('ready'); }, 2500);
+    })();
+  </script>
+  <noscript><style>.js body { opacity: 1 }</style></noscript>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-github" viewBox="0 0 16 16"><path fill="currentColor" stroke="none" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11.5M7 10.5l5 5 5-5M4.5 19.5h15"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/></symbol>
+    <symbol id="i-router" viewBox="0 0 24 24"><rect x="3" y="13" width="18" height="7" rx="2.5"/><path d="M7 16.5h.01M10 16.5h.01M14 16.5h3M8.5 9.5a5 5 0 0 1 7 0M6 7a8.5 8.5 0 0 1 12 0"/></symbol>
+    <symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l5.5-5.5"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M9.3 20V4M14.6 20v-7M20 20V8"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V6z"/><path d="M8.8 12.2l2.3 2.3 4.2-4.5"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M7 9.5l3 2.5-3 2.5M12.5 15h4.5"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9zM18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3.5l8.5 4.5-8.5 4.5L3.5 8z"/><path d="M3.5 12.5l8.5 4.5 8.5-4.5M3.5 16.5l8.5 4.5 8.5-4.5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M10 8.8v6.4l5.2-3.2z"/></symbol>
+    <symbol id="i-switch" viewBox="0 0 24 24"><path d="M4 8h13M14 4.5L17.5 8 14 11.5M20 16H7M10 12.5L6.5 16l3.5 3.5"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l8.5-8.5M16.5 6.5l2.5 2.5M14.5 8.5l2 2"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5M12 14.5v2"/></symbol>
+    <symbol id="i-fingerprint" viewBox="0 0 24 24"><path d="M6.5 17.5c1-1.8 1.5-3.6 1.5-5.5a4 4 0 0 1 8 0c0 2.4-.4 4.6-1.2 6.6M12 12c0 3-.8 5.8-2.4 8.2M5 9.5a7.5 7.5 0 0 1 14 2.5c0 1.6-.1 3-.4 4.4M16.5 20.2c.4-.8.7-1.6.9-2.5"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3.5 3.5l17 17M10 5.3c.7-.2 1.3-.3 2-.3 5 0 8.5 4.5 9.5 7-.4 1-1.2 2.3-2.4 3.6M6.4 6.6C4.6 8 3.3 9.9 2.5 12c1 2.5 4.5 7 9.5 7 1.8 0 3.4-.6 4.8-1.5M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M12 12.5V4.8a1.6 1.6 0 0 1 3.2 0v7M15.2 7.6a1.6 1.6 0 0 1 3.2 0v6.2c0 4-2.7 7.2-6.6 7.2-2.6 0-4.3-1.2-5.6-3.3L3.8 13.4a1.6 1.6 0 0 1 2.6-1.8L8.8 14V6.4a1.6 1.6 0 0 1 3.2 0"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/><path d="M9.5 3v3.5M14.5 3v3.5M9.5 17.5V21M14.5 17.5V21M3 9.5h3.5M3 14.5h3.5M17.5 9.5H21M17.5 14.5H21"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-tv" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 20.5h8"/></symbol>
+    <symbol id="i-desktop" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M12 16.5v4M8 20.5h8"/></symbol>
+    <symbol id="i-laptop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="10" rx="1.5"/><path d="M2.5 19h19l-1.5-4h-16z"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+    <symbol id="i-speaker" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3"/><circle cx="12" cy="14.5" r="3"/><path d="M12 7h.01"/></symbol>
+    <symbol id="i-android" viewBox="0 0 24 24"><path d="M5 16.5v-3.5a7 7 0 0 1 14 0v3.5zM7.5 8.5L5.5 5.5M16.5 8.5l2-3"/><path d="M9 12.5h.01M15 12.5h.01" stroke-width="2.4"/></symbol>
+    <symbol id="i-apple" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="3"/><path d="M10.5 5h3"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4.5h5.5V10M19.5 4.5L11 13M18 14v4a2 2 0 0 1-2 2H6.5a2 2 0 0 1-2-2V8.5a2 2 0 0 1 2-2H10"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2.5 9a14 14 0 0 1 19 0M5.8 12.5a9.2 9.2 0 0 1 12.4 0M9.1 16a4.5 4.5 0 0 1 5.8 0M12 19.5h.01"/></symbol>
+  </svg>
+
+  <div class="backdrop" aria-hidden="true">
+    <div class="aurora a1"></div>
+    <div class="aurora a2"></div>
+    <div class="aurora a3"></div>
+    <div class="grid-lines"></div>
+  </div>
+
+  <header class="nav" id="top">
+    <nav class="nav-bar glass" data-i18n-attr="aria-label:nav.label">
+      <a class="brand" href="#hero">
+        <img src="favicon.svg" alt="" width="30" height="30">
+        <span>RouteLink</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features" data-i18n="nav.features"></a></li>
+        <li><a href="#tour" data-i18n="nav.tour"></a></li>
+        <li><a href="#screens" data-i18n="nav.screens"></a></li>
+        <li><a href="#plugin" data-i18n="nav.plugin"></a></li>
+        <li><a href="#privacy" data-i18n="nav.privacy"></a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="icon-btn lang-btn" type="button" data-action="lang" data-i18n-attr="aria-label:nav.langLabel;title:nav.langLabel"><span data-i18n="nav.langShort"></span></button>
+        <button class="icon-btn theme-btn" type="button" data-action="theme" data-i18n-attr="aria-label:nav.theme;title:nav.theme">
+          <svg class="i sun"><use href="#i-sun"/></svg>
+          <svg class="i moon"><use href="#i-moon"/></svg>
+        </button>
+        <a class="icon-btn hide-sm" href="https://github.com/tsix2019/RouteLink" rel="noopener" data-i18n-attr="aria-label:nav.github;title:nav.github"><svg class="i fill"><use href="#i-github"/></svg></a>
+        <a class="btn btn-primary btn-sm nav-cta" href="#download" data-i18n="nav.download"></a>
+        <button class="icon-btn menu-btn" type="button" data-action="menu" aria-expanded="false" aria-controls="mobile-menu" data-i18n-attr="aria-label:nav.menu"><span class="burger"></span></button>
+      </div>
+    </nav>
+    <div class="mobile-menu glass" id="mobile-menu">
+      <a href="#features" data-i18n="nav.features"></a>
+      <a href="#tour" data-i18n="nav.tour"></a>
+      <a href="#screens" data-i18n="nav.screens"></a>
+      <a href="#plugin" data-i18n="nav.plugin"></a>
+      <a href="#privacy" data-i18n="nav.privacy"></a>
+      <a href="#download" data-i18n="nav.download"></a>
+      <a href="https://github.com/tsix2019/RouteLink" rel="noopener">GitHub</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero" id="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="pill intro" style="--i:0"><span class="pulse"></span><span data-i18n="hero.eyebrow"></span></p>
+          <h1 class="hero-title intro" style="--i:1" data-i18n-html="hero.title"></h1>
+          <p class="hero-lead intro" style="--i:2" data-i18n="hero.lead"></p>
+          <div class="hero-cta intro" style="--i:3">
+            <a class="btn btn-primary btn-lg magnetic" href="#download"><svg class="i"><use href="#i-download"/></svg><span data-i18n="hero.ctaDownload"></span></a>
+            <a class="btn btn-glass btn-lg magnetic" href="https://github.com/tsix2019/RouteLink" rel="noopener"><svg class="i fill"><use href="#i-github"/></svg><span data-i18n="hero.ctaGithub"></span></a>
+          </div>
+          <ul class="hero-meta intro" style="--i:4">
+            <li><svg class="i"><use href="#i-check"/></svg><span data-i18n="hero.meta1"></span></li>
+            <li><svg class="i"><use href="#i-check"/></svg><span data-i18n="hero.meta2"></span></li>
+            <li><svg class="i"><use href="#i-check"/></svg><span data-i18n="hero.meta3"></span> <b data-version>v__VERSION__</b></li>
+          </ul>
+        </div>
+
+        <div class="hero-visual intro" style="--i:2">
+          <div class="hero-stage" data-tilt>
+            <div class="hero-halo" aria-hidden="true"></div>
+            <div class="device hero-android layer" data-depth="0.45">
+              <div class="phone android"><div class="screen"><img data-shot="android:devices" data-i18n-attr="alt:shots.devices" sizes="(min-width: 960px) 250px, 42vw" fetchpriority="high"></div></div>
+            </div>
+            <div class="device hero-ios layer" data-depth="1">
+              <div class="phone ios"><div class="screen"><img data-shot="ios:overview" data-i18n-attr="alt:shots.overview" sizes="(min-width: 960px) 290px, 48vw" fetchpriority="high"></div></div>
+            </div>
+
+            <div class="float-card glass card-live layer" data-depth="1.7" aria-hidden="true">
+              <div class="fc-head"><span class="fc-icon blue"><svg class="i"><use href="#i-chart"/></svg></span><span data-i18n="hero.cardLive"></span></div>
+              <div class="fc-rates">
+                <div><small data-i18n="hero.down"></small><b class="rate down" data-rate="down">30.9</b><em>Mbps</em></div>
+                <div><small data-i18n="hero.up"></small><b class="rate up" data-rate="up">6.7</b><em>Mbps</em></div>
+              </div>
+              <svg class="spark" viewBox="0 0 220 64" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".35"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient>
+                </defs>
+                <path class="spark-area" fill="url(#spark-fill)"/>
+                <path class="spark-down"/>
+                <path class="spark-up"/>
+              </svg>
+            </div>
+            <div class="float-card glass card-devices layer" data-depth="1.35" aria-hidden="true">
+              <div class="fc-head"><span class="fc-icon teal"><svg class="i"><use href="#i-wifi"/></svg></span><span data-i18n="hero.cardDevices"></span></div>
+              <div class="fc-big"><b data-count="13">13</b><span data-i18n="hero.cardDevicesSub"></span></div>
+            </div>
+            <div class="float-card glass card-toast layer" data-depth="2" aria-hidden="true">
+              <img src="favicon.svg" alt="" width="34" height="34">
+              <div><b data-i18n="hero.toastTitle"></b><span data-i18n="hero.toastBody"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <a class="scroll-hint" href="#features" data-i18n-attr="aria-label:hero.scroll"><span></span></a>
+    </section>
+
+    <!-- Compatibility marquee -->
+    <section class="marquee" data-i18n-attr="aria-label:marquee.label">
+      <div class="marquee-track">
+        <ul>
+          <li><svg class="i"><use href="#i-router"/></svg>OpenWrt 21.02+</li>
+          <li data-i18n="marquee.tested"></li>
+          <li><svg class="i"><use href="#i-layers"/></svg>ImmortalWrt</li>
+          <li><svg class="i"><use href="#i-apple"/></svg>iOS 17+</li>
+          <li><svg class="i"><use href="#i-android"/></svg>Android 8.0+</li>
+          <li data-i18n="marquee.langs"></li>
+          <li><svg class="i"><use href="#i-cpu"/></svg>x86_64 · aarch64 · arm · mipsel · mips</li>
+          <li data-i18n="marquee.mit"></li>
+          <li data-i18n="marquee.noads"></li>
+          <li data-i18n="marquee.demo"></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Feature bento -->
+    <section class="section" id="features">
+      <div class="container">
+        <header class="section-head" data-reveal>
+          <p class="eyebrow" data-i18n="features.eyebrow"></p>
+          <h2 data-i18n-html="features.title"></h2>
+          <p class="lead" data-i18n="features.lead"></p>
+        </header>
+
+        <div class="bento">
+          <article class="tile tile-discover" data-reveal style="--i:0">
+            <div class="tile-text">
+              <span class="tile-icon"><svg class="i"><use href="#i-radar"/></svg></span>
+              <h3 data-i18n="features.discover.title"></h3>
+              <p data-i18n="features.discover.body"></p>
+            </div>
+            <div class="radar" aria-hidden="true">
+              <div class="radar-ring r1"></div><div class="radar-ring r2"></div><div class="radar-ring r3"></div>
+              <div class="radar-sweep"></div>
+              <div class="radar-core"><svg class="i"><use href="#i-phone"/></svg></div>
+              <div class="blip b1" style="--a:-38deg;--r:72%;--t:.58s"><i></i><span><b>OpenWrt</b> 192.168.8.1</span></div>
+              <div class="blip b2" style="--a:112deg;--r:84%;--t:2.24s"><i></i><span><b data-i18n="features.discover.side"></b> 192.168.8.2</span></div>
+              <div class="blip b3" style="--a:212deg;--r:56%;--t:3.36s"><i></i><span><b>AP</b> 192.168.8.3</span></div>
+            </div>
+          </article>
+
+          <article class="tile tile-traffic" data-reveal style="--i:1">
+            <div class="tile-text">
+              <span class="tile-icon"><svg class="i"><use href="#i-chart"/></svg></span>
+              <h3 data-i18n="features.traffic.title"></h3>
+              <p data-i18n="features.traffic.body"></p>
+            </div>
+            <div class="traffic-demo">
+              <div class="seg" role="tablist" data-seg="traffic">
+                <button type="button" role="tab" aria-selected="true" data-range="0" data-i18n="features.traffic.today"></button>
+                <button type="button" role="tab" aria-selected="false" data-range="1" data-i18n="features.traffic.week"></button>
+                <button type="button" role="tab" aria-selected="false" data-range="2" data-i18n="features.traffic.month"></button>
+                <span class="seg-thumb"></span>
+              </div>
+              <ul class="bars">
+                <li><svg class="i"><use href="#i-tv"/></svg><span class="name">Living-Room-TV</span><span class="bar"><i></i></span><b>10.0 GB</b></li>
+                <li><svg class="i"><use href="#i-desktop"/></svg><span class="name">Desk-PC</span><span class="bar"><i></i></span><b>5.2 GB</b></li>
+                <li><svg class="i"><use href="#i-laptop"/></svg><span class="name">MacBook-Air</span><span class="bar"><i></i></span><b>4.5 GB</b></li>
+                <li><svg class="i"><use href="#i-phone"/></svg><span class="name">iPhone-16-Pro</span><span class="bar"><i></i></span><b>2.8 GB</b></li>
+                <li><svg class="i"><use href="#i-speaker"/></svg><span class="name">Echo-Dot</span><span class="bar"><i></i></span><b>0.3 GB</b></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="tile tile-safe" data-reveal style="--i:0">
+            <div class="tile-text">
+              <span class="tile-icon"><svg class="i"><use href="#i-shield"/></svg></span>
+              <h3 data-i18n="features.safe.title"></h3>
+              <p data-i18n="features.safe.body"></p>
+            </div>
+            <div class="safe-demo" data-state="waiting" aria-hidden="true">
+              <svg class="ring" viewBox="0 0 120 120">
+                <circle class="ring-track" cx="60" cy="60" r="52"/>
+                <circle class="ring-bar" cx="60" cy="60" r="52"/>
+              </svg>
+              <div class="ring-center"><b class="ring-num">90</b><small data-i18n="features.safe.seconds"></small></div>
+              <p class="safe-status">
+                <span class="st waiting" data-i18n="features.safe.waiting"></span>
+                <span class="st confirmed" data-i18n="features.safe.confirmed"></span>
+                <span class="st rolled" data-i18n="features.safe.rolledBack"></span>
+              </p>
+            </div>
+          </article>
+
+          <article class="tile tile-ssh" data-reveal style="--i:1">
+            <div class="tile-text">
+              <span class="tile-icon"><svg class="i"><use href="#i-terminal"/></svg></span>
+              <h3 data-i18n="features.ssh.title"></h3>
+              <p data-i18n="features.ssh.body"></p>
+            </div>
+            <div class="term" aria-hidden="true">
+              <div class="term-bar"><i></i><i></i><i></i><span>root@OpenWrt</span></div>
+              <pre class="term-body"></pre>
+              <div class="term-keys"><span>Esc</span><span>Tab</span><span>Ctrl</span><span>↑</span><span>↓</span><span>←</span><span>→</span></div>
+            </div>
+          </article>
+
+          <article class="tile tile-multi" data-reveal style="--i:2">
+            <div class="tile-text">
+              <span class="tile-icon"><svg class="i"><use href="#i-switch"/></svg></span>
+              <h3 data-i18n="features.multi.title"></h3>
+              <p data-i18n="features.multi.body"></p>
+            </div>
+            <div class="multi-demo" aria-hidden="true">
+              <div class="capsule glass"><span class="dot"></span><span class="capsule-names"><span data-i18n="features.multi.r1"></span><span data-i18n="features.multi.r2"></span><span data-i18n="features.multi.r3"></span></span><svg class="i"><use href="#i-chevron-down"/></svg></div>
+              <ul class="router-list">
+                <li><svg class="i"><use href="#i-router"/></svg><span data-i18n="features.multi.r1"></span><small>192.168.8.1</small><svg class="i tick"><use href="#i-check"/></svg></li>
+                <li><svg class="i"><use href="#i-router"/></svg><span data-i18n="features.multi.r2"></span><small>10.0.0.1</small><svg class="i tick"><use href="#i-check"/></svg></li>
+                <li><svg class="i"><use href="#i-router"/></svg><span data-i18n="features.multi.r3"></span><small>192.168.1.1</small><svg class="i tick"><use href="#i-check"/></svg></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="tile tile-ai" data-reveal style="--i:0">
+            <div class="tile-text">
+              <span class="tile-icon"><svg class="i"><use href="#i-sparkle"/></svg></span>
+              <h3 data-i18n="features.ai.title"></h3>
+              <p data-i18n="features.ai.body"></p>
+            </div>
+            <div class="chat" aria-hidden="true">
+              <div class="bubble me" data-i18n="features.ai.q"></div>
+              <div class="bot-slot">
+                <div class="bubble bot typing"><i></i><i></i><i></i></div>
+                <div class="bubble bot answer" data-i18n="features.ai.a"></div>
+              </div>
+              <div class="confirm-chip"><svg class="i"><use href="#i-hand"/></svg><span data-i18n="features.ai.confirm"></span></div>
+              <ul class="providers">
+                <li>Claude</li><li>OpenAI</li><li>DeepSeek</li><li data-i18n="features.ai.qwen"></li><li>Ollama</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="tile tile-widgets" data-reveal style="--i:1">
+            <div class="tile-text">
+              <span class="tile-icon"><svg class="i"><use href="#i-bell"/></svg></span>
+              <h3 data-i18n="features.widgets.title"></h3>
+              <p data-i18n="features.widgets.body"></p>
+            </div>
+            <div class="widgets-demo" aria-hidden="true">
+              <img class="widget w-router" data-widget="router" alt="" width="231" height="293" loading="lazy">
+              <img class="widget w-speed" data-widget="speed" alt="" width="231" height="136" loading="lazy">
+              <div class="toast glass">
+                <img src="favicon.svg" alt="" width="30" height="30">
+                <div><b data-i18n="features.widgets.toastTitle"></b><span data-i18n="features.widgets.toastBody"></span></div>
+                <small data-i18n="features.widgets.now"></small>
+              </div>
+            </div>
+          </article>
+
+          <article class="tile tile-glass" data-reveal style="--i:0">
+            <div class="tile-text">
+              <span class="tile-icon"><svg class="i"><use href="#i-layers"/></svg></span>
+              <h3 data-i18n="features.glass.title"></h3>
+              <p data-i18n="features.glass.body"></p>
+            </div>
+            <div class="glass-demo">
+              <div class="glass-scene" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+              <div class="tabbar" role="tablist" data-i18n-attr="aria-label:features.glass.title">
+                <span class="tab-thumb"></span>
+                <button type="button" role="tab" aria-selected="true"><svg class="i"><use href="#i-clock"/></svg><span data-i18n="features.glass.t1"></span></button>
+                <button type="button" role="tab" aria-selected="false"><svg class="i"><use href="#i-laptop"/></svg><span data-i18n="features.glass.t2"></span></button>
+                <button type="button" role="tab" aria-selected="false"><svg class="i"><use href="#i-wifi"/></svg><span data-i18n="features.glass.t3"></span></button>
+                <button type="button" role="tab" aria-selected="false"><svg class="i"><use href="#i-radar"/></svg><span data-i18n="features.glass.t4"></span></button>
+                <button type="button" role="tab" aria-selected="false"><svg class="i"><use href="#i-layers"/></svg><span data-i18n="features.glass.t5"></span></button>
+              </div>
+            </div>
+          </article>
+
+          <article class="tile tile-demo" data-reveal style="--i:1">
+            <div class="tile-text">
+              <span class="tile-icon"><svg class="i"><use href="#i-play"/></svg></span>
+              <h3 data-i18n="features.demo.title"></h3>
+              <p data-i18n="features.demo.body"></p>
+            </div>
+            <div class="demo-capsule glass" aria-hidden="true"><span class="dot"></span><span class="on" data-i18n="features.demo.router"></span><span class="off" data-i18n="features.demo.none"></span></div>
+            <label class="demo-switch">
+              <span data-i18n="features.demo.toggle"></span>
+              <input type="checkbox" role="switch" checked>
+              <i></i>
+            </label>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scroll story -->
+    <section class="section tour" id="tour">
+      <div class="container">
+        <header class="section-head" data-reveal>
+          <p class="eyebrow" data-i18n="tour.eyebrow"></p>
+          <h2 data-i18n-html="tour.title"></h2>
+        </header>
+        <div class="tour-grid">
+          <div class="tour-steps">
+            <article class="step" data-shot-name="overview">
+              <span class="step-num">01</span>
+              <p class="step-tag" data-i18n="tour.s1.tag"></p>
+              <h3 data-i18n="tour.s1.title"></h3>
+              <p data-i18n="tour.s1.body"></p>
+              <div class="device step-shot"><div class="phone ios"><div class="screen"><img data-shot="ios:overview" data-i18n-attr="alt:shots.overview" loading="lazy" sizes="70vw"></div></div></div>
+            </article>
+            <article class="step" data-shot-name="devices">
+              <span class="step-num">02</span>
+              <p class="step-tag" data-i18n="tour.s2.tag"></p>
+              <h3 data-i18n="tour.s2.title"></h3>
+              <p data-i18n="tour.s2.body"></p>
+              <div class="device step-shot"><div class="phone ios"><div class="screen"><img data-shot="ios:devices" data-i18n-attr="alt:shots.devices" loading="lazy" sizes="70vw"></div></div></div>
+            </article>
+            <article class="step" data-shot-name="traffic">
+              <span class="step-num">03</span>
+              <p class="step-tag" data-i18n="tour.s3.tag"></p>
+              <h3 data-i18n="tour.s3.title"></h3>
+              <p data-i18n="tour.s3.body"></p>
+              <div class="device step-shot"><div class="phone ios"><div class="screen"><img data-shot="ios:traffic" data-i18n-attr="alt:shots.traffic" loading="lazy" sizes="70vw"></div></div></div>
+            </article>
+            <article class="step" data-shot-name="wireless">
+              <span class="step-num">04</span>
+              <p class="step-tag" data-i18n="tour.s4.tag"></p>
+              <h3 data-i18n="tour.s4.title"></h3>
+              <p data-i18n="tour.s4.body"></p>
+              <div class="device step-shot"><div class="phone ios"><div class="screen"><img data-shot="ios:wireless" data-i18n-attr="alt:shots.wireless" loading="lazy" sizes="70vw"></div></div></div>
+            </article>
+            <article class="step" data-shot-name="network">
+              <span class="step-num">05</span>
+              <p class="step-tag" data-i18n="tour.s5.tag"></p>
+              <h3 data-i18n="tour.s5.title"></h3>
+              <p data-i18n="tour.s5.body"></p>
+              <div class="device step-shot"><div class="phone ios"><div class="screen"><img data-shot="ios:network" data-i18n-attr="alt:shots.network" loading="lazy" sizes="70vw"></div></div></div>
+            </article>
+            <article class="step" data-shot-name="terminal">
+              <span class="step-num">06</span>
+              <p class="step-tag" data-i18n="tour.s6.tag"></p>
+              <h3 data-i18n="tour.s6.title"></h3>
+              <p data-i18n="tour.s6.body"></p>
+              <div class="device step-shot"><div class="phone ios"><div class="screen"><img data-shot="ios:terminal" data-i18n-attr="alt:shots.terminal" loading="lazy" sizes="70vw"></div></div></div>
+            </article>
+          </div>
+          <div class="tour-stage" aria-hidden="true">
+            <div class="tour-sticky">
+              <div class="tour-halo"></div>
+              <div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:overview" alt="" loading="lazy" sizes="320px"></div></div></div>
+              <ol class="tour-dots"><li></li><li></li><li></li><li></li><li></li><li></li></ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screenshot gallery -->
+    <section class="section screens" id="screens">
+      <div class="container">
+        <header class="section-head row" data-reveal>
+          <div>
+            <p class="eyebrow" data-i18n="screens.eyebrow"></p>
+            <h2 data-i18n-html="screens.title"></h2>
+            <p class="lead" data-i18n="screens.lead"></p>
+          </div>
+          <div class="seg seg-lg" role="tablist" data-seg="platform" data-i18n-attr="aria-label:screens.platform">
+            <button type="button" role="tab" aria-selected="true" data-platform="ios"><svg class="i"><use href="#i-apple"/></svg>iOS</button>
+            <button type="button" role="tab" aria-selected="false" data-platform="android"><svg class="i"><use href="#i-android"/></svg>Android</button>
+            <span class="seg-thumb"></span>
+          </div>
+        </header>
+      </div>
+      <div class="rail-wrap" data-reveal>
+        <div class="rail" data-platform="ios" tabindex="0" data-i18n-attr="aria-label:screens.eyebrow">
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:overview" data-i18n-attr="alt:shots.overview" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.overview"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:devices" data-i18n-attr="alt:shots.devices" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.devices"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:device" data-i18n-attr="alt:shots.device" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.device"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:wireless" data-i18n-attr="alt:shots.wireless" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.wireless"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:network" data-i18n-attr="alt:shots.network" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.network"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:traffic" data-i18n-attr="alt:shots.traffic" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.traffic"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:traffic-device" data-i18n-attr="alt:shots.trafficDevice" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.trafficDevice"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:wan" data-i18n-attr="alt:shots.wan" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.wan"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:firewall" data-i18n-attr="alt:shots.firewall" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.firewall"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:connections" data-i18n-attr="alt:shots.connections" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.connections"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:parental" data-i18n-attr="alt:shots.parental" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.parental"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:wifi-schedule" data-i18n-attr="alt:shots.wifiSchedule" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.wifiSchedule"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:wireguard" data-i18n-attr="alt:shots.wireguard" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.wireguard"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:adblock" data-i18n-attr="alt:shots.adblock" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.adblock"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:firmware" data-i18n-attr="alt:shots.firmware" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.firmware"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:packages" data-i18n-attr="alt:shots.packages" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.packages"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:terminal" data-i18n-attr="alt:shots.terminal" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.terminal"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:assistant" data-i18n-attr="alt:shots.assistant" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.assistant"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:agent" data-i18n-attr="alt:shots.agent" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.agent"></figcaption></figure>
+          <figure class="shot-card"><div class="device"><div class="phone ios"><div class="screen"><img data-shot="ios:more" data-i18n-attr="alt:shots.more" loading="lazy" sizes="240px"></div></div></div><figcaption data-i18n="shots.more"></figcaption></figure>
+        </div>
+      </div>
+      <div class="container rail-controls">
+        <div class="rail-progress"><i></i></div>
+        <div class="rail-buttons">
+          <button class="icon-btn glass" type="button" data-rail="prev" data-i18n-attr="aria-label:screens.prev"><svg class="i"><use href="#i-chevron-left"/></svg></button>
+          <button class="icon-btn glass" type="button" data-rail="next" data-i18n-attr="aria-label:screens.next"><svg class="i"><use href="#i-chevron-right"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Full feature list -->
+    <section class="section" id="all-features">
+      <div class="container">
+        <header class="section-head" data-reveal>
+          <p class="eyebrow" data-i18n="all.eyebrow"></p>
+          <h2 data-i18n-html="all.title"></h2>
+        </header>
+        <div class="tabs" data-reveal>
+          <div class="tab-list" role="tablist" data-i18n-attr="aria-label:all.eyebrow">
+            <button type="button" role="tab" id="tab-o" aria-controls="panel-o" aria-selected="true" data-i18n="all.tabs.overview"></button>
+            <button type="button" role="tab" id="tab-d" aria-controls="panel-d" aria-selected="false" tabindex="-1" data-i18n="all.tabs.devices"></button>
+            <button type="button" role="tab" id="tab-w" aria-controls="panel-w" aria-selected="false" tabindex="-1" data-i18n="all.tabs.wifi"></button>
+            <button type="button" role="tab" id="tab-n" aria-controls="panel-n" aria-selected="false" tabindex="-1" data-i18n="all.tabs.network"></button>
+            <button type="button" role="tab" id="tab-m" aria-controls="panel-m" aria-selected="false" tabindex="-1" data-i18n="all.tabs.more"></button>
+            <span class="tab-thumb"></span>
+          </div>
+          <div class="tab-panels">
+            <ul class="tab-panel" role="tabpanel" id="panel-o" aria-labelledby="tab-o">
+              <li data-i18n="all.o.1"></li><li data-i18n="all.o.2"></li><li data-i18n="all.o.3"></li><li data-i18n="all.o.4"></li>
+              <li data-i18n="all.o.5"></li><li data-i18n="all.o.6"></li><li data-i18n="all.o.7"></li><li data-i18n="all.o.8"></li>
+            </ul>
+            <ul class="tab-panel" role="tabpanel" id="panel-d" aria-labelledby="tab-d" hidden>
+              <li data-i18n="all.d.1"></li><li data-i18n="all.d.2"></li><li data-i18n="all.d.3"></li><li data-i18n="all.d.4"></li>
+              <li data-i18n="all.d.5"></li><li data-i18n="all.d.6"></li><li data-i18n="all.d.7"></li><li data-i18n="all.d.8"></li>
+            </ul>
+            <ul class="tab-panel" role="tabpanel" id="panel-w" aria-labelledby="tab-w" hidden>
+              <li data-i18n="all.w.1"></li><li data-i18n="all.w.2"></li><li data-i18n="all.w.3"></li><li data-i18n="all.w.4"></li>
+              <li data-i18n="all.w.5"></li><li data-i18n="all.w.6"></li><li data-i18n="all.w.7"></li><li data-i18n="all.w.8"></li>
+            </ul>
+            <ul class="tab-panel" role="tabpanel" id="panel-n" aria-labelledby="tab-n" hidden>
+              <li data-i18n="all.n.1"></li><li data-i18n="all.n.2"></li><li data-i18n="all.n.3"></li><li data-i18n="all.n.4"></li>
+              <li data-i18n="all.n.5"></li><li data-i18n="all.n.6"></li><li data-i18n="all.n.7"></li><li data-i18n="all.n.8"></li>
+            </ul>
+            <ul class="tab-panel" role="tabpanel" id="panel-m" aria-labelledby="tab-m" hidden>
+              <li data-i18n="all.m.1"></li><li data-i18n="all.m.2"></li><li data-i18n="all.m.3"></li><li data-i18n="all.m.4"></li>
+              <li data-i18n="all.m.5"></li><li data-i18n="all.m.6"></li><li data-i18n="all.m.7"></li><li data-i18n="all.m.8"></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Router plugin -->
+    <section class="section plugin" id="plugin">
+      <div class="container plugin-grid">
+        <div class="plugin-copy">
+          <header class="section-head left" data-reveal>
+            <p class="eyebrow" data-i18n="plugin.eyebrow"></p>
+            <h2 data-i18n-html="plugin.title"></h2>
+            <p class="lead" data-i18n="plugin.lead"></p>
+          </header>
+          <dl class="stats" data-reveal>
+            <div><dt><b data-count="0.04" data-decimals="2">0.04</b>%</dt><dd data-i18n="plugin.statCpu"></dd></div>
+            <div><dt><b data-count="1.7" data-decimals="1">1.7</b> MB</dt><dd data-i18n="plugin.statMem"></dd></div>
+            <div><dt><b data-count="52">52</b> / <b data-count="5000">5000</b></dt><dd data-i18n="plugin.statLoad"></dd></div>
+            <div><dt><b data-count="2">2</b> <span data-i18n="plugin.years"></span></dt><dd data-i18n="plugin.statKeep"></dd></div>
+          </dl>
+          <ul class="checks" data-reveal>
+            <li data-i18n="plugin.p1"></li>
+            <li data-i18n="plugin.p2"></li>
+            <li data-i18n="plugin.p3"></li>
+            <li data-i18n="plugin.p4"></li>
+          </ul>
+        </div>
+        <div class="plugin-visual">
+          <div class="browser glass" data-reveal data-tilt-in>
+            <div class="browser-bar"><i></i><i></i><i></i><span>192.168.8.1/cgi-bin/luci/admin/services/routelink</span></div>
+            <div class="luci-crop"><img data-luci="overview" data-i18n-attr="alt:plugin.luci" loading="lazy" sizes="(min-width: 960px) 760px, 120vw" width="1280" height="900"></div>
+          </div>
+          <p class="caption" data-i18n="plugin.luci"></p>
+          <div class="install" data-reveal>
+            <div class="seg" role="tablist" data-seg="install">
+              <button type="button" role="tab" aria-selected="true" data-pane="app" data-i18n="plugin.tabApp"></button>
+              <button type="button" role="tab" aria-selected="false" data-pane="opkg">opkg</button>
+              <button type="button" role="tab" aria-selected="false" data-pane="apk">apk</button>
+              <span class="seg-thumb"></span>
+            </div>
+            <div class="code-pane" data-pane="app">
+              <p class="install-app"><span data-i18n="plugin.appPath"></span></p>
+              <p class="hint" data-i18n="plugin.appHint"></p>
+            </div>
+            <div class="code-pane" data-pane="opkg" hidden>
+              <pre class="code"><code><span class="c" data-i18n="plugin.opkgComment"></span>
+wget -O /etc/opkg/keys/a276fe73982c5f59 \
+  https://tsix2019.github.io/RouteLink/agent/keys/a276fe73982c5f59
+echo 'src/gz routelink https://tsix2019.github.io/RouteLink/agent/24.10/x86_64' \
+  &gt;&gt; /etc/opkg/customfeeds.conf
+opkg update &amp;&amp; opkg install routelinkd luci-app-routelink luci-i18n-routelink-zh-cn</code></pre>
+              <button class="copy-btn" type="button" data-copy><svg class="i"><use href="#i-copy"/></svg><span data-i18n="plugin.copy"></span></button>
+            </div>
+            <div class="code-pane" data-pane="apk" hidden>
+              <pre class="code"><code><span class="c" data-i18n="plugin.apkComment"></span>
+wget -O /etc/apk/keys/routelink.pem \
+  https://tsix2019.github.io/RouteLink/agent/keys/routelink-apk.pem
+echo 'https://tsix2019.github.io/RouteLink/agent/25.12/x86_64/packages.adb' \
+  &gt;&gt; /etc/apk/repositories.d/customfeeds.list
+apk update &amp;&amp; apk add routelinkd luci-app-routelink luci-i18n-routelink-zh-cn</code></pre>
+              <button class="copy-btn" type="button" data-copy><svg class="i"><use href="#i-copy"/></svg><span data-i18n="plugin.copy"></span></button>
+            </div>
+            <p class="hint" data-i18n="plugin.support"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security & privacy -->
+    <section class="section" id="privacy">
+      <div class="container">
+        <header class="section-head" data-reveal>
+          <p class="eyebrow" data-i18n="privacy.eyebrow"></p>
+          <h2 data-i18n-html="privacy.title"></h2>
+          <p class="lead" data-i18n="privacy.lead"></p>
+        </header>
+        <div class="privacy-grid">
+          <article class="p-card" data-reveal style="--i:0"><span class="p-icon"><svg class="i"><use href="#i-key"/></svg></span><h3 data-i18n="privacy.keychain.title"></h3><p data-i18n="privacy.keychain.body"></p></article>
+          <article class="p-card" data-reveal style="--i:1"><span class="p-icon"><svg class="i"><use href="#i-lock"/></svg></span><h3 data-i18n="privacy.tls.title"></h3><p data-i18n="privacy.tls.body"></p></article>
+          <article class="p-card" data-reveal style="--i:2"><span class="p-icon"><svg class="i"><use href="#i-fingerprint"/></svg></span><h3 data-i18n="privacy.ssh.title"></h3><p data-i18n="privacy.ssh.body"></p></article>
+          <article class="p-card" data-reveal style="--i:0"><span class="p-icon"><svg class="i"><use href="#i-eye-off"/></svg></span><h3 data-i18n="privacy.nodata.title"></h3><p data-i18n="privacy.nodata.body"></p></article>
+          <article class="p-card" data-reveal style="--i:1"><span class="p-icon"><svg class="i"><use href="#i-sparkle"/></svg></span><h3 data-i18n="privacy.ai.title"></h3><p data-i18n="privacy.ai.body"></p></article>
+          <article class="p-card" data-reveal style="--i:2"><span class="p-icon"><svg class="i"><use href="#i-hand"/></svg></span><h3 data-i18n="privacy.confirm.title"></h3><p data-i18n="privacy.confirm.body"></p></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download -->
+    <section class="section download" id="download">
+      <div class="container">
+        <div class="cta-panel" data-reveal>
+          <div class="cta-glow" aria-hidden="true"></div>
+          <header class="section-head">
+            <img class="cta-icon" src="favicon.svg" alt="" width="84" height="84">
+            <p class="eyebrow" data-i18n="download.eyebrow"></p>
+            <h2 data-i18n-html="download.title"></h2>
+            <p class="lead" data-i18n="download.lead"></p>
+          </header>
+          <div class="dl-grid">
+            <article class="dl-card">
+              <span class="dl-icon"><svg class="i"><use href="#i-android"/></svg></span>
+              <h3>Android</h3>
+              <ul><li data-i18n="download.android1"></li><li data-i18n="download.android2"></li></ul>
+              <a class="btn btn-primary" data-dl="android" href="https://github.com/tsix2019/RouteLink/releases/latest" rel="noopener"><svg class="i"><use href="#i-download"/></svg><span data-i18n="download.androidBtn"></span></a>
+            </article>
+            <article class="dl-card">
+              <span class="dl-icon"><svg class="i"><use href="#i-apple"/></svg></span>
+              <h3>iOS</h3>
+              <ul><li data-i18n="download.ios1"></li><li data-i18n="download.ios2"></li></ul>
+              <a class="btn btn-primary" data-dl="ios" href="https://github.com/tsix2019/RouteLink/releases/latest/download/RouteLink-unsigned.ipa" rel="noopener"><svg class="i"><use href="#i-download"/></svg><span data-i18n="download.iosBtn"></span></a>
+            </article>
+            <article class="dl-card">
+              <span class="dl-icon"><svg class="i"><use href="#i-router"/></svg></span>
+              <h3 data-i18n="download.router"></h3>
+              <ul><li data-i18n="download.router1"></li><li data-i18n="download.router2"></li></ul>
+              <a class="btn btn-glass" href="https://github.com/tsix2019/RouteLink/releases" rel="noopener"><svg class="i"><use href="#i-external"/></svg><span data-i18n="download.allReleases"></span></a>
+            </article>
+          </div>
+          <p class="dl-version"><span data-i18n="download.latest"></span> <b data-version>v__VERSION__</b> · <a href="https://github.com/tsix2019/RouteLink#%E5%AE%89%E8%A3%85" data-i18n="download.guide" data-i18n-attr="href:download.guideUrl" rel="noopener"></a></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="#hero"><img src="favicon.svg" alt="" width="30" height="30"><span>RouteLink</span></a>
+        <p data-i18n="footer.tagline"></p>
+      </div>
+      <nav class="footer-links" data-i18n-attr="aria-label:footer.links">
+        <a href="https://github.com/tsix2019/RouteLink" rel="noopener">GitHub</a>
+        <a href="https://github.com/tsix2019/RouteLink/releases" rel="noopener">Releases</a>
+        <a href="https://github.com/tsix2019/RouteLink/issues" rel="noopener" data-i18n="footer.issues"></a>
+        <a href="https://github.com/tsix2019/RouteLink/blob/main/LICENSE" rel="noopener" data-i18n="footer.license"></a>
+      </nav>
+      <div class="footer-note">
+        <p data-i18n-html="footer.thanks"></p>
+        <p data-i18n="footer.note"></p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

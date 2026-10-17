@@ -15,11 +15,12 @@ scripts/verify.sh [jest filters]  # pre-commit gate: typecheck + eslint --max-wa
 npm run test:int                  # integration tests against a real OpenWrt (needs ROUTER_URL / ROUTER_PASSWORD)
 npx jest -c jest.agent.config.js  # routelinkd tests (test/agent/*.agent.ts) against the plugin test router
 scripts/agent-test.sh [ctest -R filter]   # routelinkd C unit tests under ASan/UBSan in Docker
+python website/build.py           # product website -> website/dist (needs Pillow); see website/README.md
 npm start                         # expo start --dev-client (needs a dev build; Expo Go lacks routelink-native)
 npm run android | npm run ios     # expo run:*
 ```
 
-CI (`.github/workflows/ci.yml`) runs typecheck, lint and `npm test -- --ci`. The QEMU integration job (`integration.yml`) only runs on `main` when router-facing code changes.
+CI (`.github/workflows/ci.yml`) runs typecheck, lint and `npm test -- --ci`. The QEMU integration job (`integration.yml`) only runs on `main` when router-facing code changes. `pages.yml` deploys GitHub Pages, which holds both the website and the plugin feed under `/agent/` (each deployment replaces the whole site; see `website/README.md`).
 
 - `ios/` and `android/` are generated (Continuous Native Generation, git-ignored). Configure native behaviour in `app.config.ts` and `plugins/*.js` config plugins, never by hand. `android/` may exist locally from a prebuild; it is not source.
 - Local test routers are Docker OpenWrt containers: `scripts/dev-router.sh up|down` (`routelink-owrt`, LuCI on :18080, `root` / `routelink-test`) and `scripts/agent-router.sh` (plugin tests, :18280). They are shared across worktrees: `up` removes and recreates the container, so use `RL_AGENT_NAME` / `RL_AGENT_NET` / `RL_AGENT_PORT` for a private instance. From the Android emulator the host is `10.0.2.2`.

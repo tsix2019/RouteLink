@@ -3,6 +3,7 @@ name: OpenWrt release
 # Tag agent-vX.Y.Z (or agent-vX.Y.Z-rc.N for a pre-release) on a commit that passed openwrt.yml.
 # Needs the repository secrets OPENWRT_USIGN_KEY and OPENWRT_APK_KEY, and GitHub Pages set to
 # "GitHub Actions". Pre-releases get a GitHub release but do not replace the feed on Pages.
+# Pages also hosts the website, so the feed goes out through pages.yml, which deploys both.
 # A tag can be published again by hand (workflow_dispatch), reusing a finished run's packages.
 on:
   push:
@@ -37,11 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pages: write
-      id-token: write
       actions: read
-    environment:
-      name: github-pages
+    outputs:
+      pre: ${{ steps.classify.outputs.pre }}
     env:
       TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
     steps:
@@ -88,9 +87,20 @@ jobs:
               --title "RouteLink router plugin ${TAG#agent-v}" \
               --notes-file openwrt/RELEASE_NOTES.md
           fi
-      - uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: steps.classify.outputs.pre == 'false'
         with:
-          path: release/pages
-      - uses: actions/deploy-pages@v5
-        if: steps.classify.outputs.pre == 'false'
+          name: agent-pages
+          path: release/pages/agent
+          retention-days: 1
+
+  pages:
+    needs: publish
+    if: ${{ !cancelled() && needs.publish.result == 'success' && needs.publish.outputs.pre == 'false' }}
+    uses: ./.github/workflows/pages.yml
+    with:
+      feed-artifact: agent-pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
